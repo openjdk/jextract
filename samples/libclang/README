@@ -1,0 +1,10 @@
+You need to build llvm/libclang (https://clang.llvm.org/docs/Tooling.html) or install libclang.
+Set LIBCLANG_HOME env. var to be the directory where you've installed libclang.
+
+Command line to jextract clang's Index.h
+
+$ sh ./compile.sh
+
+Command line to parse and print AST of a sample .c file
+
+$ sh ./run.sh hello.c

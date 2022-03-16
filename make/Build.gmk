@@ -1,0 +1,169 @@
+include make/Common.gmk
+
+$(eval $(call SetupVariable,PANAMA_JAVA_HOME))
+$(eval $(call SetupVariable,LIBCLANG_HOME))
+$(eval $(call SetupVariable,LIBCLANG_VERSION,,NO_CHECK))
+$(eval $(call SetupVariable,JOPT_SIMPLE_JAR))
+
+include make/NativeCompilation.gmk
+
+ifeq ($(PLATFORM_OS), windows)
+  JPACKAGE_ARGS := --win-console
+else
+  JPACKAGE_ARGS :=
+endif
+
+ifeq ($(PLATFORM_OS), macosx)
+  TAR_SUPPORTS_TRANSFORM := false
+else
+  TAR_SUPPORTS_TRANSFORM := true
+endif
+
+LIBCLANG_LIB_DIR := $(LIBCLANG_HOME)/$(OS_LIB_DIR)
+LIBCLANG_INCLUDE_DIR := $(LIBCLANG_HOME)/lib/clang/$(LIBCLANG_VERSION)/include
+
+BUILD_CLASSES_DIR := $(BUILD_DIR)/classes
+BUILD_MODULES_DIR := $(BUILD_DIR)/modules
+BUILD_TEST_SUPPORT_DIR := $(BUILD_DIR)/support/test
+
+BUILD_JEXTRACT_INTERIM_JDK_NAME := interim-jdk
+BUILD_JEXTRACT_INTERIM_JDK_DIR := $(BUILD_DIR)/images/$(BUILD_JEXTRACT_INTERIM_JDK_NAME)
+
+ifeq ($(PLATFORM_OS), macosx)
+  BUNDLE_PLATFORM := macos-$(PLATFORM_CPU)
+else
+  BUNDLE_PLATFORM := $(PLATFORM)
+endif
+
+JEXTRACT_BUNDLE_TOP_DIR := $(JEXTRACT_NAME_VERSION)
+JEXTRACT_BUNDLE_PREFIX := $(JEXTRACT_NAME_VERSION)-internal+0_$(BUNDLE_PLATFORM)
+JEXTRACT_BUNDLE := $(BUILD_DIR)/bundles/$(JEXTRACT_BUNDLE_PREFIX)_bin.tar.gz
+JEXTRACT_BUNDLE_TMP_DIR := $(BUILD_DIR)/bundles/tmp/$(JEXTRACT_BUNDLE_TOP_DIR)
+JEXTRACT_TESTS_BUNDLE := $(BUILD_DIR)/bundles/$(JEXTRACT_BUNDLE_PREFIX)_bin-tests.tar.gz
+JEXTRACT_TEST_JDK_BUNDLE := $(BUILD_DIR)/bundles/$(JEXTRACT_BUNDLE_PREFIX)_bin-testjdk.tar.gz
+
+NATIVE_TEST_SOURCES := $(shell find $(TOPDIR)/test -name "lib*.c")
+
+$(foreach file,$(NATIVE_TEST_SOURCES),$(eval $(call BuildNativeLibrary,$(file),$(JEXTRACT_IMAGE_NATIVE_TEST_DIR),$(BUILD_TEST_SUPPORT_DIR),BUILD_NATIVE_TEST_LIBRARIES)))
+
+$(BUILD_CLASSES_DIR): $(JOPT_SIMPLE_JAR)
+	$(MKDIR) -p $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
+	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
+	    --release=18 \
+	    --add-modules=jdk.incubator.foreign \
+	    -cp "$(JOPT_SIMPLE_JAR)" \
+	    -d "$(BUILD_CLASSES_DIR)" \
+	    src/main/java/org/openjdk/jextract/*.java \
+	    src/main/java/org/openjdk/jextract/impl/*.java \
+	    src/main/java/org/openjdk/jextract/clang/*.java \
+	    src/main/java/org/openjdk/jextract/clang/libclang/*.java
+	$(CP) -r src/main/java/META-INF $(BUILD_CLASSES_DIR)
+	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
+
+$(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR) $(JOPT_SIMPLE_JAR)
+	$(MKDIR) -p $(BUILD_MODULES_DIR)/jopt.simple
+	$(MKDIR) -p $(BUILD_MODULES_DIR)/org.openjdk.jextract
+
+        # Generate module-info.java for jopt.simple module
+	@$(PRINTF) "module jopt.simple {\n \
+	    exports joptsimple;\n \
+	    exports joptsimple.util;\n \
+	}" > $(BUILD_MODULES_DIR)/jopt.simple/module-info.java
+
+        # Generate module-info.java for org.openjdk.jextract module
+	@$(PRINTF) "module org.openjdk.jextract {\n \
+	    requires transitive java.compiler;\n \
+	    requires transitive jdk.incubator.foreign;\n \
+	    requires jopt.simple;\n \
+	    requires java.prefs;\n \
+	    exports org.openjdk.jextract;\n \
+	    provides java.util.spi.ToolProvider with\n \
+	        org.openjdk.jextract.JextractTool.JextractToolProvider;\n \
+	}" > $(BUILD_MODULES_DIR)/org.openjdk.jextract/module-info.java
+
+        # Copy org.openjdk.jextract classes to the right place
+	$(CP) -r $(BUILD_CLASSES_DIR)/* $(BUILD_MODULES_DIR)/org.openjdk.jextract
+
+        # Extract jopt-simple in the right place
+	($(CD) $(BUILD_MODULES_DIR)/jopt.simple; $(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jar xf "$(JOPT_SIMPLE_JAR)")
+
+        # Compile the generated module-info.java files
+	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
+	    -d "$(BUILD_MODULES_DIR)/jopt.simple" \
+	    "$(BUILD_MODULES_DIR)/jopt.simple/module-info.java"
+	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
+	    --module-path "$(BUILD_MODULES_DIR)" \
+	    -d "$(BUILD_MODULES_DIR)/org.openjdk.jextract" \
+	    "$(BUILD_MODULES_DIR)/org.openjdk.jextract/module-info.java"
+
+$(BUILD_JEXTRACT_INTERIM_JDK_DIR): $(BUILD_MODULES_DIR)
+        # jlink the modules to create a custom runtime image for jextract
+	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jlink \
+	    --output "$(BUILD_JEXTRACT_INTERIM_JDK_DIR)" \
+	    --module-path "$(BUILD_MODULES_DIR)" \
+	    --add-modules org.openjdk.jextract \
+	    --add-modules jdk.compiler
+
+        # Copy libclang library and header files into the jlink'ed image
+	$(CP) "$(LIBCLANG_LIB_DIR)/"*clang.* "$(BUILD_JEXTRACT_INTERIM_JDK_DIR)/$(OS_LIB_DIR)"
+	$(MKDIR) -p $(BUILD_JEXTRACT_INTERIM_JDK_DIR)/conf/jextract
+	$(CP) "$(LIBCLANG_INCLUDE_DIR)/"*.h "$(BUILD_JEXTRACT_INTERIM_JDK_DIR)/conf/jextract/"
+
+$(JEXTRACT_IMAGE_DIR): $(BUILD_JEXTRACT_INTERIM_JDK_DIR)
+	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jpackage \
+	    --name jextract \
+	    --runtime-image "$(BUILD_JEXTRACT_INTERIM_JDK_DIR)" \
+	    --module org.openjdk.jextract/org.openjdk.jextract.JextractTool \
+	    --type app-image \
+	    --app-version 1.0 \
+	    --dest "$(patsubst %/,%,$(dir $@))" \
+	    --java-options --add-modules=jdk.incubator.foreign \
+	    --java-options --add-modules=org.openjdk.jextract \
+	    --java-options --enable-native-access=org.openjdk.jextract \
+	    $(JPACKAGE_ARGS)
+
+$(JEXTRACT_IMAGE_TEST_JDK_DIR): $(JEXTRACT_IMAGE_DIR)
+        # jlink the modules to create a custom runtime image for jextract testing
+	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jlink \
+	    -J-Djlink.debug=true \
+	    --output "$(JEXTRACT_IMAGE_TEST_JDK_DIR)" \
+	    --module-path "$(BUILD_MODULES_DIR):$(PANAMA_JAVA_HOME)/jmods" \
+	    --add-modules ALL-MODULE-PATH
+
+        # Copy libclang library and header files into the jlink'ed test image
+	$(CP) $(LIBCLANG_LIB_DIR)/*clang.* $(JEXTRACT_IMAGE_TEST_JDK_DIR)/$(OS_LIB_DIR)
+	$(MKDIR) -p $(JEXTRACT_IMAGE_TEST_JDK_DIR)/conf/jextract
+	$(CP) $(LIBCLANG_INCLUDE_DIR)/*.h $(JEXTRACT_IMAGE_TEST_JDK_DIR)/conf/jextract/
+
+
+$(JEXTRACT_BUNDLE): $(JEXTRACT_IMAGE_DIR)
+	@$(MKDIR) -p $(@D)
+ifeq ($(TAR_SUPPORTS_TRANSFORM),true)
+	$(TAR) zcf $@ --transform 's|^$(JEXTRACT_NAME)|^$(JEXTRACT_BUNDLE_TOP_DIR)|S' -C $(dir $(JEXTRACT_IMAGE_DIR)) $(notdir $(JEXTRACT_IMAGE_DIR))
+else
+	$(RM) -r $(JEXTRACT_BUNDLE_TMP_DIR)
+	$(MKDIR) -p $(JEXTRACT_BUNDLE_TMP_DIR)
+	($(CD) $(JEXTRACT_IMAGE_DIR) && $(TAR) cf - .) | ($(CD) $(JEXTRACT_BUNDLE_TMP_DIR) && $(TAR) xf -)
+	$(TAR) zcf $@ -C $(dir $(JEXTRACT_BUNDLE_TMP_DIR)) $(notdir $(JEXTRACT_BUNDLE_TMP_DIR))
+endif
+
+$(JEXTRACT_TESTS_BUNDLE): $(BUILD_NATIVE_TEST_LIBRARIES)
+	@$(MKDIR) -p $(@D)
+	$(TAR) zcf $@ -C $(dir $(JEXTRACT_IMAGE_NATIVE_TEST_DIR)) $(notdir $(JEXTRACT_IMAGE_NATIVE_TEST_DIR))
+
+$(JEXTRACT_TEST_JDK_BUNDLE): $(JEXTRACT_IMAGE_TEST_JDK_DIR)
+	@$(MKDIR) -p $(@D)
+	$(TAR) zcf $@ -C $(dir $(JEXTRACT_IMAGE_TEST_JDK_DIR)) $(notdir $(JEXTRACT_IMAGE_TEST_JDK_DIR))
+
+
+compile-java: $(BUILD_CLASSES_DIR)
+
+image: $(JEXTRACT_IMAGE_DIR)
+
+test-image: $(BUILD_NATIVE_TEST_LIBRARIES) $(JEXTRACT_IMAGE_TEST_JDK_DIR)
+
+images: image test-image
+
+bundles: $(JEXTRACT_BUNDLE) $(JEXTRACT_TESTS_BUNDLE) $(JEXTRACT_TEST_JDK_BUNDLE)
+
+.PHONY: compile-java image test-image images bundles

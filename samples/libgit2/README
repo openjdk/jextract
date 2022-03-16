@@ -1,0 +1,3 @@
+* get libgit2 source code from https://github.com/libgit2/libgit2/releases and build.
+* I assume ${LIBGIT2_HOME} is your directory where you expanded libgit2 release.
+* Also ${LIBGIT2_HOME}/build is the build directory where libgit2.dylib is built.
