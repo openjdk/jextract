@@ -1,0 +1,209 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+plugins {
+    id "java"
+    // moditect for module-info.class injection and jlink
+    id "org.moditect.gradleplugin" version "1.0.0-rc3"
+    // jpackage plugin for packging jextract native app
+    id "org.panteleyev.jpackageplugin" version "1.3.1"
+}
+
+version = '1.0'
+
+def libclang_home = project.property("LIBCLANG_HOME")
+def clang_version = new File("${libclang_home}/lib/clang/").list()[0]
+
+def jextract_path
+if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    jextract_path = "$buildDir/jextract/jextract.exe"
+} else if (Os.isFamily(Os.FAMILY_MAC)) {
+    jextract_path = "$buildDir/jextract.app/Contents/MacOS/jextract"
+} else {
+    jextract_path = "$buildDir/jextract/bin/jextract"
+}
+
+def clang_include_dir = "${libclang_home}/lib/clang/${clang_version}/include"
+def os_lib_dir = Os.isFamily(Os.FAMILY_WINDOWS)? "bin" : "lib"
+def libclang_dir = "${libclang_home}/${os_lib_dir}"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "net.sf.jopt-simple:jopt-simple:5.0.4"
+}
+
+compileJava {
+    options.compilerArgs.addAll(['--release', '18'])
+    options.compilerArgs << "--add-modules=jdk.incubator.foreign"
+    options.compilerArgs << "-Xlint:all"
+    options.fork = true
+    options.forkOptions.executable = "${jdk18_home}/bin/javac"
+}
+
+jar {
+    archiveBaseName = 'jextract'
+    archiveVersion = project.version
+}
+
+moditect {
+    // moditect uses java.home to find JDK tools
+    System.setProperty("java.home", "$jdk18_home")
+
+    // inject module-info.class for org.openjdk.jextract module
+    addMainModuleInfo {
+        dependsOn build
+
+        jvmVersion = '18'
+        version = project.version
+        module {
+            moduleInfoSource = '''
+                module org.openjdk.jextract {
+                    requires transitive java.compiler;
+                    requires transitive jdk.incubator.foreign;
+                    requires jopt.simple;
+                    requires java.prefs;
+                    exports org.openjdk.jextract;
+
+                    provides java.util.spi.ToolProvider with
+                       org.openjdk.jextract.JextractTool.JextractToolProvider;
+                }
+                '''
+        }
+    }
+
+    // inject module-info.class for jopt.simple module
+    addDependenciesModuleInfo {
+        jvmVersion = '18'
+        outputDirectory = file("$buildDir/modules")
+        modules {
+            module {
+                artifact 'net.sf.jopt-simple:jopt-simple:5.0.4'
+                moduleInfoSource = '''
+                    module jopt.simple {
+                        exports joptsimple;
+                        exports joptsimple.util;
+                    }
+                '''
+            }
+        }
+    }
+
+    // jlink a JDK image with org.openjdk.jextract & dependent modules only
+    createRuntimeImage {
+        onlyIf { !new File("$buildDir/jextract-jdk-image").exists() }
+        outputDirectory = file("$buildDir/jextract-jdk-image")
+        modulePath = [file("$buildDir/modules")]
+        modules = ['org.openjdk.jextract', 'jdk.compiler']
+    }
+}
+
+task copyLibClang(type: Copy) {
+    dependsOn createRuntimeImage
+
+    into("$buildDir")
+
+    from("${libclang_dir}") {
+        include("*clang.*")
+        include("libLLVM.*")
+        into("jextract-jdk-image/${os_lib_dir}")
+    }
+
+    from("$clang_include_dir") {
+        include("*.h")
+        into("jextract-jdk-image/conf/jextract")
+    }
+}
+
+// jpackage jextract jdk image as a platform dependent native app
+jpackage {
+    dependsOn copyLibClang
+    onlyIf { !new File(jextract_path).exists() }
+
+    appName = "jextract"
+    runtimeImage = "$buildDir/jextract-jdk-image/"
+    module = "org.openjdk.jextract/org.openjdk.jextract.JextractTool"
+    type = "APP_IMAGE"
+    appVersion = "1.0"
+    destination =  "$buildDir"
+    javaOptions = [
+        "--add-modules=jdk.incubator.foreign",
+        "--enable-native-access=org.openjdk.jextract"
+    ]
+    winConsole = true
+}
+
+// very simple integration test for generated jpackage'd jextract
+task verify(type: Exec) {
+    dependsOn jpackage
+
+    executable = "${jextract_path}"
+    args = [ "test.h", "-d", "$buildDir/integration_test" ]
+}
+
+// jlink a JDK image with org.openjdk.jextract for testing
+task createRuntimeImageForTest(type: org.moditect.gradleplugin.image.CreateRuntimeImageTask) {
+    dependsOn verify
+
+    onlyIf { !new File("$buildDir/jextract-jdk-test-image").exists() }
+    outputDirectory = file("$buildDir/jextract-jdk-test-image")
+    modulePath = [file("$buildDir/modules"),file("$jdk18_home/jmods")]
+    modules = ['ALL-MODULE-PATH']
+}
+
+task prepareTestJDK(type: Copy) {
+    dependsOn createRuntimeImageForTest
+
+    into("$buildDir")
+
+    from("${libclang_dir}") {
+        include("*clang.*")
+        include("libLLVM.*")
+        into("jextract-jdk-test-image/${os_lib_dir}")
+    }
+
+    from("$clang_include_dir") {
+        include("*.h")
+        into("jextract-jdk-test-image/conf/jextract")
+    }
+}
+
+task cmakeConfigure(type: Exec) {
+    executable = "cmake"
+    args = [
+        "-B", "$buildDir/testlib-build",
+        "-S", "$projectDir/test/test-support",
+        "-DTEST_SOURCE_ROOT:FILEPATH=$projectDir/test",
+        "-DCMAKE_BUILD_TYPE:STRING=Release",
+        "-DCMAKE_INSTALL_PREFIX:FILEPATH=$buildDir/testlib-install"
+    ]
+}
+
+task cmakeBuild(type: Exec) {
+    dependsOn cmakeConfigure
+
+    executable = "cmake"
+    args = [
+        "--build", "$buildDir/testlib-build",
+        "--config", "Release",
+        "--target", "install"
+    ]
+}
+
+// run jtreg tests. Note: needs jtreg_cmd variable set to point to the jtreg
+task jtreg(type: JavaExec) {
+    dependsOn prepareTestJDK,cmakeBuild
+
+    workingDir = "$buildDir"
+
+    classpath = files(findProperty("jtreg_home") + "/lib/jtreg.jar")
+
+    args = [
+            "-jdk", "$buildDir/jextract-jdk-test-image",
+            "-nativepath:$buildDir/testlib-install/${os_lib_dir}",
+            "-javaoption:--enable-native-access=org.openjdk.jextract,ALL-UNNAMED",
+            "-avm", "-conc:auto", "-verbose:summary",
+            "../test"
+    ]
+}

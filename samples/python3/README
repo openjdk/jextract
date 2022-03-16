@@ -1,0 +1,5 @@
+I've installed anaconda3 under /opt/anaconda3
+
+You may have to fix shell scripts to your anaconda3 installation directory.
+
+Windows scripts under ../python handle 3.x versions (passed as parameter)

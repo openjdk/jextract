@@ -1,0 +1,123 @@
+################################################################################
+# Initial bootstrapping
+################################################################################
+
+# In Cygwin, the MAKE variable gets prepended with the current directory if the
+# make executable is called using a Windows mixed path (c:/cygwin/bin/make.exe).
+ifneq ($(findstring :, $(MAKE)), )
+  export MAKE := $(patsubst $(CURDIR)%, %, $(patsubst $(CURDIR)/%, %, $(MAKE)))
+endif
+
+# Locate this Makefile
+ifeq ($(filter /%, $(lastword $(MAKEFILE_LIST))),)
+  makefile_path := $(CURDIR)/$(strip $(lastword $(MAKEFILE_LIST)))
+else
+  makefile_path := $(lastword $(MAKEFILE_LIST))
+endif
+TOPDIR := $(strip $(patsubst %/make/, %, $(dir $(makefile_path))))
+
+################################################################################
+# Functions
+################################################################################
+
+
+# Setup a required or optional variable, and/or check that it is properly
+# given.
+# Note: No spaces are allowed around the arguments.
+#
+# $1: The name of the variable
+# $2: The default value, if any, or OPTIONAL (do not provide a default but
+#     do not exit if it is missing)
+# $3: If NO_CHECK, disable checking for target file/directory existence
+#     If MKDIR, create the default directory
+define SetupVariable
+  ifeq ($$($1), )
+    ifeq ($2, )
+      $$(info Error: Variable $1 is missing)
+      $$(error Cannot continue.)
+    else ifeq ($2, OPTIONAL)
+      ifneq ($$(findstring $$(LOG), info debug trace), )
+        $$(info Variable $1 is not provided)
+      endif
+    else
+      ifneq ($$(findstring $$(LOG), info debug trace), )
+        $$(info Variable $1=$2 (default value))
+      endif
+      $1:=$2
+    endif
+  else
+    ifneq ($$(findstring $$(LOG), info debug trace), )
+      $$(info Variable $1=$$($1))
+    endif
+  endif
+  # If $1 has a value (is not optional), and $3 is not set (to NO_CHECK),
+  # and if wildcard is empty, then complain that the file is missing.
+  ifeq ($3, MKDIR)
+    ifneq ($$(findstring $$(LOG), info debug trace), )
+      $$(info Creating directory for $1)
+    endif
+    $$(shell mkdir -p $$($1))
+  else ifneq ($3, NO_CHECK)
+    ifeq ($$(strip $$(if $$($1), , OPTIONAL) $$(wildcard $$($1))), )
+      $$(info Error: Variable $1 points to missing file/directory:)
+      $$(info '$$($1)')
+      $$(error Cannot continue.)
+    endif
+  endif
+endef
+
+X :=
+SPACE:=$(X) $(X)
+
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M),x86_64)
+  DEVKIT_VS_CPU_VAR_NAME := x86_64
+  PLATFORM_CPU := x64
+else
+  $(error "Unknown CPU: $(UNAME_M)")
+endif
+
+ifeq ($(OS),Windows_NT)
+  PLATFORM_OS := windows
+  FIXPATH := bash $(TOPDIR)/make/scripts/fixpath.sh exec
+else
+  FIXPATH :=
+
+  UNAME_S := $(shell uname -s)
+  ifeq ($(UNAME_S), Darwin)
+    PLATFORM_OS := macosx
+  else
+    ifeq ($(UNAME_S), Linux)
+      PLATFORM_OS := linux
+    else
+      $(error "Unknown OS: $(UNAME_S)")
+    endif
+  endif
+endif
+
+PLATFORM := $(PLATFORM_OS)-$(PLATFORM_CPU)
+
+ECHO := echo
+TR := tr
+RM := rm -f
+MKDIR := mkdir
+CP := cp
+CD := cd
+TAR := tar
+PRINTF := printf
+
+BUILD_VERSION ?= internal
+
+JEXTRACT_NAME := jextract
+JEXTRACT_NAME_VERSION := $(JEXTRACT_NAME)-$(BUILD_VERSION)
+
+CONF_NAME ?= $(PLATFORM)
+
+BUILD_DIR := $(TOPDIR)/build/$(CONF_NAME)
+
+JEXTRACT_IMAGE_NATIVE_TEST_DIR := $(BUILD_DIR)/images/test
+ifeq ($(PLATFORM_OS), macosx)
+  JEXTRACT_NAME_SUFFIX := .app
+endif
+JEXTRACT_IMAGE_DIR := $(BUILD_DIR)/images/$(JEXTRACT_NAME)$(JEXTRACT_NAME_SUFFIX)
+JEXTRACT_IMAGE_TEST_JDK_DIR := $(BUILD_DIR)/images/test-jdk

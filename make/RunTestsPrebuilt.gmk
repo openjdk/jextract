@@ -1,0 +1,111 @@
+default: all
+
+# We will always run multiple tests serially
+.NOTPARALLEL:
+
+include make/Common.gmk
+
+################################################################################
+# Check input and setup basic buildsystem support
+################################################################################
+
+# Verify that user has given correct additional input.
+
+ifeq ($(TEST),)
+  $(info No test selection given in TEST)
+  $(error Cannot continue)
+endif
+
+# These variables are absolutely necessary
+$(eval $(call SetupVariable,OUTPUTDIR,$(BUILD_DIR),MKDIR))
+$(eval $(call SetupVariable,JTREG_HOME))
+$(eval $(call SetupVariable,JTREG_JAVA_HOME))
+$(eval $(call SetupVariable,JEXTRACT_DIR))
+$(eval $(call SetupVariable,JEXTRACT_TEST_JDK))
+$(eval $(call SetupVariable,JEXTRACT_NATIVE_TEST_DIR))
+
+JTREG_CONCURRENCY ?= 4
+
+JAVA := $(JTREG_JAVA_HOME)/bin/java
+
+# CMH: Make platform dependent
+JEXTRACT := $(JEXTRACT_DIR)/bin/jextract
+
+# For JextractToolRunner.java and JextractApiTestBase.java
+TEST_SOURCE_ROOT := $(TOPDIR)/open/test/java
+
+#
+# $1: Test id (make friendly string)
+# $2: Path to test(s) to run
+#
+define SetupRunJtregTest
+  $1_TEST_RESULTS_DIR := $$(OUTPUTDIR)/test-results/$1
+  $1_TEST_SUPPORT_DIR := $$(OUTPUTDIR)/test-support/$1
+  $1_EXITCODE := $$($1_TEST_RESULTS_DIR)/exitcode.txt
+
+  clean-workdir-$1:
+	$$(RM) -r $$($1_TEST_SUPPORT_DIR)
+
+  run-test-$1: clean-workdir-$1
+	$$(FIXPATH) $$(JAVA) \
+	    -Dprogram=jtreg -jar $$(JTREG_HOME)/lib/jtreg.jar \
+	    -testjdk:$$(JEXTRACT_TEST_JDK) \
+	    -dir:$$(TOPDIR) \
+	    -reportDir:$$($1_TEST_RESULTS_DIR) \
+	    -workDir:$$($1_TEST_SUPPORT_DIR) \
+	    -avm \
+	    -conc:$$(JTREG_CONCURRENCY) \
+	    -verbose:summary \
+	    -nativepath:$$(JEXTRACT_NATIVE_TEST_DIR) \
+	    -vmoption:--enable-native-access=ALL-UNNAMED,org.openjdk.jextract \
+	    $2 \
+	    && $$(ECHO) $$$$? > $$($1_EXITCODE) \
+            || $$(ECHO) $$$$? > $$($1_EXITCODE)
+
+  parse-test-$1: run-test-$1
+	@$$(ECHO) "Would parse test results here"
+
+  $1: run-test-$1 parse-test-$1 clean-workdir-$1
+
+  TARGETS += $1 run-test-$1 parse-test-$1 clean-workdir-$1
+  TEST_TARGETS += parse-test-$1
+
+endef
+
+
+TESTS_TO_RUN := $(strip $(TEST))
+
+$(foreach test, $(TESTS_TO_RUN), \
+  $(eval TEST_ID := $(shell $(ECHO) $(strip $(test)) | \
+      $(TR) -cs '[a-z][A-Z][0-9]\n' '[_*1000]')) \
+  $(eval $(call SetupRunJtregTest,$(TEST_ID),$(test))) \
+)
+
+run-all-tests: $(TEST_TARGETS)
+
+post-run-test: run-all-tests
+
+run-test-report: post-run-test
+
+# The main run-test target
+run-test: run-test-report
+
+TARGETS += run-all-tests pre-run-test post-run-test run-test-report run-test
+
+test-prebuilt: run-test
+
+TARGETS += test-prebuilt
+
+test-integration: $(JEXTRACT_DIR)
+	$(MKDIR) -p $(BUILD_DIR)/integration_test
+
+	@printf "#include <stdarg.h>\n \
+	int getpid();\n" > $(BUILD_DIR)/integration_test/test.h
+
+	$(FIXPATH) $(JEXTRACT_PATH) "$(BUILD_DIR)/integration_test/test.h" -d "$(BUILD_DIR)/integration_test"
+
+TARGETS += test-integration
+
+all: run-test
+
+.PHONY: default all $(TARGETS)
