@@ -205,7 +205,7 @@ public class LibffmpegMain {
                 // Is this a packet from the video stream?
                 // packet.stream_index == videoStream
                 if (AVPacket.stream_index$get(packet) == videoStream) {
- 	            // Decode video frame
+                    // Decode video frame
                     avcodec_decode_video2(pCodecCtx, pFrame, pFrameFinished, packet);
 
                     int frameFinished = pFrameFinished.get(C_INT, 0);
@@ -213,9 +213,9 @@ public class LibffmpegMain {
                     if (frameFinished != 0) {
                         // Convert the image from its native format to RGB
                         sws_scale(sws_ctx, AVFrame.data$slice(frame),
-		            AVFrame.linesize$slice(frame), 0, height,
+                            AVFrame.linesize$slice(frame), 0, height,
                             AVFrame.data$slice(frameRGB), AVFrame.linesize$slice(frameRGB));
-	
+
                         // Save the frame to disk
                         if (++i <= NUM_FRAMES_TO_CAPTURE) {
                             try {

@@ -167,7 +167,7 @@ You can download jdk18 early access build from [https://jdk.java.net/18/](https:
 
 ```sh
 
-$ ./gradlew -Pjdk18_home=<jdk18_home_dir> -PLIBCLANG_HOME=<libclang_dir> clean verify
+$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -PLIBCLANG_HOME=<libclang_dir> clean verify
 
 ```
 
@@ -178,7 +178,7 @@ The path of the jtreg installation is provided using the `jtreg_home` variable.
 
 ```sh
 
-$ ./gradlew -Pjdk18_home=<jdk18_home_dir> -PLIBCLANG_HOME=<libclang_dir> -Pjtreg_home=<jtreg_dir> clean jtreg
+$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -PLIBCLANG_HOME=<libclang_dir> -Pjtreg_home=<jtreg_dir> clean jtreg
 
 ```
 
