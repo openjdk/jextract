@@ -165,6 +165,8 @@ needed to build jextract which is passed from command with -Pjdk18_home option.
 
 You can download jdk18 early access build from [https://jdk.java.net/18/](https://jdk.java.net/18/)
 
+For Windows, please use gradlew.bat.
+
 ```sh
 
 $ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -PLIBCLANG_HOME=<libclang_dir> clean verify
@@ -175,6 +177,8 @@ $ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -PLIBCLANG_HOME=<libclang_dir> clea
 
 jextract tests are written for jtreg test framework. Please download and install jtreg binaries.
 The path of the jtreg installation is provided using the `jtreg_home` variable.
+
+For Windows, please use gradlew.bat.
 
 ```sh
 
