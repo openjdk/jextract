@@ -154,7 +154,7 @@ It is easy to see how this mechanism allows developers to look into the set of s
 For more examples on how to use the `jextract` tool with real-world libraries, please refer to this [document](https://github.com/openjdk/panama-foreign/blob/d8c0fe5918cb1c6c744eb26797ea4fa04142c237/doc/panama_jextract.md).
 
 
-#### Building jextract tool
+### Building jextract tool
 
 jextract depends on clang+LLVM binaries. Please download and install clang+LLVM binaries for your platform.
 You can find the prebuilt binaries from [https://releases.llvm.org/download.html](https://releases.llvm.org/download.html). The path of the clang+LLVM installation is provided using the `LIBCLANG_HOME` variable.
