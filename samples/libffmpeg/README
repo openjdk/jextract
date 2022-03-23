@@ -1,0 +1,12 @@
+* Install libffmpeg on Mac using homebrew
+
+    brew install ffmpeg
+
+* run ./compile.sh or ./compilesource.sh to jextract libffmpeg headers
+
+* run
+
+    sh ./run.sh <your .mp4 file>
+
+The last step will produce 5 .ppm image files (of the first 5 frames of video)
+

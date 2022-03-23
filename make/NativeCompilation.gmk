@@ -1,0 +1,129 @@
+ifeq ($(PLATFORM),)
+  $(error "Must include make/Common.gmk first"
+endif
+
+#
+# Extract a value from a devkit path variable
+#
+# $1: Path to devkit root
+# $2: Variable to extract (e.g. DEVKIT_VS_LIB_x86_64)
+#
+define ExtractDevkitPath
+$(shell bash -c 'export DEVKIT_ROOT=$1; . $$DEVKIT_ROOT/devkit.info; echo $$$2')
+endef
+
+#
+# Look up a tool
+#
+# $1: tool to look up
+# $2: PATH to use
+#
+define FindTool
+$(shell bash -c 'export PATH="$2"; type -p $1')
+endef
+
+OBJ_SUFFIX := .o
+
+ifeq ($(PLATFORM_OS), windows)
+  # Doesn't handle the non-devkit case, yet
+  $(eval $(call SetupVariable,DEVKIT_HOME))
+
+  OS_LIB_DIR := bin
+
+  SHARED_LIB_PREFIX :=
+  SHARED_LIB_SUFFIX := .dll
+  SHARED_LIBRARY_FLAGS := -dll
+  CC_OUT_OPTION := -Fo
+  LD_OUT_OPTION := -out:
+
+  # The VS CPU specific directory names happen to match our platform names
+  VS_CPU_DIR := $(PLATFORM_CPU)
+  CC := $(DEVKIT_HOME)/VC/bin/$(VS_CPU_DIR)/cl.exe
+  LINK := $(DEVKIT_HOME)/VC/bin/$(VS_CPU_DIR)/link.exe
+
+  DEVKIT_VS_INCLUDE := $(call ExtractDevkitPath,$(DEVKIT_HOME),DEVKIT_VS_INCLUDE_$(DEVKIT_VS_CPU_VAR_NAME))
+  DEVKIT_VS_LIB := $(call ExtractDevkitPath,$(DEVKIT_HOME),DEVKIT_VS_LIB_$(DEVKIT_VS_CPU_VAR_NAME))
+
+  CFLAGS := $(patsubst %,-I%,$(subst ;, ,$(DEVKIT_VS_INCLUDE)))
+  LDFLAGS := $(SHARED_LIBRARY_FLAGS) $(patsubst %,-libpath:%,$(subst ;, ,$(DEVKIT_VS_LIB))) /EXPERIMENTAL:DETERMINISTIC -pathmap:$(TOPDIR)=s
+else
+  OS_LIB_DIR := lib
+
+  CC_OUT_OPTION := -o$(SPACE)
+  LD_OUT_OPTION := -o$(SPACE)
+  SHARED_LIBRARY_FLAGS := -shared -fPIC
+  SHARED_LIB_PREFIX := lib
+
+  CFLAGS := -fPIC
+  LDFLAGS := $(SHARED_LIBRARY_FLAGS)
+
+  ifeq ($(DEVKIT_HOME),)
+    TOOL_SEARCH_PATH := $(PATH)
+  else
+    DEVKIT_TOOLCHAIN_PATH := $(call ExtractDevkitPath,$(DEVKIT_HOME),DEVKIT_TOOLCHAIN_PATH)
+    TOOL_SEARCH_PATH := $(DEVKIT_TOOLCHAIN_PATH)
+
+    DEVKIT_SYSROOT := $(call ExtractDevkitPath,$(DEVKIT_HOME),DEVKIT_SYSROOT)
+    SYSROOT := $(DEVKIT_SYSROOT)
+  endif
+
+  ifeq ($(PLATFORM_OS), macosx)
+    SHARED_LIB_SUFFIX := .dylib
+
+    CC_NAME := clang
+    LINK_NAME := clang
+    ifneq ($(SYSROOT),)
+      CFLAGS += -isysroot $(SYSROOT)
+    endif
+  else
+    ifeq ($(PLATFORM_OS), linux)
+      SHARED_LIB_SUFFIX := .so
+
+      CC_NAME := gcc
+      LINK_NAME := gcc
+      ifneq ($(SYSROOT),)
+        CFLAGS += --sysroot=$(SYSROOT)
+      endif
+    endif
+  endif
+
+  CC := $(call FindTool,$(CC_NAME),$(TOOL_SEARCH_PATH))
+  LINK := $(call FindTool,$(LINK_NAME),$(TOOL_SEARCH_PATH))
+endif
+
+ifeq ($(CC),)
+  $(error CC tool not found)
+endif
+ifeq ($(LINK),)
+  $(error LINK tool not found)
+endif
+
+# Helper macro for building a shared native library from a single C source file
+#
+# Note: assumes C source file name is on the form lib%.c
+#
+# $1: source file
+# $2: target directory
+# $3: object dir
+# $4: variable to add target to
+#
+define BuildNativeLibrary
+$1_NAME := $$(patsubst lib%,%,$$(basename $$(notdir $1)))
+$1_SHARED_LIBRARY := $2/$$(SHARED_LIB_PREFIX)$$($1_NAME)$$(SHARED_LIB_SUFFIX)
+
+$1_OBJ := $3/$$($1_NAME)$$(OBJ_SUFFIX)
+ifeq ($$(PLATFORM_OS), windows)
+  $1_IMPLIB := $3/$$($1_NAME).lib
+  $1_EXTRA_LDFLAGS := -implib:$$($1_IMPLIB)
+endif
+
+$$($1_OBJ): $1
+	@$$(MKDIR) -p $$(@D)
+	$$(FIXPATH) $$(CC) $$(CFLAGS) $$(CC_OUT_OPTION)$$@ $$< -c
+
+$$($1_SHARED_LIBRARY): $$($1_OBJ)
+	@$$(MKDIR) -p $$(@D)
+	$$(FIXPATH) $$(LINK) $$(LDFLAGS) $$($1_EXTRA_LDFLAGS) $$(LD_OUT_OPTION)$$@ $$<
+
+$4 += $$($1_SHARED_LIBRARY)
+endef

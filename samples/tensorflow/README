@@ -1,0 +1,17 @@
+* Download tensorflow library from
+
+    https://www.tensorflow.org/install/lang_c
+
+* extract the downloaded tar in a directory called LIBTENSORFLOW_HOME
+
+* jextract using compile.sh
+
+    sh ./compile.sh
+
+* create and save model using Python program mnist_model.py
+
+    python mnist_model.py
+
+* print saved model info using Panama program using 
+
+    sh ./loadsavedmodel.sh

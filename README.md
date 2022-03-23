@@ -1,8 +1,6 @@
-## Proposal: jextract
+## jextract
 
 `jextract` is a tool that mechanically generates Java bindings from a native library headers. We would like to include this tool, originally developed in the context of [Project Panama](https://openjdk.java.net/projects/panama/) (and available in the Project Panama [Early Access binaries](https://jdk.java.net/panama/)) in the set of tools that are part of the code-tools project.
-
-### Rationale
 
 The Java SE 18 API defines an [incubating API](https://openjdk.java.net/jeps/419) to:
 
@@ -155,3 +153,40 @@ It is easy to see how this mechanism allows developers to look into the set of s
 
 For more examples on how to use the `jextract` tool with real-world libraries, please refer to this [document](https://github.com/openjdk/panama-foreign/blob/d8c0fe5918cb1c6c744eb26797ea4fa04142c237/doc/panama_jextract.md).
 
+
+### Building jextract tool
+
+jextract depends on clang+LLVM binaries. Please download and install clang+LLVM binaries for your platform.
+You can find the prebuilt binaries from [https://releases.llvm.org/download.html](https://releases.llvm.org/download.html). The path of the clang+LLVM installation is provided using the `libclang_home` variable.
+
+Gradle tool needs jdk 17 or below to run. JAVA_HOME should be set to
+jdk 17 or below. Or PATH should contain java from jdk 17 or below. jdk18 build is
+needed to build jextract which is passed from command with -Pjdk18_home option.
+
+You can download jdk18 early access build from [https://jdk.java.net/18/](https://jdk.java.net/18/)
+
+For Windows, please use gradlew.bat.
+
+```sh
+
+$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Plibclang_home=<libclang_dir> clean verify
+
+```
+
+### Testing jextract tool
+
+jextract tests are written for jtreg test framework. Please download and install jtreg binaries.
+The path of the jtreg installation is provided using the `jtreg_home` variable.
+
+For Windows, please use gradlew.bat.
+
+```sh
+
+$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Plibclang_home=<libclang_dir> -Pjtreg_home=<jtreg_dir> clean jtreg
+
+```
+
+### jextract samples
+
+jextract samples can be found "samples" top-level directory. Building/running particular sample may require
+specific third-party software installation.
