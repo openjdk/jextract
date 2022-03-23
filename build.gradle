@@ -10,7 +10,7 @@ plugins {
 
 version = '1.0'
 
-def libclang_home = project.property("LIBCLANG_HOME")
+def libclang_home = project.property("libclang_home")
 def clang_version = new File("${libclang_home}/lib/clang/").list()[0]
 
 def jextract_path

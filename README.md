@@ -157,7 +157,7 @@ For more examples on how to use the `jextract` tool with real-world libraries, p
 ### Building jextract tool
 
 jextract depends on clang+LLVM binaries. Please download and install clang+LLVM binaries for your platform.
-You can find the prebuilt binaries from [https://releases.llvm.org/download.html](https://releases.llvm.org/download.html). The path of the clang+LLVM installation is provided using the `LIBCLANG_HOME` variable.
+You can find the prebuilt binaries from [https://releases.llvm.org/download.html](https://releases.llvm.org/download.html). The path of the clang+LLVM installation is provided using the `libclang_home` variable.
 
 Gradle tool needs jdk 17 or below to run. JAVA_HOME should be set to
 jdk 17 or below. Or PATH should contain java from jdk 17 or below. jdk18 build is
@@ -169,7 +169,7 @@ For Windows, please use gradlew.bat.
 
 ```sh
 
-$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -PLIBCLANG_HOME=<libclang_dir> clean verify
+$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Plibclang_home=<libclang_dir> clean verify
 
 ```
 
@@ -182,7 +182,7 @@ For Windows, please use gradlew.bat.
 
 ```sh
 
-$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -PLIBCLANG_HOME=<libclang_dir> -Pjtreg_home=<jtreg_dir> clean jtreg
+$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Plibclang_home=<libclang_dir> -Pjtreg_home=<jtreg_dir> clean jtreg
 
 ```
 
