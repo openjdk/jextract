@@ -4,7 +4,7 @@
 
 ### Getting started
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/419), so a suitable [jdk 18 distribution](https://jdk.java.net/18/) is also required.
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version <= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/419), so a suitable [jdk 18 distribution](https://jdk.java.net/18/) is also required.
 
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead):
 
@@ -12,7 +12,7 @@
 $ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Plibclang_home=<libclang_dir> clean verify
 ```
 
-After building, there should be a new `jextract` folder under `build` (the contents of this folder might vary depending on the platform):
+After building, there should be a new `jextract` folder under `build` (the contents and the name of this folder might vary slightly depending on the platform):
 
 ```
 build/jextract
@@ -27,7 +27,7 @@ build/jextract
         └── lib
 ```
 
-To run the `jextract` tool, simply run the `jextract` command in the `bin` folder:
+To run the `jextract` tool, simply run the `jextract` command in the `bin` folder (again, the exact location of the binary might vary slightly depending on the platform):
 
 ```sh
 build/jextract/bin/jextract 
