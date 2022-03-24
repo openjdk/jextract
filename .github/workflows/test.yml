@@ -1,0 +1,40 @@
+name: Build Jextract
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+
+  linux-x64:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 'Check out repository'
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+        
+    - name: 'Setup jdk 18'
+      uses: oracle-actions/setup-java@v1
+      with:
+        website: jdk.java.net
+        release: 18
+
+    - name: 'Setup LLVM'
+      shell: sh
+      run: |
+        wget https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.1/clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+        tar -xvf clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C LLVM
+        ls ./LLVM
+
+    - name: 'Build Jextract'
+      shell: sh
+      run: |
+        java --version
+        echo JAVA_HOME=$JAVA_HOME
+        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./LLVM clean verify
