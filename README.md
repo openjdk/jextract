@@ -116,7 +116,7 @@ The `jextract` tool includes several customization options. Users can select in 
 
 | Option                                                       | Meaning                                                      |
 | :----------------------------------------------------------- | ------------------------------------------------------------ |
-| `--header-class-name <String>`                               | specify the name the main header class                       |
+| `--header-class-name <String>`                               | specify the name of the main header class                       |
 | `-t, --target-package <String>`                              | specify target package for the generated bindings            |
 | `-I <String>`                                                | specify include files path for the clang parser              |
 | `-l <String>`                                                | specify a library that will be loaded by the generated bindings |
