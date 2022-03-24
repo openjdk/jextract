@@ -79,10 +79,10 @@ class MacroParserImpl {
      * back to use clang evaluation support.
      */
     Optional<Declaration.Constant> parseConstant(Position pos, String name, String[] tokens) {
-        if (!(pos instanceof TreeMaker.CursorPosition)) {
+        if (!(pos instanceof TreeMaker.CursorPosition cursorPosition)) {
             return Optional.empty();
         } else {
-            Cursor cursor = ((TreeMaker.CursorPosition)pos).cursor();
+            Cursor cursor = cursorPosition.cursor();
             if (cursor.isMacroFunctionLike()) {
                 return Optional.empty();
             } else if (tokens.length == 2) {

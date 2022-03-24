@@ -91,10 +91,9 @@ public class SourceLocation {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof SourceLocation)) {
+        if (!(other instanceof SourceLocation sloc)) {
             return false;
         }
-        SourceLocation sloc = (SourceLocation)other;
         return Objects.equals(getFileLocation(), sloc.getFileLocation());
     }
 
@@ -142,10 +141,9 @@ public class SourceLocation {
             if (this == other) {
                 return true;
             }
-            if (!(other instanceof Location)) {
+            if (!(other instanceof Location loc)) {
                 return false;
             }
-            Location loc = (Location)other;
             return Objects.equals(path, loc.path) &&
                 line == loc.line && column == loc.column &&
                 offset == loc.offset;

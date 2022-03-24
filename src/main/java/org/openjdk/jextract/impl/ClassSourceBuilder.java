@@ -56,8 +56,7 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
 
     ClassSourceBuilder(JavaSourceBuilder enclosing, Kind kind, String name) {
         this.enclosing = enclosing;
-        this.align = (enclosing instanceof ClassSourceBuilder) ?
-            ((ClassSourceBuilder) enclosing).align : 0;
+        this.align = (enclosing instanceof ClassSourceBuilder enclosing) ? enclosing.align : 0;
         this.kind = kind;
         this.desc = ClassDesc.of(enclosing.packageName(), enclosing.uniqueNestedClassName(name));
     }
@@ -222,8 +221,8 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
 
     ToplevelBuilder toplevel() {
         JavaSourceBuilder encl = enclosing;
-        while (encl instanceof ClassSourceBuilder) {
-            encl = ((ClassSourceBuilder) encl).enclosing;
+        while (encl instanceof ClassSourceBuilder classSourceBuilder) {
+            encl = classSourceBuilder.enclosing;
         }
         return (ToplevelBuilder)encl;
     }

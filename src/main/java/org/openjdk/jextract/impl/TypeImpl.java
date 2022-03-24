@@ -89,10 +89,9 @@ public abstract class TypeImpl implements Type {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Type.Primitive)) {
-                return (o instanceof Delegated) && equals(this, (Delegated)o);
+            if (!(o instanceof Type.Primitive primitive)) {
+                return (o instanceof Delegated delegated) && equals(this, delegated);
             }
-            Type.Primitive primitive = (Type.Primitive) o;
             return kind == primitive.kind();
         }
 
@@ -129,12 +128,11 @@ public abstract class TypeImpl implements Type {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Type.Delegated)) {
-                return (o instanceof Type) && equals((Type)o, this);
+            if (!(o instanceof Type.Delegated delegated)) {
+                return (o instanceof Type type) && equals(type, this);
             }
-            Type.Delegated that = (Type.Delegated) o;
-            return kind == that.kind() &&
-                    name.equals(that.name());
+            return kind == delegated.kind() &&
+                    name.equals(delegated.name());
         }
 
         @Override
@@ -167,11 +165,10 @@ public abstract class TypeImpl implements Type {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Type.Delegated)) return false;
+            if (!(o instanceof Type.Delegated qualified)) return false;
             if (!super.equals(o)) {
-                return (o instanceof Delegated) && equals(this, (Delegated) o);
+                return (o instanceof Delegated delegated) && equals(this, delegated);
             }
-            Type.Delegated qualified = (Type.Delegated) o;
             return Objects.equals(type, qualified.type());
         }
 
@@ -223,10 +220,9 @@ public abstract class TypeImpl implements Type {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Type.Declared)) {
-                return (o instanceof Delegated) && equals(this, (Delegated) o);
+            if (!(o instanceof Type.Declared declared)) {
+                return (o instanceof Delegated delegated) && equals(this, delegated);
             }
-            Type.Declared declared = (Type.Declared) o;
             return declaration.equals(declared.tree());
         }
 
@@ -289,10 +285,9 @@ public abstract class TypeImpl implements Type {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Type.Function)) {
-                return (o instanceof Delegated) && equals(this, (Delegated) o);
+            if (!(o instanceof Type.Function function)) {
+                return (o instanceof Delegated delegated) && equals(this, delegated);
             }
-            Type.Function function = (Type.Function) o;
             return varargs == function.varargs() &&
                     argtypes.equals(function.argumentTypes()) &&
                     restype.equals(function.returnType());
@@ -348,10 +343,9 @@ public abstract class TypeImpl implements Type {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Type.Array)) {
-                return (o instanceof Delegated) && equals(this, (Delegated) o);
+            if (!(o instanceof Type.Array array)) {
+                return (o instanceof Delegated delegated) && equals(this, delegated);
             }
-            Type.Array array = (Type.Array) o;
             return kind == array.kind() &&
                     elemType.equals(array.elementType());
         }
@@ -399,11 +393,9 @@ public abstract class TypeImpl implements Type {
     }
 
     private static boolean isVoidType(org.openjdk.jextract.Type type) {
-        if (type instanceof org.openjdk.jextract.Type.Primitive) {
-            org.openjdk.jextract.Type.Primitive pt = (org.openjdk.jextract.Type.Primitive)type;
+        if (type instanceof org.openjdk.jextract.Type.Primitive pt) {
             return pt.kind() == org.openjdk.jextract.Type.Primitive.Kind.Void;
-        } else if (type instanceof org.openjdk.jextract.Type.Delegated) {
-            org.openjdk.jextract.Type.Delegated dt = (org.openjdk.jextract.Type.Delegated)type;
+        } else if (type instanceof org.openjdk.jextract.Type.Delegated dt) {
             return dt.kind() == org.openjdk.jextract.Type.Delegated.Kind.TYPEDEF? isVoidType(dt.type()) : false;
         }
         return false;
