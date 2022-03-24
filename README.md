@@ -116,14 +116,14 @@ The `jextract` tool includes several customization options. Users can select in 
 
 | Option                                                       | Meaning                                                      |
 | :----------------------------------------------------------- | ------------------------------------------------------------ |
-| `--header-class-name` <String>                               | specify the name the main header class                       |
-| `-t, --target-package` <String>                              | specify target package for the generated bindings            |
-| `-I` <String>                                                | specify include files path for the clang parser              |
-| `-l` <String>                                                | specify a library that will be loaded by the generated bindings |
-| `-d` <String>                                                | specify where to place generated files                       |
+| `--header-class-name <String>`                               | specify the name the main header class                       |
+| `-t, --target-package <String>`                              | specify target package for the generated bindings            |
+| `-I <String>`                                                | specify include files path for the clang parser              |
+| `-l <String>`                                                | specify a library that will be loaded by the generated bindings |
+| `-d <String>`                                                | specify where to place generated files                       |
 | `--source`                                                   | generate java sources instead of classfiles                  |
-| `--dump-includes` <String>                                   | dump included symbols into specified file (see below)        |
-| `--include-[function,macro,struct,union,typedef,var]` <String> | Include a symbol of the given name and kind in the generated bindings (see below). When one of these options is specified, any symbols that is not matched by any specified filters is omitted from the generated bindings. |
+| `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
+| `--include-[function,macro,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings (see below). When one of these options is specified, any symbols that is not matched by any specified filters is omitted from the generated bindings. |
 
 #### Filtering symbols
 
