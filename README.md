@@ -22,24 +22,9 @@ build/jextract
     └── runtime
         ├── bin
         ├── conf
-        │   ├── jextract
-        │   ├── sdp
-        │   └── security
-        │       └── policy
-        │           ├── limited
-        │           └── unlimited
         ├── include
-        │   └── linux
         ├── legal
-        │   ├── java.base
-        │   ├── java.compiler
-        │   ├── java.prefs
-        │   ├── java.xml
-        │   ├── jdk.compiler
-        │   └── jdk.incubator.foreign
         └── lib
-            ├── security
-            └── server
 ```
 
 To run the `jextract` tool, simply run the `jextract` command in the `bin` folder:
