@@ -1,12 +1,12 @@
 ## Jextract
 
-`jextract` is a tool that mechanically generates Java bindings from a native library headers. We would like to include this tool, originally developed in the context of [Project Panama](https://openjdk.java.net/projects/panama/) (and available in the Project Panama [Early Access binaries](https://jdk.java.net/panama/)) in the set of tools that are part of the code-tools project.
+`jextract` is a tool which mechanically generates Java bindings from a native library headers. This tools leverages the [clang C API](https://clang.llvm.org/doxygen/group__CINDEX.html) in order to parse the headers associated to a given native library, and the generated Java bindings builds upon the [Foreign Function & Memory API](https://openjdk.java.net/jeps/419). The `jextract` tool was originally developed in the context of [Project Panama](https://openjdk.java.net/projects/panama/) (and then made available in the Project Panama [Early Access binaries](https://jdk.java.net/panama/)).
 
 ### Getting started
 
-The jextract tool depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html). Both the jextract tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/419), so a suitable [jdk 18 distribution](https://jdk.java.net/18/) is also required.
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/419), so a suitable [jdk 18 distribution](https://jdk.java.net/18/) is also required.
 
-The jextract tool can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead):
+`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead):
 
 ```sh
 $ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Plibclang_home=<libclang_dir> clean verify
@@ -42,7 +42,7 @@ build/jextract
             └── server
 ```
 
-To run jextract, simply run the `jextract` command in the `bin` folder:
+To run the `jextract` tool, simply run the `jextract` command in the `bin` folder:
 
 ```sh
 build/jextract/bin/jextract 
@@ -58,7 +58,7 @@ $ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Plibclang_home=<libclang_dir> jtre
 
 ### Using jextract
 
-`jextract` is a tool that leverages the [clang C API](https://clang.llvm.org/doxygen/group__CINDEX.html) in order to parse the headers associated to a given native library and generate the Java glue code that is required to interact with said library. To understand how `jextract` works, consider the following C header file:
+To understand how `jextract` works, consider the following C header file:
 
 ```c
 //point.h
@@ -127,7 +127,7 @@ In other words, the `jextract` tool has generated all the required supporting co
 
 #### Filtering symbols
 
-The `jextract` tool includes several customization options. Users can select what in which package the generated code should be emitted, and what the name of the main extracted class should be. To allow for symbol filtering, jextract can generate a *dump* of all the symbols encountered in an header file; this dump can be manipulated, and then used as an argument file (using the `@argfile` syntax also available in other JDK tools) to e.g. generate bindings only for a *subset* of symbols seen by `jextract`. For instance, if we run `jextract` with as follows:
+The `jextract` tool includes several customization options. Users can select what in which package the generated code should be emitted, and what the name of the main extracted class should be. To allow for symbol filtering, `jextract` can generate a *dump* of all the symbols encountered in an header file; this dump can be manipulated, and then used as an argument file (using the `@argfile` syntax also available in other JDK tools) to e.g. generate bindings only for a *subset* of symbols seen by `jextract`. For instance, if we run `jextract` with as follows:
 
 ```
 jextract --dump-includes=includes.txt point.h
@@ -142,7 +142,7 @@ We obtain the following file (`includes.txt`):
 --include-function distance # header: point.h
 ```
 
-This file can be passed back to jextract, as follows:
+This file can be passed back to `jextract`, as follows:
 
 ```
 jextract -t org.jextract --source @includes.txt point.h
