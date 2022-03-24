@@ -110,9 +110,24 @@ public static double distance ( MemorySegment x0) {
 
 In other words, the `jextract` tool has generated all the required supporting code (`MemoryLayout`, `MethodHandle` and `FunctionDescriptor`) that is needed to call the underlying `distance` native function. For more examples on how to use the `jextract` tool with real-world libraries, please refer to the [samples folder](samples) (building/running particular sample may require specific third-party software installation).
 
+#### Command line options
+
+The `jextract` tool includes several customization options. Users can select in which package the generated code should be emitted, and what the name of the main extracted class should be. A complete list of all the supported options is given below:
+
+| Option                                                       | Meaning                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `--header-class-name` <String>                               | specify the name the main header class                       |
+| `-t, --target-package` <String>                              | specify target package for the generated bindings            |
+| `-I` <String>                                                | specify include files path for the clang parser              |
+| `-l` <String>                                                | specify a library that will be loaded by the generated bindings |
+| `-d` <String>                                                | specify where to place generated files                       |
+| `--source`                                                   | generate java sources instead of classfiles                  |
+| `--dump-includes` <String>                                   | dump included symbols into specified file (see below)        |
+| `--include-function` <String><br />`--include-macro` <String><br />`--include-struct` <String><br />`--include-union` <String><br />`--include-typedef` <String><br />`--include-var` <String> | Include a symbol of the given name and kind in the generated bindings (see below).<br />When one of these options is specified, any symbols that is not matched by any specified filters is omitted from the generated bindings. |
+
 #### Filtering symbols
 
-The `jextract` tool includes several customization options. Users can select in which package the generated code should be emitted, and what the name of the main extracted class should be. To allow for symbol filtering, `jextract` can generate a *dump* of all the symbols encountered in an header file; this dump can be manipulated, and then used as an argument file (using the `@argfile` syntax also available in other JDK tools) to e.g. generate bindings only for a *subset* of symbols seen by `jextract`. For instance, if we run `jextract` with as follows:
+To allow for symbol filtering, `jextract` can generate a *dump* of all the symbols encountered in an header file; this dump can be manipulated, and then used as an argument file (using the `@argfile` syntax also available in other JDK tools) to e.g. generate bindings only for a *subset* of symbols seen by `jextract`. For instance, if we run `jextract` with as follows:
 
 ```
 jextract --dump-includes=includes.txt point.h
