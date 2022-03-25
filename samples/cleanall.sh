@@ -34,6 +34,9 @@ cd ..
 cd libproc
 rm -rf org
 cd ..
+cd lp_solve
+rm -rf net
+cd ..
 cd opengl
 rm -rf opengl
 cd ..

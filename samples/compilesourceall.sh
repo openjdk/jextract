@@ -43,6 +43,10 @@ echo "compiling libproc"
 cd libproc
 sh ./compilesource.sh
 cd ..
+echo "compiling lp_solve"
+cd lp_solve
+sh ./compilesource.sh
+cd ..
 echo "compiling opengl"
 cd opengl
 sh ./compilesource.sh
