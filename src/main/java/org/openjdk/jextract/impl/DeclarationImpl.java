@@ -88,9 +88,10 @@ public abstract class DeclarationImpl implements Declaration {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Declaration decl)) return false;
-        return name().equals(decl.name());
+        if (this == o) {
+            return true;
+        }
+        return o instanceof Declaration decl && name().equals(decl.name());
     }
 
     @Override
@@ -129,8 +130,8 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Typedef other)) return false;
-            return name().equals(other.name()) &&
+            return o instanceof Declaration.Typedef other &&
+                    name().equals(other.name()) &&
                     type.equals(other.type());
         }
 
