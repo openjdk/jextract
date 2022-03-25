@@ -34,14 +34,14 @@ jobs:
       shell: sh
       run: |
         mkdir deps
-        wget -O deps/LLVM.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.1/clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+        wget -O deps/LLVM.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
         tar -xvf deps/LLVM.tar.xz -C deps
-        ls ./deps/clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04
+        ls ./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04
 
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04 clean verify        
+        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 clean verify        
 
     - name: 'Check out JTReg'
       uses: actions/checkout@v2
@@ -61,4 +61,4 @@ jobs:
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04 -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
+        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
