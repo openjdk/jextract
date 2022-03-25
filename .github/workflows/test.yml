@@ -62,6 +62,4 @@ jobs:
     - name: 'Run Tests'
       shell: sh
       run: |
-        java --version
-        echo JAVA_HOME=$JAVA_HOME
         sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04 -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
