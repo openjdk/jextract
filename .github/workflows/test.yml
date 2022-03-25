@@ -25,16 +25,40 @@ jobs:
         website: jdk.java.net
         release: 18
 
-    - name: 'Setup LLVM'
-      shell: sh
-      run: |
-        wget https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.1/clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-        tar -xvf clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C LLVM
-        ls ./LLVM
-
-    - name: 'Build Jextract'
+    - name: 'Check Java Version'
       shell: sh
       run: |
         java --version
         echo JAVA_HOME=$JAVA_HOME
-        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./LLVM clean verify
+
+    - name: 'Setup LLVM'
+      shell: sh
+      run: |
+        wget https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.1/clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+        tar -xvf clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C deps/LLVM
+        ls ./deps/LLVM
+
+    - name: 'Build Jextract'
+      shell: sh
+      run: |
+        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/LLVM clean verify        
+        
+    - name: 'Check out jtreg'
+      uses: actions/checkout@v2
+      with:
+        repository: 'openjdk/jtreg'
+        fetch-depth: 1
+        path: deps/jtreg
+        
+    - name: 'Build JTReg'
+      shell: bash
+      working-directory: ./deps/jtreg
+      run: |
+        bash ./deps/jtreg/make/build.sh --jdk ${JAVA_HOME_11_X64}      
+
+    - name: 'Run Tests'
+      shell: sh
+      run: |
+        java --version
+        echo JAVA_HOME=$JAVA_HOME
+        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/LLVM -Pjtreg_home=./deps/jtreg jtreg  
