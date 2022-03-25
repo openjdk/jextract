@@ -2,11 +2,10 @@ name: Build Jextract
 
 on:
   push:
-    branches:
+    branches-ignore:
       - master
-  pull_request:
-    branches:
-      - '*'
+      - pr/*
+  workflow_dispatch:
 
 jobs:
 
