@@ -51,7 +51,7 @@ class LpSolveDemo {
             var allocator = SegmentAllocator.nativeAllocator(scope);
             var colno = allocator.allocateArray(C_INT, Ncol);
             var row = allocator.allocateArray(C_DOUBLE, Ncol);
-            
+
             // makes building the model faster if it is done rows by row
             set_add_rowmode(lp, TRUE);
 
@@ -59,7 +59,7 @@ class LpSolveDemo {
             int j = 0;
             colno.setAtIndex(C_INT, j, 1);
             row.setAtIndex(C_DOUBLE, j, 120);
-            j++; 
+            j++;
             colno.setAtIndex(C_INT, j, 2);
             row.setAtIndex(C_DOUBLE, j, 210);
             j++;
@@ -69,7 +69,7 @@ class LpSolveDemo {
             j = 0;
             colno.setAtIndex(C_INT, j, 1);
             row.setAtIndex(C_DOUBLE, j, 110);
-            j++; 
+            j++;
             colno.setAtIndex(C_INT, j, 2);
             row.setAtIndex(C_DOUBLE, j, 30);
             j++;
@@ -79,12 +79,12 @@ class LpSolveDemo {
             j = 0;
             colno.setAtIndex(C_INT, j, 1);
             row.setAtIndex(C_DOUBLE, j, 1);
-            j++; 
+            j++;
             colno.setAtIndex(C_INT, j, 2);
             row.setAtIndex(C_DOUBLE, j, 1);
             j++;
             add_constraintex(lp, j, row, colno, LE(), 75);
-            
+
             // rowmode should be turned off again when done building the model
             set_add_rowmode(lp, FALSE);
 
@@ -92,7 +92,7 @@ class LpSolveDemo {
             j = 0;
             colno.setAtIndex(C_INT, j, 1);
             row.setAtIndex(C_DOUBLE, j, 143);
-            j++; 
+            j++;
             colno.setAtIndex(C_INT, j, 2);
             row.setAtIndex(C_DOUBLE, j, 60);
             j++;
@@ -103,7 +103,7 @@ class LpSolveDemo {
             // set the object direction to maximize
             set_maxim(lp);
 
-            // I only want to see important messages on screen while solving 
+            // I only want to see important messages on screen while solving
             set_verbose(lp, IMPORTANT());
 
             // Now let lpsolve calculate a solution
@@ -120,7 +120,7 @@ class LpSolveDemo {
              */
             System.out.println("Objective value: " + get_objective(lp));
 
-            // variable values 
+            // variable values
             get_variables(lp, row);
             for(j = 0; j < Ncol; j++) {
                 System.out.println("x" + j + " = " + row.getAtIndex(C_DOUBLE, j));
