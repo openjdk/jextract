@@ -41,7 +41,7 @@ jobs:
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/LLVM clean verify        
+        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/LLVM clean verify
         
     - name: 'Check out jtreg'
       uses: actions/checkout@v2
@@ -54,11 +54,11 @@ jobs:
       shell: bash
       working-directory: ./deps/jtreg
       run: |
-        bash ./deps/jtreg/make/build.sh --jdk ${JAVA_HOME_11_X64}      
+        bash ./deps/jtreg/make/build.sh --jdk ${JAVA_HOME_11_X64}
 
     - name: 'Run Tests'
       shell: sh
       run: |
         java --version
         echo JAVA_HOME=$JAVA_HOME
-        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/LLVM -Pjtreg_home=./deps/jtreg jtreg  
+        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Plibclang_home=./deps/LLVM -Pjtreg_home=./deps/jtreg jtreg
