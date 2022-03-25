@@ -26,6 +26,7 @@
 package org.openjdk.jextract;
 
 import org.openjdk.jextract.impl.ClangException;
+import org.openjdk.jextract.impl.CommandLine;
 import org.openjdk.jextract.impl.IncludeHelper;
 import org.openjdk.jextract.impl.OutputFactory;
 import org.openjdk.jextract.impl.Parser;
@@ -44,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -172,6 +174,16 @@ public final class JextractTool {
     }
 
     private int run(String[] args) {
+        try {
+            args = CommandLine.parse(Arrays.asList(args)).toArray(new String[0]);
+        } catch (IOException ioexp) {
+            err.println(format("argfile.read.error", ioexp));
+            if (JextractTool.DEBUG) {
+                ioexp.printStackTrace(err);
+            }
+            return OPTION_ERROR;
+        }
+
         OptionParser parser = new OptionParser(false);
         parser.accepts("C", format("help.C")).withRequiredArg();
         parser.accepts("I", format("help.I")).withRequiredArg();

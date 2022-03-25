@@ -39,6 +39,14 @@ public class JextractToolProviderTest extends JextractToolRunner {
         run("-?").checkSuccess();
     }
 
+    // error for non-existent args file
+    @Test
+    public void testNonExistentArgsFile() {
+        run("@non_existent_args")
+            .checkFailure(OPTION_ERROR)
+            .checkContainsOutput("reading @argfile failed");
+    }
+
     // error for non-existent header file
     @Test
     public void testNonExistentHeader() {
@@ -90,6 +98,20 @@ public class JextractToolProviderTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "func", int.class));
             // check a method for "int printf(MemoryAddress, Object[])"
             assertNotNull(findMethod(cls, "printf", Addressable.class, Object[].class));
+        } finally {
+            TestUtils.deleteDir(helloOutput);
+        }
+    }
+
+    @Test
+    public void testArgsFile() {
+        Path helloOutput = getOutputFilePath("hellogen");
+        run("-d", helloOutput.toString(),
+            "@" + getInputFilePath("helloargs").toString(),
+            getInputFilePath("hello.h").toString()).checkSuccess();
+        try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
+            Class<?> cls = loader.loadClass("com.acme.hello_h");
+            assertNotNull(cls);
         } finally {
             TestUtils.deleteDir(helloOutput);
         }
