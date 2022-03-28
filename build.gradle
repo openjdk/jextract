@@ -23,7 +23,7 @@ def static checkPath(Path p) {
     }
 }
 
-def static checkJDKRelease(String java_home, String expectedVersion) {
+def static checkJDKRelease(String java_home, int expectedVersion) {
     Path releaseFile = Path.of(java_home).resolve("release");
     checkPath(releaseFile);
 
@@ -37,14 +37,17 @@ def static checkJDKRelease(String java_home, String expectedVersion) {
         throw new IllegalArgumentException("Could not determine java version from ${releaseFile}");
     }
 
-    expectedVersion = "\"${expectedVersion}\""; // version in release file is quoted
-    if (!foundVersion.equals(expectedVersion)) {
-        throw new IllegalArgumentException("Incorrect java version. Expected ${expectedVersion}, but found ${foundVersion}");
+    foundVersion = foundVersion.substring(1, foundVersion.length() - 1); // version in release file is quoted
+    int foundVersionInt = Integer.parseInt(foundVersion);
+
+    if (foundVersionInt < expectedVersion) {
+        throw new IllegalArgumentException("Incorrect java version. " +
+            "Expected at least '${expectedVersion}', but found '${foundVersion}'");
     }
 }
 
-def java_home = System.getProperty("java.home");
-checkJDKRelease(java_home, "18");
+def java_home = project.hasProperty("jdk") ? project.property("jdk") : System.getProperty("java.home");
+checkJDKRelease(java_home, 18);
 
 def llvm_home = project.property("llvm_home")
 checkPath(llvm_home)
@@ -93,6 +96,9 @@ jar {
 }
 
 moditect {
+    // moditect uses java.home to find JDK tools
+    System.setProperty("java.home", "$java_home")
+
     // inject module-info.class for org.openjdk.jextract module
     addMainModuleInfo {
         dependsOn build
