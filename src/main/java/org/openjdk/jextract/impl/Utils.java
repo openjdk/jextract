@@ -324,8 +324,7 @@ class Utils {
     }
 
     static boolean isPointerType(org.openjdk.jextract.Type type) {
-        if (type instanceof Delegated) {
-            Delegated delegated = (Delegated) type;
+        if (type instanceof Delegated delegated) {
             return delegated.kind() == Delegated.Kind.POINTER;
         } else {
             return false;

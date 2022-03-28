@@ -86,8 +86,8 @@ public final class UnsupportedLayouts {
         @Override
         public String visitDeclared(Type.Declared t, Void unused) {
             for (Declaration d : t.tree().members()) {
-                if (d instanceof Declaration.Variable) {
-                    String unsupported = firstUnsupportedType(((Declaration.Variable) d).type());
+                if (d instanceof Declaration.Variable variable) {
+                    String unsupported = firstUnsupportedType(variable.type());
                     if (unsupported != null) {
                         return unsupported;
                     }

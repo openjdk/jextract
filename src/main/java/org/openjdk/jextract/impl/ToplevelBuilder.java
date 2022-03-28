@@ -110,9 +110,9 @@ class ToplevelBuilder extends JavaSourceBuilder {
 
     @Override
     public void addTypedef(String name, String superClass, Type type) {
-        if (type instanceof Type.Primitive) {
+        if (type instanceof Type.Primitive primitive) {
             // primitive
-            nextHeader().emitPrimitiveTypedef((Type.Primitive)type, name);
+            nextHeader().emitPrimitiveTypedef(primitive, name);
         } else if (((TypeImpl)type).isPointer()) {
             // pointer typedef
             nextHeader().emitPointerTypedef(name);

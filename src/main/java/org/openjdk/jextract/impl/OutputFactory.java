@@ -282,14 +282,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     Type.Function getAsFunctionPointer(Type type) {
-        if (type instanceof Type.Function) {
+        if (type instanceof Type.Function function) {
             /*
              * // pointer to function declared as function like this
              *
              * typedef void CB(int);
              * void func(CB cb);
              */
-            return (Type.Function) type;
+            return function;
         } else if (Utils.isPointerType(type)) {
             return getAsFunctionPointer(((Type.Delegated)type).type());
         } else {
@@ -303,8 +303,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
         Type type = tree.type();
-        if (type instanceof Type.Declared) {
-            Declaration.Scoped s = ((Type.Declared) type).tree();
+        if (type instanceof Type.Declared declared) {
+            Declaration.Scoped s = declared.tree();
             if (!s.name().equals(tree.name())) {
                 switch (s.kind()) {
                     case STRUCT, UNION -> {
@@ -366,9 +366,9 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
         Type type = tree.type();
 
-        if (type instanceof Type.Declared) {
+        if (type instanceof Type.Declared declared) {
             // declared type - visit declaration recursively
-            ((Type.Declared) type).tree().accept(this, tree);
+            declared.tree().accept(this, tree);
         }
         MemoryLayout layout = tree.layout().orElse(Type.layoutFor(type).orElse(null));
         if (layout == null) {
@@ -459,11 +459,10 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     protected static MemoryLayout layoutFor(Declaration decl) {
-        if (decl instanceof Declaration.Typedef) {
-            Declaration.Typedef alias = (Declaration.Typedef) decl;
+        if (decl instanceof Declaration.Typedef alias) {
             return Type.layoutFor(alias.type()).orElseThrow();
-        } else if (decl instanceof Declaration.Scoped) {
-            return ((Declaration.Scoped) decl).layout().orElseThrow();
+        } else if (decl instanceof Declaration.Scoped scoped) {
+            return scoped.layout().orElseThrow();
         } else {
             throw new IllegalArgumentException("Unexpected parent declaration");
         }
