@@ -12,7 +12,13 @@
 $ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
-After building, there should be a new `jextract` folder under `build` (the contents and the name of this folder might vary slightly depending on the platform):
+On macOs the `libclang_dir` the usual locations are:
+
+* `/Library/Developer/CommandLineTools/usr/` if using Command Line Tools
+* `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/` if using XCode
+* `$(brew --prefix llvm)` if using the [LLVM install from Homebrew](https://formulae.brew.sh/formula/llvm#default)
+
+After building, there should be a new `jextract` folder under `build` (the contents and the name of this folder might vary slightly depending on the platform, e.g. on macOs the folder is `jextract.app`) :
 
 ```
 build/jextract
@@ -27,7 +33,7 @@ build/jextract
         └── lib
 ```
 
-To run the `jextract` tool, simply run the `jextract` command in the `bin` folder (again, the exact location of the binary might vary slightly depending on the platform):
+To run the `jextract` tool, simply run the `jextract` command in the `bin` folder (again, the exact location of the binary might vary slightly depending on the platform, e.g. on macOs `build/jextract.app/Contents/MacOS/jextract` ):
 
 ```sh
 build/jextract/bin/jextract 
