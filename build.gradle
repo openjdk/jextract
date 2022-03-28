@@ -1,4 +1,6 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 plugins {
     id "java"
@@ -10,8 +12,21 @@ plugins {
 
 version = '1.0'
 
-def libclang_home = project.property("libclang_home")
-def clang_version = new File("${libclang_home}/lib/clang/").list()[0]
+def static checkPath(String p) {
+    if (!Files.exists(Path.of(p))) {
+        throw new IllegalArgumentException("Error: the path ${p} does not exist");
+    }
+}
+
+def llvm_home = project.property("llvm_home")
+checkPath(llvm_home)
+checkPath("${llvm_home}/lib/clang")
+def clang_versions = new File("${llvm_home}/lib/clang/").list();
+if (clang_versions.length == 0) {
+    throw new IllegalArgumentException("Could not detect clang version." +
+            " Make sure a ${llvm_home}/lib/clang/<VERSION> directory exists")
+}
+def clang_version = clang_versions[0]
 
 def jextract_path
 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -22,9 +37,11 @@ if (Os.isFamily(Os.FAMILY_WINDOWS)) {
     jextract_path = "$buildDir/jextract/bin/jextract"
 }
 
-def clang_include_dir = "${libclang_home}/lib/clang/${clang_version}/include"
+def clang_include_dir = "${llvm_home}/lib/clang/${clang_version}/include"
+checkPath(clang_include_dir)
 def os_lib_dir = Os.isFamily(Os.FAMILY_WINDOWS)? "bin" : "lib"
-def libclang_dir = "${libclang_home}/${os_lib_dir}"
+def libclang_dir = "${llvm_home}/${os_lib_dir}"
+checkPath(libclang_dir)
 
 repositories {
     mavenCentral()
