@@ -16,7 +16,7 @@ $ echo $JAVA_HOME
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pllvm_home=<libclang_dir> clean verify
+$ sh ./gradlew -Pllvm_home=<llvm_dir> clean verify
 ```
 
 After building, there should be a new `jextract` folder under `build` (the contents and the name of this folder might vary slightly depending on the platform):
@@ -45,7 +45,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_dir> jtreg
+$ sh ./gradlew -Pllvm_home=<llvm_dir> -Pjtreg_home=<jtreg_dir> jtreg
 ```
 
 ### Using jextract
