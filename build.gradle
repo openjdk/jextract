@@ -43,7 +43,7 @@ def static checkJDKRelease(String java_home, String expectedVersion) {
     }
 }
 
-def java_home = System.getenv("JAVA_HOME");
+def java_home = System.getProperty("java.home");
 checkJDKRelease(java_home, "18");
 
 def llvm_home = project.property("llvm_home")
