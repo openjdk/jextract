@@ -45,7 +45,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pllvm_home=<libclang_dir> jtreg
+$ sh ./gradlew -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_dir> jtreg
 ```
 
 ### Using jextract
