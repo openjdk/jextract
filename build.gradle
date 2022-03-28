@@ -1,6 +1,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Properties;
 
 plugins {
     id "java"
@@ -13,10 +14,37 @@ plugins {
 version = '1.0'
 
 def static checkPath(String p) {
-    if (!Files.exists(Path.of(p))) {
+    checkPath(Path.of(p));
+}
+
+def static checkPath(Path p) {
+    if (!Files.exists(p)) {
         throw new IllegalArgumentException("Error: the path ${p} does not exist");
     }
 }
+
+def static checkJDKRelease(String java_home, String expectedVersion) {
+    Path releaseFile = Path.of(java_home).resolve("release");
+    checkPath(releaseFile);
+
+    Properties props = new Properties();
+    try (InputStream input = Files.newInputStream(releaseFile)) {
+        props.load(input);
+    }
+
+    String foundVersion = props.getProperty("JAVA_VERSION");
+    if (foundVersion == null) {
+        throw new IllegalArgumentException("Could not determine java version from ${releaseFile}");
+    }
+
+    expectedVersion = "\"${expectedVersion}\""; // version in release file is quoted
+    if (!foundVersion.equals(expectedVersion)) {
+        throw new IllegalArgumentException("Incorrect java version. Expected ${expectedVersion}, but found ${foundVersion}");
+    }
+}
+
+def java_home = System.getenv("JAVA_HOME");
+checkJDKRelease(java_home, "18");
 
 def llvm_home = project.property("llvm_home")
 checkPath(llvm_home)
@@ -56,7 +84,7 @@ compileJava {
     options.compilerArgs << "--add-modules=jdk.incubator.foreign"
     options.compilerArgs << "-Xlint:all"
     options.fork = true
-    options.forkOptions.executable = "${jdk18_home}/bin/javac"
+    options.forkOptions.executable = "${java_home}/bin/javac"
 }
 
 jar {
@@ -65,9 +93,6 @@ jar {
 }
 
 moditect {
-    // moditect uses java.home to find JDK tools
-    System.setProperty("java.home", "$jdk18_home")
-
     // inject module-info.class for org.openjdk.jextract module
     addMainModuleInfo {
         dependsOn build
@@ -165,7 +190,7 @@ task createRuntimeImageForTest(type: org.moditect.gradleplugin.image.CreateRunti
 
     onlyIf { !new File("$buildDir/jextract-jdk-test-image").exists() }
     outputDirectory = file("$buildDir/jextract-jdk-test-image")
-    modulePath = [file("$buildDir/modules"),file("$jdk18_home/jmods")]
+    modulePath = [file("$buildDir/modules"),file("$java_home/jmods")]
     modules = ['ALL-MODULE-PATH']
 }
 
