@@ -50,7 +50,7 @@ def static Runtime.Version getJDKVersion(String jdkHome) {
 def static checkJDKRelease(String jdkHome, Runtime.Version expectedVersion) {
     Runtime.Version foundVersion = getJDKVersion(jdkHome);
     if (foundVersion.compareToIgnoreOptional(expectedVersion) < 0) {
-        throw new IllegalArgumentException("Incorrect java version. " +
+        throw new IllegalArgumentException("Incorrect build JDK version. " +
             "Expected at least '${expectedVersion}', but found '${foundVersion}'");
     }
 }
