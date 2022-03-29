@@ -15,7 +15,7 @@ $ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Pllvm_home=<libclang_dir> clean ve
 
 > <details><summary><strong>Using a local installation of LLVM</strong></summary>
 > 
-> While the recommanded way is to use a [release from the LLVM project](https://releases.llvm.org/download.html),
+> While the recommended way is to use a [release from the LLVM project](https://releases.llvm.org/download.html),
 > extract it then make `llvm_home` point to this directory, it may be possible to use a local installation instead.
 >
 > E.g. on macOs the `llvm_home` can also be set as one of these locations :
