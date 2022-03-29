@@ -70,18 +70,18 @@ def String downloadJDK() {
     }
 
     String jdkZipPath = ext.depsDir + "/jdk" + archiveExt;
-	download.run {
-		src jdkUrl
-		dest jdkZipPath
-		overwrite false // don't overwrite if it already exists
-	}
+    download.run {
+        src jdkUrl
+        dest jdkZipPath
+        overwrite false // don't overwrite if it already exists
+    }
 
     // extract
     FileTree source = Os.isFamily(Os.FAMILY_WINDOWS) ? zipTree(jdkZipPath) : tarTree(jdkZipPath);
-	copy {
-		from source
-		into ext.depsDir
-	}
+    copy {
+        from source
+        into ext.depsDir
+    }
 
     return ext.depsDir + "/jdk-18";
 }
