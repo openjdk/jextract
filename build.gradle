@@ -9,9 +9,13 @@ plugins {
     id "org.moditect.gradleplugin" version "1.0.0-rc3"
     // jpackage plugin for packging jextract native app
     id "org.panteleyev.jpackageplugin" version "1.3.1"
+    // for downloading files
+    id "de.undercouch.download" version "5.0.2"
 }
 
 version = '1.0'
+project.ext.minimalJDKVersion = Runtime.Version.parse("18");
+project.ext.depsDir = "deps"
 
 def static checkPath(String p) {
     checkPath(Path.of(p));
@@ -23,8 +27,8 @@ def static checkPath(Path p) {
     }
 }
 
-def static checkJDKRelease(String java_home, int expectedVersion) {
-    Path releaseFile = Path.of(java_home).resolve("release");
+def static Runtime.Version getJDKVersion(String jdkHome) {
+    Path releaseFile = Path.of(jdkHome).resolve("release");
     checkPath(releaseFile);
 
     Properties props = new Properties();
@@ -32,22 +36,73 @@ def static checkJDKRelease(String java_home, int expectedVersion) {
         props.load(input);
     }
 
-    String foundVersion = props.getProperty("JAVA_VERSION");
-    if (foundVersion == null) {
+    String foundVersionStr = props.getProperty("JAVA_VERSION");
+    if (foundVersionStr == null) {
         throw new IllegalArgumentException("Could not determine java version from ${releaseFile}");
     }
 
-    foundVersion = foundVersion.substring(1, foundVersion.length() - 1); // version in release file is quoted
-    int foundVersionInt = Integer.parseInt(foundVersion);
+    foundVersionStr = foundVersionStr.substring(1, foundVersionStr.length() - 1); // version in release file is quoted
+    Runtime.Version foundVersion = Runtime.Version.parse(foundVersionStr);
 
-    if (foundVersionInt < expectedVersion) {
+    return foundVersion;
+}
+
+def static checkJDKRelease(String jdkHome, Runtime.Version expectedVersion) {
+    Runtime.Version foundVersion = getJDKVersion(jdkHome);
+    if (foundVersion.compareToIgnoreOptional(expectedVersion) < 0) {
         throw new IllegalArgumentException("Incorrect java version. " +
             "Expected at least '${expectedVersion}', but found '${foundVersion}'");
     }
 }
 
-def java_home = project.hasProperty("jdk") ? project.property("jdk") : System.getProperty("java.home");
-checkJDKRelease(java_home, 18);
+def satisfiesJDKVersion(String jdkHome, Runtime.Version expectedVersion) {
+    return getJDKVersion(jdkHome).compareToIgnoreOptional(ext.minimalJDKVersion) >= 0;
+}
+
+def String downloadJDK() {
+    String jdkUrl = "https://download.java.net/java/GA/jdk18/43f95e8614114aeaa8e8a5fcf20a682d/36/GPL/openjdk-18_";
+    String archiveExt;
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        jdkUrl += "windows-x64_bin.zip";
+        archiveExt = ".zip";
+    } else if (Os.isFamily(Os.FAMILY_MAC)) {
+        jdkUrl += "macos-x64_bin.tar.gz"
+        archiveExt = ".tar.gz";
+    } else {
+        jdkUrl += "linux-x64_bin.tar.gz"
+        archiveExt = ".tar.gz";
+    }
+
+    String jdkZipPath = ext.depsDir + "/jdk" + archiveExt;
+	download.run {
+		src jdkUrl
+		dest jdkZipPath
+		overwrite false // don't overwrite if it already exists
+	}
+
+    // extract
+    FileTree source = Os.isFamily(Os.FAMILY_WINDOWS) ? zipTree(jdkZipPath) : tarTree(jdkZipPath);
+	copy {
+		from source
+		into ext.depsDir
+	}
+
+    return ext.depsDir + "/jdk-18";
+}
+
+String jdkHome;
+if (project.hasProperty("jdk")) {
+    println("using JDK from 'jdk' project property");
+    jdkHome = project.property("jdk");
+    checkJDKRelease(jdkHome, minimalJDKVersion);
+} else if (satisfiesJDKVersion(System.getProperty("java.home"), minimalJDKVersion)) {
+    println("using JDK from 'java.home' system property");
+    jdkHome = System.getProperty("java.home");
+} else {
+    println("downloading JDK to build with");
+    jdkHome = downloadJDK();
+}
+println("build JDK path is: " + jdkHome);
 
 def llvm_home = project.property("llvm_home")
 checkPath(llvm_home)
@@ -87,7 +142,7 @@ compileJava {
     options.compilerArgs << "--add-modules=jdk.incubator.foreign"
     options.compilerArgs << "-Xlint:all"
     options.fork = true
-    options.forkOptions.executable = "${java_home}/bin/javac"
+    options.forkOptions.executable = "${jdkHome}/bin/javac"
 }
 
 jar {
@@ -97,7 +152,7 @@ jar {
 
 moditect {
     // moditect uses java.home to find JDK tools
-    System.setProperty("java.home", "$java_home")
+    System.setProperty("java.home", "$jdkHome")
 
     // inject module-info.class for org.openjdk.jextract module
     addMainModuleInfo {
@@ -196,7 +251,7 @@ task createRuntimeImageForTest(type: org.moditect.gradleplugin.image.CreateRunti
 
     onlyIf { !new File("$buildDir/jextract-jdk-test-image").exists() }
     outputDirectory = file("$buildDir/jextract-jdk-test-image")
-    modulePath = [file("$buildDir/modules"),file("$java_home/jmods")]
+    modulePath = [file("$buildDir/modules"),file("$jdkHome/jmods")]
     modules = ['ALL-MODULE-PATH']
 }
 
