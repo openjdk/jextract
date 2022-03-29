@@ -55,10 +55,6 @@ def static checkJDKRelease(String jdkHome, Runtime.Version expectedVersion) {
     }
 }
 
-def satisfiesJDKVersion(String jdkHome, Runtime.Version expectedVersion) {
-    return getJDKVersion(jdkHome).compareToIgnoreOptional(ext.minimalJDKVersion) >= 0;
-}
-
 def String downloadJDK() {
     String jdkUrl = "https://download.java.net/java/GA/jdk18/43f95e8614114aeaa8e8a5fcf20a682d/36/GPL/openjdk-18_";
     String archiveExt;
@@ -95,9 +91,6 @@ if (project.hasProperty("jdk")) {
     println("using JDK from 'jdk' project property");
     jdkHome = project.property("jdk");
     checkJDKRelease(jdkHome, minimalJDKVersion);
-} else if (satisfiesJDKVersion(System.getProperty("java.home"), minimalJDKVersion)) {
-    println("using JDK from 'java.home' system property");
-    jdkHome = System.getProperty("java.home");
 } else {
     println("downloading JDK to build with");
     jdkHome = downloadJDK();
