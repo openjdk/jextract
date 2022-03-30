@@ -12,7 +12,21 @@
 $ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
-After building, there should be a new `jextract` folder under `build` (the contents and the name of this folder might vary slightly depending on the platform):
+
+> <details><summary><strong>Using a local installation of LLVM</strong></summary>
+> 
+> While the recommended way is to use a [release from the LLVM project](https://releases.llvm.org/download.html),
+> extract it then make `llvm_home` point to this directory, it may be possible to use a local installation instead.
+>
+> E.g. on macOs the `llvm_home` can also be set as one of these locations :
+> 
+> * `/Library/Developer/CommandLineTools/usr/` if using Command Line Tools
+> * `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/` if using XCode
+> * `$(brew --prefix llvm)` if using the [LLVM install from Homebrew](https://formulae.brew.sh/formula/llvm#default)
+> 
+> </details>
+
+After building, there should be a new `jextract` folder under `build` (the contents and the name of this folder might vary slightly depending on the platform, e.g. on macOs the folder is `jextract.app`) :
 
 ```
 build/jextract
@@ -27,7 +41,7 @@ build/jextract
         └── lib
 ```
 
-To run the `jextract` tool, simply run the `jextract` command in the `bin` folder (again, the exact location of the binary might vary slightly depending on the platform):
+To run the `jextract` tool, simply run the `jextract` command in the `bin` folder (again, the exact location of the binary might vary slightly depending on the platform, e.g. on macOs `build/jextract.app/Contents/MacOS/jextract` ):
 
 ```sh
 build/jextract/bin/jextract 
@@ -38,8 +52,10 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Pllvm_home=<libclang_dir> jtreg
+$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
+
+Note however that running `jtreg` task requires `cmake` to be available on the `PATH`.
 
 ### Using jextract
 
