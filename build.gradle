@@ -4,10 +4,8 @@ import java.nio.file.Path;
 
 plugins {
     id "java"
-    // moditect for module-info.class injection and jlink
+    // moditect for module-info.class injection
     id "org.moditect.gradleplugin" version "1.0.0-rc3"
-    // jpackage plugin for packging jextract native app
-    id "org.panteleyev.jpackageplugin" version "1.3.1"
 }
 
 version = '1.0'
@@ -28,15 +26,7 @@ if (clang_versions.length == 0) {
 }
 def clang_version = clang_versions[0]
 
-def jextract_path
-if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-    jextract_path = "$buildDir/jextract/jextract.exe"
-} else if (Os.isFamily(Os.FAMILY_MAC)) {
-    jextract_path = "$buildDir/jextract.app/Contents/MacOS/jextract"
-} else {
-    jextract_path = "$buildDir/jextract/bin/jextract"
-}
-
+def jextract_app_dir = "$buildDir/jextract"
 def clang_include_dir = "${llvm_home}/lib/clang/${clang_version}/include"
 checkPath(clang_include_dir)
 def os_lib_dir = Os.isFamily(Os.FAMILY_WINDOWS)? "bin" : "lib"
@@ -106,67 +96,65 @@ moditect {
             }
         }
     }
+}
 
-    // jlink a JDK image with org.openjdk.jextract & dependent modules only
-    createRuntimeImage {
-        onlyIf { !new File("$buildDir/jextract-jdk-image").exists() }
-        outputDirectory = file("$buildDir/jextract-jdk-image")
-        modulePath = [file("$buildDir/modules")]
-        modules = ['org.openjdk.jextract', 'jdk.compiler']
-    }
+task createJextractImage(type: Exec) {
+    dependsOn addMainModuleInfo, addDependenciesModuleInfo
+
+    onlyIf { !new File("$buildDir/jextract-jdk-image").exists() }
+
+    executable = "${jdk18_home}/bin/jlink"
+    args = [
+         "--module-path=$buildDir/modules",
+         "--add-modules=org.openjdk.jextract,jdk.compiler",
+         "--output=${jextract_app_dir}",
+         "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
+         "--add-options",
+         "\"--enable-native-access=org.openjdk.jextract\""
+    ]
 }
 
 task copyLibClang(type: Copy) {
-    dependsOn createRuntimeImage
+    dependsOn createJextractImage
 
     into("$buildDir")
 
     from("${libclang_dir}") {
         include("*clang.*")
         include("libLLVM.*")
-        into("jextract-jdk-image/${os_lib_dir}")
+        into("jextract/${os_lib_dir}")
     }
 
     from("$clang_include_dir") {
         include("*.h")
-        into("jextract-jdk-image/conf/jextract")
+        into("jextract/conf/jextract")
     }
 }
 
-// jpackage jextract jdk image as a platform dependent native app
-jpackage {
+// jextract jdk image
+task jextractapp() {
     dependsOn copyLibClang
-    onlyIf { !new File(jextract_path).exists() }
-
-    appName = "jextract"
-    runtimeImage = "$buildDir/jextract-jdk-image/"
-    module = "org.openjdk.jextract/org.openjdk.jextract.JextractTool"
-    type = "APP_IMAGE"
-    appVersion = "1.0"
-    destination =  "$buildDir"
-    javaOptions = [
-        "--add-modules=jdk.incubator.foreign",
-        "--enable-native-access=org.openjdk.jextract"
-    ]
-    winConsole = true
 }
 
-// very simple integration test for generated jpackage'd jextract
+// very simple integration test for generated jextract
 task verify(type: Exec) {
-    dependsOn jpackage
+    dependsOn jextractapp
 
-    executable = "${jextract_path}"
+    executable = "${jextract_app_dir}/bin/jextract"
     args = [ "test.h", "-d", "$buildDir/integration_test" ]
 }
 
 // jlink a JDK image with org.openjdk.jextract for testing
-task createRuntimeImageForTest(type: org.moditect.gradleplugin.image.CreateRuntimeImageTask) {
+task createRuntimeImageForTest(type: Exec) {
     dependsOn verify
 
     onlyIf { !new File("$buildDir/jextract-jdk-test-image").exists() }
-    outputDirectory = file("$buildDir/jextract-jdk-test-image")
-    modulePath = [file("$buildDir/modules"),file("$jdk18_home/jmods")]
-    modules = ['ALL-MODULE-PATH']
+    executable = "${jdk18_home}/bin/jlink"
+    args = [
+         "--module-path=$buildDir/modules" + File.pathSeparator + "$jdk18_home/jmods",
+         "--add-modules=ALL-MODULE-PATH",
+         "--output=$buildDir/jextract-jdk-test-image",
+    ]
 }
 
 task prepareTestJDK(type: Copy) {
