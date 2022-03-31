@@ -26,22 +26,8 @@ $ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Pllvm_home=<libclang_dir> clean ve
 > 
 > </details>
 
-After building, there should be a new `jextract` folder under `build` (the contents and the name of this folder might vary slightly depending on the platform, e.g. on macOs the folder is `jextract.app`) :
-
-```
-build/jextract
-├── bin
-└── lib
-    ├── app
-    └── runtime
-        ├── bin
-        ├── conf
-        ├── include
-        ├── legal
-        └── lib
-```
-
-To run the `jextract` tool, simply run the `jextract` command in the `bin` folder (again, the exact location of the binary might vary slightly depending on the platform, e.g. on macOs `build/jextract.app/Contents/MacOS/jextract` ):
+After building, there should be a new `jextract` folder under `build`.
+To run the `jextract` tool, simply run the `jextract` command in the `bin` folder:
 
 ```sh
 build/jextract/bin/jextract 
