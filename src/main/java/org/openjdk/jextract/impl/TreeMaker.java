@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -26,7 +26,6 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.constant.Constable;
-import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,18 +51,6 @@ class TreeMaker {
         typeMaker.resolveTypeReferences();
     }
 
-    interface ScopedFactoryLayout {
-        Declaration.Scoped make(Position pos, String name, MemoryLayout layout, Declaration... decls);
-    }
-
-    interface ScopedFactoryNoLayout {
-        Declaration.Scoped make(Position pos, String name, Declaration... decls);
-    }
-
-    interface VarFactoryNoLayout {
-        Declaration.Variable make(Position pos, String name, Type type);
-    }
-
     Map<String, List<Constable>> collectAttributes(Cursor c) {
         return c.children().filter(Cursor::isAttribute)
                 .collect(Collectors.groupingBy(
@@ -83,30 +70,20 @@ class TreeMaker {
     }
 
     private Declaration createTreeInternal(Cursor c) {
-        switch (c.kind()) {
-            case EnumDecl:
-                return createEnum(c, Declaration::enum_, Declaration::enum_);
-            case EnumConstantDecl:
-                return createEnumConstant(c);
-            case FieldDecl:
-                return createVar(c.isBitField() ?
-                        Declaration.Variable.Kind.BITFIELD : Declaration.Variable.Kind.FIELD, c, Declaration::field);
-            case ParmDecl:
-                return createVar(Declaration.Variable.Kind.PARAMETER, c, Declaration::parameter);
-            case FunctionDecl:
-                return createFunction(c);
-            case StructDecl:
-                return createRecord(c, Declaration.Scoped.Kind.STRUCT, Declaration::struct, Declaration::struct);
-            case UnionDecl:
-                return createRecord(c, Declaration.Scoped.Kind.UNION, Declaration::union, Declaration::union);
-            case TypedefDecl: {
-                return createTypedef(c);
-            }
-            case VarDecl:
-                return createVar(Declaration.Variable.Kind.GLOBAL, c, Declaration::globalVariable);
-            default:
-                return null;
-        }
+        return switch (c.kind()) {
+            case EnumDecl -> createEnum(c);
+            case EnumConstantDecl -> createEnumConstant(c);
+            case FieldDecl -> c.isBitField() ?
+                        createBitfield(c) :
+                        createVar(c, Declaration.Variable.Kind.FIELD);
+            case ParmDecl -> createVar(c, Declaration.Variable.Kind.PARAMETER);
+            case FunctionDecl -> createFunction(c);
+            case StructDecl -> createRecord(c, Declaration.Scoped.Kind.STRUCT);
+            case UnionDecl -> createRecord(c, Declaration.Scoped.Kind.UNION);
+            case TypedefDecl -> createTypedef(c);
+            case VarDecl -> createVar(c, Declaration.Variable.Kind.GLOBAL);
+            default -> null; // skip
+        };
     }
 
     static class CursorPosition implements Position {
@@ -186,27 +163,23 @@ class TreeMaker {
         return Declaration.toplevel(CursorPosition.of(c), filterNestedDeclarations(decls).toArray(new Declaration[0]));
     }
 
-    public Declaration.Scoped createRecord(Cursor c, Declaration.Scoped.Kind scopeKind, ScopedFactoryLayout factoryLayout, ScopedFactoryNoLayout factoryNoLayout) {
+    public Declaration.Scoped createRecord(Cursor c, Declaration.Scoped.Kind scopeKind) {
         Type.Declared t = (Type.Declared)RecordLayoutComputer.compute(typeMaker, 0, c.type(), c.type());
         List<Declaration> decls = filterNestedDeclarations(t.tree().members());
         if (c.isDefinition()) {
             //just a declaration AND definition, we have a layout
-            return factoryLayout.make(CursorPosition.of(c), c.spelling(), t.tree().layout().get(), decls.toArray(new Declaration[0]));
+            return Declaration.scoped(scopeKind, CursorPosition.of(c), c.spelling(),
+                                      t.tree().layout().get(), decls.toArray(new Declaration[0]));
         } else {
-            //just a declaration
-            if (scopeKind == Declaration.Scoped.Kind.STRUCT ||
-                    scopeKind == Declaration.Scoped.Kind.UNION ||
-                    scopeKind == Declaration.Scoped.Kind.CLASS) {
-                //if there's a real definition somewhere else, skip this redundant declaration
-                if (!c.getDefinition().isInvalid()) {
-                    return null;
-                }
+            //if there's a real definition somewhere else, skip this redundant declaration
+            if (!c.getDefinition().isInvalid()) {
+                return null;
             }
-            return factoryNoLayout.make(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
+            return Declaration.scoped(scopeKind, CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
         }
     }
 
-    public Declaration.Scoped createEnum(Cursor c, ScopedFactoryLayout factoryLayout, ScopedFactoryNoLayout factoryNoLayout) {
+    public Declaration.Scoped createEnum(Cursor c) {
         List<Declaration> decls = filterNestedDeclarations(c.children()
                 .filter(fc -> {
                     if (fc.isBitField()) {
@@ -219,14 +192,14 @@ class TreeMaker {
         if (c.isDefinition()) {
             //just a declaration AND definition, we have a layout
             MemoryLayout layout = TypeMaker.valueLayoutForSize(c.type().size() * 8).layout().orElseThrow();
-            return factoryLayout.make(CursorPosition.of(c), c.spelling(), layout, decls.toArray(new Declaration[0]));
+            return Declaration.enum_(CursorPosition.of(c), c.spelling(), layout, decls.toArray(new Declaration[0]));
         } else {
             //just a declaration
             //if there's a real definition somewhere else, skip this redundant declaration
             if (!c.getDefinition().isInvalid()) {
                 return null;
             }
-            return factoryNoLayout.make(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
+            return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
         }
     }
 
@@ -301,22 +274,23 @@ class TreeMaker {
         }
     }
 
-    private Declaration.Variable createVar(Declaration.Variable.Kind kind, Cursor c, VarFactoryNoLayout varFactory) {
+    private Declaration.Variable createBitfield(Cursor c) {
+        checkCursorAny(c, CursorKind.FieldDecl);
+        return Declaration.bitfield(CursorPosition.of(c), c.spelling(), toType(c),
+                MemoryLayout.paddingLayout(c.getBitFieldWidth()));
+    }
+
+    private Declaration.Variable createVar(Cursor c, Declaration.Variable.Kind kind) {
         checkCursorAny(c, CursorKind.VarDecl, CursorKind.FieldDecl, CursorKind.ParmDecl);
-        if (c.isBitField()) {
-            return Declaration.bitfield(CursorPosition.of(c), c.spelling(), toType(c),
-                    MemoryLayout.paddingLayout(c.getBitFieldWidth()));
-        } else {
-            Type type = null;
-            try {
-                type = toType(c);
-            } catch (TypeMaker.TypeException ex) {
-                System.err.println(ex);
-                System.err.println("WARNING: ignoring variable: " + c.spelling());
-                return null;
-            }
-            return varFactory.make(CursorPosition.of(c), c.spelling(), type);
+        Type type;
+        try {
+            type = toType(c);
+        } catch (TypeMaker.TypeException ex) {
+            System.err.println(ex);
+            System.err.println("WARNING: ignoring variable: " + c.spelling());
+            return null;
         }
+        return Declaration.var(kind, CursorPosition.of(c), c.spelling(), type);
     }
 
     private Type toType(Cursor c) {

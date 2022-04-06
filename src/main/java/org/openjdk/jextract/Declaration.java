@@ -379,6 +379,18 @@ public interface Declaration {
     }
 
     /**
+     * Creates a new variable declaration with given kind, name and type.
+     * @param kind the variable declaration kind.
+     * @param pos the variable declaration position.
+     * @param name the variable declaration name.
+     * @param type the variable declaration type.
+     * @return a new variable declaration with given kind, name and type.
+     */
+    static Declaration.Variable var(Variable.Kind kind, Position pos, String name, Type type) {
+        return new DeclarationImpl.VariableImpl(type, kind, name, pos);
+    }
+
+    /**
      * Creates a new toplevel declaration with given member declarations.
      * @param pos the toplevel declaration position.
      * @param decls the toplevel declaration member declarations.
@@ -511,6 +523,33 @@ public interface Declaration {
     static Declaration.Scoped enum_(Position pos, String name, MemoryLayout layout, Declaration... decls) {
         List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.ENUM, layout, declList, name, pos);
+    }
+
+    /**
+     * Creates a new scoped declaration with given kind, name and member declarations.
+     * @param kind the kind of the scoped declaration.
+     * @param pos the scoped declaration position.
+     * @param name the scoped declaration name.
+     * @param decls the scoped declaration member declarations.
+     * @return a new scoped declaration with given kind, name, layout and member declarations.
+     */
+    static Declaration.Scoped scoped(Scoped.Kind kind, Position pos, String name, Declaration... decls) {
+        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        return new DeclarationImpl.ScopedImpl(kind, declList, name, pos);
+    }
+
+    /**
+     * Creates a new scoped declaration with given kind, name, layout and member declarations.
+     * @param kind the kind of the scoped declaration.
+     * @param pos the scoped declaration position.
+     * @param name the scoped declaration name.
+     * @param layout the scoped declaration layout.
+     * @param decls the scoped declaration member declarations.
+     * @return a new scoped declaration with given kind, name, layout and member declarations.
+     */
+    static Declaration.Scoped scoped(Scoped.Kind kind, Position pos, String name, MemoryLayout layout, Declaration... decls) {
+        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        return new DeclarationImpl.ScopedImpl(kind, layout, declList, name, pos);
     }
 
     /**
