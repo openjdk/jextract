@@ -91,7 +91,7 @@ public class ConstantsTest extends JextractToolRunner {
                 { "DOUBLE_VALUE", double.class, (Consumer<Double>) (actual -> assertEquals(actual, 1.32, 0.1)) },
                 { "CHAR_VALUE", int.class, equalsTo(104) }, //integer char constants have type int
                 { "MULTICHAR_VALUE", int.class, equalsTo(26728) },  //integer char constants have type int
-                { "BOOL_VALUE", byte.class, equalsTo((byte)1) },
+                { "BOOL_VALUE", boolean.class, equalsTo(true) },
                 { "SUB", int.class, equalsTo( 7 ) },
                 // pointer type values
                 { "STR", MemorySegment.class, equalsToJavaStr("Hello") },

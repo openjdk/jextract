@@ -68,7 +68,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     protected final ToplevelBuilder toplevelBuilder;
     protected JavaSourceBuilder currentBuilder;
-    protected final TypeTranslator typeTranslator = new TypeTranslator();
     private final String pkgName;
     private final Map<Declaration, String> structClassNames = new HashMap<>();
     private final Set<Declaration.Typedef> unresolvedStructTypedefs = new HashSet<>();
@@ -190,7 +189,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
         toplevelBuilder.addConstant(Utils.javaSafeIdentifier(constant.name()),
                 constant.value() instanceof String ? MemorySegment.class :
-                getJavaType(constant.type()), constant.value());
+                clazz, constant.value());
         return null;
     }
 
@@ -229,7 +228,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     private String generateFunctionalInterface(Type.Function func, String name) {
         return functionInfo(func, name, false,
-                 (mtype, desc) -> FunctionInfo.ofFunctionPointer(mtype, getMethodType(func, true), desc, func.parameterNames()))
+                 (mtype, desc) -> FunctionInfo.ofFunctionPointer(mtype,
+                         CLinker.downcallType(desc), desc, func.parameterNames()))
                  .map(fInfo -> currentBuilder.addFunctionalInterface(Utils.javaSafeIdentifier(name), fInfo))
                  .orElse(null);
     }
@@ -452,7 +452,9 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return Optional.empty();
         }
 
-        MethodType mtype = getMethodType(funcPtr, downcall);
+        MethodType mtype = downcall ?
+                CLinker.downcallType(descriptor) :
+                CLinker.upcallType(descriptor);
         return mtype != null ?
                 Optional.of(functionInfoFactory.apply(mtype, descriptor)) :
                 Optional.empty();
@@ -474,25 +476,13 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     private Class<?> getJavaType(Type type) {
-        try {
-            return typeTranslator.getJavaType(type, false);
-        } catch (UnsupportedOperationException uoe) {
-            warn(uoe.toString());
-            if (JextractTool.DEBUG) {
-                uoe.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    private MethodType getMethodType(Type.Function type, boolean downcall) {
-        try {
-            return typeTranslator.getMethodType(type, downcall);
-        } catch (UnsupportedOperationException uoe) {
-            warn(uoe.toString());
-            if (JextractTool.DEBUG) {
-                uoe.printStackTrace();
-            }
+        Optional<MemoryLayout> layout = Type.layoutFor(type);
+        if (!layout.isPresent()) return null;
+        if (layout.get() instanceof SequenceLayout || layout.get() instanceof GroupLayout) {
+            return MemorySegment.class;
+        } else if (layout.get() instanceof ValueLayout valueLayout) {
+            return valueLayout.carrier();
+        } else {
             return null;
         }
     }
