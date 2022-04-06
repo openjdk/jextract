@@ -29,7 +29,6 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
 import org.openjdk.jextract.impl.JavaSourceBuilder.VarInfo;
-import org.openjdk.jextract.impl.JavaSourceBuilder.FunctionInfo;
 
 import javax.tools.JavaFileObject;
 import java.io.File;
@@ -241,13 +240,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
 
-        FunctionInfo fInfo = FunctionInfo.ofFunctionPointer(
-                CLinker.upcallType(descriptor),
-                CLinker.downcallType(descriptor),
-                descriptor,
-                func.parameterNames()
-        );
-        return currentBuilder.addFunctionalInterface(Utils.javaSafeIdentifier(name), fInfo);
+        return currentBuilder.addFunctionalInterface(Utils.javaSafeIdentifier(name), descriptor, func.parameterNames());
     }
 
     @Override
@@ -277,13 +270,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
 
-        FunctionInfo fInfo = FunctionInfo.ofFunction(
-                CLinker.downcallType(descriptor),
-                descriptor,
-                funcTree.type().varargs(),
-                paramNames
-        );
-
         int i = 0;
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = getAsFunctionPointer(param.type());
@@ -296,7 +282,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             }
         }
 
-        toplevelBuilder.addFunction(mhName, funcTree.name(), fInfo);
+        toplevelBuilder.addFunction(mhName, funcTree.name(), descriptor, funcTree.type().varargs(), paramNames);
         return null;
     }
 

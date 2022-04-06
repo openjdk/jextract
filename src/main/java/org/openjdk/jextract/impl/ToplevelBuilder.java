@@ -24,6 +24,7 @@
  */
 package org.openjdk.jextract.impl;
 
+import jdk.incubator.foreign.FunctionDescriptor;
 import jdk.incubator.foreign.GroupLayout;
 import jdk.incubator.foreign.MemoryAddress;
 import jdk.incubator.foreign.MemoryLayout;
@@ -99,8 +100,8 @@ class ToplevelBuilder extends JavaSourceBuilder {
     }
 
     @Override
-    public void addFunction(String javaName, String nativeName, FunctionInfo functionInfo) {
-        nextHeader().addFunction(javaName, nativeName, functionInfo);
+    public void addFunction(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, List<String> parameterNames) {
+        nextHeader().addFunction(javaName, nativeName, descriptor, isVarargs, parameterNames);
     }
 
     @Override
@@ -133,8 +134,8 @@ class ToplevelBuilder extends JavaSourceBuilder {
     }
 
     @Override
-    public String addFunctionalInterface(String name, FunctionInfo functionInfo) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, name, functionInfo);
+    public String addFunctionalInterface(String name, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, name, descriptor, parameterNames);
         builders.add(builder);
         builder.classBegin();
         builder.classEnd();

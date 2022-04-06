@@ -80,9 +80,9 @@ public class ConstantBuilder extends ClassSourceBuilder {
                 () -> emitVarHandleField(javaName, nativeName, varInfo, rootLayoutName, prefixElementNames));
     }
 
-    public Constant addMethodHandle(String javaName, String nativeName, FunctionInfo functionInfo, boolean virtual) {
+    public Constant addMethodHandle(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
         return emitIfAbsent(javaName, Constant.Kind.METHOD_HANDLE,
-                () -> emitMethodHandleField(javaName, nativeName, functionInfo, virtual));
+                () -> emitMethodHandleField(javaName, nativeName, descriptor, isVarargs, virtual));
     }
 
     public Constant addSegment(String javaName, String nativeName, MemoryLayout layout) {
@@ -184,8 +184,8 @@ public class ConstantBuilder extends ClassSourceBuilder {
         return constant;
     }
 
-    private Constant emitMethodHandleField(String javaName, String nativeName, FunctionInfo functionInfo, boolean virtual) {
-        Constant functionDesc = addFunctionDesc(javaName, functionInfo.descriptor());
+    private Constant emitMethodHandleField(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
+        Constant functionDesc = addFunctionDesc(javaName, descriptor);
         incrAlign();
         String fieldName = Constant.Kind.METHOD_HANDLE.fieldName(javaName);
         indent();
@@ -201,7 +201,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         append(functionDesc.accessExpression());
         append(", ");
         // isVariadic
-        append(functionInfo.isVarargs());
+        append(isVarargs);
         append("\n");
         decrAlign();
         indent();

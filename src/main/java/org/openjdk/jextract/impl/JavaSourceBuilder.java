@@ -33,34 +33,13 @@ import org.openjdk.jextract.Type;
 
 import javax.tools.JavaFileObject;
 import java.lang.invoke.MethodType;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public abstract class JavaSourceBuilder {
-
-    // public API (used by OutputFactory)
-
-    public static record FunctionInfo(
-            MethodType methodType,
-            MethodType reverseMethodType,
-            FunctionDescriptor descriptor,
-            boolean isVarargs,
-            Optional<List<String>> parameterNames) {
-
-        static FunctionInfo ofFunction(MethodType methodType, FunctionDescriptor functionDescriptor, boolean isVarargs, List<String> parameterNames) {
-            return new FunctionInfo(methodType, null, functionDescriptor, isVarargs, Optional.of(parameterNames));
-        }
-
-        static FunctionInfo ofFunctionPointer(MethodType upcallType, MethodType downcallType, FunctionDescriptor functionDescriptor,
-                 Optional<List<String>> parameterNames) {
-            return new FunctionInfo(upcallType, downcallType, functionDescriptor, false, parameterNames);
-        }
-   }
 
     public static record VarInfo(
             Class<?> carrier,
@@ -80,7 +59,7 @@ public abstract class JavaSourceBuilder {
         throw new UnsupportedOperationException();
     }
 
-    public void addFunction(String javaName, String nativeName, ClassSourceBuilder.FunctionInfo functionInfo) {
+    public void addFunction(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, List<String> parameterNames) {
         throw new UnsupportedOperationException();
     }
 
@@ -96,7 +75,7 @@ public abstract class JavaSourceBuilder {
         throw new UnsupportedOperationException();
     }
 
-    public String addFunctionalInterface(String name, ClassSourceBuilder.FunctionInfo fInfo) {
+    public String addFunctionalInterface(String name, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         throw new UnsupportedOperationException();
     }
 

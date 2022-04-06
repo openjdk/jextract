@@ -24,6 +24,7 @@
  */
 package org.openjdk.jextract.impl;
 
+import jdk.incubator.foreign.FunctionDescriptor;
 import jdk.incubator.foreign.GroupLayout;
 import jdk.incubator.foreign.MemoryLayout;
 import jdk.incubator.foreign.MemorySegment;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class generates static utilities class for C structs, unions.
@@ -115,8 +117,8 @@ class StructBuilder extends ConstantBuilder {
     }
 
     @Override
-    public String addFunctionalInterface(String name, FunctionInfo functionInfo) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, name, functionInfo);
+    public String addFunctionalInterface(String name, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, name, descriptor, parameterNames);
         builder.classBegin();
         builder.classEnd();
         return builder.className();
