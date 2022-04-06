@@ -30,8 +30,6 @@ import java.lang.constant.Constable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import jdk.incubator.foreign.MemoryLayout;
 import org.openjdk.jextract.impl.DeclarationImpl;
 
@@ -397,7 +395,7 @@ public interface Declaration {
      * @return a new toplevel declaration with given member declarations.
      */
     static Declaration.Scoped toplevel(Position pos, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.TOPLEVEL, declList, "<toplevel>", pos);
     }
 
@@ -409,7 +407,7 @@ public interface Declaration {
      * @return a new namespace declaration with given name and member declarations.
      */
     static Declaration.Scoped namespace(Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.NAMESPACE, declList, name, pos);
     }
 
@@ -421,7 +419,7 @@ public interface Declaration {
      * @return a new bitfields group declaration with given name and layout.
      */
     static Declaration.Scoped bitfields(Position pos, MemoryLayout layout, Declaration.Variable... bitfields) {
-        List<Declaration> declList = Stream.of(bitfields).collect(Collectors.toList());
+        List<Declaration> declList = List.of(bitfields);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.BITFIELDS, layout, declList, "", pos);
     }
 
@@ -433,7 +431,7 @@ public interface Declaration {
      * @return a new struct declaration with given name, layout and member declarations.
      */
     static Declaration.Scoped struct(Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.STRUCT, declList, name, pos);
     }
 
@@ -446,7 +444,7 @@ public interface Declaration {
      * @return a new struct declaration with given name, layout and member declarations.
      */
     static Declaration.Scoped struct(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.STRUCT, layout, declList, name, pos);
     }
 
@@ -458,7 +456,7 @@ public interface Declaration {
      * @return a new union declaration with given name and member declarations.
      */
     static Declaration.Scoped union(Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Scoped.Kind.UNION, declList, name, pos);
     }
 
@@ -471,7 +469,7 @@ public interface Declaration {
      * @return a new union declaration with given name, layout and member declarations.
      */
     static Declaration.Scoped union(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.UNION, layout, declList, name, pos);
     }
 
@@ -483,7 +481,7 @@ public interface Declaration {
      * @return a new class declaration with given name and member declarations.
      */
     static Declaration.Scoped class_(Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.CLASS, declList, name, pos);
     }
 
@@ -496,7 +494,7 @@ public interface Declaration {
      * @return a new class declaration with given name, layout and member declarations.
      */
     static Declaration.Scoped class_(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.CLASS, layout, declList, name, pos);
     }
 
@@ -508,7 +506,7 @@ public interface Declaration {
      * @return a new enum declaration with given name, layout and member declarations.
      */
     static Declaration.Scoped enum_(Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.ENUM, declList, name, pos);
     }
 
@@ -521,7 +519,7 @@ public interface Declaration {
      * @return a new enum declaration with given name, layout and member declarations.
      */
     static Declaration.Scoped enum_(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.ENUM, layout, declList, name, pos);
     }
 
@@ -534,7 +532,7 @@ public interface Declaration {
      * @return a new scoped declaration with given kind, name, layout and member declarations.
      */
     static Declaration.Scoped scoped(Scoped.Kind kind, Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(kind, declList, name, pos);
     }
 
@@ -548,7 +546,7 @@ public interface Declaration {
      * @return a new scoped declaration with given kind, name, layout and member declarations.
      */
     static Declaration.Scoped scoped(Scoped.Kind kind, Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = Stream.of(decls).collect(Collectors.toList());
+        List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(kind, layout, declList, name, pos);
     }
 
@@ -561,7 +559,7 @@ public interface Declaration {
      * @return a new function declaration with given name, type and parameter declarations.
      */
     static Declaration.Function function(Position pos, String name, Type.Function type, Declaration.Variable... params) {
-        List<Variable> paramList = Stream.of(params).collect(Collectors.toList());
+        List<Variable> paramList = List.of(params);
         return new DeclarationImpl.FunctionImpl(type, paramList, name, pos);
     }
 
