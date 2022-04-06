@@ -204,11 +204,13 @@ class TreeMaker {
     }
 
     private static boolean isEnum(Declaration d) {
-        return d instanceof Declaration.Scoped && ((Declaration.Scoped)d).kind() == Declaration.Scoped.Kind.ENUM;
+        return d instanceof Declaration.Scoped scoped &&
+                scoped.kind() == Declaration.Scoped.Kind.ENUM;
     }
 
     private static boolean isBitfield(Declaration d) {
-        return d instanceof Declaration.Scoped && ((Declaration.Scoped)d).kind() == Declaration.Scoped.Kind.BITFIELDS;
+        return d instanceof Declaration.Scoped scoped &&
+                scoped.kind() == Declaration.Scoped.Kind.BITFIELDS;
     }
 
     private static boolean isAnonymousStruct(Declaration declaration) {
@@ -225,8 +227,8 @@ class TreeMaker {
     private Declaration.Typedef createTypedef(Cursor c) {
         Type cursorType = toType(c);
         Type canonicalType = canonicalType(cursorType);
-        if (canonicalType instanceof Type.Declared) {
-            Declaration.Scoped s = ((Type.Declared) canonicalType).tree();
+        if (canonicalType instanceof Type.Declared declaredCanonicalType) {
+            Declaration.Scoped s = declaredCanonicalType.tree();
             if (s.name().equals(c.spelling())) {
                 // typedef record with the same name, no need to present twice
                 return null;
@@ -234,8 +236,8 @@ class TreeMaker {
         }
         Type.Function funcType = null;
         boolean isFuncPtrType = false;
-        if (canonicalType instanceof Type.Function) {
-            funcType = (Type.Function)canonicalType;
+        if (canonicalType instanceof Type.Function canonicalFunctionType) {
+            funcType = canonicalFunctionType;
         } else if (Utils.isPointerType(canonicalType)) {
             Type pointeeType = null;
             try {
@@ -243,8 +245,8 @@ class TreeMaker {
             } catch (NullPointerException npe) {
                 // exception thrown for unresolved pointee type. Ignore if we hit that case.
             }
-            if (pointeeType instanceof Type.Function) {
-                funcType = (Type.Function)pointeeType;
+            if (pointeeType instanceof Type.Function pointeeFunctionType) {
+                funcType = pointeeFunctionType;
                 isFuncPtrType = true;
             }
         }

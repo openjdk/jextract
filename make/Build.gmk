@@ -26,9 +26,6 @@ BUILD_CLASSES_DIR := $(BUILD_DIR)/classes
 BUILD_MODULES_DIR := $(BUILD_DIR)/modules
 BUILD_TEST_SUPPORT_DIR := $(BUILD_DIR)/support/test
 
-BUILD_JEXTRACT_INTERIM_JDK_NAME := interim-jdk
-BUILD_JEXTRACT_INTERIM_JDK_DIR := $(BUILD_DIR)/images/$(BUILD_JEXTRACT_INTERIM_JDK_NAME)
-
 ifeq ($(PLATFORM_OS), macosx)
   BUNDLE_PLATFORM := macos-$(PLATFORM_CPU)
 else
@@ -96,31 +93,20 @@ $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR) $(JOPT_SIMPLE_JAR)
 	    -d "$(BUILD_MODULES_DIR)/org.openjdk.jextract" \
 	    "$(BUILD_MODULES_DIR)/org.openjdk.jextract/module-info.java"
 
-$(BUILD_JEXTRACT_INTERIM_JDK_DIR): $(BUILD_MODULES_DIR)
+$(JEXTRACT_IMAGE_DIR): $(BUILD_MODULES_DIR)
         # jlink the modules to create a custom runtime image for jextract
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jlink \
-	    --output "$(BUILD_JEXTRACT_INTERIM_JDK_DIR)" \
+	    --output "$(JEXTRACT_IMAGE_DIR)" \
 	    --module-path "$(BUILD_MODULES_DIR)" \
 	    --add-modules org.openjdk.jextract \
-	    --add-modules jdk.compiler
+	    --add-modules jdk.compiler \
+	    --add-options \"--enable-native-access=org.openjdk.jextract\" \
+	    --launcher jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool
 
         # Copy libclang library and header files into the jlink'ed image
-	$(CP) "$(LIBCLANG_LIB_DIR)/"*clang.* "$(BUILD_JEXTRACT_INTERIM_JDK_DIR)/$(OS_LIB_DIR)"
-	$(MKDIR) -p $(BUILD_JEXTRACT_INTERIM_JDK_DIR)/conf/jextract
-	$(CP) "$(LIBCLANG_INCLUDE_DIR)/"*.h "$(BUILD_JEXTRACT_INTERIM_JDK_DIR)/conf/jextract/"
-
-$(JEXTRACT_IMAGE_DIR): $(BUILD_JEXTRACT_INTERIM_JDK_DIR)
-	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jpackage \
-	    --name jextract \
-	    --runtime-image "$(BUILD_JEXTRACT_INTERIM_JDK_DIR)" \
-	    --module org.openjdk.jextract/org.openjdk.jextract.JextractTool \
-	    --type app-image \
-	    --app-version 1.0 \
-	    --dest "$(patsubst %/,%,$(dir $@))" \
-	    --java-options --add-modules=jdk.incubator.foreign \
-	    --java-options --add-modules=org.openjdk.jextract \
-	    --java-options --enable-native-access=org.openjdk.jextract \
-	    $(JPACKAGE_ARGS)
+	$(CP) "$(LIBCLANG_LIB_DIR)/"*clang.* "$(JEXTRACT_IMAGE_DIR)/$(OS_LIB_DIR)"
+	$(MKDIR) -p $(JEXTRACT_IMAGE_DIR)/conf/jextract
+	$(CP) "$(LIBCLANG_INCLUDE_DIR)/"*.h "$(JEXTRACT_IMAGE_DIR)/conf/jextract/"
 
 $(JEXTRACT_IMAGE_TEST_JDK_DIR): $(JEXTRACT_IMAGE_DIR)
         # jlink the modules to create a custom runtime image for jextract testing

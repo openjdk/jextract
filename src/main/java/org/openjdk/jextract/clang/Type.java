@@ -188,10 +188,7 @@ public final class Type {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof Type)) {
-            return false;
-        }
-        return equalType((Type) other);
+        return other instanceof Type type && equalType(type);
     }
 
     @Override

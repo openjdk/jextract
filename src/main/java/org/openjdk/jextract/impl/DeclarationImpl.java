@@ -88,10 +88,10 @@ public abstract class DeclarationImpl implements Declaration {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Declaration)) return false;
-        Declaration decl = (Declaration) o;
-        return name().equals(decl.name());
+        if (this == o) {
+            return true;
+        }
+        return o instanceof Declaration decl && name().equals(decl.name());
     }
 
     @Override
@@ -130,10 +130,8 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Typedef)) return false;
-
-            Declaration.Typedef other = (Declaration.Typedef) o;
-            return name().equals(other.name()) &&
+            return o instanceof Declaration.Typedef other &&
+                    name().equals(other.name()) &&
                     type.equals(other.type());
         }
 
@@ -197,9 +195,7 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Variable)) return false;
-
-            Declaration.Variable variable = (Declaration.Variable) o;
+            if (!(o instanceof Declaration.Variable variable)) return false;
             if (!super.equals(o)) return false;
             return kind == variable.kind() &&
                     type.equals(variable.type());
@@ -254,10 +250,8 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Function)) return false;
+            if (!(o instanceof Declaration.Function function)) return false;
             if (!super.equals(o)) return false;
-
-            Declaration.Function function = (Declaration.Function) o;
             return type.equals(function.type());
         }
 
@@ -322,9 +316,8 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Scoped)) return false;
+            if (!(o instanceof Declaration.Scoped scoped)) return false;
             if (!super.equals(o)) return false;
-            Declaration.Scoped scoped = (Declaration.Scoped) o;
             return kind == scoped.kind() &&
                     declarations.equals(scoped.members());
         }
@@ -378,9 +371,8 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Constant)) return false;
+            if (!(o instanceof Declaration.Constant constant)) return false;
             if (!super.equals(o)) return false;
-            Declaration.Constant constant = (Declaration.Constant) o;
             return value.equals(constant.value()) &&
                     type.equals(constant.type());
         }

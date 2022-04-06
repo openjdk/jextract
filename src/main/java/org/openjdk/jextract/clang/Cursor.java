@@ -237,10 +237,8 @@ public final class Cursor {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof Cursor)) {
-            return false;
-        }
-        return (Index_h.clang_equalCursors(cursor, ((Cursor)other).cursor) != 0);
+        return other instanceof Cursor otherCursor &&
+                (Index_h.clang_equalCursors(cursor, otherCursor.cursor) != 0);
     }
 
     @Override
