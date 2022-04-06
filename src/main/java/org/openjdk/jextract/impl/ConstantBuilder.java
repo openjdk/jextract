@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -65,24 +65,24 @@ public class ConstantBuilder extends ClassSourceBuilder {
                 () -> emitLayoutField(javaName, layout));
     }
 
-    public Constant addFieldVarHandle(String javaName, String nativeName, VarInfo varInfo,
+    public Constant addFieldVarHandle(String javaName, String nativeName, ValueLayout valueLayout,
                                       String rootJavaName, List<String> prefixElementNames) {
-        return addVarHandle(javaName, nativeName, varInfo, rootJavaName, prefixElementNames);
+        return addVarHandle(javaName, nativeName, valueLayout, rootJavaName, prefixElementNames);
     }
 
-    public Constant addGlobalVarHandle(String javaName, String nativeName, VarInfo varInfo) {
-        return addVarHandle(javaName, nativeName, varInfo, null, List.of());
+    public Constant addGlobalVarHandle(String javaName, String nativeName, ValueLayout valueLayout) {
+        return addVarHandle(javaName, nativeName, valueLayout, null, List.of());
     }
 
-    private Constant addVarHandle(String javaName, String nativeName, VarInfo varInfo,
+    private Constant addVarHandle(String javaName, String nativeName, ValueLayout valueLayout,
                                 String rootLayoutName, List<String> prefixElementNames) {
         return emitIfAbsent(javaName, Constant.Kind.VAR_HANDLE,
-                () -> emitVarHandleField(javaName, nativeName, varInfo, rootLayoutName, prefixElementNames));
+                () -> emitVarHandleField(javaName, nativeName, valueLayout, rootLayoutName, prefixElementNames));
     }
 
-    public Constant addMethodHandle(String javaName, String nativeName, FunctionInfo functionInfo, boolean virtual) {
+    public Constant addMethodHandle(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
         return emitIfAbsent(javaName, Constant.Kind.METHOD_HANDLE,
-                () -> emitMethodHandleField(javaName, nativeName, functionInfo, virtual));
+                () -> emitMethodHandleField(javaName, nativeName, descriptor, isVarargs, virtual));
     }
 
     public Constant addSegment(String javaName, String nativeName, MemoryLayout layout) {
@@ -184,8 +184,8 @@ public class ConstantBuilder extends ClassSourceBuilder {
         return constant;
     }
 
-    private Constant emitMethodHandleField(String javaName, String nativeName, FunctionInfo functionInfo, boolean virtual) {
-        Constant functionDesc = addFunctionDesc(javaName, functionInfo.descriptor());
+    private Constant emitMethodHandleField(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
+        Constant functionDesc = addFunctionDesc(javaName, descriptor);
         incrAlign();
         String fieldName = Constant.Kind.METHOD_HANDLE.fieldName(javaName);
         indent();
@@ -201,7 +201,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         append(functionDesc.accessExpression());
         append(", ");
         // isVariadic
-        append(functionInfo.isVarargs());
+        append(isVarargs);
         append("\n");
         decrAlign();
         indent();
@@ -210,13 +210,12 @@ public class ConstantBuilder extends ClassSourceBuilder {
         return new Constant(className(), javaName, Constant.Kind.METHOD_HANDLE);
     }
 
-    private Constant emitVarHandleField(String javaName, String nativeName, VarInfo varInfo,
+    private Constant emitVarHandleField(String javaName, String nativeName, ValueLayout valueLayout,
                                       String rootLayoutName, List<String> prefixElementNames) {
         String layoutAccess = rootLayoutName != null ?
                 Constant.Kind.LAYOUT.fieldName(rootLayoutName) :
-                addLayout(javaName, varInfo.layout()).accessExpression();
+                addLayout(javaName, valueLayout).accessExpression();
         incrAlign();
-        String typeName = varInfo.carrier().getName();
         indent();
         String fieldName = Constant.Kind.VAR_HANDLE.fieldName(javaName);
         append(memberMods() + "VarHandle " + fieldName + " = ");

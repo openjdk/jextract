@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -46,12 +46,12 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final Optional<List<String>> parameterNames;
 
     FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, String className,
-                               FunctionInfo functionInfo) {
+                               FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(enclosing, Kind.INTERFACE, className);
-        this.fiType = functionInfo.methodType();
-        this.downcallType = functionInfo.reverseMethodType();
-        this.fiDesc = functionInfo.descriptor();
-        this.parameterNames = functionInfo.parameterNames();
+        this.fiType = CLinker.upcallType(descriptor);
+        this.downcallType = CLinker.downcallType(descriptor);
+        this.fiDesc = descriptor;
+        this.parameterNames = parameterNames;
     }
 
     @Override
@@ -107,7 +107,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private void emitFunctionalFactoryForPointer() {
         emitWithConstantClass(constantBuilder -> {
             Constant mhConstant = constantBuilder.addMethodHandle(className(), className(),
-                 FunctionInfo.ofFunctionPointer(downcallType, fiType, fiDesc, parameterNames), true);
+                 fiDesc, false, true);
             incrAlign();
             indent();
             append(MEMBER_MODS + " " + className() + " ofAddress(MemoryAddress addr, ResourceScope scope) {\n");

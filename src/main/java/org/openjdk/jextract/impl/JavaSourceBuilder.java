@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,55 +32,19 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
 import javax.tools.JavaFileObject;
-import java.lang.invoke.MethodType;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public abstract class JavaSourceBuilder {
 
-    // public API (used by OutputFactory)
-
-    public static record FunctionInfo(
-            MethodType methodType,
-            MethodType reverseMethodType,
-            FunctionDescriptor descriptor,
-            boolean isVarargs,
-            Optional<List<String>> parameterNames) {
-
-        static FunctionInfo ofFunction(MethodType methodType, FunctionDescriptor functionDescriptor, boolean isVarargs, List<String> parameterNames) {
-            return new FunctionInfo(methodType, null, functionDescriptor, isVarargs, Optional.of(parameterNames));
-        }
-
-        static FunctionInfo ofFunctionPointer(MethodType upcallType, MethodType downcallType, FunctionDescriptor functionDescriptor,
-                 Optional<List<String>> parameterNames) {
-            return new FunctionInfo(upcallType, downcallType, functionDescriptor, false, parameterNames);
-        }
-   }
-
-    public static record VarInfo(
-            Class<?> carrier,
-            MemoryLayout layout,
-            Optional<String> fiName) {
-
-        static VarInfo ofVar(Class<?> carrier, MemoryLayout layout) {
-            return new VarInfo(carrier, layout, Optional.empty());
-        }
-
-        static VarInfo ofFunctionalPointerVar(Class<?> carrier, MemoryLayout layout, String fiName) {
-            return new VarInfo(carrier, layout, Optional.ofNullable(fiName));
-        }
-    }
-
-    public void addVar(String javaName, String nativeName, ClassSourceBuilder.VarInfo varInfo) {
+    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
         throw new UnsupportedOperationException();
     }
 
-    public void addFunction(String javaName, String nativeName, ClassSourceBuilder.FunctionInfo functionInfo) {
+    public void addFunction(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, List<String> parameterNames) {
         throw new UnsupportedOperationException();
     }
 
@@ -96,7 +60,7 @@ public abstract class JavaSourceBuilder {
         throw new UnsupportedOperationException();
     }
 
-    public String addFunctionalInterface(String name, ClassSourceBuilder.FunctionInfo fInfo) {
+    public String addFunctionalInterface(String name, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         throw new UnsupportedOperationException();
     }
 

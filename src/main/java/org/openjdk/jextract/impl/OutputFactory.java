@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,18 +26,12 @@ package org.openjdk.jextract.impl;
 
 import jdk.incubator.foreign.*;
 import org.openjdk.jextract.Declaration;
-import org.openjdk.jextract.JextractTool;
 import org.openjdk.jextract.Type;
-
-import org.openjdk.jextract.impl.JavaSourceBuilder.VarInfo;
-import org.openjdk.jextract.impl.JavaSourceBuilder.FunctionInfo;
 
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.constant.ClassDesc;
-import java.lang.invoke.MethodType;
 import java.net.URI;
 import java.net.URL;
 import java.net.URISyntaxException;
@@ -50,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 /*
@@ -68,7 +61,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     protected final ToplevelBuilder toplevelBuilder;
     protected JavaSourceBuilder currentBuilder;
-    protected final TypeTranslator typeTranslator = new TypeTranslator();
     private final String pkgName;
     private final Map<Declaration, String> structClassNames = new HashMap<>();
     private final Set<Declaration.Typedef> unresolvedStructTypedefs = new HashSet<>();
@@ -190,7 +182,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
         toplevelBuilder.addConstant(Utils.javaSafeIdentifier(constant.name()),
                 constant.value() instanceof String ? MemorySegment.class :
-                getJavaType(constant.type()), constant.value());
+                clazz, constant.value());
         return null;
     }
 
@@ -228,10 +220,25 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     private String generateFunctionalInterface(Type.Function func, String name) {
-        return functionInfo(func, name, false,
-                 (mtype, desc) -> FunctionInfo.ofFunctionPointer(mtype, getMethodType(func, true), desc, func.parameterNames()))
-                 .map(fInfo -> currentBuilder.addFunctionalInterface(Utils.javaSafeIdentifier(name), fInfo))
-                 .orElse(null);
+        FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
+        if (descriptor == null) {
+            return null;
+        }
+
+        String unsupportedType = UnsupportedLayouts.firstUnsupportedType(func);
+        if (unsupportedType != null) {
+            warn("skipping " + name + " because of unsupported type usage: " +
+                    unsupportedType);
+            return null;
+        }
+
+        //generate functional interface
+        if (func.varargs() && !func.argumentTypes().isEmpty()) {
+            warn("varargs in callbacks is not supported: " + func);
+            return null;
+        }
+
+        return currentBuilder.addFunctionalInterface(Utils.javaSafeIdentifier(name), descriptor, func.parameterNames());
     }
 
     @Override
@@ -249,25 +256,31 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                                           .map(p -> !p.isEmpty() ? Utils.javaSafeIdentifier(p) : p)
                                           .collect(Collectors.toList());
 
-        Optional<FunctionInfo> functionInfo = functionInfo(funcTree.type(), funcTree.name(), true,
-                (mtype, desc) -> FunctionInfo.ofFunction(mtype, desc, funcTree.type().varargs(), paramNames));
-
-        if (functionInfo.isPresent()) {
-            int i = 0;
-            for (Declaration.Variable param : funcTree.parameters()) {
-                Type.Function f = getAsFunctionPointer(param.type());
-                if (f != null) {
-                    String name = funcTree.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
-                    if (generateFunctionalInterface(f, name) == null) {
-                        return null;
-                    }
-                    i++;
-                }
-            }
-
-            toplevelBuilder.addFunction(mhName, funcTree.name(), functionInfo.get());
+        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
+        if (descriptor == null) {
+            return null;
         }
 
+        String unsupportedType = UnsupportedLayouts.firstUnsupportedType(funcTree.type());
+        if (unsupportedType != null) {
+            warn("skipping " + funcTree.name() + " because of unsupported type usage: " +
+                    unsupportedType);
+            return null;
+        }
+
+        int i = 0;
+        for (Declaration.Variable param : funcTree.parameters()) {
+            Type.Function f = getAsFunctionPointer(param.type());
+            if (f != null) {
+                String name = funcTree.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
+                if (generateFunctionalInterface(f, name) == null) {
+                    return null;
+                }
+                i++;
+            }
+        }
+
+        toplevelBuilder.addFunction(mhName, funcTree.name(), descriptor, funcTree.type().varargs(), paramNames);
         return null;
     }
 
@@ -394,18 +407,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
 
 
-        VarInfo varInfo = VarInfo.ofVar(clazz, layout);
         Type.Function func = getAsFunctionPointer(type);
-        String fiName;
+        String fiName = null;
         if (func != null) {
             fiName = generateFunctionalInterface(func, fieldName);
-            if (fiName != null) {
-                varInfo = VarInfo.ofFunctionalPointerVar(clazz, layout, fiName);
-            }
         } else {
             Optional<String> funcTypedef = getAsFunctionPointerTypedef(type);
             if (funcTypedef.isPresent()) {
-                varInfo = VarInfo.ofFunctionalPointerVar(clazz, layout, Utils.javaSafeIdentifier(funcTypedef.get()));
+                fiName = Utils.javaSafeIdentifier(funcTypedef.get());
             }
         }
 
@@ -423,39 +432,12 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             sizeAvailable = false;
         }
         if (sizeAvailable) {
-            currentBuilder.addVar(fieldName, tree.name(), varInfo);
+            currentBuilder.addVar(fieldName, tree.name(), layout, Optional.ofNullable(fiName));
         } else {
             warn("Layout size not available for " + fieldName);
         }
 
         return null;
-    }
-
-    private Optional<FunctionInfo> functionInfo(Type.Function funcPtr, String nativeName, boolean downcall,
-                                                BiFunction<MethodType, FunctionDescriptor, FunctionInfo> functionInfoFactory) {
-        FunctionDescriptor descriptor = Type.descriptorFor(funcPtr).orElse(null);
-        if (descriptor == null) {
-            //abort
-            return Optional.empty();
-        }
-
-        //generate functional interface
-        if (!downcall && funcPtr.varargs() && !funcPtr.argumentTypes().isEmpty()) {
-            warn("varargs in callbacks is not supported: " + funcPtr);
-            return Optional.empty();
-        }
-
-        String unsupportedType = UnsupportedLayouts.firstUnsupportedType(funcPtr);
-        if (unsupportedType != null) {
-            warn("skipping " + nativeName + " because of unsupported type usage: " +
-                    unsupportedType);
-            return Optional.empty();
-        }
-
-        MethodType mtype = getMethodType(funcPtr, downcall);
-        return mtype != null ?
-                Optional.of(functionInfoFactory.apply(mtype, descriptor)) :
-                Optional.empty();
     }
 
     protected static MemoryLayout layoutFor(Declaration decl) {
@@ -474,25 +456,13 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     private Class<?> getJavaType(Type type) {
-        try {
-            return typeTranslator.getJavaType(type, false);
-        } catch (UnsupportedOperationException uoe) {
-            warn(uoe.toString());
-            if (JextractTool.DEBUG) {
-                uoe.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    private MethodType getMethodType(Type.Function type, boolean downcall) {
-        try {
-            return typeTranslator.getMethodType(type, downcall);
-        } catch (UnsupportedOperationException uoe) {
-            warn(uoe.toString());
-            if (JextractTool.DEBUG) {
-                uoe.printStackTrace();
-            }
+        Optional<MemoryLayout> layout = Type.layoutFor(type);
+        if (!layout.isPresent()) return null;
+        if (layout.get() instanceof SequenceLayout || layout.get() instanceof GroupLayout) {
+            return MemorySegment.class;
+        } else if (layout.get() instanceof ValueLayout valueLayout) {
+            return valueLayout.carrier();
+        } else {
             return null;
         }
     }

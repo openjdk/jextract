@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,6 +24,7 @@
  */
 package org.openjdk.jextract.impl;
 
+import jdk.incubator.foreign.FunctionDescriptor;
 import jdk.incubator.foreign.GroupLayout;
 import jdk.incubator.foreign.MemoryAddress;
 import jdk.incubator.foreign.MemoryLayout;
@@ -94,13 +95,13 @@ class ToplevelBuilder extends JavaSourceBuilder {
     }
 
     @Override
-    public void addVar(String javaName, String nativeName, VarInfo varInfo) {
-        nextHeader().addVar(javaName, nativeName, varInfo);
+    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
+        nextHeader().addVar(javaName, nativeName, layout, fiName);
     }
 
     @Override
-    public void addFunction(String javaName, String nativeName, FunctionInfo functionInfo) {
-        nextHeader().addFunction(javaName, nativeName, functionInfo);
+    public void addFunction(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, List<String> parameterNames) {
+        nextHeader().addFunction(javaName, nativeName, descriptor, isVarargs, parameterNames);
     }
 
     @Override
@@ -133,8 +134,8 @@ class ToplevelBuilder extends JavaSourceBuilder {
     }
 
     @Override
-    public String addFunctionalInterface(String name, FunctionInfo functionInfo) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, name, functionInfo);
+    public String addFunctionalInterface(String name, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, name, descriptor, parameterNames);
         builders.add(builder);
         builder.classBegin();
         builder.classEnd();

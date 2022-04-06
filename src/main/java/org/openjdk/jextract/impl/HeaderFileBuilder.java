@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,10 +24,15 @@
  */
 package org.openjdk.jextract.impl;
 
+import jdk.incubator.foreign.CLinker;
+import jdk.incubator.foreign.FunctionDescriptor;
+import jdk.incubator.foreign.GroupLayout;
 import jdk.incubator.foreign.MemoryAddress;
+import jdk.incubator.foreign.MemoryLayout;
 import jdk.incubator.foreign.MemorySegment;
 import jdk.incubator.foreign.ResourceScope;
 import jdk.incubator.foreign.SegmentAllocator;
+import jdk.incubator.foreign.SequenceLayout;
 import jdk.incubator.foreign.ValueLayout;
 import org.openjdk.jextract.Type;
 
@@ -36,6 +41,7 @@ import org.openjdk.jextract.impl.ConstantBuilder.Constant;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -59,38 +65,39 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     @Override
-    public void addVar(String javaName, String nativeName, VarInfo varInfo) {
-        if (varInfo.carrier().equals(MemorySegment.class)) {
+    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
+        if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             emitWithConstantClass(constantBuilder -> {
-                constantBuilder.addSegment(javaName, nativeName, varInfo.layout())
+                constantBuilder.addSegment(javaName, nativeName, layout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
             });
-        } else {
+        } else if (layout instanceof ValueLayout valueLayout) {
             emitWithConstantClass(constantBuilder -> {
-                constantBuilder.addLayout(javaName, varInfo.layout())
+                constantBuilder.addLayout(javaName, valueLayout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
-                Constant vhConstant = constantBuilder.addGlobalVarHandle(javaName, nativeName, varInfo)
+                Constant vhConstant = constantBuilder.addGlobalVarHandle(javaName, nativeName, valueLayout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
-                Constant segmentConstant = constantBuilder.addSegment(javaName, nativeName, varInfo.layout())
+                Constant segmentConstant = constantBuilder.addSegment(javaName, nativeName, valueLayout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
-                emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, varInfo.carrier());
-                emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, varInfo.carrier());
-                if (varInfo.fiName().isPresent()) {
-                    emitFunctionalInterfaceGetter(varInfo.fiName().get(), javaName);
+                emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
+                emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
+                if (fiName.isPresent()) {
+                    emitFunctionalInterfaceGetter(fiName.get(), javaName);
                 }
             });
         }
     }
 
     @Override
-    public void addFunction(String javaName, String nativeName, FunctionInfo functionInfo) {
+    public void addFunction(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, List<String> parameterNames) {
         emitWithConstantClass(constantBuilder -> {
-            Constant mhConstant = constantBuilder.addMethodHandle(javaName, nativeName, functionInfo, false)
+            Constant mhConstant = constantBuilder.addMethodHandle(javaName, nativeName, descriptor, isVarargs, false)
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
-            emitFunctionWrapper(mhConstant, javaName, nativeName, functionInfo);
-            if (functionInfo.methodType().returnType().equals(MemorySegment.class)) {
+            MethodType downcallType = CLinker.downcallType(descriptor);
+            emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, isVarargs, parameterNames);
+            if (downcallType.returnType().equals(MemorySegment.class)) {
                 // emit scoped overload
-                emitFunctionWrapperScopedOverload(javaName, functionInfo);
+                emitFunctionWrapperScopedOverload(javaName, downcallType, isVarargs, parameterNames);
             }
         });
     }
@@ -109,19 +116,17 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
 
     // private generation
 
-    private void emitFunctionWrapper(Constant mhConstant, String javaName, String nativeName, FunctionInfo functionInfo) {
+    private void emitFunctionWrapper(Constant mhConstant, String javaName, String nativeName, MethodType declType, boolean isVarargs, List<String> parameterNames) {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        MethodType declType = functionInfo.methodType();
-        List<String> paramNames = functionInfo.parameterNames().get();
-        if (functionInfo.methodType().returnType().equals(MemorySegment.class)) {
+        if (declType.returnType().equals(MemorySegment.class)) {
             // needs allocator parameter
             declType = declType.insertParameterTypes(0, SegmentAllocator.class);
-            paramNames = new ArrayList<>(paramNames);
-            paramNames.add(0, "allocator");
+            parameterNames = new ArrayList<>(parameterNames);
+            parameterNames.add(0, "allocator");
         }
-        List<String> pExprs = emitFunctionWrapperDecl(javaName, declType, functionInfo.isVarargs(), paramNames);
+        List<String> pExprs = emitFunctionWrapperDecl(javaName, declType, isVarargs, parameterNames);
         append(" {\n");
         incrAlign();
         indent();
@@ -134,8 +139,8 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         append("try {\n");
         incrAlign();
         indent();
-        if (!functionInfo.methodType().returnType().equals(void.class)) {
-            append("return (" + functionInfo.methodType().returnType().getName() + ")");
+        if (!declType.returnType().equals(void.class)) {
+            append("return (" + declType.returnType().getName() + ")");
         }
         append("mh$.invokeExact(" + String.join(", ", pExprs) + ");\n");
         decrAlign();
@@ -153,22 +158,22 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    private void emitFunctionWrapperScopedOverload(String javaName, FunctionInfo functionInfo) {
+    private void emitFunctionWrapperScopedOverload(String javaName, MethodType declType, boolean isVarargs, List<String> parameterNames) {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        List<String> paramNames = new ArrayList<>(functionInfo.parameterNames().get());
+        List<String> paramNames = new ArrayList<>(parameterNames);
         paramNames.add(0, "scope");
         List<String> pExprs = emitFunctionWrapperDecl(javaName,
-        functionInfo.methodType().insertParameterTypes(0, ResourceScope.class),
-        functionInfo.isVarargs(),
+                declType.insertParameterTypes(0, ResourceScope.class),
+                isVarargs,
         paramNames);
         String param = pExprs.remove(0);
         pExprs.add(0, "SegmentAllocator.nativeAllocator(" + param + ")");
         append(" {\n");
         incrAlign();
         indent();
-        if (!functionInfo.methodType().returnType().equals(void.class)) {
+        if (!declType.returnType().equals(void.class)) {
             append("return ");
         }
         append(javaName + "(" + String.join(", ", pExprs) + ");\n");
@@ -259,7 +264,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
                 buf.append("f");
             } else {
                 buf.append("Float.valueOf(\"");
-                buf.append(value.toString());
+                buf.append(value);
                 buf.append("\")");
             }
         } else if (type == long.class) {
@@ -272,9 +277,12 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
                 buf.append("d");
             } else {
                 buf.append("Double.valueOf(\"");
-                buf.append(value.toString());
+                buf.append(value);
                 buf.append("\")");
             }
+        } else if (type == boolean.class) {
+            boolean booleanValue = ((Number)value).byteValue() != 0;
+            buf.append(booleanValue);
         } else {
             buf.append("(" + type.getName() + ")");
             buf.append(value + "L");
