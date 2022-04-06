@@ -28,8 +28,6 @@ import jdk.incubator.foreign.*;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
-import org.openjdk.jextract.impl.JavaSourceBuilder.VarInfo;
-
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
@@ -409,18 +407,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
 
 
-        VarInfo varInfo = VarInfo.ofVar(clazz, layout);
         Type.Function func = getAsFunctionPointer(type);
-        String fiName;
+        String fiName = null;
         if (func != null) {
             fiName = generateFunctionalInterface(func, fieldName);
-            if (fiName != null) {
-                varInfo = VarInfo.ofFunctionalPointerVar(clazz, layout, fiName);
-            }
         } else {
             Optional<String> funcTypedef = getAsFunctionPointerTypedef(type);
             if (funcTypedef.isPresent()) {
-                varInfo = VarInfo.ofFunctionalPointerVar(clazz, layout, Utils.javaSafeIdentifier(funcTypedef.get()));
+                fiName = Utils.javaSafeIdentifier(funcTypedef.get());
             }
         }
 
@@ -438,7 +432,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             sizeAvailable = false;
         }
         if (sizeAvailable) {
-            currentBuilder.addVar(fieldName, tree.name(), varInfo);
+            currentBuilder.addVar(fieldName, tree.name(), layout, Optional.ofNullable(fiName));
         } else {
             warn("Layout size not available for " + fieldName);
         }

@@ -95,8 +95,8 @@ class ToplevelBuilder extends JavaSourceBuilder {
     }
 
     @Override
-    public void addVar(String javaName, String nativeName, VarInfo varInfo) {
-        nextHeader().addVar(javaName, nativeName, varInfo);
+    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
+        nextHeader().addVar(javaName, nativeName, layout, fiName);
     }
 
     @Override

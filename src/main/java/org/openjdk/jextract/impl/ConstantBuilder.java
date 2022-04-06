@@ -65,19 +65,19 @@ public class ConstantBuilder extends ClassSourceBuilder {
                 () -> emitLayoutField(javaName, layout));
     }
 
-    public Constant addFieldVarHandle(String javaName, String nativeName, VarInfo varInfo,
+    public Constant addFieldVarHandle(String javaName, String nativeName, ValueLayout valueLayout,
                                       String rootJavaName, List<String> prefixElementNames) {
-        return addVarHandle(javaName, nativeName, varInfo, rootJavaName, prefixElementNames);
+        return addVarHandle(javaName, nativeName, valueLayout, rootJavaName, prefixElementNames);
     }
 
-    public Constant addGlobalVarHandle(String javaName, String nativeName, VarInfo varInfo) {
-        return addVarHandle(javaName, nativeName, varInfo, null, List.of());
+    public Constant addGlobalVarHandle(String javaName, String nativeName, ValueLayout valueLayout) {
+        return addVarHandle(javaName, nativeName, valueLayout, null, List.of());
     }
 
-    private Constant addVarHandle(String javaName, String nativeName, VarInfo varInfo,
+    private Constant addVarHandle(String javaName, String nativeName, ValueLayout valueLayout,
                                 String rootLayoutName, List<String> prefixElementNames) {
         return emitIfAbsent(javaName, Constant.Kind.VAR_HANDLE,
-                () -> emitVarHandleField(javaName, nativeName, varInfo, rootLayoutName, prefixElementNames));
+                () -> emitVarHandleField(javaName, nativeName, valueLayout, rootLayoutName, prefixElementNames));
     }
 
     public Constant addMethodHandle(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
@@ -210,13 +210,12 @@ public class ConstantBuilder extends ClassSourceBuilder {
         return new Constant(className(), javaName, Constant.Kind.METHOD_HANDLE);
     }
 
-    private Constant emitVarHandleField(String javaName, String nativeName, VarInfo varInfo,
+    private Constant emitVarHandleField(String javaName, String nativeName, ValueLayout valueLayout,
                                       String rootLayoutName, List<String> prefixElementNames) {
         String layoutAccess = rootLayoutName != null ?
                 Constant.Kind.LAYOUT.fieldName(rootLayoutName) :
-                addLayout(javaName, varInfo.layout()).accessExpression();
+                addLayout(javaName, valueLayout).accessExpression();
         incrAlign();
-        String typeName = varInfo.carrier().getName();
         indent();
         String fieldName = Constant.Kind.VAR_HANDLE.fieldName(javaName);
         append(memberMods() + "VarHandle " + fieldName + " = ");

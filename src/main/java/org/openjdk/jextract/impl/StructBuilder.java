@@ -28,6 +28,8 @@ import jdk.incubator.foreign.FunctionDescriptor;
 import jdk.incubator.foreign.GroupLayout;
 import jdk.incubator.foreign.MemoryLayout;
 import jdk.incubator.foreign.MemorySegment;
+import jdk.incubator.foreign.SequenceLayout;
+import jdk.incubator.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
@@ -125,7 +127,7 @@ class StructBuilder extends ConstantBuilder {
     }
 
     @Override
-    public void addVar(String javaName, String nativeName, VarInfo varInfo) {
+    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
         try {
             structLayout.byteOffset(elementPaths(nativeName));
         } catch (UnsupportedOperationException uoe) {
@@ -133,17 +135,17 @@ class StructBuilder extends ConstantBuilder {
             OutputFactory.warn("skipping '" + className() + "." + nativeName + "' : " + uoe.toString());
             return;
         }
-        if (varInfo.carrier().equals(MemorySegment.class)) {
-            emitSegmentGetter(javaName, nativeName, varInfo.layout());
-        } else {
-            Constant vhConstant = addFieldVarHandle(javaName, nativeName, varInfo, layoutField(), prefixNamesList())
+        if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
+            emitSegmentGetter(javaName, nativeName, layout);
+        } else if (layout instanceof ValueLayout valueLayout) {
+            Constant vhConstant = addFieldVarHandle(javaName, nativeName, valueLayout, layoutField(), prefixNamesList())
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
-            emitFieldGetter(vhConstant, javaName, varInfo.carrier());
-            emitFieldSetter(vhConstant, javaName, varInfo.carrier());
-            emitIndexedFieldGetter(vhConstant, javaName, varInfo.carrier());
-            emitIndexedFieldSetter(vhConstant, javaName, varInfo.carrier());
-            if (varInfo.fiName().isPresent()) {
-                emitFunctionalInterfaceGetter(varInfo.fiName().get(), javaName);
+            emitFieldGetter(vhConstant, javaName, valueLayout.carrier());
+            emitFieldSetter(vhConstant, javaName, valueLayout.carrier());
+            emitIndexedFieldGetter(vhConstant, javaName, valueLayout.carrier());
+            emitIndexedFieldSetter(vhConstant, javaName, valueLayout.carrier());
+            if (fiName.isPresent()) {
+                emitFunctionalInterfaceGetter(fiName.get(), javaName);
             }
         }
     }

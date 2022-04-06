@@ -28,9 +28,11 @@ import jdk.incubator.foreign.CLinker;
 import jdk.incubator.foreign.FunctionDescriptor;
 import jdk.incubator.foreign.GroupLayout;
 import jdk.incubator.foreign.MemoryAddress;
+import jdk.incubator.foreign.MemoryLayout;
 import jdk.incubator.foreign.MemorySegment;
 import jdk.incubator.foreign.ResourceScope;
 import jdk.incubator.foreign.SegmentAllocator;
+import jdk.incubator.foreign.SequenceLayout;
 import jdk.incubator.foreign.ValueLayout;
 import org.openjdk.jextract.Type;
 
@@ -39,6 +41,7 @@ import org.openjdk.jextract.impl.ConstantBuilder.Constant;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -62,24 +65,24 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     @Override
-    public void addVar(String javaName, String nativeName, VarInfo varInfo) {
-        if (varInfo.carrier().equals(MemorySegment.class)) {
+    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
+        if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             emitWithConstantClass(constantBuilder -> {
-                constantBuilder.addSegment(javaName, nativeName, varInfo.layout())
+                constantBuilder.addSegment(javaName, nativeName, layout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
             });
-        } else {
+        } else if (layout instanceof ValueLayout valueLayout) {
             emitWithConstantClass(constantBuilder -> {
-                constantBuilder.addLayout(javaName, varInfo.layout())
+                constantBuilder.addLayout(javaName, valueLayout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
-                Constant vhConstant = constantBuilder.addGlobalVarHandle(javaName, nativeName, varInfo)
+                Constant vhConstant = constantBuilder.addGlobalVarHandle(javaName, nativeName, valueLayout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
-                Constant segmentConstant = constantBuilder.addSegment(javaName, nativeName, varInfo.layout())
+                Constant segmentConstant = constantBuilder.addSegment(javaName, nativeName, valueLayout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
-                emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, varInfo.carrier());
-                emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, varInfo.carrier());
-                if (varInfo.fiName().isPresent()) {
-                    emitFunctionalInterfaceGetter(varInfo.fiName().get(), javaName);
+                emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
+                emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
+                if (fiName.isPresent()) {
+                    emitFunctionalInterfaceGetter(fiName.get(), javaName);
                 }
             });
         }

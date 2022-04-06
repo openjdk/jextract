@@ -41,21 +41,7 @@ import java.util.function.Consumer;
 
 public abstract class JavaSourceBuilder {
 
-    public static record VarInfo(
-            Class<?> carrier,
-            MemoryLayout layout,
-            Optional<String> fiName) {
-
-        static VarInfo ofVar(Class<?> carrier, MemoryLayout layout) {
-            return new VarInfo(carrier, layout, Optional.empty());
-        }
-
-        static VarInfo ofFunctionalPointerVar(Class<?> carrier, MemoryLayout layout, String fiName) {
-            return new VarInfo(carrier, layout, Optional.ofNullable(fiName));
-        }
-    }
-
-    public void addVar(String javaName, String nativeName, ClassSourceBuilder.VarInfo varInfo) {
+    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
         throw new UnsupportedOperationException();
     }
 
