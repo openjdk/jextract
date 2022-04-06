@@ -26,7 +26,6 @@ package org.openjdk.jextract.impl;
 
 import jdk.incubator.foreign.*;
 import org.openjdk.jextract.Declaration;
-import org.openjdk.jextract.JextractTool;
 import org.openjdk.jextract.Type;
 
 import org.openjdk.jextract.impl.JavaSourceBuilder.VarInfo;
@@ -36,8 +35,6 @@ import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.constant.ClassDesc;
-import java.lang.invoke.MethodType;
 import java.net.URI;
 import java.net.URL;
 import java.net.URISyntaxException;
@@ -50,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 /*
@@ -227,11 +223,31 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     private String generateFunctionalInterface(Type.Function func, String name) {
-        return functionInfo(func, name, false,
-                 (mtype, desc) -> FunctionInfo.ofFunctionPointer(mtype,
-                         CLinker.downcallType(desc), desc, func.parameterNames()))
-                 .map(fInfo -> currentBuilder.addFunctionalInterface(Utils.javaSafeIdentifier(name), fInfo))
-                 .orElse(null);
+        FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
+        if (descriptor == null) {
+            return null;
+        }
+
+        String unsupportedType = UnsupportedLayouts.firstUnsupportedType(func);
+        if (unsupportedType != null) {
+            warn("skipping " + name + " because of unsupported type usage: " +
+                    unsupportedType);
+            return null;
+        }
+
+        //generate functional interface
+        if (func.varargs() && !func.argumentTypes().isEmpty()) {
+            warn("varargs in callbacks is not supported: " + func);
+            return null;
+        }
+
+        FunctionInfo fInfo = FunctionInfo.ofFunctionPointer(
+                CLinker.upcallType(descriptor),
+                CLinker.downcallType(descriptor),
+                descriptor,
+                func.parameterNames()
+        );
+        return currentBuilder.addFunctionalInterface(Utils.javaSafeIdentifier(name), fInfo);
     }
 
     @Override
@@ -249,25 +265,38 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                                           .map(p -> !p.isEmpty() ? Utils.javaSafeIdentifier(p) : p)
                                           .collect(Collectors.toList());
 
-        Optional<FunctionInfo> functionInfo = functionInfo(funcTree.type(), funcTree.name(), true,
-                (mtype, desc) -> FunctionInfo.ofFunction(mtype, desc, funcTree.type().varargs(), paramNames));
-
-        if (functionInfo.isPresent()) {
-            int i = 0;
-            for (Declaration.Variable param : funcTree.parameters()) {
-                Type.Function f = getAsFunctionPointer(param.type());
-                if (f != null) {
-                    String name = funcTree.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
-                    if (generateFunctionalInterface(f, name) == null) {
-                        return null;
-                    }
-                    i++;
-                }
-            }
-
-            toplevelBuilder.addFunction(mhName, funcTree.name(), functionInfo.get());
+        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
+        if (descriptor == null) {
+            return null;
         }
 
+        String unsupportedType = UnsupportedLayouts.firstUnsupportedType(funcTree.type());
+        if (unsupportedType != null) {
+            warn("skipping " + funcTree.name() + " because of unsupported type usage: " +
+                    unsupportedType);
+            return null;
+        }
+
+        FunctionInfo fInfo = FunctionInfo.ofFunction(
+                CLinker.downcallType(descriptor),
+                descriptor,
+                funcTree.type().varargs(),
+                paramNames
+        );
+
+        int i = 0;
+        for (Declaration.Variable param : funcTree.parameters()) {
+            Type.Function f = getAsFunctionPointer(param.type());
+            if (f != null) {
+                String name = funcTree.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
+                if (generateFunctionalInterface(f, name) == null) {
+                    return null;
+                }
+                i++;
+            }
+        }
+
+        toplevelBuilder.addFunction(mhName, funcTree.name(), fInfo);
         return null;
     }
 
@@ -429,35 +458,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
 
         return null;
-    }
-
-    private Optional<FunctionInfo> functionInfo(Type.Function funcPtr, String nativeName, boolean downcall,
-                                                BiFunction<MethodType, FunctionDescriptor, FunctionInfo> functionInfoFactory) {
-        FunctionDescriptor descriptor = Type.descriptorFor(funcPtr).orElse(null);
-        if (descriptor == null) {
-            //abort
-            return Optional.empty();
-        }
-
-        //generate functional interface
-        if (!downcall && funcPtr.varargs() && !funcPtr.argumentTypes().isEmpty()) {
-            warn("varargs in callbacks is not supported: " + funcPtr);
-            return Optional.empty();
-        }
-
-        String unsupportedType = UnsupportedLayouts.firstUnsupportedType(funcPtr);
-        if (unsupportedType != null) {
-            warn("skipping " + nativeName + " because of unsupported type usage: " +
-                    unsupportedType);
-            return Optional.empty();
-        }
-
-        MethodType mtype = downcall ?
-                CLinker.downcallType(descriptor) :
-                CLinker.upcallType(descriptor);
-        return mtype != null ?
-                Optional.of(functionInfoFactory.apply(mtype, descriptor)) :
-                Optional.empty();
     }
 
     protected static MemoryLayout layoutFor(Declaration decl) {

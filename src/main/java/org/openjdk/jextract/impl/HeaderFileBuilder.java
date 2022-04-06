@@ -259,7 +259,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
                 buf.append("f");
             } else {
                 buf.append("Float.valueOf(\"");
-                buf.append(value.toString());
+                buf.append(value);
                 buf.append("\")");
             }
         } else if (type == long.class) {
@@ -272,9 +272,12 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
                 buf.append("d");
             } else {
                 buf.append("Double.valueOf(\"");
-                buf.append(value.toString());
+                buf.append(value);
                 buf.append("\")");
             }
+        } else if (type == boolean.class) {
+            boolean booleanValue = ((Number)value).byteValue() != 0;
+            buf.append(booleanValue);
         } else {
             buf.append("(" + type.getName() + ")");
             buf.append(value + "L");
