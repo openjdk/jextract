@@ -39,14 +39,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8244512 8252759
- * @summary test nested structs and unions
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNested
- */
 public class TestNested extends JextractToolRunner {
     @Test
     public void testNestedStructs() {

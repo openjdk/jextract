@@ -28,14 +28,6 @@ import java.nio.file.Path;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8260344
- * @summary jextract crashes with exception for log.h from libdebian-installer4-dev
- * @run testng/othervm --enable-native-access=ALL-UNNAMED -Duser.language=en Test8260344
- */
 public class Test8260344 extends JextractToolRunner {
     @Test
     public void test() {

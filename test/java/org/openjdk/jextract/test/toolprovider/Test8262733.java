@@ -28,14 +28,6 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import static org.testng.Assert.assertNotNull;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8262733
- * @summary jextract generates clashing names which results in compilation error with javac
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8262733
- */
 public class Test8262733 extends JextractToolRunner {
     @Test
     public void test() {

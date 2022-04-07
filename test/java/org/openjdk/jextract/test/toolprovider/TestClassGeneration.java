@@ -42,7 +42,6 @@ import static jdk.incubator.foreign.MemoryLayout.PathElement.sequenceElement;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-//@Ignore // FIXME needs native lib
 public class TestClassGeneration extends JextractToolRunner {
 
     private static final VarHandle VH_bytes = MemoryLayout.sequenceLayout(C_CHAR).varHandle(sequenceElement());

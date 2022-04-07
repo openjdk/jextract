@@ -28,14 +28,6 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import static org.testng.Assert.assertNotNull;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8262851
- * @summary jextract crashes with "Cannot compute size of a layout which is, or depends on a sequence layout with unspecified size"
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8262851
- */
 public class Test8262851 extends JextractToolRunner {
     @Test
     public void test() {

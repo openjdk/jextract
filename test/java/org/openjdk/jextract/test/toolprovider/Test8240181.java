@@ -28,13 +28,6 @@ import java.nio.file.Path;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8240181
- * @run testng/othervm --enable-native-access=ALL-UNNAMED -Duser.language=en Test8240181
- */
 public class Test8240181 extends JextractToolRunner {
     @Test
     public void testAnonymousEnum() {

@@ -29,14 +29,6 @@ import jdk.incubator.foreign.MemorySegment;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8260717
- * @summary jextract crashes with 'Crossing storage unit boundaries' for libcoap's block.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8260717
- */
 public class Test8260717 extends JextractToolRunner {
     @Test
     public void test() {

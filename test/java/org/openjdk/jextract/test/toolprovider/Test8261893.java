@@ -29,14 +29,6 @@ import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertNotNull;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8261893
- * @summary jextract generates class names that are restricted type names
- * @run testng/othervm --enable-native-access=ALL-UNNAMED -Duser.language=en Test8261893
- */
 public class Test8261893 extends JextractToolRunner {
     @Test
     public void test() {

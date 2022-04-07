@@ -32,14 +32,6 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8245767
- * @summary jextract crashes with typedef on a opaque struct or union
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8245767
- */
 public class Test8245767 extends JextractToolRunner {
     @Test
     public void testTypedefs() {

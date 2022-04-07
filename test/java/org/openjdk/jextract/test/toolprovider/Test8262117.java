@@ -32,14 +32,6 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8262117
- * @summary jextract crashes with javac compilation error "class u is already defined"
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8262117
- */
 public class Test8262117 extends JextractToolRunner {
     @Test
     public void testNameClash() {

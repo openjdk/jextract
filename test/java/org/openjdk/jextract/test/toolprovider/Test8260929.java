@@ -30,14 +30,6 @@ import org.testng.annotations.Test;
 import jdk.incubator.foreign.MemorySegment;
 import static org.testng.Assert.assertNotNull;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8260929
- * @summary jextract crashes with libdnet's rabdef.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8260929
- */
 public class Test8260929 extends JextractToolRunner {
     @Test
     public void test() {

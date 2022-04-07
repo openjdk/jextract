@@ -29,14 +29,6 @@ import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertNotNull;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8240657
- * @summary when Java keywords are used as identifiers in C header, jextract generates non-compilable java code
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8240657
- */
 public class Test8240657 extends JextractToolRunner {
     @Test
     public void testKeywordIdentifiers() {

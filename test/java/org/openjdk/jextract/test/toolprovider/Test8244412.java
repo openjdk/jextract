@@ -29,14 +29,6 @@ import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertNotNull;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8244412
- * @summary jextract should generate static utils class for primitive typedefs
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8244412
- */
 public class Test8244412 extends JextractToolRunner {
     @Test
     public void testPrimitiveTypedefs() {

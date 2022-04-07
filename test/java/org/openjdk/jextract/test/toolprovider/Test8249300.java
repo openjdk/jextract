@@ -29,14 +29,6 @@ import jdk.incubator.foreign.Addressable;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8249300
- * @summary jextract does not handle empty parameter list of a function pointer parameters
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8249300
- */
 public class Test8249300 extends JextractToolRunner {
     @Test
     public void testVoidTypedef() {

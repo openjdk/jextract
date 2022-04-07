@@ -35,14 +35,6 @@ import jdk.incubator.foreign.MemorySegment;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-/*
- * @test
- * @bug 8240300
- * @summary jextract produces non compilable code with repeated declarations
- * @library /test/lib
- * @build JextractToolRunner
- * @run testng/othervm --enable-native-access=ALL-UNNAMED RepeatedDeclsTest
- */
 public class RepeatedDeclsTest extends JextractToolRunner {
     @Test
     public void repeatedDecls() throws Throwable {

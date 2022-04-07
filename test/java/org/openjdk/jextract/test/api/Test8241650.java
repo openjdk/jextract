@@ -27,12 +27,6 @@ import org.openjdk.jextract.Declaration;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertTrue;
 
-/*
- * @test
- * @bug 8241650
- * @summary jextract module should be mapped to application class loader
- * @run testng Test8241650
- */
 public class Test8241650 {
     @Test
     public void testClassLoader() {

@@ -29,14 +29,6 @@ import jdk.incubator.foreign.MemorySegment;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8248415
- * @summary jextract does not generate getter and setter for pointer typed fields in structs
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8248415
- */
 public class Test8248415 extends JextractToolRunner {
 
     @Test

@@ -29,14 +29,6 @@ import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertNotNull;
 
-/*
- * @test
- * @library /test/lib
- * @build JextractToolRunner
- * @bug 8248474
- * @summary jextract uses header file name as part of identifier
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8248474
- */
 public class Test8248474 extends JextractToolRunner {
     @Test
     public void testUnsafeHeaderName() {
