@@ -95,7 +95,13 @@ public enum CursorKind {
     MacroDefinition(CXCursor_MacroDefinition()),
     MacroExpansion(CXCursor_MacroExpansion()),
     MacroInstantiation(CXCursor_MacroInstantiation()),
-    InclusionDirective(CXCursor_InclusionDirective());
+    InclusionDirective(CXCursor_InclusionDirective()),
+    /*
+     * Per libclang API docs, clang returns this CursorKind
+     * for both C11 _Static_assert and C++11 static_assert
+     */
+    StaticAssert(CXCursor_StaticAssert());
+
 
     private final int value;
 

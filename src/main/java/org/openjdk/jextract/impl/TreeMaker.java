@@ -62,7 +62,15 @@ class TreeMaker {
     public Declaration createTree(Cursor c) {
         Objects.requireNonNull(c);
         CursorLanguage lang = c.language();
-        if (lang != CursorLanguage.C && lang != CursorLanguage.Invalid) {
+        /*
+         * We detect non-C constructs to early exit with error for
+         * unsupported features. But libclang maps both C11's _Static_assert
+         * and C++11's static_assert to same CursorKind. But the language is
+         * set a C++ always. Because we want to allow C11's _Static_Assert,
+         * we allow that exception here.
+         */
+        if (lang != CursorLanguage.C && lang != CursorLanguage.Invalid &&
+                c.kind() != CursorKind.StaticAssert) {
             throw new RuntimeException("Unsupported language: " + c.language());
         }
         var rv = (DeclarationImpl) createTreeInternal(c);
