@@ -33,14 +33,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-/*
- * @test
- * @library /lib
- * @build JextractToolRunner
- * @bug 8240752
- * @summary jextract generates non-compilable code for special floating point values
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8240752
- */
 public class Test8240752 extends JextractToolRunner {
     private float getFloatConstant(Class<?> cls, String name) {
         Method method = findMethod(cls, name);

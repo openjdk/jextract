@@ -32,14 +32,6 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-/*
- * @test
- * @library /lib
- * @build JextractToolRunner
- * @bug 8260705
- * @summary jextract crash with libbart's types.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8260705
- */
 public class Test8260705 extends JextractToolRunner {
     @Test
     public void test() {

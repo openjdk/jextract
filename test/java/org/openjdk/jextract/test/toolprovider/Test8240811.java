@@ -33,14 +33,6 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-/*
- * @test
- * @library /lib
- * @build JextractToolRunner
- * @bug 8240811
- * @summary jextract generates non-compilable code for name collision between a struct and a global variable
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8240811
- */
 public class Test8240811 extends JextractToolRunner {
     @Test
     public void testNameCollision() {

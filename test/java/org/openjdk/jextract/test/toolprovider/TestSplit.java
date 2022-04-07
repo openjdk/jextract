@@ -29,13 +29,15 @@ import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
+// This test is ignored because we cannot set the "-Djextract.decls.per.header" here (as all testng tests are
+// executed in the same VM). Moving the test in a non-testng folder is possible, but this test depends on
+// JextractToolRunner and TestUtils which makes it hard.
 @Ignore
 public class TestSplit extends JextractToolRunner {
     @Test
     public void testSplit() {
         Path splitOutput = getOutputFilePath("split");
         Path splitH = getInputFilePath("split.h");
-        //System.setProperty("-Djextract.decls.per.header", "1");
         run("-d", splitOutput.toString(), splitH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(splitOutput)) {
             checkPresent(loader, "split_h");

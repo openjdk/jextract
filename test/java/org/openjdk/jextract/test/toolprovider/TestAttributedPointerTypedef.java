@@ -22,12 +22,6 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
-/*
- * @test
- * @build JextractToolRunner
- * @run testng/othervm --enable-native-access=org.openjdk.jextract TestAttributedPointerTypedef
- */
-
 import org.testng.annotations.Test;
 
 public class TestAttributedPointerTypedef extends JextractToolRunner {

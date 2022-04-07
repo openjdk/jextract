@@ -29,14 +29,6 @@ import jdk.incubator.foreign.Addressable;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 
-/*
- * @test
- * @library /lib
- * @build JextractToolRunner
- * @bug 8249290
- * @summary jextract does not handle void typedef in function pointer argument
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8249290
- */
 public class Test8249290 extends JextractToolRunner {
     @Test
     public void testVoidTypedef() {

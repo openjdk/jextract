@@ -29,14 +29,6 @@ import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertNotNull;
 
-/*
- * @test
- * @library /lib
- * @build JextractToolRunner
- * @bug 8258405
- * @summary functional interfaces are not generated for struct fields/global variables with function pointers
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8258405
- */
 public class Test8258405 extends JextractToolRunner {
     @Test
     public void test() {

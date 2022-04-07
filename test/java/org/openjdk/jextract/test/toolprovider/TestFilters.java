@@ -23,13 +23,6 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
-/*
- * @test
- * @library /lib
- * @build JextractToolRunner
- * @run testng/othervm --enable-native-access=ALL-UNNAMED -Duser.language=en TestFilters
- */
-
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 

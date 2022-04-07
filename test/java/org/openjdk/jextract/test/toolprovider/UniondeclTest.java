@@ -32,12 +32,6 @@ import jdk.incubator.foreign.GroupLayout;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-/*
- * @test
- * @library /lib
- * @build JextractToolRunner
- * @run testng/othervm --enable-native-access=ALL-UNNAMED UniondeclTest
- */
 public class UniondeclTest extends JextractToolRunner {
     @Test
     public void unionDecl() {
