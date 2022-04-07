@@ -31,7 +31,7 @@ import static org.testng.Assert.assertNotNull;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8244412
  * @summary jextract should generate static utils class for primitive typedefs

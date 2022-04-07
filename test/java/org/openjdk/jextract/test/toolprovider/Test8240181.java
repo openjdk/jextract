@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8240181
  * @run testng/othervm --enable-native-access=ALL-UNNAMED -Duser.language=en Test8240181

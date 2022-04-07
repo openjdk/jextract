@@ -34,7 +34,7 @@ import static org.testng.Assert.assertTrue;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @run testng/othervm --enable-native-access=ALL-UNNAMED UniondeclTest
  */

@@ -35,7 +35,7 @@ import static org.testng.Assert.assertTrue;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8240811
  * @summary jextract generates non-compilable code for name collision between a struct and a global variable

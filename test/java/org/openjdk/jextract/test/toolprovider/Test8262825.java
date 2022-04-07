@@ -30,7 +30,7 @@ import static org.testng.Assert.assertNotNull;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8262825
  * @summary jextract crashes when Java type names like String are used as identifiers in C header

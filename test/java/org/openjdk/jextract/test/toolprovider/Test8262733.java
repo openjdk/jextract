@@ -30,7 +30,7 @@ import static org.testng.Assert.assertNotNull;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8262733
  * @summary jextract generates clashing names which results in compilation error with javac

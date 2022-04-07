@@ -34,7 +34,7 @@ import static org.testng.Assert.assertTrue;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8262117
  * @summary jextract crashes with javac compilation error "class u is already defined"

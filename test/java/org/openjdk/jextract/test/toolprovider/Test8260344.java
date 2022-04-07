@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8260344
  * @summary jextract crashes with exception for log.h from libdebian-installer4-dev

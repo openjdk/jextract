@@ -33,7 +33,7 @@ import static org.testng.Assert.assertNotNull;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8251943
  * @summary jextract should not generate MemorySegment typed fields for variables, struct fields if layout size info is not available

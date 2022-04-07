@@ -41,7 +41,7 @@ import static org.testng.Assert.fail;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8244512 8252759
  * @summary test nested structs and unions

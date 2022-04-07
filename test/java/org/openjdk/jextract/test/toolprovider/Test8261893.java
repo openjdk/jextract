@@ -31,7 +31,7 @@ import static org.testng.Assert.assertNotNull;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8261893
  * @summary jextract generates class names that are restricted type names

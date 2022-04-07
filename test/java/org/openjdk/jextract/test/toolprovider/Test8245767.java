@@ -34,7 +34,7 @@ import static org.testng.Assert.assertTrue;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8245767
  * @summary jextract crashes with typedef on a opaque struct or union

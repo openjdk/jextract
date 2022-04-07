@@ -31,7 +31,7 @@ import static org.testng.Assert.assertNotNull;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8258223
  * @summary jextract throws exception when unsupport type is used in anonymous struct

@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8249290
  * @summary jextract does not handle void typedef in function pointer argument

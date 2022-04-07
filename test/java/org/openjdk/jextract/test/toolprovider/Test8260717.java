@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8260717
  * @summary jextract crashes with 'Crossing storage unit boundaries' for libcoap's block.h

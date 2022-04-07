@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @bug 8249300
  * @summary jextract does not handle empty parameter list of a function pointer parameters

@@ -25,7 +25,7 @@ package org.openjdk.jextract.test.toolprovider;
 
 /*
  * @test
- * @library /test/lib
+ * @library /lib
  * @build JextractToolRunner
  * @run testng/othervm --enable-native-access=ALL-UNNAMED -Duser.language=en TestFilters
  */
