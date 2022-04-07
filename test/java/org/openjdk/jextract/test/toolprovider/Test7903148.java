@@ -43,7 +43,9 @@ public class Test7903148 extends JextractToolRunner {
         Path outputH = getInputFilePath("test7903148.h");
         run("-d", output.toString(), outputH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
-            assertNotNull(loader.loadClass("test7903148_h"));
+            Class<?> headerCls = loader.loadClass("test7903148_h");
+            assertNotNull(headerCls);
+            checkMethod(headerCls, "func", int.class, int.class);
         } finally {
             TestUtils.deleteDir(output);
         }

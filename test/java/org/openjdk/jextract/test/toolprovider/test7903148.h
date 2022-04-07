@@ -22,3 +22,5 @@
  */
 
 _Static_assert(1 == 1, "what??");
+
+int func(int x);
