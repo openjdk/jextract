@@ -98,7 +98,7 @@ public enum CursorKind {
     InclusionDirective(CXCursor_InclusionDirective()),
     /*
      * Per libclang API docs, clang returns this CursorKind
-     * for both C11 _Static_Assert and C++11 static_assert
+     * for both C11 _Static_assert and C++11 static_assert
      */
     StaticAssert(CXCursor_StaticAssert());
 

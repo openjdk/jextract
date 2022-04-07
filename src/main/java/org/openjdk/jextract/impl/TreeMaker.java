@@ -64,7 +64,7 @@ class TreeMaker {
         CursorLanguage lang = c.language();
         /*
          * We detect non-C constructs to early exit with error for
-         * unsupported features. But libclang maps both C11's _Static_Assert
+         * unsupported features. But libclang maps both C11's _Static_assert
          * and C++11's static_assert to same CursorKind. But the language is
          * set a C++ always. Because we want to allow C11's _Static_Assert,
          * we allow that exception here.
