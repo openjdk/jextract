@@ -25,6 +25,7 @@ package org.openjdk.jextract.test.toolprovider;
 import jdk.incubator.foreign.Addressable;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
 
 import java.nio.file.Path;
 

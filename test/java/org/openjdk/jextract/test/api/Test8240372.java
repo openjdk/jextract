@@ -25,6 +25,7 @@ package org.openjdk.jextract.test.api;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.testng.annotations.Test;
+import testlib.JextractApiTestBase;
 
 public class Test8240372 extends JextractApiTestBase {
     @Test

@@ -27,6 +27,7 @@ import java.nio.file.Path;
 
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
 
 public class Test8240181 extends JextractToolRunner {
     @Test

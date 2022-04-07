@@ -28,6 +28,8 @@ import jdk.incubator.foreign.MemoryAddress;
 import jdk.incubator.foreign.MemorySegment;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
+
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
 

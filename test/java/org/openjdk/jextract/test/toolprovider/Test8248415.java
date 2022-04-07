@@ -28,6 +28,7 @@ import jdk.incubator.foreign.MemoryAddress;
 import jdk.incubator.foreign.MemorySegment;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
 
 public class Test8248415 extends JextractToolRunner {
 

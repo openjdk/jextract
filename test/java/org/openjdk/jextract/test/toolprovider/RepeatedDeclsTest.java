@@ -32,6 +32,8 @@ import java.nio.file.Path;
 import jdk.incubator.foreign.GroupLayout;
 import jdk.incubator.foreign.MemoryLayout;
 import jdk.incubator.foreign.MemorySegment;
+import testlib.JextractToolRunner;
+
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 

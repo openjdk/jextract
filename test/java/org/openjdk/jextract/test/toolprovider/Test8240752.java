@@ -29,6 +29,8 @@ import java.nio.file.Path;
 
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;

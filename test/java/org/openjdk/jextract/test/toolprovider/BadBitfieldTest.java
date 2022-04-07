@@ -49,6 +49,7 @@ package org.openjdk.jextract.test.toolprovider;
  */
 
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
 
 public class BadBitfieldTest extends JextractToolRunner {
     @Test

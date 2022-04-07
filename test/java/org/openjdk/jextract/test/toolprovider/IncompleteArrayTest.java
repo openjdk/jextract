@@ -25,6 +25,7 @@ package org.openjdk.jextract.test.toolprovider;
 import jdk.incubator.foreign.MemoryLayout;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
 
 import static org.testng.Assert.*;
 

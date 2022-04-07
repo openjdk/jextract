@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -20,7 +20,8 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package org.openjdk.jextract.test.toolprovider;
+
+package testlib;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,17 +31,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.spi.ToolProvider;
 
-import jdk.incubator.foreign.GroupLayout;
 import jdk.incubator.foreign.MemoryLayout;
 import jdk.incubator.foreign.MemoryLayout.PathElement;
 import jdk.incubator.foreign.ValueLayout;
@@ -68,12 +64,12 @@ public class JextractToolRunner {
     public static final ValueLayout.OfAddress C_POINTER = ValueLayout.ADDRESS.withBitAlignment(ValueLayout.ADDRESS.bitSize());
 
     // (private) exit codes from jextract tool. Copied from JextractTool.
-    static final int SUCCESS       = 0;
-    static final int OPTION_ERROR  = 1;
-    static final int INPUT_ERROR   = 2;
-    static final int CLANG_ERROR   = 3;
-    static final int RUNTIME_ERROR = 4;
-    static final int OUTPUT_ERROR  = 5;
+    protected static final int SUCCESS       = 0;
+    protected static final int OPTION_ERROR  = 1;
+    protected static final int INPUT_ERROR   = 2;
+    protected static final int CLANG_ERROR   = 3;
+    protected static final int RUNTIME_ERROR = 4;
+    protected static final int OUTPUT_ERROR  = 5;
 
     private static String safeFileName(String filename) {
         int ext = filename.lastIndexOf('.');
@@ -91,10 +87,9 @@ public class JextractToolRunner {
 
     protected JextractToolRunner(Path input, Path output) {
          inputDir = (input != null) ? input :
-                Paths.get(System.getProperty("test.root", "."),
-                        "java", "org", "openjdk", "jextract", "test", "toolprovider");
+                Paths.get(System.getProperty("test.file")).getParent();
          outputDir = (output != null) ? output :
-                Paths.get(System.getProperty("test.classes", "target"), "test-output");
+                Paths.get(System.getProperty("test.classes"), "test-output");
     }
 
     protected Path getInputFilePath(String fileName) {
@@ -114,28 +109,28 @@ public class JextractToolRunner {
             this.output = output;
         }
 
-        protected JextractResult checkSuccess() {
+        public JextractResult checkSuccess() {
             assertEquals(exitCode, SUCCESS, "Sucess expected, failed: " + exitCode);
             return this;
         }
 
-        protected JextractResult checkFailure() {
+        public JextractResult checkFailure() {
             assertNotEquals(exitCode, SUCCESS, "Failure expected, succeeded!");
             return this;
         }
 
-        protected JextractResult checkFailure(int expectedExitCode) {
+        public JextractResult checkFailure(int expectedExitCode) {
             assertEquals(exitCode, expectedExitCode, "Expected error code " + expectedExitCode);
             return this;
         }
 
-        protected JextractResult checkContainsOutput(String expected) {
+        public JextractResult checkContainsOutput(String expected) {
             Objects.requireNonNull(expected);
             assertTrue(output.contains(expected), "Output does not contain string: " + expected);
             return this;
         }
 
-        protected JextractResult checkMatchesOutput(String regex) {
+        public JextractResult checkMatchesOutput(String regex) {
             Objects.requireNonNull(regex);
             assertTrue(output.trim().matches(regex), "Output does not match regex: " + regex);
             return this;

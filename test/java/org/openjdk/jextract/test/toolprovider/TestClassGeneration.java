@@ -29,6 +29,7 @@ import jdk.incubator.foreign.NativeSymbol;
 import jdk.incubator.foreign.ResourceScope;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.*;
+import testlib.JextractToolRunner;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;

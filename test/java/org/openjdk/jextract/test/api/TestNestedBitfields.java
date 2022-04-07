@@ -24,6 +24,7 @@ package org.openjdk.jextract.test.api;
 
 import org.openjdk.jextract.Declaration;
 import org.testng.annotations.Test;
+import testlib.JextractApiTestBase;
 
 public class TestNestedBitfields extends JextractApiTestBase {
 

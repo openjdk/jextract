@@ -25,6 +25,7 @@ package org.openjdk.jextract.test.toolprovider;
 
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -28,6 +28,8 @@ import java.nio.file.Path;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
 import jdk.incubator.foreign.MemorySegment;
+import testlib.JextractToolRunner;
+
 import static org.testng.Assert.assertNotNull;
 
 public class Test8260929 extends JextractToolRunner {

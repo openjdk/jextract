@@ -2,4 +2,3 @@
 TestNG.dirs = ./java
 
 groups=TEST.groups
-

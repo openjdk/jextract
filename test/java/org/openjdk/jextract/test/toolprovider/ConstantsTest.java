@@ -35,6 +35,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import jdk.incubator.foreign.GroupLayout;
 import jdk.incubator.foreign.MemoryAddress;
+import testlib.JextractToolRunner;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;

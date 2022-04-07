@@ -26,6 +26,7 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import testlib.JextractApiTestBase;
 
 import static org.testng.Assert.*;
 

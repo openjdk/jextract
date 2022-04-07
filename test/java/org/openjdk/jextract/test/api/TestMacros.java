@@ -29,6 +29,7 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import testlib.JextractApiTestBase;
 
 public class TestMacros extends JextractApiTestBase {
     Declaration.Scoped badMacro;

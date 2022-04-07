@@ -33,6 +33,7 @@ import jdk.incubator.foreign.MemorySegment;
 import jdk.incubator.foreign.ResourceScope;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
 
 import static jdk.incubator.foreign.MemoryLayout.PathElement.groupElement;
 import static org.testng.Assert.assertEquals;

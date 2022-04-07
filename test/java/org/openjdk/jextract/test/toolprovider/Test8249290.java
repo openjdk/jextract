@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import jdk.incubator.foreign.Addressable;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
 
 public class Test8249290 extends JextractToolRunner {
     @Test

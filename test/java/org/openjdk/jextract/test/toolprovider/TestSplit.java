@@ -27,6 +27,8 @@ import java.nio.file.Path;
 import org.openjdk.jextract.test.TestUtils;
 import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
+import testlib.JextractToolRunner;
+
 import static org.testng.Assert.*;
 
 // This test is ignored because we cannot set the "-Djextract.decls.per.header" here (as all testng tests are

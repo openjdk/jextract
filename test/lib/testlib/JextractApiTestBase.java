@@ -20,7 +20,7 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package org.openjdk.jextract.test.api;
+package testlib;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,14 +36,13 @@ import org.openjdk.jextract.Type;
 import static org.testng.Assert.*;
 
 public class JextractApiTestBase {
-    static final boolean isMacOSX =
+    protected static final boolean isMacOSX =
             System.getProperty("os.name", "unknown").contains("OS X");
-    static final boolean isWindows =
+    protected static final boolean isWindows =
             System.getProperty("os.name", "unknown").startsWith("Windows");
 
     public static  Declaration.Scoped parse(String headerFilename, String... parseOptions) {
-        Path header = Paths.get(System.getProperty("test.root", "."),
-                "java", "org", "openjdk", "jextract", "test", "api", headerFilename);
+        Path header = Paths.get(System.getProperty("test.file")).getParent().resolve(headerFilename);
         return JextractTool.parse(List.of(header), parseOptions);
     }
 
@@ -229,7 +228,7 @@ public class JextractApiTestBase {
         return arType.elementType();
     }
 
-    static class TypeUnwrapper {
+    protected static class TypeUnwrapper {
         private Type type;
 
         private TypeUnwrapper(Type type) {
