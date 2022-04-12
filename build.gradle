@@ -4,8 +4,6 @@ import java.nio.file.Path;
 
 plugins {
     id "java"
-    // moditect for module-info.class injection
-    id "org.moditect.gradleplugin" version "1.0.0-rc3"
 }
 
 version = '1.0'
@@ -38,10 +36,6 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation "net.sf.jopt-simple:jopt-simple:5.0.4"
-}
-
 compileJava {
     options.compilerArgs.addAll(['--release', '18'])
     options.compilerArgs << "--add-modules=jdk.incubator.foreign"
@@ -51,62 +45,18 @@ compileJava {
 }
 
 jar {
-    archiveBaseName = 'jextract'
+    archiveBaseName = 'org.openjdk.jextract'
     archiveVersion = project.version
 }
 
-moditect {
-    // moditect uses java.home to find JDK tools
-    System.setProperty("java.home", "$jdk18_home")
-
-    // inject module-info.class for org.openjdk.jextract module
-    addMainModuleInfo {
-        dependsOn build
-
-        jvmVersion = '18'
-        version = project.version
-        module {
-            moduleInfoSource = '''
-                module org.openjdk.jextract {
-                    requires transitive java.compiler;
-                    requires transitive jdk.incubator.foreign;
-                    requires jopt.simple;
-                    requires java.prefs;
-                    exports org.openjdk.jextract;
-
-                    provides java.util.spi.ToolProvider with
-                       org.openjdk.jextract.JextractTool.JextractToolProvider;
-                }
-                '''
-        }
-    }
-
-    // inject module-info.class for jopt.simple module
-    addDependenciesModuleInfo {
-        jvmVersion = '18'
-        outputDirectory = file("$buildDir/modules")
-        modules {
-            module {
-                artifact 'net.sf.jopt-simple:jopt-simple:5.0.4'
-                moduleInfoSource = '''
-                    module jopt.simple {
-                        exports joptsimple;
-                        exports joptsimple.util;
-                    }
-                '''
-            }
-        }
-    }
-}
-
 task createJextractImage(type: Exec) {
-    dependsOn addMainModuleInfo, addDependenciesModuleInfo
+    dependsOn build
 
     onlyIf { !new File("$buildDir/jextract-jdk-image").exists() }
 
     executable = "${jdk18_home}/bin/jlink"
     args = [
-         "--module-path=$buildDir/modules",
+         "--module-path=$buildDir/libs",
          "--add-modules=org.openjdk.jextract,jdk.compiler",
          "--output=${jextract_app_dir}",
          "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
@@ -152,7 +102,7 @@ task createRuntimeImageForTest(type: Exec) {
     onlyIf { !new File("$buildDir/jextract-jdk-test-image").exists() }
     executable = "${jdk18_home}/bin/jlink"
     args = [
-         "--module-path=$buildDir/modules" + File.pathSeparator + "$jdk18_home/jmods",
+         "--module-path=$buildDir/libs" + File.pathSeparator + "$jdk18_home/jmods",
          "--add-modules=ALL-MODULE-PATH",
          "--output=$buildDir/jextract-jdk-test-image",
     ]
@@ -200,6 +150,12 @@ task cmakeBuild(type: Exec) {
 // run jtreg tests. Note: needs jtreg_cmd variable set to point to the jtreg
 task jtreg(type: JavaExec) {
     dependsOn prepareTestJDK,cmakeBuild
+
+    doFirst {
+        if (findProperty("jtreg_home") == null) {
+            throw new GradleException("jtreg_home is not defined")
+        }
+    }
 
     workingDir = "$buildDir"
 
