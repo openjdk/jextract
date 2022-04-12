@@ -241,13 +241,13 @@ public final class JextractTool {
                    OptionSpec spec = optionSpecs.get(arg);
                    String argValue = null;
                    if (spec == null) {
-                       // check if we have usage like -C<clang_option> such as -C-xc++
-                       int idx = arg.indexOf('-', 1);
-                       if (idx != -1) {
-                           argValue = arg.substring(idx);
-                           spec = optionSpecs.get(arg.substring(0, idx));
-                       }
-                       if (spec == null) {
+                       // check for single char option specifier followed
+                       // by option value without whitespace in between.
+                       // Examples: -lclang, -C-xc++
+                       spec = arg.length() > 2 ? optionSpecs.get(arg.substring(0, 2)) : null;
+                       if (spec != null) {
+                           argValue = arg.substring(2);
+                       } else {
                            throw new OptionException("invalid option: " + arg);
                        }
                    }
@@ -367,8 +367,7 @@ public final class JextractTool {
         }
         boolean librariesSpecified = optionSet.has("-l");
         if (librariesSpecified) {
-            for (Object arg : optionSet.valuesOf("-l")) {
-                String lib = (String)arg;
+            for (String lib : optionSet.valuesOf("-l")) {
                 if (lib.indexOf(File.separatorChar) == -1) {
                     builder.addLibraryName(lib);
                 } else {
