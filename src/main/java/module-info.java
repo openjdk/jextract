@@ -27,7 +27,6 @@
 module org.openjdk.jextract {
     requires transitive java.compiler;
     requires transitive jdk.incubator.foreign;
-    requires java.prefs;
     exports org.openjdk.jextract;
 
     provides java.util.spi.ToolProvider with
