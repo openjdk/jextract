@@ -98,13 +98,14 @@ public final class UnsupportedLayouts {
 
         @Override
         public String visitDelegated(Type.Delegated t, Void unused) {
-            return t.kind() == Type.Delegated.Kind.TYPEDEF ?
+            return t.kind() != Type.Delegated.Kind.POINTER ?
                     firstUnsupportedType(t.type()) :
                     null;
             //in principle we should always do this:
             // return firstUnsupportedType(t.type());
-            // but if we do that, we might end up with infinite recursion. Old code did not have that issue
-            // as it was layout-based, but doing so it also missed unsupported pointer types (e.g. *long double)
+            // but if we do that, we might end up with infinite recursion (because of pointer types).
+            // Unsupported pointer types (e.g. *long double) are not detected, but they are not problematic layout-wise
+            // (e.g. they are always 32- or 64-bits, depending on the platform).
         }
 
         @Override
