@@ -110,17 +110,17 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                  fiDesc, false, true);
             incrAlign();
             indent();
-            append(MEMBER_MODS + " " + className() + " ofAddress(MemoryAddress addr$, ResourceScope scope$) {\n");
+            append(MEMBER_MODS + " " + className() + " ofAddress(MemoryAddress addr, ResourceScope scope) {\n");
             incrAlign();
             indent();
             append("NativeSymbol symbol = NativeSymbol.ofAddress(");
-            append("\"" + className() + "::\" + Long.toHexString(addr$.toRawLongValue()), addr$, scope$);\n");
+            append("\"" + className() + "::\" + Long.toHexString(addr.toRawLongValue()), addr, scope);\n");
             append("return (");
             String delim = "";
             for (int i = 0 ; i < fiType.parameterCount(); i++) {
                 append(delim + fiType.parameterType(i).getName());
                 append(" ");
-                append(parameterName(i));
+                append("_" + parameterName(i));
                 delim = ", ";
             }
             append(") -> {\n");
@@ -140,7 +140,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             if (fiType.parameterCount() > 0) {
                 String params = IntStream.range(0, fiType.parameterCount())
                         .mapToObj(i -> {
-                            String paramExpr = parameterName(i);
+                            String paramExpr = "_" + parameterName(i);
                             if (fiType.parameterType(i) != downcallType.parameterType(i)) {
                                 // add cast for invokeExact
                                 return "(" + downcallType.parameterType(i).getName() + ")" + paramExpr;
