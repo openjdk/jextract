@@ -28,16 +28,16 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import static org.testng.Assert.assertNotNull;
 
-public class Test7903148 extends JextractToolRunner {
+public class Test7903158 extends JextractToolRunner {
     @Test
     public void test() {
-        Path output = getOutputFilePath("7903148gen");
-        Path outputH = getInputFilePath("test7903148.h");
+        Path output = getOutputFilePath("7903158gen");
+        Path outputH = getInputFilePath("test7903158.h");
         run("-d", output.toString(), outputH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
-            Class<?> headerCls = loader.loadClass("test7903148_h");
-            assertNotNull(headerCls);
-            checkMethod(headerCls, "func", int.class, int.class);
+            assertNotNull(loader.loadClass("test7903158_h"));
+            assertNotNull(loader.loadClass("func"));
+            assertNotNull(loader.loadClass("func2"));
         } finally {
             TestUtils.deleteDir(output);
         }

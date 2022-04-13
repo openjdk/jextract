@@ -21,25 +21,5 @@
  * questions.
  */
 
-package org.openjdk.jextract.test.toolprovider;
-
-import org.openjdk.jextract.test.TestUtils;
-import org.testng.annotations.Test;
-import java.nio.file.Path;
-import static org.testng.Assert.assertNotNull;
-
-public class Test7903148 extends JextractToolRunner {
-    @Test
-    public void test() {
-        Path output = getOutputFilePath("7903148gen");
-        Path outputH = getInputFilePath("test7903148.h");
-        run("-d", output.toString(), outputH.toString()).checkSuccess();
-        try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
-            Class<?> headerCls = loader.loadClass("test7903148_h");
-            assertNotNull(headerCls);
-            checkMethod(headerCls, "func", int.class, int.class);
-        } finally {
-            TestUtils.deleteDir(output);
-        }
-    }
-}
+typedef void (func)(const void *addr);
+typedef void (func2)(int scope);

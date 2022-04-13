@@ -110,11 +110,11 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                  fiDesc, false, true);
             incrAlign();
             indent();
-            append(MEMBER_MODS + " " + className() + " ofAddress(MemoryAddress addr, ResourceScope scope) {\n");
+            append(MEMBER_MODS + " " + className() + " ofAddress(MemoryAddress addr$, ResourceScope scope$) {\n");
             incrAlign();
             indent();
             append("NativeSymbol symbol = NativeSymbol.ofAddress(");
-            append("\"" + className() + "::\" + Long.toHexString(addr.toRawLongValue()), addr, scope);\n");
+            append("\"" + className() + "::\" + Long.toHexString(addr$.toRawLongValue()), addr$, scope$);\n");
             append("return (");
             String delim = "";
             for (int i = 0 ; i < fiType.parameterCount(); i++) {
