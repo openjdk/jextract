@@ -1,27 +1,27 @@
 # tests that use shared library compiled from associated C code
 native_tests = \
-    generator/funcPointerInvokers/TestFuncPointerInvokers.java \
-    generator/test8239918/LibTest8239918Test.java \
-    generator/test8244938/Test8244938.java \
-    generator/test8244959/Test8244959.java \
-    generator/test8245003/Test8245003.java \
-    generator/test8246341/LibTest8246341Test.java \
-    generator/test8246341/LibTest8246341Test.java \
-    generator/test8246400/LibTest8246400Test.java \
-    generator/test8249757/LibTest8249757Test.java \
-    generator/test8252016/Test8252016.java \
-    generator/test8252121/Test8252121.java \
-    generator/test8253102/LibTest8253102Test.java \
-    generator/test8257892/LibUnsupportedTest.java \
-    generator/test8258605/LibTest8258605Test.java \
-    generator/test8261511/Test8261511.java \
-    generator/testFunctionPointer/LibFuncPtrTest.java \
-    generator/testStruct/LibStructTest.java \
-    java/org/openjdk/jextract/test/toolprovider/ConstantsTest.java \
-    java/org/openjdk/jextract/test/toolprovider/Test8240811.java \
-    java/org/openjdk/jextract/test/toolprovider/TestClassGeneration.java
+    jtreg/generator/funcPointerInvokers/TestFuncPointerInvokers.java \
+    jtreg/generator/test8239918/LibTest8239918Test.java \
+    jtreg/generator/test8244938/Test8244938.java \
+    jtreg/generator/test8244959/Test8244959.java \
+    jtreg/generator/test8245003/Test8245003.java \
+    jtreg/generator/test8246341/LibTest8246341Test.java \
+    jtreg/generator/test8246341/LibTest8246341Test.java \
+    jtreg/generator/test8246400/LibTest8246400Test.java \
+    jtreg/generator/test8249757/LibTest8249757Test.java \
+    jtreg/generator/test8252016/Test8252016.java \
+    jtreg/generator/test8252121/Test8252121.java \
+    jtreg/generator/test8253102/LibTest8253102Test.java \
+    jtreg/generator/test8257892/LibUnsupportedTest.java \
+    jtreg/generator/test8258605/LibTest8258605Test.java \
+    jtreg/generator/test8261511/Test8261511.java \
+    jtreg/generator/testFunctionPointer/LibFuncPtrTest.java \
+    jtreg/generator/testStruct/LibStructTest.java \
+    testng/org/openjdk/jextract/test/toolprovider/ConstantsTest.java \
+    testng/org/openjdk/jextract/test/toolprovider/Test8240811.java \
+    testng/org/openjdk/jextract/test/toolprovider/TestClassGeneration.java
 
 pure_java_tests = \
-    generator \
-    java \
+    jtreg \
+    testng \
     -:native_tests
