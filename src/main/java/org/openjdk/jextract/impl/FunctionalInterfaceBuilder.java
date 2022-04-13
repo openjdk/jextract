@@ -120,7 +120,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             for (int i = 0 ; i < fiType.parameterCount(); i++) {
                 append(delim + fiType.parameterType(i).getName());
                 append(" ");
-                append(parameterName(i));
+                append("_" + parameterName(i));
                 delim = ", ";
             }
             append(") -> {\n");
@@ -140,7 +140,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             if (fiType.parameterCount() > 0) {
                 String params = IntStream.range(0, fiType.parameterCount())
                         .mapToObj(i -> {
-                            String paramExpr = parameterName(i);
+                            String paramExpr = "_" + parameterName(i);
                             if (fiType.parameterType(i) != downcallType.parameterType(i)) {
                                 // add cast for invokeExact
                                 return "(" + downcallType.parameterType(i).getName() + ")" + paramExpr;
