@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -20,41 +20,27 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+
 package org.openjdk.jextract.test.toolprovider;
 
-import jdk.incubator.foreign.MemoryLayout;
+import testlib.JextractToolRunner;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
-import testlib.JextractToolRunner;
-
-import static org.testng.Assert.*;
-
 import java.nio.file.Path;
+import static org.testng.Assert.assertNotNull;
 
-public class IncompleteArrayTest extends JextractToolRunner {
-
+public class Test7903158 extends JextractToolRunner {
     @Test
-    public void testIncompleteArray() {
-        Path output = getOutputFilePath("incompleteArray_out");
-        Path input = getInputFilePath("incompleteArray.h");
-        run(
-            "-t", "org.jextract",
-            "-d", output,
-            input).checkSuccess();
-        try (TestUtils.Loader loader = TestUtils.classLoader(output)) {
-            Class<?> cls = loader.loadClass("org.jextract.Foo");
-            assertNotNull(cls);
-
-            MemoryLayout actualLayout = findLayout(cls);
-            MemoryLayout expectedLayout = MemoryLayout.structLayout(
-                C_INT.withName("size"),
-                MemoryLayout.paddingLayout(32),
-                MemoryLayout.sequenceLayout(C_POINTER).withName("data")
-            ).withName("Foo");
-            assertEquals(actualLayout, expectedLayout);
+    public void test() {
+        Path output = getOutputFilePath("7903158gen");
+        Path outputH = getInputFilePath("test7903158.h");
+        run("-d", output.toString(), outputH.toString()).checkSuccess();
+        try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
+            assertNotNull(loader.loadClass("test7903158_h"));
+            assertNotNull(loader.loadClass("func"));
+            assertNotNull(loader.loadClass("func2"));
         } finally {
-            //deleteDir(output);
+            TestUtils.deleteDir(output);
         }
     }
-
 }

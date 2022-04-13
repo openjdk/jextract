@@ -32,9 +32,6 @@ import org.openjdk.jextract.impl.OutputFactory;
 import org.openjdk.jextract.impl.Parser;
 import org.openjdk.jextract.impl.Options;
 import org.openjdk.jextract.impl.Writer;
-import joptsimple.OptionException;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
 
 import javax.tools.JavaFileObject;
 import java.io.File;
@@ -45,7 +42,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -137,10 +137,8 @@ public final class JextractTool {
         }
     }
 
-    private int printHelp(OptionParser parser, int exitCode) {
-        try {
-            parser.printHelpOn(err);
-        } catch (IOException ignored) {}
+    private int printHelp(int exitCode) {
+        err.println(format("jextract.usage"));
         return exitCode;
     }
 
@@ -154,7 +152,7 @@ public final class JextractTool {
 
     private void printOptionError(String message) {
         err.println("OPTION ERROR: " + message);
-        err.println("Usage: jextract <options> [--] <header file>");
+        err.println("Usage: jextract <options> <header file>");
         err.println("Use --help for a list of possible options");
     }
 
@@ -173,6 +171,148 @@ public final class JextractTool {
         System.exit(m.run(args));
     }
 
+
+    // Option handling code
+
+    // specification for an option
+    record OptionSpec(String name, List<String> aliases, String help, boolean argRequired) {
+    }
+
+    private static class OptionException extends RuntimeException {
+        private static final long serialVersionUID = -1L;
+        OptionException(String msg) {
+            super(msg);
+        }
+    }
+
+    // output of OptionParser.parse
+    private static class OptionSet {
+        private final Map<String, List<String>> options;
+        // non-option arguments
+        private final List<String> nonOptionArgs;
+
+        OptionSet(Map<String, List<String>> options,
+                List<String> nonOptionArgs) {
+            this.options = options;
+            this.nonOptionArgs = nonOptionArgs;
+        }
+
+        boolean has(String name) {
+            return options.containsKey(name);
+        }
+
+        List<String> valuesOf(String name) {
+            return options.get(name);
+        }
+
+        String valueOf(String name) {
+            var values = valuesOf(name);
+            return values == null? null : values.get(values.size() - 1);
+        }
+
+        List<String> nonOptionArguments() {
+            return nonOptionArgs;
+        }
+    }
+
+    private static final class OptionParser {
+        // option name to corresponding OptionSpec mapping
+        private Map<String, OptionSpec> optionSpecs = new HashMap<>();
+
+        void accepts(String name, String help, boolean argRequired) {
+            accepts(name, List.of(), help, argRequired);
+        }
+
+        void accepts(String name, List<String> aliases, String help, boolean argRequired) {
+            var spec = new OptionSpec(name, aliases, help, argRequired);
+            optionSpecs.put(name, spec);
+            for (String alias : aliases) {
+                optionSpecs.put(alias, spec);
+            }
+        }
+
+        // does the string str start like an option?
+        private boolean isOption(String str) {
+            return str.length() > 1 && str.charAt(0) == '-';
+        }
+
+        // does the string str start like single char option?
+        private boolean isSingleCharOptionWithArg(String str) {
+            assert isOption(str);
+            return str.length() > 2 && str.charAt(1) != '-';
+        }
+
+        // option part of single char option
+        // -lclang => -l, -C-xc++ -> -C
+        private String singleCharOption(String str) {
+            assert isSingleCharOptionWithArg(str);
+            return str.substring(0, 2);
+        }
+
+        // argument part of single char option
+        // -lclang => clang, -C-xc++ -> -xc++
+        private String singleCharOptionArg(String str) {
+            assert isSingleCharOptionWithArg(str);
+            return str.substring(2);
+        }
+
+        OptionSet parse(String[] args) {
+            Map<String, List<String>> options = new HashMap<>();
+            List<String> nonOptionArgs = new ArrayList<>();
+            for (int i = 0; i < args.length; i++) {
+               String arg = args[i];
+               // does this look like an option?
+               if (isOption(arg)) {
+                   OptionSpec spec = optionSpecs.get(arg);
+                   String argValue = null;
+                   // does not match known options directly.
+                   // check for single char option followed
+                   // by option value without whitespace in between.
+                   // Examples: -lclang, -C-xc++
+                   if (spec == null ) {
+                       spec = isSingleCharOptionWithArg(arg) ? optionSpecs.get(singleCharOption(arg)) : null;
+                       // we have a matching single char option and that requires argument
+                       if (spec != null && spec.argRequired()) {
+                           argValue = singleCharOptionArg(arg);
+                       } else {
+                           // single char option special handling also failed. give up.
+                           throw new OptionException("invalid option: " + arg);
+                       }
+                   }
+                   // handle argument associated with the current option, if any
+                   List<String> values;
+                   if (spec.argRequired()) {
+                       if (argValue == null) {
+                           if (i == args.length - 1) {
+                               throw new OptionException(spec.help());
+                           }
+                           argValue = args[i + 1];
+                           i++; // consume value from next command line arg
+                       } // else -C-xc++ like case. argValue already set
+
+                       values = options.getOrDefault(spec.name(), new ArrayList<String>());
+                       values.add(argValue);
+                   } else {
+                       // no argument value associated with this option.
+                       // using empty list to flag that.
+                       values = List.of();
+                   }
+
+                   // set value for the option as well as all its aliases
+                   // so that option lookup, value lookup will work regardless
+                   // which alias was used to check.
+                   options.put(spec.name(), values);
+                   for (String alias : spec.aliases()) {
+                       options.put(spec.name(), values);
+                   }
+               } else { // !isOption(arg)
+                   nonOptionArgs.add(arg);
+               }
+            }
+            return new OptionSet(options, nonOptionArgs);
+        }
+    }
+
     private int run(String[] args) {
         try {
             args = CommandLine.parse(Arrays.asList(args)).toArray(new String[0]);
@@ -184,20 +324,19 @@ public final class JextractTool {
             return OPTION_ERROR;
         }
 
-        OptionParser parser = new OptionParser(false);
-        parser.accepts("C", format("help.C")).withRequiredArg();
-        parser.accepts("I", format("help.I")).withRequiredArg();
-        parser.accepts("d", format("help.d")).withRequiredArg();
-        parser.accepts("dump-includes", format("help.dump-includes")).withRequiredArg();
+        OptionParser parser = new OptionParser();
+        parser.accepts("-C", format("help.C"), true);
+        parser.accepts("-d", format("help.d"), true);
+        parser.accepts("--dump-includes", format("help.dump-includes"), true);
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
-            parser.accepts(includeKind.optionName(), format("help." + includeKind.optionName())).withRequiredArg();
+            parser.accepts("--" + includeKind.optionName(), format("help." + includeKind.optionName()), true);
         }
-        parser.accepts("l", format("help.l")).withRequiredArg();
-        parser.accepts("source", format("help.source"));
-        parser.acceptsAll(List.of("t", "target-package"), format("help.t")).withRequiredArg();
-        parser.acceptsAll(List.of("?", "h", "help"), format("help.h")).forHelp();
-        parser.accepts("header-class-name", format("help.header-class-name")).withRequiredArg();
-        parser.nonOptions(format("help.non.option"));
+        parser.accepts("-h", List.of("-?", "--help"), format("help.h"), false);
+        parser.accepts("--header-class-name", format("help.header-class-name"), true);
+        parser.accepts("-I", format("help.I"), true);
+        parser.accepts("-l", format("help.l"), true);
+        parser.accepts("--source", format("help.source"), false);
+        parser.accepts("-t", List.of("--target-package"), format("help.t"), true);
 
         OptionSet optionSet;
         try {
@@ -207,8 +346,8 @@ public final class JextractTool {
             return OPTION_ERROR;
         }
 
-        if (optionSet.has("h")) {
-            return printHelp(parser, SUCCESS);
+        if (optionSet.has("-h")) {
+            return printHelp(SUCCESS);
         }
 
         if (optionSet.nonOptionArguments().size() != 1) {
@@ -217,8 +356,8 @@ public final class JextractTool {
         }
 
         Options.Builder builder = Options.builder();
-        if (optionSet.has("I")) {
-            optionSet.valuesOf("I").forEach(p -> builder.addClangArg("-I" + p));
+        if (optionSet.has("-I")) {
+            optionSet.valuesOf("-I").forEach(p -> builder.addClangArg("-I" + p));
         }
 
         Path builtinInc = Paths.get(System.getProperty("java.home"), "conf", "jextract");
@@ -233,35 +372,30 @@ public final class JextractTool {
             }
         }
 
-        if (optionSet.has("C")) {
-            optionSet.valuesOf("C").forEach(p -> builder.addClangArg((String) p));
-        }
-
-        if (optionSet.has("filter")) {
-            optionSet.valuesOf("filter").forEach(p -> builder.addFilter((String) p));
+        if (optionSet.has("-C")) {
+            optionSet.valuesOf("-C").forEach(p -> builder.addClangArg(p));
         }
 
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
-            if (optionSet.has(includeKind.optionName())) {
-                optionSet.valuesOf(includeKind.optionName()).forEach(p -> builder.addIncludeSymbol(includeKind, (String)p));
+            if (optionSet.has("--" + includeKind.optionName())) {
+                optionSet.valuesOf("--" + includeKind.optionName()).forEach(p -> builder.addIncludeSymbol(includeKind, p));
             }
         }
 
-        if (optionSet.has("dump-includes")) {
-            builder.setDumpIncludeFile(optionSet.valueOf("dump-includes").toString());
+        if (optionSet.has("--dump-includes")) {
+            builder.setDumpIncludeFile(optionSet.valueOf("--dump-includes"));
         }
 
-        if (optionSet.has("d")) {
-            builder.setOutputDir(optionSet.valueOf("d").toString());
+        if (optionSet.has("-d")) {
+            builder.setOutputDir(optionSet.valueOf("-d"));
         }
 
-        if (optionSet.has("source")) {
+        if (optionSet.has("--source")) {
             builder.setGenerateSource();
         }
-        boolean librariesSpecified = optionSet.has("l");
+        boolean librariesSpecified = optionSet.has("-l");
         if (librariesSpecified) {
-            for (Object arg : optionSet.valuesOf("l")) {
-                String lib = (String)arg;
+            for (String lib : optionSet.valuesOf("-l")) {
                 if (lib.indexOf(File.separatorChar) == -1) {
                     builder.addLibraryName(lib);
                 } else {
@@ -276,12 +410,12 @@ public final class JextractTool {
             }
         }
 
-        String targetPackage = optionSet.has("t") ? (String) optionSet.valueOf("t") : "";
+        String targetPackage = optionSet.has("-t") ? optionSet.valueOf("-t") : "";
         builder.setTargetPackage(targetPackage);
 
         Options options = builder.build();
 
-        Path header = Paths.get(optionSet.nonOptionArguments().get(0).toString());
+        Path header = Paths.get(optionSet.nonOptionArguments().get(0));
         if (!Files.isReadable(header)) {
             err.println(format("cannot.read.header.file", header));
             return INPUT_ERROR;
@@ -299,8 +433,8 @@ public final class JextractTool {
                 System.out.println(toplevel);
             }
 
-            String headerName = optionSet.has("header-class-name") ?
-                (String) optionSet.valueOf("header-class-name") :
+            String headerName = optionSet.has("--header-class-name") ?
+                optionSet.valueOf("--header-class-name") :
                 header.getFileName().toString();
 
             files = generateInternal(
