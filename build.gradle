@@ -50,7 +50,7 @@ jar {
 }
 
 task createJextractImage(type: Exec) {
-    dependsOn build
+    dependsOn jar
 
     onlyIf { !new File("$buildDir/jextract-jdk-image").exists() }
 

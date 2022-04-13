@@ -231,23 +231,51 @@ public final class JextractTool {
             }
         }
 
+        // does the string str start like an option?
+        private boolean isOption(String str) {
+            return str.length() > 1 && str.charAt(0) == '-';
+        }
+
+        // does the string str start like single char option?
+        private boolean isSingleCharOptionWithArg(String str) {
+            assert isOption(str);
+            return str.length() > 2 && str.charAt(1) != '-';
+        }
+
+        // option part of single char option
+        // -lclang => -l, -C-xc++ -> -C
+        private String singleCharOption(String str) {
+            assert isSingleCharOptionWithArg(str);
+            return str.substring(0, 2);
+        }
+
+        // argument part of single char option
+        // -lclang => clang, -C-xc++ -> -xc++
+        private String singleCharOptionArg(String str) {
+            assert isSingleCharOptionWithArg(str);
+            return str.substring(2);
+        }
+
         OptionSet parse(String[] args) {
             Map<String, List<String>> options = new HashMap<>();
             List<String> nonOptionArgs = new ArrayList<>();
             for (int i = 0; i < args.length; i++) {
                String arg = args[i];
                // does this look like an option?
-               if (arg.charAt(0) == '-') {
+               if (isOption(arg)) {
                    OptionSpec spec = optionSpecs.get(arg);
                    String argValue = null;
-                   if (spec == null) {
-                       // check for single char option specifier followed
-                       // by option value without whitespace in between.
-                       // Examples: -lclang, -C-xc++
-                       spec = arg.length() > 2 ? optionSpecs.get(arg.substring(0, 2)) : null;
-                       if (spec != null) {
-                           argValue = arg.substring(2);
+                   // does not match known options directly.
+                   // check for single char option followed
+                   // by option value without whitespace in between.
+                   // Examples: -lclang, -C-xc++
+                   if (spec == null ) {
+                       spec = isSingleCharOptionWithArg(arg) ? optionSpecs.get(singleCharOption(arg)) : null;
+                       // we have a matching single char option and that requires argument
+                       if (spec != null && spec.argRequired()) {
+                           argValue = singleCharOptionArg(arg);
                        } else {
+                           // single char option special handling also failed. give up.
                            throw new OptionException("invalid option: " + arg);
                        }
                    }
@@ -255,12 +283,12 @@ public final class JextractTool {
                    List<String> values;
                    if (spec.argRequired()) {
                        if (argValue == null) {
-                           if (i == args.length - 1 || args[i + 1].charAt(0) == '-') {
+                           if (i == args.length - 1) {
                                throw new OptionException(spec.help());
                            }
                            argValue = args[i + 1];
                            i++; // consume value from next command line arg
-                       } // else -C-xc++ like case. Value already set
+                       } // else -C-xc++ like case. argValue already set
 
                        values = options.getOrDefault(spec.name(), new ArrayList<String>());
                        values.add(argValue);
@@ -277,7 +305,7 @@ public final class JextractTool {
                    for (String alias : spec.aliases()) {
                        options.put(spec.name(), values);
                    }
-               } else {
+               } else { // !isOption(arg)
                    nonOptionArgs.add(arg);
                }
             }
