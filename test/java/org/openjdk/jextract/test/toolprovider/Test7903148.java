@@ -28,6 +28,14 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import static org.testng.Assert.assertNotNull;
 
+/*
+ * @test
+ * @library /test/lib
+ * @build JextractToolRunner
+ * @bug 7903148
+ * @summary jextract crashes when C11 keyword _Static_Assert is used in a header
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED Test7903148
+ */
 public class Test7903148 extends JextractToolRunner {
     @Test
     public void test() {
