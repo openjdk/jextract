@@ -210,7 +210,6 @@ public class TestClassGeneration extends JextractToolRunner {
             "-t", "com.acme",
             "-d", outputDir,
             "-l", "Examples",
-            "--",
             inputHeader
         ).checkSuccess();
         loader = TestUtils.classLoader(outputDir);
