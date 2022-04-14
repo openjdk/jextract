@@ -38,7 +38,7 @@ public class TestSplit extends JextractToolRunner {
     public void testSplit() {
         Path splitOutput = getOutputFilePath("split");
         Path splitH = getInputFilePath("split.h");
-        run("-d", splitOutput.toString(), splitH.toString()).checkSuccess();
+        run("--output", splitOutput.toString(), splitH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(splitOutput)) {
             checkPresent(loader, "split_h");
             checkPresent(loader, "split_h_1");

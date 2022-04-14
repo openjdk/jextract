@@ -40,7 +40,7 @@ public class RepeatedDeclsTest extends JextractToolRunner {
     public void repeatedDecls() throws Throwable {
         Path repeatedDeclsOutput = getOutputFilePath("repeatedDeclsgen");
         Path repeatedDeclsH = getInputFilePath("repeatedDecls.h");
-        run("-d", repeatedDeclsOutput.toString(), repeatedDeclsH.toString()).checkSuccess();
+        run("--output", repeatedDeclsOutput.toString(), repeatedDeclsH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(repeatedDeclsOutput)) {
             Class<?> cls = loader.loadClass("repeatedDecls_h");
             // check a method for "void func(int)"

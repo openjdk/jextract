@@ -34,7 +34,7 @@ public class Test8248474 extends JextractToolRunner {
     public void testUnsafeHeaderName() {
         Path test8248474Output = getOutputFilePath("test8248474_gen");
         Path test8248474H = getInputFilePath("JDK-8248474.h");
-        run("-d", test8248474Output.toString(), test8248474H.toString()).checkSuccess();
+        run("--output", test8248474Output.toString(), test8248474H.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(test8248474Output)) {
             Class<?> cls = loader.loadClass("JDK_8248474_h");
             assertNotNull(cls);

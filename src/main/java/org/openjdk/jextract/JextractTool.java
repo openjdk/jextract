@@ -243,14 +243,14 @@ public final class JextractTool {
         }
 
         // option part of single char option
-        // -lclang => -l, -C-xc++ -> -C
+        // -lclang => -l, -DFOO -> -D
         private String singleCharOption(String str) {
             assert isSingleCharOptionWithArg(str);
             return str.substring(0, 2);
         }
 
         // argument part of single char option
-        // -lclang => clang, -C-xc++ -> -xc++
+        // -lclang => clang, -DFOO -> FOO
         private String singleCharOptionArg(String str) {
             assert isSingleCharOptionWithArg(str);
             return str.substring(2);
@@ -268,7 +268,7 @@ public final class JextractTool {
                    // does not match known options directly.
                    // check for single char option followed
                    // by option value without whitespace in between.
-                   // Examples: -lclang, -C-xc++
+                   // Examples: -lclang, -DFOO
                    if (spec == null ) {
                        spec = isSingleCharOptionWithArg(arg) ? optionSpecs.get(singleCharOption(arg)) : null;
                        // we have a matching single char option and that requires argument
@@ -287,8 +287,13 @@ public final class JextractTool {
                                throw new OptionException(spec.help());
                            }
                            argValue = args[i + 1];
+                           // do not allow argument value to start with '-'
+                           // this will catch issues like "-l-lclang", "-l -t"
+                           if (argValue.charAt(0) == '-') {
+                               throw new OptionException(spec.help());
+                           }
                            i++; // consume value from next command line arg
-                       } // else -C-xc++ like case. argValue already set
+                       } // else -DFOO like case. argValue already set
 
                        values = options.getOrDefault(spec.name(), new ArrayList<String>());
                        values.add(argValue);
@@ -325,8 +330,7 @@ public final class JextractTool {
         }
 
         OptionParser parser = new OptionParser();
-        parser.accepts("-C", format("help.C"), true);
-        parser.accepts("-d", format("help.d"), true);
+        parser.accepts("-D", format("help.D"), true);
         parser.accepts("--dump-includes", format("help.dump-includes"), true);
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
             parser.accepts("--" + includeKind.optionName(), format("help." + includeKind.optionName()), true);
@@ -335,6 +339,7 @@ public final class JextractTool {
         parser.accepts("--header-class-name", format("help.header-class-name"), true);
         parser.accepts("-I", format("help.I"), true);
         parser.accepts("-l", format("help.l"), true);
+        parser.accepts("--output", format("help.output"), true);
         parser.accepts("--source", format("help.source"), false);
         parser.accepts("-t", List.of("--target-package"), format("help.t"), true);
 
@@ -356,6 +361,24 @@ public final class JextractTool {
         }
 
         Options.Builder builder = Options.builder();
+        // before processing command line options, check & process compile_flags.txt.
+        Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
+        if (Files.exists(compileFlagsTxt)) {
+            try {
+                Files.lines(compileFlagsTxt).forEach(opt -> builder.addClangArg(opt));
+            } catch (IOException ioExp) {
+                err.println("compile_flags.txt reading failed " + ioExp);
+                if (JextractTool.DEBUG) {
+                    ioExp.printStackTrace(err);
+                }
+                return OPTION_ERROR;
+            }
+        }
+
+        if (optionSet.has("-D")) {
+            optionSet.valuesOf("-D").forEach(p -> builder.addClangArg("-D" + p));
+        }
+
         if (optionSet.has("-I")) {
             optionSet.valuesOf("-I").forEach(p -> builder.addClangArg("-I" + p));
         }
@@ -372,10 +395,6 @@ public final class JextractTool {
             }
         }
 
-        if (optionSet.has("-C")) {
-            optionSet.valuesOf("-C").forEach(p -> builder.addClangArg(p));
-        }
-
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
             if (optionSet.has("--" + includeKind.optionName())) {
                 optionSet.valuesOf("--" + includeKind.optionName()).forEach(p -> builder.addIncludeSymbol(includeKind, p));
@@ -386,8 +405,8 @@ public final class JextractTool {
             builder.setDumpIncludeFile(optionSet.valueOf("--dump-includes"));
         }
 
-        if (optionSet.has("-d")) {
-            builder.setOutputDir(optionSet.valueOf("-d"));
+        if (optionSet.has("--output")) {
+            builder.setOutputDir(optionSet.valueOf("--output"));
         }
 
         if (optionSet.has("--source")) {

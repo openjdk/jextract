@@ -53,7 +53,7 @@ import org.testng.annotations.Test;
 public class BadBitfieldTest extends JextractToolRunner {
     @Test
     public void testBadBitfield() {
-        run("-d", getOutputFilePath("badBitfieldsGen").toString(),
+        run("--output", getOutputFilePath("badBitfieldsGen").toString(),
                 getInputFilePath("badBitfields.h").toString()).checkSuccess();
     }
 }

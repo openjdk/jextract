@@ -42,7 +42,7 @@ public class TestFilters extends JextractToolRunner {
         for (FilterKind expectedKind : FilterKind.values()) {
             Path filterOutput = getOutputFilePath("filters_" + expectedKind);
             Path filterH = getInputFilePath("filters.h");
-            run("-d", filterOutput.toString(), expectedKind.filterOption, expectedKind.symbolName, filterH.toString()).checkSuccess();
+            run("--output", filterOutput.toString(), expectedKind.filterOption, expectedKind.symbolName, filterH.toString()).checkSuccess();
             try (TestUtils.Loader loader = TestUtils.classLoader(filterOutput)) {
                 Class<?> cls = loader.loadClass("filters_h");
                 for (FilterKind kind : FilterKind.values()) {

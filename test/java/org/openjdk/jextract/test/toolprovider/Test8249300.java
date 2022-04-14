@@ -34,7 +34,7 @@ public class Test8249300 extends JextractToolRunner {
     public void testVoidTypedef() {
         Path outputPath = getOutputFilePath("output8249300");
         Path headerFile = getInputFilePath("test8249300.h");
-        run("-d", outputPath.toString(), headerFile.toString()).checkSuccess();
+        run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> headerClass = loader.loadClass("test8249300_h");
             checkMethod(headerClass, "func", void.class, Addressable.class);

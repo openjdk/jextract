@@ -49,7 +49,7 @@ public class ConstantsTest extends JextractToolRunner {
     @BeforeTest
     public void setup() {
         dirPath = getOutputFilePath("ConstantsTest_output");
-        run( "-d", dirPath.toString(), getInputFilePath("constants.h").toString()).checkSuccess();
+        run( "--output", dirPath.toString(), getInputFilePath("constants.h").toString()).checkSuccess();
         loader = TestUtils.classLoader(dirPath);
         constants = loader.loadClass("constants_h");
     }

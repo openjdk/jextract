@@ -64,7 +64,7 @@ public class Test8240752 extends JextractToolRunner {
     public void testConstants() {
         Path floatConstsOutput = getOutputFilePath("floatconstsgen");
         Path floatConstsH = getInputFilePath("float_constants.h");
-        run("-d", floatConstsOutput.toString(), floatConstsH.toString()).checkSuccess();
+        run("--output", floatConstsOutput.toString(), floatConstsH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(floatConstsOutput)) {
             Class<?> cls = loader.loadClass("float_constants_h");
             assertNotNull(cls);

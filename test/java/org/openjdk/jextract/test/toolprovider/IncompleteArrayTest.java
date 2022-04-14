@@ -38,7 +38,7 @@ public class IncompleteArrayTest extends JextractToolRunner {
         Path input = getInputFilePath("incompleteArray.h");
         run(
             "-t", "org.jextract",
-            "-d", output,
+            "--output", output,
             input).checkSuccess();
         try (TestUtils.Loader loader = TestUtils.classLoader(output)) {
             Class<?> cls = loader.loadClass("org.jextract.Foo");
