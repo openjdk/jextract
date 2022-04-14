@@ -39,7 +39,7 @@ public class UniondeclTest extends JextractToolRunner {
     public void unionDecl() {
         Path uniondeclOutput = getOutputFilePath("uniondecl.h");
         Path uniondeclH = getInputFilePath("uniondecl.h");
-        run("-d", uniondeclOutput.toString(), uniondeclH.toString()).checkSuccess();
+        run("--output", uniondeclOutput.toString(), uniondeclH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(uniondeclOutput)) {
             Class<?> cls = loader.loadClass("uniondecl_h");
             // check a method for "void func(IntOrFloat*)"

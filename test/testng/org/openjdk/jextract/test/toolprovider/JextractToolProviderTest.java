@@ -27,7 +27,11 @@ import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
+import java.util.List;
 
 import static org.testng.Assert.assertNotNull;
 
@@ -82,17 +86,23 @@ public class JextractToolProviderTest extends JextractToolRunner {
     // @bug 8267504: jextract should report unsupported language and exit rather
     // than generating partial nonworking code
     @Test
-    public void testUnsupportedLanguage() {
-        run("-C-xc++", getInputFilePath("unsupported_lang.h").toString())
-            .checkFailure(RUNTIME_ERROR)
-            .checkContainsOutput("Unsupported language: C++");
+    public void testUnsupportedLanguage() throws IOException {
+        Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
+        try {
+            Files.write(compileFlagsTxt, List.of("-xc++"));
+            run(getInputFilePath("unsupported_lang.h").toString())
+                .checkFailure(RUNTIME_ERROR)
+                .checkContainsOutput("Unsupported language: C++");
+        } finally {
+            Files.delete(compileFlagsTxt);
+        }
     }
 
     @Test
     public void testOutputClass() {
         Path helloOutput = getOutputFilePath("hellogen");
         Path helloH = getInputFilePath("hello.h");
-        run("-d", helloOutput.toString(), helloH.toString()).checkSuccess();
+        run("--output", helloOutput.toString(), helloH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
             Class<?> cls = loader.loadClass("hello_h");
             // check a method for "void func(int)"
@@ -107,7 +117,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
     @Test
     public void testArgsFile() {
         Path helloOutput = getOutputFilePath("hellogen");
-        run("-d", helloOutput.toString(),
+        run("--output", helloOutput.toString(),
             "@" + getInputFilePath("helloargs").toString(),
             getInputFilePath("hello.h").toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
@@ -121,7 +131,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
     private void testTargetPackage(String targetPkgOption) {
         Path helloOutput = getOutputFilePath("hellogen");
         Path helloH = getInputFilePath("hello.h");
-        run(targetPkgOption, "com.acme", "-d",
+        run(targetPkgOption, "com.acme", "--output",
             helloOutput.toString(), helloH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
             Class<?> cls = loader.loadClass("com.acme.hello_h");
@@ -148,7 +158,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
     public void testHeaderClassName() {
         Path helloOutput = getOutputFilePath("hellogen");
         Path helloH = getInputFilePath("hello.h");
-        run("--header-class-name", "MyHello", "-t", "com.acme", "-d",
+        run("--header-class-name", "MyHello", "-t", "com.acme", "--output",
             helloOutput.toString(), helloH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
             Class<?> cls = loader.loadClass("com.acme.MyHello");

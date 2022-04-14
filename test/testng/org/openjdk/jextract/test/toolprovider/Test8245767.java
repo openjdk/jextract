@@ -39,7 +39,7 @@ public class Test8245767 extends JextractToolRunner {
     public void testTypedefs() {
         Path test8245767Output = getOutputFilePath("test8245767_gen");
         Path test8245767H = getInputFilePath("test8245767.h");
-        run("-d", test8245767Output.toString(), test8245767H.toString()).checkSuccess();
+        run("--output", test8245767Output.toString(), test8245767H.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(test8245767Output)) {
             Class<?> cls = loader.loadClass("test8245767_h");
             assertNotNull(cls);

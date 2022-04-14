@@ -92,7 +92,7 @@ task verify(type: Exec) {
     dependsOn jextractapp
 
     executable = "${jextract_app_dir}/bin/jextract${os_script_extension}"
-    args = [ "test.h", "-d", "$buildDir/integration_test" ]
+    args = [ "test.h", "--output", "$buildDir/integration_test" ]
 }
 
 // jlink a JDK image with org.openjdk.jextract for testing
