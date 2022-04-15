@@ -131,8 +131,7 @@ The `jextract` tool includes several customization options. Users can select in 
 #### Additional clang options
 
 Users can specify additional clang compiler options, by creating a file named
-`compile_flags.txt` in the current folder, as described [here]
-(https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
+`compile_flags.txt` in the current folder, as described [here](https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
 
 #### Filtering symbols
 
