@@ -209,7 +209,7 @@ public class TestClassGeneration extends JextractToolRunner {
         Path inputHeader = getInputFilePath("examples.h");
         run(
             "-t", "com.acme",
-            "-d", outputDir,
+            "--output", outputDir,
             "-l", "Examples",
             inputHeader
         ).checkSuccess();

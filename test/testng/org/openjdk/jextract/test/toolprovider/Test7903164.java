@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,30 +23,37 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
+import testlib.JextractToolRunner;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
-import testlib.JextractToolRunner;
-
 import java.nio.file.Path;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
-public class Test8262825 extends JextractToolRunner {
+public class Test7903164 extends JextractToolRunner {
     @Test
-    public void test() {
-        Path output = getOutputFilePath("8262825gen");
-        Path outputH = getInputFilePath("test8262825.h");
+    public void testWithoutMacro() {
+        Path output = getOutputFilePath("7903164gen_withoutmacro");
+        Path outputH = getInputFilePath("test7903164.h");
         run("--output", output.toString(), outputH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
-            Class<?> cls = loader.loadClass("test8262825_h");
-            assertNotNull(cls);
+            assertNotNull(loader.loadClass("test7903164_h"));
+            assertNotNull(loader.loadClass("func"));
+            assertNull(loader.loadClass("func2"));
+        } finally {
+            TestUtils.deleteDir(output);
+        }
+    }
 
-            assertNotNull(findField(cls, "MemoryLayout_"));
-            assertNotNull(findField(cls, "ValueLayout_"));
-
-            assertNotNull(loader.loadClass("RuntimeHelper_"));
-            assertNotNull(loader.loadClass("String_"));
-            assertNotNull(loader.loadClass("MemoryAddress_"));
-            assertNotNull(loader.loadClass("MemorySegment_"));
+    @Test
+    public void testWithMacro() {
+        Path output = getOutputFilePath("7903164gen_withmacro");
+        Path outputH = getInputFilePath("test7903164.h");
+        run("-D", "FOO", "--output", output.toString(), outputH.toString()).checkSuccess();
+        try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
+            assertNotNull(loader.loadClass("test7903164_h"));
+            assertNotNull(loader.loadClass("func"));
+            assertNotNull(loader.loadClass("func2"));
         } finally {
             TestUtils.deleteDir(output);
         }

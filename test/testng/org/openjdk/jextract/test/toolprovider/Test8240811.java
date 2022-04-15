@@ -40,7 +40,7 @@ public class Test8240811 extends JextractToolRunner {
     public void testNameCollision() {
         Path nameCollisionOutput = getOutputFilePath("name_collision_gen");
         Path nameCollisionH = getInputFilePath("name_collision.h");
-        run("-d", nameCollisionOutput.toString(), nameCollisionH.toString()).checkSuccess();
+        run("--output", nameCollisionOutput.toString(), nameCollisionH.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(nameCollisionOutput)) {
             Class<?> cls = loader.loadClass("name_collision_h");
             assertNotNull(cls);

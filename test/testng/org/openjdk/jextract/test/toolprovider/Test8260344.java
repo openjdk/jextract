@@ -35,7 +35,7 @@ public class Test8260344 extends JextractToolRunner {
         Path test8260344Output = getOutputFilePath("test8260344gen");
         try {
             Path test8260344H = getInputFilePath("test8260344.h");
-            run("-d", test8260344Output.toString(), test8260344H.toString()).checkSuccess();
+            run("--output", test8260344Output.toString(), test8260344H.toString()).checkSuccess();
         } finally {
             TestUtils.deleteDir(test8260344Output);
         }

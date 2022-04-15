@@ -22,13 +22,24 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
 
 public class TestAttributedPointerTypedef extends JextractToolRunner {
     @Test
-    public void testAttributedPointerTypedef() {
-        run("-C-fms-extensions", "-d", getOutputFilePath("attributedPointerTypedef").toString(),
+    public void testAttributedPointerTypedef() throws IOException {
+        Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
+        try {
+            Files.write(compileFlagsTxt, List.of("-fms-extensions"));
+            run("--output", getOutputFilePath("attributedPointerTypedef").toString(),
                 getInputFilePath("attributedPointerTypedef.h").toString()).checkSuccess();
+        } finally {
+            Files.delete(compileFlagsTxt);
+        }
     }
 }

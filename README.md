@@ -118,14 +118,20 @@ The `jextract` tool includes several customization options. Users can select in 
 
 | Option                                                       | Meaning                                                      |
 | :----------------------------------------------------------- | ------------------------------------------------------------ |
-| `--header-class-name <String>`                               | specify the name of the main header class                       |
-| `-t, --target-package <String>`                              | specify target package for the generated bindings            |
-| `-I <String>`                                                | specify include files path for the clang parser              |
-| `-l <String>`                                                | specify a library that will be loaded by the generated bindings |
-| `-d <String>`                                                | specify where to place generated files                       |
+| `-D <macro>`                                                 | define a C preprocessor macro                                |
+| `--header-class-name <name>`                                 | specify the name of the main header class                    |
+| `-t, --target-package <package>`                             | specify target package for the generated bindings            |
+| `-I <path>`                                                  | specify include files path for the clang parser              |
+| `-l <library>`                                               | specify a library that will be loaded by the generated bindings |
+| `--output <path>`                                            | specify where to place generated files                       |
 | `--source`                                                   | generate java sources instead of classfiles                  |
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
 | `--include-[function,macro,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings (see below). When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
+
+#### Additional clang options
+
+Users can specify additional clang compiler options, by creating a file named
+`compile_flags.txt` in the current folder, as described [here](https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
 
 #### Filtering symbols
 

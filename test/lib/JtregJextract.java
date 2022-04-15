@@ -63,10 +63,10 @@ public class JtregJextract {
         ArrayList<String> jextrOpts = new ArrayList<>();
 
         jextrOpts.clear();
-        jextrOpts.add("-C-nostdinc");
+        // FIXME jextrOpts.add("-C-nostdinc");
         jextrOpts.add("-I");
         jextrOpts.add(inputDir.toAbsolutePath().toString());
-        jextrOpts.add("-d");
+        jextrOpts.add("--output");
         jextrOpts.add(outputDir.toAbsolutePath().toString());
 
         int i = 0;
@@ -86,7 +86,7 @@ public class JtregJextract {
                 continue;
             }
 
-            if ("-d".equals(opt)) {
+            if ("--output".equals(opt)) {
                 i++;
                 continue;
             }

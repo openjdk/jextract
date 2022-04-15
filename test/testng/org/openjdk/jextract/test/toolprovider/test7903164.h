@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,27 +21,10 @@
  * questions.
  */
 
-package org.openjdk.jextract.test.toolprovider;
+typedef void (func)(const void *addr);
 
-import java.nio.file.Path;
+#ifdef FOO
 
-import testlib.TestUtils;
-import org.testng.annotations.Test;
-import testlib.JextractToolRunner;
+typedef void (func2)(int scope);
 
-import static org.testng.Assert.assertNotNull;
-
-public class Test8240657 extends JextractToolRunner {
-    @Test
-    public void testKeywordIdentifiers() {
-        Path exportsOutput = getOutputFilePath("exportsgen");
-        Path exportsH = getInputFilePath("exports.h");
-        run("--output", exportsOutput.toString(), exportsH.toString()).checkSuccess();
-        try(TestUtils.Loader loader = TestUtils.classLoader(exportsOutput)) {
-            Class<?> cls = loader.loadClass("exports_h");
-            assertNotNull(cls);
-        } finally {
-            TestUtils.deleteDir(exportsOutput);
-        }
-    }
-}
+#endif
