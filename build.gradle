@@ -27,6 +27,9 @@ def clang_version = clang_versions[0]
 def jextract_app_dir = "$buildDir/jextract"
 def clang_include_dir = "${llvm_home}/lib/clang/${clang_version}/include"
 checkPath(clang_include_dir)
+def quote_jlink_opts = Os.isFamily(Os.FAMILY_WINDOWS)?
+        "\\\"--enable-native-access=org.openjdk.jextract\\\"" :
+        '"--enable-native-access=org.openjdk.jextract"';
 def os_lib_dir = Os.isFamily(Os.FAMILY_WINDOWS)? "bin" : "lib"
 def os_script_extension = Os.isFamily(Os.FAMILY_WINDOWS)? ".bat" : ""
 def libclang_dir = "${llvm_home}/${os_lib_dir}"
@@ -61,7 +64,7 @@ task createJextractImage(type: Exec) {
          "--output=${jextract_app_dir}",
          "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
          "--add-options",
-         '"--enable-native-access=org.openjdk.jextract"'
+         "${quote_jlink_opts}"
     ]
 }
 
