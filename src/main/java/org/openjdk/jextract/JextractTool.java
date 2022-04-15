@@ -287,14 +287,14 @@ public final class JextractTool {
                                throw new OptionException(spec.help());
                            }
                            argValue = args[i + 1];
-                           // do not allow argument value to start with '-'
-                           // this will catch issues like "-l-lclang", "-l -t"
-                           if (argValue.charAt(0) == '-') {
-                               throw new OptionException(spec.help());
-                           }
                            i++; // consume value from next command line arg
                        } // else -DFOO like case. argValue already set
 
+                       // do not allow argument value to start with '-'
+                       // this will catch issues like "-l-lclang", "-l -t"
+                       if (argValue.charAt(0) == '-') {
+                           throw new OptionException(spec.help());
+                       }
                        values = options.getOrDefault(spec.name(), new ArrayList<String>());
                        values.add(argValue);
                    } else {
