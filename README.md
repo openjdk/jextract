@@ -128,10 +128,11 @@ The `jextract` tool includes several customization options. Users can select in 
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
 | `--include-[function,macro,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings (see below). When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 
-#### clang compiler extra options
+#### Additional clang options
 
-If you want to pass extra options to clang compiler, you can create a file named _compile_flags.txt_ in the current directory.
-That text file can contain clang compiler options one per each line.
+Users can specify additional clang compiler options, by creating a file named
+`compile_flags.txt` in the current folder, as described [here]
+(https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
 
 #### Filtering symbols
 
