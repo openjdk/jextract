@@ -111,7 +111,7 @@ public class TranslationUnit implements AutoCloseable {
                         inMemoryFiles.length,
                         files == null ? MemoryAddress.NULL : files,
                         Index_h.clang_defaultReparseOptions(tu)));
-            } while(code == ErrorCode.Crashed || (++tries) < MAX_RETRIES); // this call can crash on Windows. Retry in that case.
+            } while(code == ErrorCode.Crashed && (++tries) < MAX_RETRIES); // this call can crash on Windows. Retry in that case.
 
             if (code != ErrorCode.Success) {
                 throw new IllegalStateException("Re-parsing failed: " + code);
