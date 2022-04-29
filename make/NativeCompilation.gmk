@@ -75,6 +75,7 @@ else
     ifneq ($(SYSROOT),)
       CFLAGS += -isysroot $(SYSROOT)
     endif
+    LDFLAGS += -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
   else
     ifeq ($(PLATFORM_OS), linux)
       SHARED_LIB_SUFFIX := .so
