@@ -46,6 +46,7 @@ import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 import static org.openjdk.jextract.clang.LibClang.IMPLICIT_ALLOCATOR;
 
 public class TranslationUnit implements AutoCloseable {
+    private static final int MAX_RETRIES = 10;
 
     private MemoryAddress tu;
 
@@ -102,11 +103,15 @@ public class TranslationUnit implements AutoCloseable {
                 start.set(C_POINTER, CONTENTS_OFFSET, allocator.allocateUtf8String(inMemoryFiles[i].contents));
                 start.set(C_INT, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
             }
-            ErrorCode code = ErrorCode.valueOf(Index_h.clang_reparseTranslationUnit(
+            ErrorCode code;
+            int tries = 0;
+            do {
+                code = ErrorCode.valueOf(Index_h.clang_reparseTranslationUnit(
                         tu,
                         inMemoryFiles.length,
                         files == null ? MemoryAddress.NULL : files,
                         Index_h.clang_defaultReparseOptions(tu)));
+            } while(code == ErrorCode.Crashed && (++tries) < MAX_RETRIES); // this call can crash on Windows. Retry in that case.
 
             if (code != ErrorCode.Success) {
                 throw new IllegalStateException("Re-parsing failed: " + code);
