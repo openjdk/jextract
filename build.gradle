@@ -55,7 +55,7 @@ jar {
 task createJextractImage(type: Exec) {
     dependsOn jar
 
-    onlyIf { !new File("$buildDir/jextract-jdk-image").exists() }
+    onlyIf { !new File("${jextract_app_dir}").exists() }
 
     executable = "${jdk18_home}/bin/jlink"
     args = [
