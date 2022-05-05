@@ -3,7 +3,6 @@ include make/Common.gmk
 $(eval $(call SetupVariable,PANAMA_JAVA_HOME))
 $(eval $(call SetupVariable,LIBCLANG_HOME))
 $(eval $(call SetupVariable,LIBCLANG_VERSION,,NO_CHECK))
-$(eval $(call SetupVariable,JOPT_SIMPLE_JAR))
 
 include make/NativeCompilation.gmk
 
@@ -43,13 +42,13 @@ NATIVE_TEST_SOURCES := $(shell find $(TOPDIR)/test -name "lib*.c")
 
 $(foreach file,$(NATIVE_TEST_SOURCES),$(eval $(call BuildNativeLibrary,$(file),$(JEXTRACT_IMAGE_NATIVE_TEST_DIR),$(BUILD_TEST_SUPPORT_DIR),BUILD_NATIVE_TEST_LIBRARIES)))
 
-$(BUILD_CLASSES_DIR): $(JOPT_SIMPLE_JAR)
+$(BUILD_CLASSES_DIR):
 	$(MKDIR) -p $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
 	    --release=18 \
 	    --add-modules=jdk.incubator.foreign \
-	    -cp "$(JOPT_SIMPLE_JAR)" \
 	    -d "$(BUILD_CLASSES_DIR)" \
+	    src/main/java/module-info.java \
 	    src/main/java/org/openjdk/jextract/*.java \
 	    src/main/java/org/openjdk/jextract/impl/*.java \
 	    src/main/java/org/openjdk/jextract/clang/*.java \
@@ -57,41 +56,11 @@ $(BUILD_CLASSES_DIR): $(JOPT_SIMPLE_JAR)
 	$(CP) -r src/main/java/META-INF $(BUILD_CLASSES_DIR)
 	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 
-$(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR) $(JOPT_SIMPLE_JAR)
-	$(MKDIR) -p $(BUILD_MODULES_DIR)/jopt.simple
+$(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
 	$(MKDIR) -p $(BUILD_MODULES_DIR)/org.openjdk.jextract
-
-        # Generate module-info.java for jopt.simple module
-	@$(PRINTF) "module jopt.simple {\n \
-	    exports joptsimple;\n \
-	    exports joptsimple.util;\n \
-	}" > $(BUILD_MODULES_DIR)/jopt.simple/module-info.java
-
-        # Generate module-info.java for org.openjdk.jextract module
-	@$(PRINTF) "module org.openjdk.jextract {\n \
-	    requires transitive java.compiler;\n \
-	    requires transitive jdk.incubator.foreign;\n \
-	    requires jopt.simple;\n \
-	    requires java.prefs;\n \
-	    exports org.openjdk.jextract;\n \
-	    provides java.util.spi.ToolProvider with\n \
-	        org.openjdk.jextract.JextractTool.JextractToolProvider;\n \
-	}" > $(BUILD_MODULES_DIR)/org.openjdk.jextract/module-info.java
 
         # Copy org.openjdk.jextract classes to the right place
 	$(CP) -r $(BUILD_CLASSES_DIR)/* $(BUILD_MODULES_DIR)/org.openjdk.jextract
-
-        # Extract jopt-simple in the right place
-	($(CD) $(BUILD_MODULES_DIR)/jopt.simple; $(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jar xf "$(JOPT_SIMPLE_JAR)")
-
-        # Compile the generated module-info.java files
-	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
-	    -d "$(BUILD_MODULES_DIR)/jopt.simple" \
-	    "$(BUILD_MODULES_DIR)/jopt.simple/module-info.java"
-	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
-	    --module-path "$(BUILD_MODULES_DIR)" \
-	    -d "$(BUILD_MODULES_DIR)/org.openjdk.jextract" \
-	    "$(BUILD_MODULES_DIR)/org.openjdk.jextract/module-info.java"
 
 $(JEXTRACT_IMAGE_DIR): $(BUILD_MODULES_DIR)
         # jlink the modules to create a custom runtime image for jextract
