@@ -27,9 +27,6 @@ def clang_version = clang_versions[0]
 def jextract_app_dir = "$buildDir/jextract"
 def clang_include_dir = "${llvm_home}/lib/clang/${clang_version}/include"
 checkPath(clang_include_dir)
-def quote_jlink_opts = Os.isFamily(Os.FAMILY_WINDOWS)?
-        "\\\"--enable-native-access=org.openjdk.jextract\\\"" :
-        '"--enable-native-access=org.openjdk.jextract"';
 def os_lib_dir = Os.isFamily(Os.FAMILY_WINDOWS)? "bin" : "lib"
 def os_script_extension = Os.isFamily(Os.FAMILY_WINDOWS)? ".bat" : ""
 def libclang_dir = "${llvm_home}/${os_lib_dir}"
@@ -40,7 +37,7 @@ repositories {
 }
 
 compileJava {
-    options.compilerArgs.addAll(['--release', '18'])
+    options.release = 18
     options.compilerArgs << "--add-modules=jdk.incubator.foreign"
     options.compilerArgs << "-Xlint:all"
     options.fork = true
@@ -55,7 +52,17 @@ jar {
 task createJextractImage(type: Exec) {
     dependsOn jar
 
-    onlyIf { !new File("${jextract_app_dir}").exists() }
+    // if these inputs or outputs change, gradle will rerun the task
+    inputs.file(jar.archiveFile.get())
+    outputs.dir(jextract_app_dir)
+
+    def quote_jlink_opts = Os.isFamily(Os.FAMILY_WINDOWS)?
+        '\\"--enable-native-access=org.openjdk.jextract\\"' :
+        '"--enable-native-access=org.openjdk.jextract"'
+
+    doFirst {
+        delete(jextract_app_dir)
+    }
 
     executable = "${jdk18_home}/bin/jlink"
     args = [
@@ -90,6 +97,9 @@ task jextractapp() {
     dependsOn copyLibClang
 }
 
+// build the jextract image when the build or assemble task is run
+assemble.dependsOn(jextractapp)
+
 // very simple integration test for generated jextract
 task verify(type: Exec) {
     dependsOn jextractapp
@@ -102,12 +112,21 @@ task verify(type: Exec) {
 task createRuntimeImageForTest(type: Exec) {
     dependsOn verify
 
-    onlyIf { !new File("$buildDir/jextract-jdk-test-image").exists() }
+    def out_dir = "$buildDir/jextract-jdk-test-image"
+
+    // if these inputs or outputs change, gradle will rerun the task
+    inputs.file(jar.archiveFile.get())
+    outputs.dir(out_dir)
+
+    doFirst {
+        delete(out_dir)
+    }
+
     executable = "${jdk18_home}/bin/jlink"
     args = [
          "--module-path=$buildDir/libs" + File.pathSeparator + "$jdk18_home/jmods",
          "--add-modules=ALL-MODULE-PATH",
-         "--output=$buildDir/jextract-jdk-test-image",
+         "--output=$out_dir",
     ]
 }
 
@@ -150,7 +169,7 @@ task cmakeBuild(type: Exec) {
     ]
 }
 
-// run jtreg tests. Note: needs jtreg_cmd variable set to point to the jtreg
+// run jtreg tests. Note: needs jtreg_home variable set to point to the jtreg
 task jtreg(type: JavaExec) {
     dependsOn prepareTestJDK,cmakeBuild
 
