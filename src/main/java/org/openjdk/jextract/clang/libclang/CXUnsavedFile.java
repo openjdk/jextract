@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,10 +34,10 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 public class CXUnsavedFile {
 
-    static final MemoryLayout $struct$LAYOUT = MemoryLayout.structLayout(
-        ADDRESS.withName("Filename"),
-        ADDRESS.withName("Contents"),
-        JAVA_LONG.withName("Length")
+    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+        Constants$root.C_POINTER$LAYOUT.withName("Filename"),
+        Constants$root.C_POINTER$LAYOUT.withName("Contents"),
+        Constants$root.C_LONG_LONG$LAYOUT.withName("Length")
     ).withName("CXUnsavedFile");
     public static MemoryLayout $LAYOUT() {
         return CXUnsavedFile.$struct$LAYOUT;

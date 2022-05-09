@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,10 +34,10 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 public class CXType {
 
-    static final MemoryLayout $struct$LAYOUT = MemoryLayout.structLayout(
-        JAVA_INT.withName("kind"),
+    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+        Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),
-        MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     );
     public static MemoryLayout $LAYOUT() {
         return CXType.$struct$LAYOUT;

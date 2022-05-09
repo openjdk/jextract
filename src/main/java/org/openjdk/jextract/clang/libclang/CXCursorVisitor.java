@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,14 +34,15 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 public interface CXCursorVisitor {
 
-    int apply(jdk.incubator.foreign.MemorySegment x0, jdk.incubator.foreign.MemorySegment x1, jdk.incubator.foreign.MemoryAddress x2);
+    int apply(jdk.incubator.foreign.MemorySegment cursor, jdk.incubator.foreign.MemorySegment parent, jdk.incubator.foreign.MemoryAddress client_data);
     static NativeSymbol allocate(CXCursorVisitor fi, ResourceScope scope) {
         return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, "(Ljdk/incubator/foreign/MemorySegment;Ljdk/incubator/foreign/MemorySegment;Ljdk/incubator/foreign/MemoryAddress;)I", scope);
     }
     static CXCursorVisitor ofAddress(MemoryAddress addr, ResourceScope scope) {
-        NativeSymbol symbol = NativeSymbol.ofAddress("CXCursorVisitor::" + Long.toHexString(addr.toRawLongValue()), addr, scope);return (jdk.incubator.foreign.MemorySegment x0, jdk.incubator.foreign.MemorySegment x1, jdk.incubator.foreign.MemoryAddress x2) -> {
+        NativeSymbol symbol = NativeSymbol.ofAddress("CXCursorVisitor::" + Long.toHexString(addr.toRawLongValue()), addr, scope);
+return (jdk.incubator.foreign.MemorySegment _cursor, jdk.incubator.foreign.MemorySegment _parent, jdk.incubator.foreign.MemoryAddress _client_data) -> {
             try {
-                return (int)constants$13.CXCursorVisitor$MH.invokeExact(symbol, x0, x1, x2);
+                return (int)constants$13.CXCursorVisitor$MH.invokeExact(symbol, _cursor, _parent, (jdk.incubator.foreign.Addressable)_client_data);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,15 +34,15 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 class constants$1 {
 
-    static final FunctionDescriptor clang_equalLocations$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_equalLocations$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-            JAVA_INT.withName("int_data"),
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+            Constants$root.C_INT$LAYOUT.withName("int_data"),
             MemoryLayout.paddingLayout(32)
         ),
         MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-            JAVA_INT.withName("int_data"),
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+            Constants$root.C_INT$LAYOUT.withName("int_data"),
             MemoryLayout.paddingLayout(32)
         )
     );
@@ -51,36 +51,36 @@ class constants$1 {
         constants$1.clang_equalLocations$FUNC, false
     );
     static final FunctionDescriptor clang_getLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-        JAVA_INT.withName("int_data"),
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+        Constants$root.C_INT$LAYOUT.withName("int_data"),
         MemoryLayout.paddingLayout(32)
     ),
-        ADDRESS,
-        ADDRESS,
-        JAVA_INT,
-        JAVA_INT
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_INT$LAYOUT,
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_getLocation$MH = RuntimeHelper.downcallHandle(
         "clang_getLocation",
         constants$1.clang_getLocation$FUNC, false
     );
     static final FunctionDescriptor clang_getLocationForOffset$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-        JAVA_INT.withName("int_data"),
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+        Constants$root.C_INT$LAYOUT.withName("int_data"),
         MemoryLayout.paddingLayout(32)
     ),
-        ADDRESS,
-        ADDRESS,
-        JAVA_INT
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_getLocationForOffset$MH = RuntimeHelper.downcallHandle(
         "clang_getLocationForOffset",
         constants$1.clang_getLocationForOffset$FUNC, false
     );
-    static final FunctionDescriptor clang_Location_isInSystemHeader$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_Location_isInSystemHeader$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-            JAVA_INT.withName("int_data"),
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+            Constants$root.C_INT$LAYOUT.withName("int_data"),
             MemoryLayout.paddingLayout(32)
         )
     );
@@ -88,10 +88,10 @@ class constants$1 {
         "clang_Location_isInSystemHeader",
         constants$1.clang_Location_isInSystemHeader$FUNC, false
     );
-    static final FunctionDescriptor clang_Location_isFromMainFile$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_Location_isFromMainFile$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-            JAVA_INT.withName("int_data"),
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+            Constants$root.C_INT$LAYOUT.withName("int_data"),
             MemoryLayout.paddingLayout(32)
         )
     );
@@ -99,11 +99,11 @@ class constants$1 {
         "clang_Location_isFromMainFile",
         constants$1.clang_Location_isFromMainFile$FUNC, false
     );
-    static final FunctionDescriptor clang_Range_isNull$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_Range_isNull$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-            JAVA_INT.withName("begin_int_data"),
-            JAVA_INT.withName("end_int_data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+            Constants$root.C_INT$LAYOUT.withName("begin_int_data"),
+            Constants$root.C_INT$LAYOUT.withName("end_int_data")
         )
     );
     static final MethodHandle clang_Range_isNull$MH = RuntimeHelper.downcallHandle(

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -35,14 +35,14 @@ import static jdk.incubator.foreign.ValueLayout.*;
 public class Index_h  {
 
     /* package-private */ Index_h() {}
-    public static ValueLayout.OfByte C_CHAR = JAVA_BYTE;
-    public static ValueLayout.OfShort C_SHORT = JAVA_SHORT;
-    public static ValueLayout.OfInt C_INT = JAVA_INT;
-    public static ValueLayout.OfLong C_LONG = JAVA_LONG;
-    public static ValueLayout.OfLong C_LONG_LONG = JAVA_LONG;
-    public static ValueLayout.OfFloat C_FLOAT = JAVA_FLOAT;
-    public static ValueLayout.OfDouble C_DOUBLE = JAVA_DOUBLE;
-    public static ValueLayout.OfAddress C_POINTER = ValueLayout.ADDRESS;
+    public static OfByte C_CHAR = Constants$root.C_CHAR$LAYOUT;
+    public static OfShort C_SHORT = Constants$root.C_SHORT$LAYOUT;
+    public static OfInt C_INT = Constants$root.C_INT$LAYOUT;
+    public static OfLong C_LONG = Constants$root.C_LONG_LONG$LAYOUT;
+    public static OfLong C_LONG_LONG = Constants$root.C_LONG_LONG$LAYOUT;
+    public static OfFloat C_FLOAT = Constants$root.C_FLOAT$LAYOUT;
+    public static OfDouble C_DOUBLE = Constants$root.C_DOUBLE$LAYOUT;
+    public static OfAddress C_POINTER = Constants$root.C_POINTER$LAYOUT;
     public static int CXError_Success() {
         return (int)0L;
     }
@@ -80,8 +80,8 @@ public class Index_h  {
             throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static ValueLayout.OfAddress CXIndex = ValueLayout.ADDRESS;
-    public static ValueLayout.OfAddress CXTranslationUnit = ValueLayout.ADDRESS;
+    public static OfAddress CXIndex = Constants$root.C_POINTER$LAYOUT;
+    public static OfAddress CXTranslationUnit = Constants$root.C_POINTER$LAYOUT;
     public static int CXCursor_ExceptionSpecificationKind_None() {
         return (int)0L;
     }

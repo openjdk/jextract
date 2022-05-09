@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,16 +34,16 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 class constants$9 {
 
-    static final FunctionDescriptor clang_equalTypes$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_equalTypes$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         ),
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_equalTypes$MH = RuntimeHelper.downcallHandle(
@@ -51,47 +51,47 @@ class constants$9 {
         constants$9.clang_equalTypes$FUNC, false
     );
     static final FunctionDescriptor clang_getCanonicalType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        JAVA_INT.withName("kind"),
+        Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),
-        MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_getCanonicalType$MH = RuntimeHelper.downcallHandle(
         "clang_getCanonicalType",
         constants$9.clang_getCanonicalType$FUNC, false
     );
-    static final FunctionDescriptor clang_isConstQualifiedType$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_isConstQualifiedType$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_isConstQualifiedType$MH = RuntimeHelper.downcallHandle(
         "clang_isConstQualifiedType",
         constants$9.clang_isConstQualifiedType$FUNC, false
     );
-    static final FunctionDescriptor clang_Cursor_isMacroFunctionLike$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_Cursor_isMacroFunctionLike$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
-            JAVA_INT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, ADDRESS).withName("data")
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_Cursor_isMacroFunctionLike$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_isMacroFunctionLike",
         constants$9.clang_Cursor_isMacroFunctionLike$FUNC, false
     );
-    static final FunctionDescriptor clang_isVolatileQualifiedType$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_isVolatileQualifiedType$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_isVolatileQualifiedType$MH = RuntimeHelper.downcallHandle(
@@ -99,14 +99,14 @@ class constants$9 {
         constants$9.clang_isVolatileQualifiedType$FUNC, false
     );
     static final FunctionDescriptor clang_getTypedefName$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        ADDRESS.withName("data"),
-        JAVA_INT.withName("private_flags"),
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
         MemoryLayout.paddingLayout(32)
     ),
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_getTypedefName$MH = RuntimeHelper.downcallHandle(

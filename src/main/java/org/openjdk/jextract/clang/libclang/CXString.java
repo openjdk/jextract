@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,9 +34,9 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 public class CXString {
 
-    static final MemoryLayout $struct$LAYOUT = MemoryLayout.structLayout(
-        ADDRESS.withName("data"),
-        JAVA_INT.withName("private_flags"),
+    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
         MemoryLayout.paddingLayout(32)
     );
     public static MemoryLayout $LAYOUT() {

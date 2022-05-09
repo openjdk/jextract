@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,10 +34,10 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 class constants$0 {
 
-    static final FunctionDescriptor clang_getCString$FUNC = FunctionDescriptor.of(ADDRESS,
+    static final FunctionDescriptor clang_getCString$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         MemoryLayout.structLayout(
-            ADDRESS.withName("data"),
-            JAVA_INT.withName("private_flags"),
+            Constants$root.C_POINTER$LAYOUT.withName("data"),
+            Constants$root.C_INT$LAYOUT.withName("private_flags"),
             MemoryLayout.paddingLayout(32)
         )
     );
@@ -47,8 +47,8 @@ class constants$0 {
     );
     static final FunctionDescriptor clang_disposeString$FUNC = FunctionDescriptor.ofVoid(
         MemoryLayout.structLayout(
-            ADDRESS.withName("data"),
-            JAVA_INT.withName("private_flags"),
+            Constants$root.C_POINTER$LAYOUT.withName("data"),
+            Constants$root.C_INT$LAYOUT.withName("private_flags"),
             MemoryLayout.paddingLayout(32)
         )
     );
@@ -56,35 +56,35 @@ class constants$0 {
         "clang_disposeString",
         constants$0.clang_disposeString$FUNC, false
     );
-    static final FunctionDescriptor clang_createIndex$FUNC = FunctionDescriptor.of(ADDRESS,
-        JAVA_INT,
-        JAVA_INT
+    static final FunctionDescriptor clang_createIndex$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_INT$LAYOUT,
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_createIndex$MH = RuntimeHelper.downcallHandle(
         "clang_createIndex",
         constants$0.clang_createIndex$FUNC, false
     );
     static final FunctionDescriptor clang_disposeIndex$FUNC = FunctionDescriptor.ofVoid(
-        ADDRESS
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_disposeIndex$MH = RuntimeHelper.downcallHandle(
         "clang_disposeIndex",
         constants$0.clang_disposeIndex$FUNC, false
     );
     static final FunctionDescriptor clang_getFileName$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        ADDRESS.withName("data"),
-        JAVA_INT.withName("private_flags"),
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
         MemoryLayout.paddingLayout(32)
     ),
-        ADDRESS
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_getFileName$MH = RuntimeHelper.downcallHandle(
         "clang_getFileName",
         constants$0.clang_getFileName$FUNC, false
     );
     static final FunctionDescriptor clang_getNullLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-        JAVA_INT.withName("int_data"),
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+        Constants$root.C_INT$LAYOUT.withName("int_data"),
         MemoryLayout.paddingLayout(32)
     ));
     static final MethodHandle clang_getNullLocation$MH = RuntimeHelper.downcallHandle(

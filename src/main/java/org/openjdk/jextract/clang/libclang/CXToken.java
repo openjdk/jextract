@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,9 +34,9 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 public class CXToken {
 
-    static final MemoryLayout $struct$LAYOUT = MemoryLayout.structLayout(
-        MemoryLayout.sequenceLayout(4, JAVA_INT).withName("int_data"),
-        ADDRESS.withName("ptr_data")
+    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+        MemoryLayout.sequenceLayout(4, Constants$root.C_INT$LAYOUT).withName("int_data"),
+        Constants$root.C_POINTER$LAYOUT.withName("ptr_data")
     );
     public static MemoryLayout $LAYOUT() {
         return CXToken.$struct$LAYOUT;
