@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,64 +34,64 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 class constants$5 {
 
-    static final FunctionDescriptor clang_defaultReparseOptions$FUNC = FunctionDescriptor.of(JAVA_INT,
-        ADDRESS
+    static final FunctionDescriptor clang_defaultReparseOptions$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_defaultReparseOptions$MH = RuntimeHelper.downcallHandle(
         "clang_defaultReparseOptions",
         constants$5.clang_defaultReparseOptions$FUNC, false
     );
-    static final FunctionDescriptor clang_reparseTranslationUnit$FUNC = FunctionDescriptor.of(JAVA_INT,
-        ADDRESS,
-        JAVA_INT,
-        ADDRESS,
-        JAVA_INT
+    static final FunctionDescriptor clang_reparseTranslationUnit$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_reparseTranslationUnit$MH = RuntimeHelper.downcallHandle(
         "clang_reparseTranslationUnit",
         constants$5.clang_reparseTranslationUnit$FUNC, false
     );
     static final FunctionDescriptor clang_getNullCursor$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        JAVA_INT.withName("kind"),
-        JAVA_INT.withName("xdata"),
-        MemoryLayout.sequenceLayout(3, ADDRESS).withName("data")
+        Constants$root.C_INT$LAYOUT.withName("kind"),
+        Constants$root.C_INT$LAYOUT.withName("xdata"),
+        MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
     ));
     static final MethodHandle clang_getNullCursor$MH = RuntimeHelper.downcallHandle(
         "clang_getNullCursor",
         constants$5.clang_getNullCursor$FUNC, false
     );
     static final FunctionDescriptor clang_getTranslationUnitCursor$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        JAVA_INT.withName("kind"),
-        JAVA_INT.withName("xdata"),
-        MemoryLayout.sequenceLayout(3, ADDRESS).withName("data")
+        Constants$root.C_INT$LAYOUT.withName("kind"),
+        Constants$root.C_INT$LAYOUT.withName("xdata"),
+        MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
-        ADDRESS
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_getTranslationUnitCursor$MH = RuntimeHelper.downcallHandle(
         "clang_getTranslationUnitCursor",
         constants$5.clang_getTranslationUnitCursor$FUNC, false
     );
-    static final FunctionDescriptor clang_equalCursors$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_equalCursors$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
-            JAVA_INT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, ADDRESS).withName("data")
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
         ),
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
-            JAVA_INT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, ADDRESS).withName("data")
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_equalCursors$MH = RuntimeHelper.downcallHandle(
         "clang_equalCursors",
         constants$5.clang_equalCursors$FUNC, false
     );
-    static final FunctionDescriptor clang_Cursor_isNull$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_Cursor_isNull$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
-            JAVA_INT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, ADDRESS).withName("data")
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_Cursor_isNull$MH = RuntimeHelper.downcallHandle(

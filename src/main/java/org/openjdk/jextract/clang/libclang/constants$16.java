@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -35,14 +35,14 @@ import static jdk.incubator.foreign.ValueLayout.*;
 class constants$16 {
 
     static final FunctionDescriptor clang_getTokenLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-        JAVA_INT.withName("int_data"),
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+        Constants$root.C_INT$LAYOUT.withName("int_data"),
         MemoryLayout.paddingLayout(32)
     ),
-        ADDRESS,
+        Constants$root.C_POINTER$LAYOUT,
         MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(4, JAVA_INT).withName("int_data"),
-            ADDRESS.withName("ptr_data")
+            MemoryLayout.sequenceLayout(4, Constants$root.C_INT$LAYOUT).withName("int_data"),
+            Constants$root.C_POINTER$LAYOUT.withName("ptr_data")
         )
     );
     static final MethodHandle clang_getTokenLocation$MH = RuntimeHelper.downcallHandle(
@@ -50,14 +50,14 @@ class constants$16 {
         constants$16.clang_getTokenLocation$FUNC, false
     );
     static final FunctionDescriptor clang_getTokenExtent$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-        JAVA_INT.withName("begin_int_data"),
-        JAVA_INT.withName("end_int_data")
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+        Constants$root.C_INT$LAYOUT.withName("begin_int_data"),
+        Constants$root.C_INT$LAYOUT.withName("end_int_data")
     ),
-        ADDRESS,
+        Constants$root.C_POINTER$LAYOUT,
         MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(4, JAVA_INT).withName("int_data"),
-            ADDRESS.withName("ptr_data")
+            MemoryLayout.sequenceLayout(4, Constants$root.C_INT$LAYOUT).withName("int_data"),
+            Constants$root.C_POINTER$LAYOUT.withName("ptr_data")
         )
     );
     static final MethodHandle clang_getTokenExtent$MH = RuntimeHelper.downcallHandle(
@@ -65,42 +65,42 @@ class constants$16 {
         constants$16.clang_getTokenExtent$FUNC, false
     );
     static final FunctionDescriptor clang_tokenize$FUNC = FunctionDescriptor.ofVoid(
-        ADDRESS,
+        Constants$root.C_POINTER$LAYOUT,
         MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("ptr_data"),
-            JAVA_INT.withName("begin_int_data"),
-            JAVA_INT.withName("end_int_data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
+            Constants$root.C_INT$LAYOUT.withName("begin_int_data"),
+            Constants$root.C_INT$LAYOUT.withName("end_int_data")
         ),
-        ADDRESS,
-        ADDRESS
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_tokenize$MH = RuntimeHelper.downcallHandle(
         "clang_tokenize",
         constants$16.clang_tokenize$FUNC, false
     );
     static final FunctionDescriptor clang_disposeTokens$FUNC = FunctionDescriptor.ofVoid(
-        ADDRESS,
-        ADDRESS,
-        JAVA_INT
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_disposeTokens$MH = RuntimeHelper.downcallHandle(
         "clang_disposeTokens",
         constants$16.clang_disposeTokens$FUNC, false
     );
     static final FunctionDescriptor clang_getCursorKindSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        ADDRESS.withName("data"),
-        JAVA_INT.withName("private_flags"),
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
         MemoryLayout.paddingLayout(32)
     ),
-        JAVA_INT
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_getCursorKindSpelling$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorKindSpelling",
         constants$16.clang_getCursorKindSpelling$FUNC, false
     );
     static final FunctionDescriptor clang_getClangVersion$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        ADDRESS.withName("data"),
-        JAVA_INT.withName("private_flags"),
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
         MemoryLayout.paddingLayout(32)
     ));
     static final MethodHandle clang_getClangVersion$MH = RuntimeHelper.downcallHandle(

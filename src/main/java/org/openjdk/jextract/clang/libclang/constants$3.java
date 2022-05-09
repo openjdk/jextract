@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,47 +34,47 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 class constants$3 {
 
-    static final FunctionDescriptor clang_getNumDiagnostics$FUNC = FunctionDescriptor.of(JAVA_INT,
-        ADDRESS
+    static final FunctionDescriptor clang_getNumDiagnostics$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_getNumDiagnostics$MH = RuntimeHelper.downcallHandle(
         "clang_getNumDiagnostics",
         constants$3.clang_getNumDiagnostics$FUNC, false
     );
-    static final FunctionDescriptor clang_getDiagnostic$FUNC = FunctionDescriptor.of(ADDRESS,
-        ADDRESS,
-        JAVA_INT
+    static final FunctionDescriptor clang_getDiagnostic$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_getDiagnostic$MH = RuntimeHelper.downcallHandle(
         "clang_getDiagnostic",
         constants$3.clang_getDiagnostic$FUNC, false
     );
     static final FunctionDescriptor clang_disposeDiagnostic$FUNC = FunctionDescriptor.ofVoid(
-        ADDRESS
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_disposeDiagnostic$MH = RuntimeHelper.downcallHandle(
         "clang_disposeDiagnostic",
         constants$3.clang_disposeDiagnostic$FUNC, false
     );
     static final FunctionDescriptor clang_formatDiagnostic$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        ADDRESS.withName("data"),
-        JAVA_INT.withName("private_flags"),
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
         MemoryLayout.paddingLayout(32)
     ),
-        ADDRESS,
-        JAVA_INT
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_formatDiagnostic$MH = RuntimeHelper.downcallHandle(
         "clang_formatDiagnostic",
         constants$3.clang_formatDiagnostic$FUNC, false
     );
-    static final FunctionDescriptor clang_defaultDiagnosticDisplayOptions$FUNC = FunctionDescriptor.of(JAVA_INT);
+    static final FunctionDescriptor clang_defaultDiagnosticDisplayOptions$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT);
     static final MethodHandle clang_defaultDiagnosticDisplayOptions$MH = RuntimeHelper.downcallHandle(
         "clang_defaultDiagnosticDisplayOptions",
         constants$3.clang_defaultDiagnosticDisplayOptions$FUNC, false
     );
-    static final FunctionDescriptor clang_getDiagnosticSeverity$FUNC = FunctionDescriptor.of(JAVA_INT,
-        ADDRESS
+    static final FunctionDescriptor clang_getDiagnosticSeverity$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_getDiagnosticSeverity$MH = RuntimeHelper.downcallHandle(
         "clang_getDiagnosticSeverity",

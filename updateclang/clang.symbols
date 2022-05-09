@@ -17,6 +17,7 @@
 --include-typedef CXIndex
 --include-typedef CXToken
 --include-typedef CXTranslationUnit
+--include-typedef CXString
 --include-typedef CXType
 --include-struct CXUnsavedFile
 --include-macro CXCallingConv_AAPCS

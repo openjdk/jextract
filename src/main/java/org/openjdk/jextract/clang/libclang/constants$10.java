@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -35,14 +35,14 @@ import static jdk.incubator.foreign.ValueLayout.*;
 class constants$10 {
 
     static final FunctionDescriptor clang_getPointeeType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        JAVA_INT.withName("kind"),
+        Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),
-        MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_getPointeeType$MH = RuntimeHelper.downcallHandle(
@@ -50,14 +50,14 @@ class constants$10 {
         constants$10.clang_getPointeeType$FUNC, false
     );
     static final FunctionDescriptor clang_getTypeDeclaration$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        JAVA_INT.withName("kind"),
-        JAVA_INT.withName("xdata"),
-        MemoryLayout.sequenceLayout(3, ADDRESS).withName("data")
+        Constants$root.C_INT$LAYOUT.withName("kind"),
+        Constants$root.C_INT$LAYOUT.withName("xdata"),
+        MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_getTypeDeclaration$MH = RuntimeHelper.downcallHandle(
@@ -65,21 +65,21 @@ class constants$10 {
         constants$10.clang_getTypeDeclaration$FUNC, false
     );
     static final FunctionDescriptor clang_getTypeKindSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        ADDRESS.withName("data"),
-        JAVA_INT.withName("private_flags"),
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
         MemoryLayout.paddingLayout(32)
     ),
-        JAVA_INT
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_getTypeKindSpelling$MH = RuntimeHelper.downcallHandle(
         "clang_getTypeKindSpelling",
         constants$10.clang_getTypeKindSpelling$FUNC, false
     );
-    static final FunctionDescriptor clang_getFunctionTypeCallingConv$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_getFunctionTypeCallingConv$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_getFunctionTypeCallingConv$MH = RuntimeHelper.downcallHandle(
@@ -87,25 +87,25 @@ class constants$10 {
         constants$10.clang_getFunctionTypeCallingConv$FUNC, false
     );
     static final FunctionDescriptor clang_getResultType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        JAVA_INT.withName("kind"),
+        Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),
-        MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_getResultType$MH = RuntimeHelper.downcallHandle(
         "clang_getResultType",
         constants$10.clang_getResultType$FUNC, false
     );
-    static final FunctionDescriptor clang_getNumArgTypes$FUNC = FunctionDescriptor.of(JAVA_INT,
+    static final FunctionDescriptor clang_getNumArgTypes$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("kind"),
             MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, ADDRESS).withName("data")
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_getNumArgTypes$MH = RuntimeHelper.downcallHandle(

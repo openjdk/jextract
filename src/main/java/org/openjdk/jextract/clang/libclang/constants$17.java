@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -35,46 +35,46 @@ import static jdk.incubator.foreign.ValueLayout.*;
 class constants$17 {
 
     static final FunctionDescriptor clang_toggleCrashRecovery$FUNC = FunctionDescriptor.ofVoid(
-        JAVA_INT
+        Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_toggleCrashRecovery$MH = RuntimeHelper.downcallHandle(
         "clang_toggleCrashRecovery",
         constants$17.clang_toggleCrashRecovery$FUNC, false
     );
-    static final FunctionDescriptor clang_Cursor_Evaluate$FUNC = FunctionDescriptor.of(ADDRESS,
+    static final FunctionDescriptor clang_Cursor_Evaluate$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         MemoryLayout.structLayout(
-            JAVA_INT.withName("kind"),
-            JAVA_INT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, ADDRESS).withName("data")
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
     static final MethodHandle clang_Cursor_Evaluate$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_Evaluate",
         constants$17.clang_Cursor_Evaluate$FUNC, false
     );
-    static final FunctionDescriptor clang_EvalResult_getKind$FUNC = FunctionDescriptor.of(JAVA_INT,
-        ADDRESS
+    static final FunctionDescriptor clang_EvalResult_getKind$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getKind$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getKind",
         constants$17.clang_EvalResult_getKind$FUNC, false
     );
-    static final FunctionDescriptor clang_EvalResult_getAsInt$FUNC = FunctionDescriptor.of(JAVA_INT,
-        ADDRESS
+    static final FunctionDescriptor clang_EvalResult_getAsInt$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getAsInt$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsInt",
         constants$17.clang_EvalResult_getAsInt$FUNC, false
     );
-    static final FunctionDescriptor clang_EvalResult_getAsLongLong$FUNC = FunctionDescriptor.of(JAVA_LONG,
-        ADDRESS
+    static final FunctionDescriptor clang_EvalResult_getAsLongLong$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getAsLongLong$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsLongLong",
         constants$17.clang_EvalResult_getAsLongLong$FUNC, false
     );
-    static final FunctionDescriptor clang_EvalResult_isUnsignedInt$FUNC = FunctionDescriptor.of(JAVA_INT,
-        ADDRESS
+    static final FunctionDescriptor clang_EvalResult_isUnsignedInt$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_isUnsignedInt$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_isUnsignedInt",

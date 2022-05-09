@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -34,29 +34,29 @@ import jdk.incubator.foreign.*;
 import static jdk.incubator.foreign.ValueLayout.*;
 class constants$18 {
 
-    static final FunctionDescriptor clang_EvalResult_getAsUnsigned$FUNC = FunctionDescriptor.of(JAVA_LONG,
-        ADDRESS
+    static final FunctionDescriptor clang_EvalResult_getAsUnsigned$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getAsUnsigned$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsUnsigned",
         constants$18.clang_EvalResult_getAsUnsigned$FUNC, false
     );
-    static final FunctionDescriptor clang_EvalResult_getAsDouble$FUNC = FunctionDescriptor.of(JAVA_DOUBLE,
-        ADDRESS
+    static final FunctionDescriptor clang_EvalResult_getAsDouble$FUNC = FunctionDescriptor.of(Constants$root.C_DOUBLE$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getAsDouble$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsDouble",
         constants$18.clang_EvalResult_getAsDouble$FUNC, false
     );
-    static final FunctionDescriptor clang_EvalResult_getAsStr$FUNC = FunctionDescriptor.of(ADDRESS,
-        ADDRESS
+    static final FunctionDescriptor clang_EvalResult_getAsStr$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getAsStr$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsStr",
         constants$18.clang_EvalResult_getAsStr$FUNC, false
     );
     static final FunctionDescriptor clang_EvalResult_dispose$FUNC = FunctionDescriptor.ofVoid(
-        ADDRESS
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_dispose$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_dispose",
