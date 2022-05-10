@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.MemoryAddress.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.MemoryAddress.*;
 import static org.tensorflow.c_api_h.*;
 import org.tensorflow.*;
 
@@ -45,7 +45,7 @@ public class TensorflowLoadSavedModel {
             System.exit(1);
         }
 
-        try (var scope = ResourceScope.newConfinedScope()) {
+        try (var scope = MemorySession.openConfined()) {
             var allocator = SegmentAllocator.newNativeArena(scope);
             var graph = TF_NewGraph();
             var status = TF_NewStatus();

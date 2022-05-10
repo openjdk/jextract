@@ -5,15 +5,15 @@ package org.unix;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 public class dl_info {
 
-    static final MemoryLayout $struct$LAYOUT = MemoryLayout.structLayout(
-        ADDRESS.withName("dli_fname"),
-        ADDRESS.withName("dli_fbase"),
-        ADDRESS.withName("dli_sname"),
-        ADDRESS.withName("dli_saddr")
+    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+        Constants$root.C_POINTER$LAYOUT.withName("dli_fname"),
+        Constants$root.C_POINTER$LAYOUT.withName("dli_fbase"),
+        Constants$root.C_POINTER$LAYOUT.withName("dli_sname"),
+        Constants$root.C_POINTER$LAYOUT.withName("dli_saddr")
     ).withName("dl_info");
     public static MemoryLayout $LAYOUT() {
         return dl_info.$struct$LAYOUT;
@@ -23,13 +23,13 @@ public class dl_info {
         return dl_info.dli_fname$VH;
     }
     public static MemoryAddress dli_fname$get(MemorySegment seg) {
-        return (jdk.incubator.foreign.MemoryAddress)dl_info.dli_fname$VH.get(seg);
+        return (java.lang.foreign.MemoryAddress)dl_info.dli_fname$VH.get(seg);
     }
     public static void dli_fname$set( MemorySegment seg, MemoryAddress x) {
         dl_info.dli_fname$VH.set(seg, x);
     }
     public static MemoryAddress dli_fname$get(MemorySegment seg, long index) {
-        return (jdk.incubator.foreign.MemoryAddress)dl_info.dli_fname$VH.get(seg.asSlice(index*sizeof()));
+        return (java.lang.foreign.MemoryAddress)dl_info.dli_fname$VH.get(seg.asSlice(index*sizeof()));
     }
     public static void dli_fname$set(MemorySegment seg, long index, MemoryAddress x) {
         dl_info.dli_fname$VH.set(seg.asSlice(index*sizeof()), x);
@@ -39,13 +39,13 @@ public class dl_info {
         return dl_info.dli_fbase$VH;
     }
     public static MemoryAddress dli_fbase$get(MemorySegment seg) {
-        return (jdk.incubator.foreign.MemoryAddress)dl_info.dli_fbase$VH.get(seg);
+        return (java.lang.foreign.MemoryAddress)dl_info.dli_fbase$VH.get(seg);
     }
     public static void dli_fbase$set( MemorySegment seg, MemoryAddress x) {
         dl_info.dli_fbase$VH.set(seg, x);
     }
     public static MemoryAddress dli_fbase$get(MemorySegment seg, long index) {
-        return (jdk.incubator.foreign.MemoryAddress)dl_info.dli_fbase$VH.get(seg.asSlice(index*sizeof()));
+        return (java.lang.foreign.MemoryAddress)dl_info.dli_fbase$VH.get(seg.asSlice(index*sizeof()));
     }
     public static void dli_fbase$set(MemorySegment seg, long index, MemoryAddress x) {
         dl_info.dli_fbase$VH.set(seg.asSlice(index*sizeof()), x);
@@ -55,13 +55,13 @@ public class dl_info {
         return dl_info.dli_sname$VH;
     }
     public static MemoryAddress dli_sname$get(MemorySegment seg) {
-        return (jdk.incubator.foreign.MemoryAddress)dl_info.dli_sname$VH.get(seg);
+        return (java.lang.foreign.MemoryAddress)dl_info.dli_sname$VH.get(seg);
     }
     public static void dli_sname$set( MemorySegment seg, MemoryAddress x) {
         dl_info.dli_sname$VH.set(seg, x);
     }
     public static MemoryAddress dli_sname$get(MemorySegment seg, long index) {
-        return (jdk.incubator.foreign.MemoryAddress)dl_info.dli_sname$VH.get(seg.asSlice(index*sizeof()));
+        return (java.lang.foreign.MemoryAddress)dl_info.dli_sname$VH.get(seg.asSlice(index*sizeof()));
     }
     public static void dli_sname$set(MemorySegment seg, long index, MemoryAddress x) {
         dl_info.dli_sname$VH.set(seg.asSlice(index*sizeof()), x);
@@ -71,13 +71,13 @@ public class dl_info {
         return dl_info.dli_saddr$VH;
     }
     public static MemoryAddress dli_saddr$get(MemorySegment seg) {
-        return (jdk.incubator.foreign.MemoryAddress)dl_info.dli_saddr$VH.get(seg);
+        return (java.lang.foreign.MemoryAddress)dl_info.dli_saddr$VH.get(seg);
     }
     public static void dli_saddr$set( MemorySegment seg, MemoryAddress x) {
         dl_info.dli_saddr$VH.set(seg, x);
     }
     public static MemoryAddress dli_saddr$get(MemorySegment seg, long index) {
-        return (jdk.incubator.foreign.MemoryAddress)dl_info.dli_saddr$VH.get(seg.asSlice(index*sizeof()));
+        return (java.lang.foreign.MemoryAddress)dl_info.dli_saddr$VH.get(seg.asSlice(index*sizeof()));
     }
     public static void dli_saddr$set(MemorySegment seg, long index, MemoryAddress x) {
         dl_info.dli_saddr$VH.set(seg.asSlice(index*sizeof()), x);
@@ -87,11 +87,7 @@ public class dl_info {
     public static MemorySegment allocateArray(int len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment allocate(ResourceScope scope) { return allocate(SegmentAllocator.nativeAllocator(scope)); }
-    public static MemorySegment allocateArray(int len, ResourceScope scope) {
-        return allocateArray(len, SegmentAllocator.nativeAllocator(scope));
-    }
-    public static MemorySegment ofAddress(MemoryAddress addr, ResourceScope scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
+    public static MemorySegment ofAddress(MemoryAddress addr, MemorySession scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
 }
 
 

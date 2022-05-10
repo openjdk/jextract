@@ -21,9 +21,9 @@
  * questions.
  */
 
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,7 +48,7 @@ import test.jextract.funcpointers.*;
 public class TestFuncPointerInvokers {
     @Test
     public void testStructFieldTypedef() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(scope);
             Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), scope).address());
@@ -59,7 +59,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testStructFieldFITypedef() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(scope);
             Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), scope).address());
@@ -70,7 +70,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalTypedef() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             f$set(Foo.allocate((i) -> val.set(i), scope).address());
             f().apply(42);
@@ -80,7 +80,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFITypedef() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             f$set(Foo.allocate((i) -> val.set(i), scope).address());
             Foo.ofAddress(f$get(), scope).apply(42);
@@ -90,7 +90,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testStructFieldFunctionPointer() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(scope);
             Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), scope).address());
@@ -101,7 +101,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testStructFieldFIFunctionPointer() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(scope);
             Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), scope).address());
@@ -112,7 +112,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFunctionPointer() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             fp$set(fp.allocate((i) -> val.set(i), scope).address());
             fp().apply(42);
@@ -122,7 +122,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFIFunctionPointer() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             fp$set(fp.allocate((i) -> val.set(i), scope).address());
             fp.ofAddress(fp$get(), scope).apply(42);
@@ -132,7 +132,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFIFunctionPointerAddress() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             fp_addr$set(fp_addr.allocate((addr) -> MemoryAddress.ofLong(addr.toRawLongValue() + 1), scope).address());
             assertEquals(fp_addr.ofAddress(fp_addr$get(), scope).apply(MemoryAddress.ofLong(42)), MemoryAddress.ofLong(43));
         }

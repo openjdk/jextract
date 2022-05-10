@@ -50,8 +50,8 @@ public final class Writer {
             return List.of();
         } else {
             return InMemoryJavaCompiler.compile(sources,
-                "--add-modules", "jdk.incubator.foreign",
-                // "--release", "18",
+                "--enable-preview",
+                "--source", "19",
                 "-d", dest.toAbsolutePath().toString(),
                 "-cp", dest.toAbsolutePath().toString());
         }

@@ -1,1 +1,1 @@
-java --enable-native-access=ALL-UNNAMED --add-modules jdk.incubator.foreign HelloWorld.java
+java --enable-native-access=ALL-UNNAMED --enable-preview --source=19 HelloWorld.java

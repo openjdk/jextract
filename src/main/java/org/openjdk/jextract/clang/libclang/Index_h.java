@@ -30,8 +30,8 @@ package org.openjdk.jextract.clang.libclang;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 public class Index_h  {
 
     /* package-private */ Index_h() {}
@@ -64,7 +64,7 @@ public class Index_h  {
     public static MemoryAddress clang_getCString ( MemorySegment string) {
         var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_getCString$MH, "clang_getCString");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(string);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(string);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -118,7 +118,7 @@ public class Index_h  {
     public static MemoryAddress clang_createIndex ( int excludeDeclarationsFromPCH,  int displayDiagnostics) {
         var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_createIndex$MH, "clang_createIndex");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(excludeDeclarationsFromPCH, displayDiagnostics);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(excludeDeclarationsFromPCH, displayDiagnostics);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -140,13 +140,10 @@ public class Index_h  {
     public static MemorySegment clang_getFileName ( SegmentAllocator allocator,  Addressable SFile) {
         var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_getFileName$MH, "clang_getFileName");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, SFile);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, SFile);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getFileName ( ResourceScope scope,  Addressable SFile) {
-        return clang_getFileName(SegmentAllocator.nativeAllocator(scope), SFile);
     }
     public static MethodHandle clang_getNullLocation$MH() {
         return RuntimeHelper.requireNonNull(constants$0.clang_getNullLocation$MH,"clang_getNullLocation");
@@ -154,13 +151,10 @@ public class Index_h  {
     public static MemorySegment clang_getNullLocation ( SegmentAllocator allocator) {
         var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_getNullLocation$MH, "clang_getNullLocation");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getNullLocation ( ResourceScope scope) {
-        return clang_getNullLocation(SegmentAllocator.nativeAllocator(scope));
     }
     public static MethodHandle clang_equalLocations$MH() {
         return RuntimeHelper.requireNonNull(constants$1.clang_equalLocations$MH,"clang_equalLocations");
@@ -179,13 +173,10 @@ public class Index_h  {
     public static MemorySegment clang_getLocation ( SegmentAllocator allocator,  Addressable tu,  Addressable file,  int line,  int column) {
         var mh$ = RuntimeHelper.requireNonNull(constants$1.clang_getLocation$MH, "clang_getLocation");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, line, column);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, line, column);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getLocation ( ResourceScope scope,  Addressable tu,  Addressable file,  int line,  int column) {
-        return clang_getLocation(SegmentAllocator.nativeAllocator(scope), tu, file, line, column);
     }
     public static MethodHandle clang_getLocationForOffset$MH() {
         return RuntimeHelper.requireNonNull(constants$1.clang_getLocationForOffset$MH,"clang_getLocationForOffset");
@@ -193,13 +184,10 @@ public class Index_h  {
     public static MemorySegment clang_getLocationForOffset ( SegmentAllocator allocator,  Addressable tu,  Addressable file,  int offset) {
         var mh$ = RuntimeHelper.requireNonNull(constants$1.clang_getLocationForOffset$MH, "clang_getLocationForOffset");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, offset);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, offset);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getLocationForOffset ( ResourceScope scope,  Addressable tu,  Addressable file,  int offset) {
-        return clang_getLocationForOffset(SegmentAllocator.nativeAllocator(scope), tu, file, offset);
     }
     public static MethodHandle clang_Location_isInSystemHeader$MH() {
         return RuntimeHelper.requireNonNull(constants$1.clang_Location_isInSystemHeader$MH,"clang_Location_isInSystemHeader");
@@ -273,13 +261,10 @@ public class Index_h  {
     public static MemorySegment clang_getRangeStart ( SegmentAllocator allocator,  MemorySegment range) {
         var mh$ = RuntimeHelper.requireNonNull(constants$2.clang_getRangeStart$MH, "clang_getRangeStart");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, range);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, range);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getRangeStart ( ResourceScope scope,  MemorySegment range) {
-        return clang_getRangeStart(SegmentAllocator.nativeAllocator(scope), range);
     }
     public static MethodHandle clang_getRangeEnd$MH() {
         return RuntimeHelper.requireNonNull(constants$2.clang_getRangeEnd$MH,"clang_getRangeEnd");
@@ -287,13 +272,10 @@ public class Index_h  {
     public static MemorySegment clang_getRangeEnd ( SegmentAllocator allocator,  MemorySegment range) {
         var mh$ = RuntimeHelper.requireNonNull(constants$2.clang_getRangeEnd$MH, "clang_getRangeEnd");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, range);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, range);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getRangeEnd ( ResourceScope scope,  MemorySegment range) {
-        return clang_getRangeEnd(SegmentAllocator.nativeAllocator(scope), range);
     }
     public static int CXDiagnostic_Ignored() {
         return (int)0L;
@@ -316,7 +298,7 @@ public class Index_h  {
     public static MemoryAddress clang_getChildDiagnostics ( Addressable D) {
         var mh$ = RuntimeHelper.requireNonNull(constants$2.clang_getChildDiagnostics$MH, "clang_getChildDiagnostics");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(D);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(D);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -338,7 +320,7 @@ public class Index_h  {
     public static MemoryAddress clang_getDiagnostic ( Addressable Unit,  int Index) {
         var mh$ = RuntimeHelper.requireNonNull(constants$3.clang_getDiagnostic$MH, "clang_getDiagnostic");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(Unit, Index);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(Unit, Index);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -378,13 +360,10 @@ public class Index_h  {
     public static MemorySegment clang_formatDiagnostic ( SegmentAllocator allocator,  Addressable Diagnostic,  int Options) {
         var mh$ = RuntimeHelper.requireNonNull(constants$3.clang_formatDiagnostic$MH, "clang_formatDiagnostic");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, Diagnostic, Options);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, Diagnostic, Options);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_formatDiagnostic ( ResourceScope scope,  Addressable Diagnostic,  int Options) {
-        return clang_formatDiagnostic(SegmentAllocator.nativeAllocator(scope), Diagnostic, Options);
     }
     public static MethodHandle clang_defaultDiagnosticDisplayOptions$MH() {
         return RuntimeHelper.requireNonNull(constants$3.clang_defaultDiagnosticDisplayOptions$MH,"clang_defaultDiagnosticDisplayOptions");
@@ -414,13 +393,10 @@ public class Index_h  {
     public static MemorySegment clang_getDiagnosticLocation ( SegmentAllocator allocator,  Addressable x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticLocation$MH, "clang_getDiagnosticLocation");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getDiagnosticLocation ( ResourceScope scope,  Addressable x1) {
-        return clang_getDiagnosticLocation(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static MethodHandle clang_getDiagnosticSpelling$MH() {
         return RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticSpelling$MH,"clang_getDiagnosticSpelling");
@@ -428,13 +404,10 @@ public class Index_h  {
     public static MemorySegment clang_getDiagnosticSpelling ( SegmentAllocator allocator,  Addressable x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticSpelling$MH, "clang_getDiagnosticSpelling");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getDiagnosticSpelling ( ResourceScope scope,  Addressable x1) {
-        return clang_getDiagnosticSpelling(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static int CXTranslationUnit_None() {
         return (int)0L;
@@ -493,7 +466,7 @@ public class Index_h  {
     public static MemoryAddress clang_parseTranslationUnit ( Addressable CIdx,  Addressable source_filename,  Addressable command_line_args,  int num_command_line_args,  Addressable unsaved_files,  int num_unsaved_files,  int options) {
         var mh$ = RuntimeHelper.requireNonNull(constants$4.clang_parseTranslationUnit$MH, "clang_parseTranslationUnit");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -1354,13 +1327,10 @@ public class Index_h  {
     public static MemorySegment clang_getNullCursor ( SegmentAllocator allocator) {
         var mh$ = RuntimeHelper.requireNonNull(constants$5.clang_getNullCursor$MH, "clang_getNullCursor");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getNullCursor ( ResourceScope scope) {
-        return clang_getNullCursor(SegmentAllocator.nativeAllocator(scope));
     }
     public static MethodHandle clang_getTranslationUnitCursor$MH() {
         return RuntimeHelper.requireNonNull(constants$5.clang_getTranslationUnitCursor$MH,"clang_getTranslationUnitCursor");
@@ -1368,13 +1338,10 @@ public class Index_h  {
     public static MemorySegment clang_getTranslationUnitCursor ( SegmentAllocator allocator,  Addressable x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$5.clang_getTranslationUnitCursor$MH, "clang_getTranslationUnitCursor");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getTranslationUnitCursor ( ResourceScope scope,  Addressable x1) {
-        return clang_getTranslationUnitCursor(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static MethodHandle clang_equalCursors$MH() {
         return RuntimeHelper.requireNonNull(constants$5.clang_equalCursors$MH,"clang_equalCursors");
@@ -1482,7 +1449,7 @@ public class Index_h  {
     public static MemoryAddress clang_Cursor_getTranslationUnit ( MemorySegment x0) {
         var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_Cursor_getTranslationUnit$MH, "clang_Cursor_getTranslationUnit");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(x0);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -1493,13 +1460,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorLocation ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getCursorLocation$MH, "clang_getCursorLocation");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorLocation ( ResourceScope scope,  MemorySegment x1) {
-        return clang_getCursorLocation(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static MethodHandle clang_getCursorExtent$MH() {
         return RuntimeHelper.requireNonNull(constants$7.clang_getCursorExtent$MH,"clang_getCursorExtent");
@@ -1507,13 +1471,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorExtent ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getCursorExtent$MH, "clang_getCursorExtent");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorExtent ( ResourceScope scope,  MemorySegment x1) {
-        return clang_getCursorExtent(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static int CXType_Invalid() {
         return (int)0L;
@@ -1935,13 +1896,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorType ( SegmentAllocator allocator,  MemorySegment C) {
         var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getCursorType$MH, "clang_getCursorType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorType ( ResourceScope scope,  MemorySegment C) {
-        return clang_getCursorType(SegmentAllocator.nativeAllocator(scope), C);
     }
     public static MethodHandle clang_getTypeSpelling$MH() {
         return RuntimeHelper.requireNonNull(constants$7.clang_getTypeSpelling$MH,"clang_getTypeSpelling");
@@ -1949,13 +1907,10 @@ public class Index_h  {
     public static MemorySegment clang_getTypeSpelling ( SegmentAllocator allocator,  MemorySegment CT) {
         var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getTypeSpelling$MH, "clang_getTypeSpelling");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, CT);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, CT);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getTypeSpelling ( ResourceScope scope,  MemorySegment CT) {
-        return clang_getTypeSpelling(SegmentAllocator.nativeAllocator(scope), CT);
     }
     public static MethodHandle clang_getTypedefDeclUnderlyingType$MH() {
         return RuntimeHelper.requireNonNull(constants$7.clang_getTypedefDeclUnderlyingType$MH,"clang_getTypedefDeclUnderlyingType");
@@ -1963,13 +1918,10 @@ public class Index_h  {
     public static MemorySegment clang_getTypedefDeclUnderlyingType ( SegmentAllocator allocator,  MemorySegment C) {
         var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getTypedefDeclUnderlyingType$MH, "clang_getTypedefDeclUnderlyingType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getTypedefDeclUnderlyingType ( ResourceScope scope,  MemorySegment C) {
-        return clang_getTypedefDeclUnderlyingType(SegmentAllocator.nativeAllocator(scope), C);
     }
     public static MethodHandle clang_getEnumDeclIntegerType$MH() {
         return RuntimeHelper.requireNonNull(constants$8.clang_getEnumDeclIntegerType$MH,"clang_getEnumDeclIntegerType");
@@ -1977,13 +1929,10 @@ public class Index_h  {
     public static MemorySegment clang_getEnumDeclIntegerType ( SegmentAllocator allocator,  MemorySegment C) {
         var mh$ = RuntimeHelper.requireNonNull(constants$8.clang_getEnumDeclIntegerType$MH, "clang_getEnumDeclIntegerType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getEnumDeclIntegerType ( ResourceScope scope,  MemorySegment C) {
-        return clang_getEnumDeclIntegerType(SegmentAllocator.nativeAllocator(scope), C);
     }
     public static MethodHandle clang_getEnumConstantDeclValue$MH() {
         return RuntimeHelper.requireNonNull(constants$8.clang_getEnumConstantDeclValue$MH,"clang_getEnumConstantDeclValue");
@@ -2035,13 +1984,10 @@ public class Index_h  {
     public static MemorySegment clang_Cursor_getArgument ( SegmentAllocator allocator,  MemorySegment C,  int i) {
         var mh$ = RuntimeHelper.requireNonNull(constants$8.clang_Cursor_getArgument$MH, "clang_Cursor_getArgument");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C, i);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C, i);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_Cursor_getArgument ( ResourceScope scope,  MemorySegment C,  int i) {
-        return clang_Cursor_getArgument(SegmentAllocator.nativeAllocator(scope), C, i);
     }
     public static MethodHandle clang_equalTypes$MH() {
         return RuntimeHelper.requireNonNull(constants$9.clang_equalTypes$MH,"clang_equalTypes");
@@ -2060,13 +2006,10 @@ public class Index_h  {
     public static MemorySegment clang_getCanonicalType ( SegmentAllocator allocator,  MemorySegment T) {
         var mh$ = RuntimeHelper.requireNonNull(constants$9.clang_getCanonicalType$MH, "clang_getCanonicalType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCanonicalType ( ResourceScope scope,  MemorySegment T) {
-        return clang_getCanonicalType(SegmentAllocator.nativeAllocator(scope), T);
     }
     public static MethodHandle clang_isConstQualifiedType$MH() {
         return RuntimeHelper.requireNonNull(constants$9.clang_isConstQualifiedType$MH,"clang_isConstQualifiedType");
@@ -2107,13 +2050,10 @@ public class Index_h  {
     public static MemorySegment clang_getTypedefName ( SegmentAllocator allocator,  MemorySegment CT) {
         var mh$ = RuntimeHelper.requireNonNull(constants$9.clang_getTypedefName$MH, "clang_getTypedefName");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, CT);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, CT);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getTypedefName ( ResourceScope scope,  MemorySegment CT) {
-        return clang_getTypedefName(SegmentAllocator.nativeAllocator(scope), CT);
     }
     public static MethodHandle clang_getPointeeType$MH() {
         return RuntimeHelper.requireNonNull(constants$10.clang_getPointeeType$MH,"clang_getPointeeType");
@@ -2121,13 +2061,10 @@ public class Index_h  {
     public static MemorySegment clang_getPointeeType ( SegmentAllocator allocator,  MemorySegment T) {
         var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getPointeeType$MH, "clang_getPointeeType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getPointeeType ( ResourceScope scope,  MemorySegment T) {
-        return clang_getPointeeType(SegmentAllocator.nativeAllocator(scope), T);
     }
     public static MethodHandle clang_getTypeDeclaration$MH() {
         return RuntimeHelper.requireNonNull(constants$10.clang_getTypeDeclaration$MH,"clang_getTypeDeclaration");
@@ -2135,13 +2072,10 @@ public class Index_h  {
     public static MemorySegment clang_getTypeDeclaration ( SegmentAllocator allocator,  MemorySegment T) {
         var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getTypeDeclaration$MH, "clang_getTypeDeclaration");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getTypeDeclaration ( ResourceScope scope,  MemorySegment T) {
-        return clang_getTypeDeclaration(SegmentAllocator.nativeAllocator(scope), T);
     }
     public static MethodHandle clang_getTypeKindSpelling$MH() {
         return RuntimeHelper.requireNonNull(constants$10.clang_getTypeKindSpelling$MH,"clang_getTypeKindSpelling");
@@ -2149,13 +2083,10 @@ public class Index_h  {
     public static MemorySegment clang_getTypeKindSpelling ( SegmentAllocator allocator,  int K) {
         var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getTypeKindSpelling$MH, "clang_getTypeKindSpelling");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, K);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, K);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getTypeKindSpelling ( ResourceScope scope,  int K) {
-        return clang_getTypeKindSpelling(SegmentAllocator.nativeAllocator(scope), K);
     }
     public static MethodHandle clang_getFunctionTypeCallingConv$MH() {
         return RuntimeHelper.requireNonNull(constants$10.clang_getFunctionTypeCallingConv$MH,"clang_getFunctionTypeCallingConv");
@@ -2174,13 +2105,10 @@ public class Index_h  {
     public static MemorySegment clang_getResultType ( SegmentAllocator allocator,  MemorySegment T) {
         var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getResultType$MH, "clang_getResultType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getResultType ( ResourceScope scope,  MemorySegment T) {
-        return clang_getResultType(SegmentAllocator.nativeAllocator(scope), T);
     }
     public static MethodHandle clang_getNumArgTypes$MH() {
         return RuntimeHelper.requireNonNull(constants$10.clang_getNumArgTypes$MH,"clang_getNumArgTypes");
@@ -2199,13 +2127,10 @@ public class Index_h  {
     public static MemorySegment clang_getArgType ( SegmentAllocator allocator,  MemorySegment T,  int i) {
         var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_getArgType$MH, "clang_getArgType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T, i);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T, i);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getArgType ( ResourceScope scope,  MemorySegment T,  int i) {
-        return clang_getArgType(SegmentAllocator.nativeAllocator(scope), T, i);
     }
     public static MethodHandle clang_isFunctionTypeVariadic$MH() {
         return RuntimeHelper.requireNonNull(constants$11.clang_isFunctionTypeVariadic$MH,"clang_isFunctionTypeVariadic");
@@ -2224,13 +2149,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorResultType ( SegmentAllocator allocator,  MemorySegment C) {
         var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_getCursorResultType$MH, "clang_getCursorResultType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorResultType ( ResourceScope scope,  MemorySegment C) {
-        return clang_getCursorResultType(SegmentAllocator.nativeAllocator(scope), C);
     }
     public static MethodHandle clang_getElementType$MH() {
         return RuntimeHelper.requireNonNull(constants$11.clang_getElementType$MH,"clang_getElementType");
@@ -2238,13 +2160,10 @@ public class Index_h  {
     public static MemorySegment clang_getElementType ( SegmentAllocator allocator,  MemorySegment T) {
         var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_getElementType$MH, "clang_getElementType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getElementType ( ResourceScope scope,  MemorySegment T) {
-        return clang_getElementType(SegmentAllocator.nativeAllocator(scope), T);
     }
     public static MethodHandle clang_getNumElements$MH() {
         return RuntimeHelper.requireNonNull(constants$11.clang_getNumElements$MH,"clang_getNumElements");
@@ -2263,13 +2182,10 @@ public class Index_h  {
     public static MemorySegment clang_getArrayElementType ( SegmentAllocator allocator,  MemorySegment T) {
         var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_getArrayElementType$MH, "clang_getArrayElementType");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getArrayElementType ( ResourceScope scope,  MemorySegment T) {
-        return clang_getArrayElementType(SegmentAllocator.nativeAllocator(scope), T);
     }
     public static MethodHandle clang_getArraySize$MH() {
         return RuntimeHelper.requireNonNull(constants$12.clang_getArraySize$MH,"clang_getArraySize");
@@ -2393,13 +2309,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorUSR ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$13.clang_getCursorUSR$MH, "clang_getCursorUSR");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorUSR ( ResourceScope scope,  MemorySegment x1) {
-        return clang_getCursorUSR(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static MethodHandle clang_getCursorSpelling$MH() {
         return RuntimeHelper.requireNonNull(constants$13.clang_getCursorSpelling$MH,"clang_getCursorSpelling");
@@ -2407,13 +2320,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorSpelling ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$13.clang_getCursorSpelling$MH, "clang_getCursorSpelling");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorSpelling ( ResourceScope scope,  MemorySegment x1) {
-        return clang_getCursorSpelling(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static int CXPrintingPolicy_Indentation() {
         return (int)0L;
@@ -2524,7 +2434,7 @@ public class Index_h  {
     public static MemoryAddress clang_getCursorPrintingPolicy ( MemorySegment x0) {
         var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrintingPolicy$MH, "clang_getCursorPrintingPolicy");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(x0);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -2546,13 +2456,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorPrettyPrinted ( SegmentAllocator allocator,  MemorySegment Cursor,  Addressable Policy) {
         var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrettyPrinted$MH, "clang_getCursorPrettyPrinted");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, Cursor, Policy);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, Cursor, Policy);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorPrettyPrinted ( ResourceScope scope,  MemorySegment Cursor,  Addressable Policy) {
-        return clang_getCursorPrettyPrinted(SegmentAllocator.nativeAllocator(scope), Cursor, Policy);
     }
     public static MethodHandle clang_getCursorDisplayName$MH() {
         return RuntimeHelper.requireNonNull(constants$14.clang_getCursorDisplayName$MH,"clang_getCursorDisplayName");
@@ -2560,13 +2467,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorDisplayName ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_getCursorDisplayName$MH, "clang_getCursorDisplayName");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorDisplayName ( ResourceScope scope,  MemorySegment x1) {
-        return clang_getCursorDisplayName(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static MethodHandle clang_getCursorReferenced$MH() {
         return RuntimeHelper.requireNonNull(constants$14.clang_getCursorReferenced$MH,"clang_getCursorReferenced");
@@ -2574,13 +2478,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorReferenced ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_getCursorReferenced$MH, "clang_getCursorReferenced");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorReferenced ( ResourceScope scope,  MemorySegment x1) {
-        return clang_getCursorReferenced(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static MethodHandle clang_getCursorDefinition$MH() {
         return RuntimeHelper.requireNonNull(constants$15.clang_getCursorDefinition$MH,"clang_getCursorDefinition");
@@ -2588,13 +2489,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorDefinition ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$15.clang_getCursorDefinition$MH, "clang_getCursorDefinition");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorDefinition ( ResourceScope scope,  MemorySegment x1) {
-        return clang_getCursorDefinition(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static MethodHandle clang_isCursorDefinition$MH() {
         return RuntimeHelper.requireNonNull(constants$15.clang_isCursorDefinition$MH,"clang_isCursorDefinition");
@@ -2624,13 +2522,10 @@ public class Index_h  {
     public static MemorySegment clang_Cursor_getMangling ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = RuntimeHelper.requireNonNull(constants$15.clang_Cursor_getMangling$MH, "clang_Cursor_getMangling");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_Cursor_getMangling ( ResourceScope scope,  MemorySegment x1) {
-        return clang_Cursor_getMangling(SegmentAllocator.nativeAllocator(scope), x1);
     }
     public static int CXToken_Punctuation() {
         return (int)0L;
@@ -2664,13 +2559,10 @@ public class Index_h  {
     public static MemorySegment clang_getTokenSpelling ( SegmentAllocator allocator,  Addressable x1,  MemorySegment x2) {
         var mh$ = RuntimeHelper.requireNonNull(constants$15.clang_getTokenSpelling$MH, "clang_getTokenSpelling");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getTokenSpelling ( ResourceScope scope,  Addressable x1,  MemorySegment x2) {
-        return clang_getTokenSpelling(SegmentAllocator.nativeAllocator(scope), x1, x2);
     }
     public static MethodHandle clang_getTokenLocation$MH() {
         return RuntimeHelper.requireNonNull(constants$16.clang_getTokenLocation$MH,"clang_getTokenLocation");
@@ -2678,13 +2570,10 @@ public class Index_h  {
     public static MemorySegment clang_getTokenLocation ( SegmentAllocator allocator,  Addressable x1,  MemorySegment x2) {
         var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_getTokenLocation$MH, "clang_getTokenLocation");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getTokenLocation ( ResourceScope scope,  Addressable x1,  MemorySegment x2) {
-        return clang_getTokenLocation(SegmentAllocator.nativeAllocator(scope), x1, x2);
     }
     public static MethodHandle clang_getTokenExtent$MH() {
         return RuntimeHelper.requireNonNull(constants$16.clang_getTokenExtent$MH,"clang_getTokenExtent");
@@ -2692,13 +2581,10 @@ public class Index_h  {
     public static MemorySegment clang_getTokenExtent ( SegmentAllocator allocator,  Addressable x1,  MemorySegment x2) {
         var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_getTokenExtent$MH, "clang_getTokenExtent");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getTokenExtent ( ResourceScope scope,  Addressable x1,  MemorySegment x2) {
-        return clang_getTokenExtent(SegmentAllocator.nativeAllocator(scope), x1, x2);
     }
     public static MethodHandle clang_tokenize$MH() {
         return RuntimeHelper.requireNonNull(constants$16.clang_tokenize$MH,"clang_tokenize");
@@ -2728,13 +2614,10 @@ public class Index_h  {
     public static MemorySegment clang_getCursorKindSpelling ( SegmentAllocator allocator,  int Kind) {
         var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_getCursorKindSpelling$MH, "clang_getCursorKindSpelling");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, Kind);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, Kind);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getCursorKindSpelling ( ResourceScope scope,  int Kind) {
-        return clang_getCursorKindSpelling(SegmentAllocator.nativeAllocator(scope), Kind);
     }
     public static MethodHandle clang_getClangVersion$MH() {
         return RuntimeHelper.requireNonNull(constants$16.clang_getClangVersion$MH,"clang_getClangVersion");
@@ -2742,13 +2625,10 @@ public class Index_h  {
     public static MemorySegment clang_getClangVersion ( SegmentAllocator allocator) {
         var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_getClangVersion$MH, "clang_getClangVersion");
         try {
-            return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
-    }
-    public static MemorySegment clang_getClangVersion ( ResourceScope scope) {
-        return clang_getClangVersion(SegmentAllocator.nativeAllocator(scope));
     }
     public static MethodHandle clang_toggleCrashRecovery$MH() {
         return RuntimeHelper.requireNonNull(constants$17.clang_toggleCrashRecovery$MH,"clang_toggleCrashRecovery");
@@ -2767,7 +2647,7 @@ public class Index_h  {
     public static MemoryAddress clang_Cursor_Evaluate ( MemorySegment C) {
         var mh$ = RuntimeHelper.requireNonNull(constants$17.clang_Cursor_Evaluate$MH, "clang_Cursor_Evaluate");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(C);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(C);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -2844,7 +2724,7 @@ public class Index_h  {
     public static MemoryAddress clang_EvalResult_getAsStr ( Addressable E) {
         var mh$ = RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsStr$MH, "clang_EvalResult_getAsStr");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(E);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(E);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }

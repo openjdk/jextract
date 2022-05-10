@@ -29,9 +29,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.SegmentAllocator;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
 import blas.*;
 import static blas.cblas_h.*;
 
@@ -42,7 +42,7 @@ public class TestBlas {
 
         double alpha, beta;
         int m, n, lda, incx, incy, i;
-
+ 
         Layout = CblasColMajor();
         transa = CblasNoTrans();
 
@@ -53,8 +53,8 @@ public class TestBlas {
         incy = 1;
         alpha = 1;
         beta = 0;
-
-        try (var scope = ResourceScope.newConfinedScope()) {
+ 
+        try (var scope = MemorySession.openConfined()) {
             var allocator = SegmentAllocator.newNativeArena(scope);
             var a = allocator.allocateArray(C_DOUBLE, new double[] {
                 1.0, 2.0, 3.0, 4.0,
@@ -66,7 +66,7 @@ public class TestBlas {
                 1.0, 2.0, 1.0, 1.0
             });
             var y = allocator.allocateArray(C_DOUBLE, n);
-
+        
             cblas_dgemv(Layout, transa, m, n, alpha, a, lda, x, incx, beta, y, incy);
             /* Print y */
             for (i = 0; i < n; i++) {

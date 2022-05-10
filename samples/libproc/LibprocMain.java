@@ -29,18 +29,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import org.unix.*;
-import static jdk.incubator.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemoryAddress.NULL;
 import static org.unix.libproc_h.*;
 
 public class LibprocMain {
     private static final int NAME_BUF_MAX = 256;
 
     public static void main(String[] args) {
-        try (var scope = ResourceScope.newConfinedScope()) {
+        try (var scope = MemorySession.openConfined()) {
             var allocator = SegmentAllocator.newNativeArena(scope);
             // get the number of processes
             int numPids = proc_listallpids(NULL, 0);

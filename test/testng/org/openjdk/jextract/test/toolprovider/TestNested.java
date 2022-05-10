@@ -28,14 +28,14 @@ import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
 
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
 
-import static jdk.incubator.foreign.MemoryLayout.PathElement.groupElement;
+import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
@@ -155,7 +155,7 @@ public class TestNested extends JextractToolRunner {
             if (type == MemorySegment.class) {
                 Method slicer = cls.getMethod(fieldName + "$slice", MemorySegment.class);
                 assertEquals(slicer.getReturnType(), MemorySegment.class);
-                try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+                try (MemorySession scope = MemorySession.openConfined()) {
                     MemorySegment struct = MemorySegment.allocateNative(layout, scope);
                     MemorySegment slice = (MemorySegment) slicer.invoke(null, struct);
                     assertEquals(slice.byteSize(), fieldLayout.byteSize());
@@ -167,7 +167,7 @@ public class TestNested extends JextractToolRunner {
                 assertEquals(setter.getReturnType(), void.class);
 
                 Object zero = MethodHandles.zero(type).invoke();
-                try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+                try (MemorySession scope = MemorySession.openConfined()) {
                     MemorySegment struct = MemorySegment.allocateNative(layout, scope);
                     setter.invoke(null, struct, zero);
                     Object actual = getter.invoke(null, struct);

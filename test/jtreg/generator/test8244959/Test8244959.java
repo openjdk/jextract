@@ -21,15 +21,14 @@
  * questions.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.MemorySegment;
 
 import static org.testng.Assert.assertEquals;
 import static test.jextract.printf.printf_h.*;
-import static jdk.incubator.foreign.CLinker.*;
+import static java.lang.foreign.Linker.*;
 
 /*
  * @test id=classes
@@ -50,8 +49,8 @@ import static jdk.incubator.foreign.CLinker.*;
 public class Test8244959 {
     @Test
     public void testsPrintf() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
+        try (MemorySession scope = MemorySession.openConfined()) {
+            var allocator = scope;
             MemorySegment s = allocator.allocate(1024);
             my_sprintf(s,
                     allocator.allocateUtf8String("%hhd %c %.2f %.2f %lld %lld %d %hd %d %d %lld %c"), 12,

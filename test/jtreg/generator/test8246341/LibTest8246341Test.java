@@ -21,16 +21,16 @@
  * questions.
  */
 
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import org.testng.annotations.Test;
 import test.jextract.test8246341.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static test.jextract.test8246341.test8246341_h.*;
-import static jdk.incubator.foreign.CLinker.*;
+import static java.lang.foreign.Linker.*;
 
 /*
  * @test id=classes
@@ -52,7 +52,7 @@ public class LibTest8246341Test {
     @Test
     public void testPointerArray() {
         boolean[] callbackCalled = new boolean[1];
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             var callback = func$callback.allocate((argc, argv) -> {
                 callbackCalled[0] = true;
                 var addr = MemorySegment.ofAddress(argv, C_POINTER.byteSize() * argc, scope);
@@ -69,7 +69,7 @@ public class LibTest8246341Test {
 
     @Test
     public void testPointerAllocate() {
-        try (var scope = ResourceScope.newConfinedScope()) {
+        try (var scope = MemorySession.openConfined()) {
             var allocator = SegmentAllocator.newNativeArena(C_POINTER.byteSize(), scope);
             var addr = allocator.allocate(C_POINTER);
             addr.set(C_POINTER, 0, MemoryAddress.NULL);

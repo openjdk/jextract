@@ -25,11 +25,11 @@
  */
 package org.openjdk.jextract.clang;
 
-import jdk.incubator.foreign.Addressable;
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.Addressable;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 import java.nio.file.Path;
@@ -55,7 +55,7 @@ public class SourceLocation {
 
     @SuppressWarnings("unchecked")
     private Location getLocation(LocationFactory fn) {
-        try (var scope = ResourceScope.newConfinedScope()) {
+        try (var scope = MemorySession.openConfined()) {
              MemorySegment file = MemorySegment.allocateNative(C_POINTER, scope);
              MemorySegment line = MemorySegment.allocateNative(C_INT, scope);
              MemorySegment col = MemorySegment.allocateNative(C_INT, scope);

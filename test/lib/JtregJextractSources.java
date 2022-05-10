@@ -72,8 +72,8 @@ public class JtregJextractSources {
             System.err.println("compiling jextracted sources @ " + sourcePath.toAbsolutePath());
             List<String> commands = new ArrayList<>();
             commands.add("-parameters");
-            commands.add("--add-modules");
-            commands.add("jdk.incubator.foreign");
+            commands.add("--source=19");
+            commands.add("--enable-preview");
             commands.add("-d");
             commands.add(outputDir.toAbsolutePath().toString());
             commands.addAll(files);

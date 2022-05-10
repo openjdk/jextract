@@ -25,8 +25,8 @@
  */
 package org.openjdk.jextract.clang;
 
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 import static org.openjdk.jextract.clang.LibClang.IMPLICIT_ALLOCATOR;

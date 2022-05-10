@@ -5,18 +5,19 @@ package org.openjdk;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 public interface JImageResourceIterator_t {
 
-    void apply(jdk.incubator.foreign.MemoryAddress x0, jdk.incubator.foreign.MemoryAddress x1, jdk.incubator.foreign.MemoryAddress x2);
-    static NativeSymbol allocate(JImageResourceIterator_t fi, ResourceScope scope) {
-        return RuntimeHelper.upcallStub(JImageResourceIterator_t.class, fi, constants$3.JImageResourceIterator_t$FUNC, "(Ljdk/incubator/foreign/MemoryAddress;Ljdk/incubator/foreign/MemoryAddress;Ljdk/incubator/foreign/MemoryAddress;)V", scope);
+    void apply(java.lang.foreign.MemoryAddress jimage, java.lang.foreign.MemoryAddress visitor, java.lang.foreign.MemoryAddress arg);
+    static MemorySegment allocate(JImageResourceIterator_t fi, MemorySession scope) {
+        return RuntimeHelper.upcallStub(JImageResourceIterator_t.class, fi, constants$3.JImageResourceIterator_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;)V", scope);
     }
-    static JImageResourceIterator_t ofAddress(MemoryAddress addr, ResourceScope scope) {
-        NativeSymbol symbol = NativeSymbol.ofAddress("JImageResourceIterator_t::" + Long.toHexString(addr.toRawLongValue()), addr, scope);return (jdk.incubator.foreign.MemoryAddress x0, jdk.incubator.foreign.MemoryAddress x1, jdk.incubator.foreign.MemoryAddress x2) -> {
+    static JImageResourceIterator_t ofAddress(MemoryAddress addr, MemorySession scope) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, scope);
+        return (java.lang.foreign.MemoryAddress _jimage, java.lang.foreign.MemoryAddress _visitor, java.lang.foreign.MemoryAddress _arg) -> {
             try {
-                constants$3.JImageResourceIterator_t$MH.invokeExact(symbol, x0, x1, x2);
+                constants$3.JImageResourceIterator_t$MH.invokeExact((Addressable)symbol, (java.lang.foreign.Addressable)_jimage, (java.lang.foreign.Addressable)_visitor, (java.lang.foreign.Addressable)_arg);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

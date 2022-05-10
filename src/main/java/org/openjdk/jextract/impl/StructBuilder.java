@@ -24,12 +24,12 @@
  */
 package org.openjdk.jextract.impl;
 
-import jdk.incubator.foreign.FunctionDescriptor;
-import jdk.incubator.foreign.GroupLayout;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.SequenceLayout;
-import jdk.incubator.foreign.ValueLayout;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
@@ -91,8 +91,6 @@ class StructBuilder extends ConstantBuilder {
             emitSizeof();
             emitAllocatorAllocate();
             emitAllocatorAllocateArray();
-            emitScopeAllocate();
-            emitScopeAllocateArray();
             emitOfAddressScoped();
             return super.classEnd();
         } else {
@@ -136,7 +134,9 @@ class StructBuilder extends ConstantBuilder {
             return;
         }
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
-            emitSegmentGetter(javaName, nativeName, layout);
+            if (layout.byteSize() > 0) {
+                emitSegmentGetter(javaName, nativeName, layout);
+            }
         } else if (layout instanceof ValueLayout valueLayout) {
             Constant vhConstant = addFieldVarHandle(javaName, nativeName, valueLayout, layoutField(), prefixNamesList())
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
@@ -154,7 +154,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + " (MemorySegment segment, ResourceScope scope) {\n");
+        append(fiName + " " + javaName + " (MemorySegment segment, MemorySession scope) {\n");
         incrAlign();
         indent();
         append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), scope);\n");
@@ -254,33 +254,11 @@ class StructBuilder extends ConstantBuilder {
         decrAlign();
     }
 
-    private void emitScopeAllocate() {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS);
-        append(" MemorySegment allocate(ResourceScope scope) { return allocate(SegmentAllocator.nativeAllocator(scope)); }\n");
-        decrAlign();
-    }
-
-    private void emitScopeAllocateArray() {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS);
-        append(" MemorySegment allocateArray(int len, ResourceScope scope) {\n");
-        incrAlign();
-        indent();
-        append("return allocateArray(len, SegmentAllocator.nativeAllocator(scope));\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
-    }
-
     private void emitOfAddressScoped() {
         incrAlign();
         indent();
         append(MEMBER_MODS);
-        append(" MemorySegment ofAddress(MemoryAddress addr, ResourceScope scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }\n");
+        append(" MemorySegment ofAddress(MemoryAddress addr, MemorySession scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }\n");
         decrAlign();
     }
 

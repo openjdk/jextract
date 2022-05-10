@@ -22,7 +22,7 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
-import jdk.incubator.foreign.MemoryLayout;
+import java.lang.foreign.MemoryLayout;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
@@ -49,7 +49,7 @@ public class IncompleteArrayTest extends JextractToolRunner {
             MemoryLayout expectedLayout = MemoryLayout.structLayout(
                 C_INT.withName("size"),
                 MemoryLayout.paddingLayout(32),
-                MemoryLayout.sequenceLayout(C_POINTER).withName("data")
+                MemoryLayout.sequenceLayout(0, C_POINTER).withName("data")
             ).withName("Foo");
             assertEquals(actualLayout, expectedLayout);
         } finally {

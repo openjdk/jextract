@@ -29,9 +29,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.SegmentAllocator;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
 import lapack.*;
 import static lapack.lapacke_h.*;
 
@@ -39,7 +39,7 @@ public class TestLapack {
     public static void main(String[] args) {
 
         /* Locals */
-        try (var scope = ResourceScope.newConfinedScope()) {
+        try (var scope = MemorySession.openConfined()) {
             var allocator = SegmentAllocator.newNativeArena(scope);
             var A = allocator.allocateArray(C_DOUBLE, new double[]{
                     1, 2, 3, 4, 5, 1, 3, 5, 2, 4, 1, 4, 2, 5, 3
@@ -61,19 +61,19 @@ public class TestLapack {
             /* Print Right Rand Side */
             print_matrix_colmajor("Right Hand Side b", n, nrhs, b, ldb );
             System.out.println();
-
+            
             /* Executable statements */
             //            printf( "LAPACKE_dgels (col-major, high-level) Example Program Results\n" );
             /* Solve least squares problem*/
             info = LAPACKE_dgels(LAPACK_COL_MAJOR(), (byte)'N', m, n, nrhs, A, lda, b, ldb);
-
+ 
             /* Print Solution */
             print_matrix_colmajor("Solution", n, nrhs, b, ldb );
             System.out.println();
             System.exit(info);
-        }
-    }
-
+        }   
+    }   
+    
     static void print_matrix_colmajor(String msg, int m, int n, MemorySegment mat, int ldm) {
         int i, j;
         System.out.printf("\n %s\n", msg);

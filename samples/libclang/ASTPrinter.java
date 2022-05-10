@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.MemoryAddress.NULL;
+import java.lang.foreign.*;
+import static java.lang.foreign.MemoryAddress.NULL;
 import static org.llvm.clang.Index_h.*;
 import org.llvm.clang.*;
 
@@ -47,7 +47,7 @@ public class ASTPrinter {
             System.exit(1);
         }
 
-        try (var scope = ResourceScope.newConfinedScope()) {
+        try (var scope = MemorySession.openConfined()) {
             // parse the C header/source passed from the command line
             var index = clang_createIndex(0, 0);
             var allocator = SegmentAllocator.newNativeArena(scope);
@@ -55,7 +55,7 @@ public class ASTPrinter {
                     NULL, 0, NULL, 0, CXTranslationUnit_None());
             // array trick to update within lambda
             var level = new int[1];
-            var visitor = new NativeSymbol[1];
+            var visitor = new MemorySegment[1];
 
             // clang Cursor visitor callback
             visitor[0] = CXCursorVisitor.allocate((cursor, parent, data) -> {

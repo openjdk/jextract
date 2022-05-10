@@ -29,9 +29,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
-import static jdk.incubator.foreign.MemoryAddress.NULL;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
+import static java.lang.foreign.MemoryAddress.NULL;
 // import jextracted tcl 'header' class
 import static org.tcl.tcl_h.*;
 import org.tcl.*;
@@ -53,8 +53,8 @@ public class TCLMain {
             puts "Full name: $name(first) $name(last)"
         """;
 
-        try (var scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.nativeAllocator(scope);
+        try (var scope = MemorySession.openConfined()) {
+            var allocator = scope;
             var str = allocator.allocateUtf8String(script);
             Tcl_Eval(interp, str);
         }

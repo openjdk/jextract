@@ -5,18 +5,19 @@ package org.openjdk;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 public interface JImageOpen_t {
 
-    jdk.incubator.foreign.MemoryAddress apply(jdk.incubator.foreign.MemoryAddress x0, jdk.incubator.foreign.MemoryAddress x1);
-    static NativeSymbol allocate(JImageOpen_t fi, ResourceScope scope) {
-        return RuntimeHelper.upcallStub(JImageOpen_t.class, fi, constants$0.JImageOpen_t$FUNC, "(Ljdk/incubator/foreign/MemoryAddress;Ljdk/incubator/foreign/MemoryAddress;)Ljdk/incubator/foreign/MemoryAddress;", scope);
+    java.lang.foreign.Addressable apply(java.lang.foreign.MemoryAddress name, java.lang.foreign.MemoryAddress error);
+    static MemorySegment allocate(JImageOpen_t fi, MemorySession scope) {
+        return RuntimeHelper.upcallStub(JImageOpen_t.class, fi, constants$0.JImageOpen_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;)Ljava/lang/foreign/Addressable;", scope);
     }
-    static JImageOpen_t ofAddress(MemoryAddress addr, ResourceScope scope) {
-        NativeSymbol symbol = NativeSymbol.ofAddress("JImageOpen_t::" + Long.toHexString(addr.toRawLongValue()), addr, scope);return (jdk.incubator.foreign.MemoryAddress x0, jdk.incubator.foreign.MemoryAddress x1) -> {
+    static JImageOpen_t ofAddress(MemoryAddress addr, MemorySession scope) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, scope);
+        return (java.lang.foreign.MemoryAddress _name, java.lang.foreign.MemoryAddress _error) -> {
             try {
-                return (jdk.incubator.foreign.MemoryAddress)constants$0.JImageOpen_t$MH.invokeExact(symbol, x0, x1);
+                return (java.lang.foreign.Addressable)(java.lang.foreign.MemoryAddress)constants$0.JImageOpen_t$MH.invokeExact((Addressable)symbol, (java.lang.foreign.Addressable)_name, (java.lang.foreign.Addressable)_error);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

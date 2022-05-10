@@ -37,11 +37,10 @@ repositories {
 }
 
 compileJava {
-    options.release = 18
-    options.compilerArgs << "--add-modules=jdk.incubator.foreign"
-    options.compilerArgs << "-Xlint:all"
+    options.release = 19
+    options.compilerArgs << "--enable-preview"
     options.fork = true
-    options.forkOptions.executable = "${jdk18_home}/bin/javac"
+    options.forkOptions.executable = "${jdk19_home}/bin/javac"
 }
 
 jar {
@@ -57,14 +56,14 @@ task createJextractImage(type: Exec) {
     outputs.dir(jextract_app_dir)
 
     def quote_jlink_opts = Os.isFamily(Os.FAMILY_WINDOWS)?
-        '\\"--enable-native-access=org.openjdk.jextract\\"' :
-        '"--enable-native-access=org.openjdk.jextract"'
+        '\\"--enable-native-access=org.openjdk.jextract\\" \\"--enable-preview\""' :
+        '"--enable-native-access=org.openjdk.jextract" "--enable-preview"'
 
     doFirst {
         delete(jextract_app_dir)
     }
 
-    executable = "${jdk18_home}/bin/jlink"
+    executable = "${jdk19_home}/bin/jlink"
     args = [
          "--module-path=$buildDir/libs",
          "--add-modules=org.openjdk.jextract,jdk.compiler",
@@ -122,9 +121,9 @@ task createRuntimeImageForTest(type: Exec) {
         delete(out_dir)
     }
 
-    executable = "${jdk18_home}/bin/jlink"
+    executable = "${jdk19_home}/bin/jlink"
     args = [
-         "--module-path=$buildDir/libs" + File.pathSeparator + "$jdk18_home/jmods",
+         "--module-path=$buildDir/libs" + File.pathSeparator + "$jdk19_home/jmods",
          "--add-modules=ALL-MODULE-PATH",
          "--output=$out_dir",
     ]
@@ -186,6 +185,7 @@ task jtreg(type: JavaExec) {
     args = [
             "-jdk", "$buildDir/jextract-jdk-test-image",
             "-nativepath:$buildDir/testlib-install/${os_lib_dir}",
+            "-javaoption:--enable-preview",
             "-javaoption:--enable-native-access=org.openjdk.jextract,ALL-UNNAMED",
             "-avm", "-conc:auto", "-verbose:summary",
             "../test"

@@ -5,32 +5,32 @@ package org.openjdk;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 public class jimage_h  {
 
     /* package-private */ jimage_h() {}
-    public static ValueLayout.OfByte C_CHAR = JAVA_BYTE;
-    public static ValueLayout.OfShort C_SHORT = JAVA_SHORT;
-    public static ValueLayout.OfInt C_INT = JAVA_INT;
-    public static ValueLayout.OfLong C_LONG = JAVA_LONG;
-    public static ValueLayout.OfLong C_LONG_LONG = JAVA_LONG;
-    public static ValueLayout.OfFloat C_FLOAT = JAVA_FLOAT;
-    public static ValueLayout.OfDouble C_DOUBLE = JAVA_DOUBLE;
-    public static ValueLayout.OfAddress C_POINTER = ValueLayout.ADDRESS;
+    public static OfByte C_CHAR = Constants$root.C_CHAR$LAYOUT;
+    public static OfShort C_SHORT = Constants$root.C_SHORT$LAYOUT;
+    public static OfInt C_INT = Constants$root.C_INT$LAYOUT;
+    public static OfLong C_LONG = Constants$root.C_LONG_LONG$LAYOUT;
+    public static OfLong C_LONG_LONG = Constants$root.C_LONG_LONG$LAYOUT;
+    public static OfFloat C_FLOAT = Constants$root.C_FLOAT$LAYOUT;
+    public static OfDouble C_DOUBLE = Constants$root.C_DOUBLE$LAYOUT;
+    public static OfAddress C_POINTER = Constants$root.C_POINTER$LAYOUT;
     public static int JIMAGE_MAX_PATH() {
         return (int)4096L;
     }
-    public static ValueLayout.OfLong jlong = JAVA_LONG;
-    public static ValueLayout.OfInt jint = JAVA_INT;
-    public static ValueLayout.OfLong JImageLocationRef = JAVA_LONG;
+    public static OfLong jlong = Constants$root.C_LONG_LONG$LAYOUT;
+    public static OfInt jint = Constants$root.C_INT$LAYOUT;
+    public static OfLong JImageLocationRef = Constants$root.C_LONG_LONG$LAYOUT;
     public static MethodHandle JIMAGE_Open$MH() {
         return RuntimeHelper.requireNonNull(constants$0.JIMAGE_Open$MH,"JIMAGE_Open");
     }
     public static MemoryAddress JIMAGE_Open ( Addressable name,  Addressable error) {
         var mh$ = RuntimeHelper.requireNonNull(constants$0.JIMAGE_Open$MH, "JIMAGE_Open");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(name, error);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(name, error);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -52,7 +52,7 @@ public class jimage_h  {
     public static MemoryAddress JIMAGE_PackageToModule ( Addressable jimage,  Addressable package_name) {
         var mh$ = RuntimeHelper.requireNonNull(constants$1.JIMAGE_PackageToModule$MH, "JIMAGE_PackageToModule");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(jimage, package_name);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(jimage, package_name);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }

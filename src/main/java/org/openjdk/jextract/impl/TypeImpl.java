@@ -32,13 +32,13 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Supplier;
 
-import jdk.incubator.foreign.FunctionDescriptor;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.ValueLayout;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
-import static jdk.incubator.foreign.ValueLayout.ADDRESS;
+import static java.lang.foreign.ValueLayout.ADDRESS;
 
 public abstract class TypeImpl implements Type {
 
@@ -442,7 +442,7 @@ public abstract class TypeImpl implements Type {
             if (t.elementCount().isPresent()) {
                 return MemoryLayout.sequenceLayout(t.elementCount().getAsLong(), elem);
             } else {
-                return MemoryLayout.sequenceLayout(elem);
+                return MemoryLayout.sequenceLayout(0, elem);
             }
         }
 

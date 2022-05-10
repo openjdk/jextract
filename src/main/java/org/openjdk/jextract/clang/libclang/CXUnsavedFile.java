@@ -30,8 +30,8 @@ package org.openjdk.jextract.clang.libclang;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 public class CXUnsavedFile {
 
     static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
@@ -47,13 +47,13 @@ public class CXUnsavedFile {
         return CXUnsavedFile.Filename$VH;
     }
     public static MemoryAddress Filename$get(MemorySegment seg) {
-        return (jdk.incubator.foreign.MemoryAddress)CXUnsavedFile.Filename$VH.get(seg);
+        return (java.lang.foreign.MemoryAddress)CXUnsavedFile.Filename$VH.get(seg);
     }
     public static void Filename$set( MemorySegment seg, MemoryAddress x) {
         CXUnsavedFile.Filename$VH.set(seg, x);
     }
     public static MemoryAddress Filename$get(MemorySegment seg, long index) {
-        return (jdk.incubator.foreign.MemoryAddress)CXUnsavedFile.Filename$VH.get(seg.asSlice(index*sizeof()));
+        return (java.lang.foreign.MemoryAddress)CXUnsavedFile.Filename$VH.get(seg.asSlice(index*sizeof()));
     }
     public static void Filename$set(MemorySegment seg, long index, MemoryAddress x) {
         CXUnsavedFile.Filename$VH.set(seg.asSlice(index*sizeof()), x);
@@ -63,13 +63,13 @@ public class CXUnsavedFile {
         return CXUnsavedFile.Contents$VH;
     }
     public static MemoryAddress Contents$get(MemorySegment seg) {
-        return (jdk.incubator.foreign.MemoryAddress)CXUnsavedFile.Contents$VH.get(seg);
+        return (java.lang.foreign.MemoryAddress)CXUnsavedFile.Contents$VH.get(seg);
     }
     public static void Contents$set( MemorySegment seg, MemoryAddress x) {
         CXUnsavedFile.Contents$VH.set(seg, x);
     }
     public static MemoryAddress Contents$get(MemorySegment seg, long index) {
-        return (jdk.incubator.foreign.MemoryAddress)CXUnsavedFile.Contents$VH.get(seg.asSlice(index*sizeof()));
+        return (java.lang.foreign.MemoryAddress)CXUnsavedFile.Contents$VH.get(seg.asSlice(index*sizeof()));
     }
     public static void Contents$set(MemorySegment seg, long index, MemoryAddress x) {
         CXUnsavedFile.Contents$VH.set(seg.asSlice(index*sizeof()), x);
@@ -95,11 +95,7 @@ public class CXUnsavedFile {
     public static MemorySegment allocateArray(int len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment allocate(ResourceScope scope) { return allocate(SegmentAllocator.nativeAllocator(scope)); }
-    public static MemorySegment allocateArray(int len, ResourceScope scope) {
-        return allocateArray(len, SegmentAllocator.nativeAllocator(scope));
-    }
-    public static MemorySegment ofAddress(MemoryAddress addr, ResourceScope scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
+    public static MemorySegment ofAddress(MemoryAddress addr, MemorySession scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
 }
 
 

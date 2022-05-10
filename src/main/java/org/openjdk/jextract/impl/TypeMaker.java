@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import jdk.incubator.foreign.MemoryLayout;
+import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;

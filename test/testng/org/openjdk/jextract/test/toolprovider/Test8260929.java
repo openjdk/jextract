@@ -27,7 +27,7 @@ import java.nio.file.Path;
 
 import testlib.TestUtils;
 import org.testng.annotations.Test;
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.MemorySegment;
 import testlib.JextractToolRunner;
 
 import static org.testng.Assert.assertNotNull;

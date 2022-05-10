@@ -5,18 +5,19 @@ package org.openjdk;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 public interface JImageResourceVisitor_t {
 
-    int apply(jdk.incubator.foreign.MemoryAddress x0, jdk.incubator.foreign.MemoryAddress x1, jdk.incubator.foreign.MemoryAddress x2, jdk.incubator.foreign.MemoryAddress x3, jdk.incubator.foreign.MemoryAddress x4, jdk.incubator.foreign.MemoryAddress x5, jdk.incubator.foreign.MemoryAddress x6);
-    static NativeSymbol allocate(JImageResourceVisitor_t fi, ResourceScope scope) {
-        return RuntimeHelper.upcallStub(JImageResourceVisitor_t.class, fi, constants$2.JImageResourceVisitor_t$FUNC, "(Ljdk/incubator/foreign/MemoryAddress;Ljdk/incubator/foreign/MemoryAddress;Ljdk/incubator/foreign/MemoryAddress;Ljdk/incubator/foreign/MemoryAddress;Ljdk/incubator/foreign/MemoryAddress;Ljdk/incubator/foreign/MemoryAddress;Ljdk/incubator/foreign/MemoryAddress;)I", scope);
+    int apply(java.lang.foreign.MemoryAddress jimage, java.lang.foreign.MemoryAddress module_name, java.lang.foreign.MemoryAddress version, java.lang.foreign.MemoryAddress package_, java.lang.foreign.MemoryAddress name, java.lang.foreign.MemoryAddress extension, java.lang.foreign.MemoryAddress arg);
+    static MemorySegment allocate(JImageResourceVisitor_t fi, MemorySession scope) {
+        return RuntimeHelper.upcallStub(JImageResourceVisitor_t.class, fi, constants$2.JImageResourceVisitor_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;)I", scope);
     }
-    static JImageResourceVisitor_t ofAddress(MemoryAddress addr, ResourceScope scope) {
-        NativeSymbol symbol = NativeSymbol.ofAddress("JImageResourceVisitor_t::" + Long.toHexString(addr.toRawLongValue()), addr, scope);return (jdk.incubator.foreign.MemoryAddress x0, jdk.incubator.foreign.MemoryAddress x1, jdk.incubator.foreign.MemoryAddress x2, jdk.incubator.foreign.MemoryAddress x3, jdk.incubator.foreign.MemoryAddress x4, jdk.incubator.foreign.MemoryAddress x5, jdk.incubator.foreign.MemoryAddress x6) -> {
+    static JImageResourceVisitor_t ofAddress(MemoryAddress addr, MemorySession scope) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, scope);
+        return (java.lang.foreign.MemoryAddress _jimage, java.lang.foreign.MemoryAddress _module_name, java.lang.foreign.MemoryAddress _version, java.lang.foreign.MemoryAddress _package_, java.lang.foreign.MemoryAddress _name, java.lang.foreign.MemoryAddress _extension, java.lang.foreign.MemoryAddress _arg) -> {
             try {
-                return (int)constants$2.JImageResourceVisitor_t$MH.invokeExact(symbol, x0, x1, x2, x3, x4, x5, x6);
+                return (int)constants$2.JImageResourceVisitor_t$MH.invokeExact((Addressable)symbol, (java.lang.foreign.Addressable)_jimage, (java.lang.foreign.Addressable)_module_name, (java.lang.foreign.Addressable)_version, (java.lang.foreign.Addressable)_package_, (java.lang.foreign.Addressable)_name, (java.lang.foreign.Addressable)_extension, (java.lang.foreign.Addressable)_arg);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

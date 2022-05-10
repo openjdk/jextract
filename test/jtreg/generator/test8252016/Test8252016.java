@@ -21,16 +21,16 @@
  * questions.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
-import jdk.incubator.foreign.VaList;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.VaList;
 import org.testng.annotations.Test;
 
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.MemorySegment;
 
 import static org.testng.Assert.assertEquals;
 import static test.jextract.vsprintf.vsprintf_h.*;
-import static jdk.incubator.foreign.CLinker.*;
+import static java.lang.foreign.Linker.*;
 
 /*
  * @test id=classes
@@ -51,7 +51,7 @@ import static jdk.incubator.foreign.CLinker.*;
 public class Test8252016 {
     @Test
     public void testsVsprintf() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             var allocator = SegmentAllocator.newNativeArena(scope);
             MemorySegment s = allocator.allocate(1024);
             VaList vaList = VaList.make(b -> {

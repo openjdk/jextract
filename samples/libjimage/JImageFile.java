@@ -29,16 +29,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import org.openjdk.*;
-import static jdk.incubator.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemoryAddress.NULL;
 import static org.openjdk.jimage_h.*;
 
 public class JImageFile {
     public static void main(String[] args) {
         String javaHome = System.getProperty("java.home");
-        try (var scope = ResourceScope.newConfinedScope()) {
+        try (var scope = MemorySession.openConfined()) {
             var allocator = SegmentAllocator.newNativeArena(scope);
             var jintResPtr = allocator.allocate(jint);
             var moduleFilePath = allocator.allocateUtf8String(javaHome + "/lib/modules");

@@ -5,19 +5,19 @@ package org.unix;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 public class dlfcn_h  {
 
     /* package-private */ dlfcn_h() {}
-    public static ValueLayout.OfByte C_CHAR = JAVA_BYTE;
-    public static ValueLayout.OfShort C_SHORT = JAVA_SHORT;
-    public static ValueLayout.OfInt C_INT = JAVA_INT;
-    public static ValueLayout.OfLong C_LONG = JAVA_LONG;
-    public static ValueLayout.OfLong C_LONG_LONG = JAVA_LONG;
-    public static ValueLayout.OfFloat C_FLOAT = JAVA_FLOAT;
-    public static ValueLayout.OfDouble C_DOUBLE = JAVA_DOUBLE;
-    public static ValueLayout.OfAddress C_POINTER = ValueLayout.ADDRESS;
+    public static OfByte C_CHAR = Constants$root.C_CHAR$LAYOUT;
+    public static OfShort C_SHORT = Constants$root.C_SHORT$LAYOUT;
+    public static OfInt C_INT = Constants$root.C_INT$LAYOUT;
+    public static OfLong C_LONG = Constants$root.C_LONG_LONG$LAYOUT;
+    public static OfLong C_LONG_LONG = Constants$root.C_LONG_LONG$LAYOUT;
+    public static OfFloat C_FLOAT = Constants$root.C_FLOAT$LAYOUT;
+    public static OfDouble C_DOUBLE = Constants$root.C_DOUBLE$LAYOUT;
+    public static OfAddress C_POINTER = Constants$root.C_POINTER$LAYOUT;
     public static int __DARWIN_ONLY_64_BIT_INO_T() {
         return (int)0L;
     }
@@ -622,7 +622,7 @@ public class dlfcn_h  {
     public static MemoryAddress dlerror () {
         var mh$ = RuntimeHelper.requireNonNull(constants$0.dlerror$MH, "dlerror");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact();
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact();
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -633,7 +633,7 @@ public class dlfcn_h  {
     public static MemoryAddress dlopen ( Addressable __path,  int __mode) {
         var mh$ = RuntimeHelper.requireNonNull(constants$0.dlopen$MH, "dlopen");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(__path, __mode);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(__path, __mode);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -644,7 +644,7 @@ public class dlfcn_h  {
     public static MemoryAddress dlsym ( Addressable __handle,  Addressable __symbol) {
         var mh$ = RuntimeHelper.requireNonNull(constants$0.dlsym$MH, "dlsym");
         try {
-            return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(__handle, __symbol);
+            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(__handle, __symbol);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -652,10 +652,10 @@ public class dlfcn_h  {
     public static MethodHandle dlopen_preflight$MH() {
         return RuntimeHelper.requireNonNull(constants$0.dlopen_preflight$MH,"dlopen_preflight");
     }
-    public static byte dlopen_preflight ( Addressable __path) {
+    public static boolean dlopen_preflight ( Addressable __path) {
         var mh$ = RuntimeHelper.requireNonNull(constants$0.dlopen_preflight$MH, "dlopen_preflight");
         try {
-            return (byte)mh$.invokeExact(__path);
+            return (boolean)mh$.invokeExact(__path);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -679,7 +679,7 @@ public class dlfcn_h  {
         return 900000L;
     }
     public static int __MAC_OS_X_VERSION_MIN_REQUIRED() {
-        return (int)101500L;
+        return (int)101700L;
     }
     public static int __MAC_OS_X_VERSION_MAX_ALLOWED() {
         return (int)110100L;

@@ -25,13 +25,13 @@
 
 package org.openjdk.jextract.impl;
 
-import jdk.incubator.foreign.FunctionDescriptor;
-import jdk.incubator.foreign.GroupLayout;
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.SequenceLayout;
-import jdk.incubator.foreign.ValueLayout;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.ValueLayout;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
@@ -256,9 +256,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
             append(primitiveLayoutString(val));
         } else if (l instanceof SequenceLayout seq) {
             append("MemoryLayout.sequenceLayout(");
-            if (seq.elementCount().isPresent()) {
-                append(seq.elementCount().getAsLong() + ", ");
-            }
+            append(seq.elementCount() + ", ");
             emitLayoutString(seq.elementLayout());
             append(")");
         } else if (l instanceof GroupLayout group) {

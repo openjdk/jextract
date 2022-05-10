@@ -22,10 +22,9 @@
  */
 
 import org.testng.annotations.Test;
-import jdk.incubator.foreign.CLinker;
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static test.jextract.test8253102.test8253102_h.*;
@@ -50,7 +49,7 @@ import test.jextract.test8253102.*;
 public class LibTest8253102Test {
     @Test
     public void test() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+        try (MemorySession scope = MemorySession.openConfined()) {
             MemoryAddress addr = make(14, 99);
             MemorySegment seg = Point.ofAddress(addr, scope);
             assertEquals(Point.x$get(seg), 14);

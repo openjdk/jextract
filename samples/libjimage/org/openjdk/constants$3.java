@@ -5,14 +5,14 @@ package org.openjdk;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 class constants$3 {
 
     static final FunctionDescriptor JImageResourceIterator_t$FUNC = FunctionDescriptor.ofVoid(
-        ADDRESS,
-        ADDRESS,
-        ADDRESS
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle JImageResourceIterator_t$MH = RuntimeHelper.downcallHandle(
         constants$3.JImageResourceIterator_t$FUNC, false

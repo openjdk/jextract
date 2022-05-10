@@ -5,8 +5,8 @@ package org.unix;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 class constants$1 {
 
     static final MemorySegment __DARWIN_SUF_64_BIT_INO_T$SEGMENT = RuntimeHelper.CONSTANT_ALLOCATOR.allocateUtf8String("$INODE64");
