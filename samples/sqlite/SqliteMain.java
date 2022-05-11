@@ -39,15 +39,14 @@ import static org.sqlite.sqlite3_h.*;
 
 public class SqliteMain {
    public static void main(String[] args) throws Exception {
-        try (var scope = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
+        try (var session = MemorySession.openConfined()) {
             // char** errMsgPtrPtr;
-            var errMsgPtrPtr = allocator.allocate(C_POINTER);
+            var errMsgPtrPtr = session.allocate(C_POINTER);
 
             // sqlite3** dbPtrPtr;
-            var dbPtrPtr = allocator.allocate(C_POINTER);
+            var dbPtrPtr = session.allocate(C_POINTER);
 
-            int rc = sqlite3_open(allocator.allocateUtf8String("employee.db"), dbPtrPtr);
+            int rc = sqlite3_open(session.allocateUtf8String("employee.db"), dbPtrPtr);
             if (rc != 0) {
                 System.err.println("sqlite3_open failed: " + rc);
                 return;
@@ -59,7 +58,7 @@ public class SqliteMain {
             var dbPtr = dbPtrPtr.get(C_POINTER, 0);
 
             // create a new table
-            var sql = allocator.allocateUtf8String(
+            var sql = session.allocateUtf8String(
                 "CREATE TABLE EMPLOYEE ("  +
                 "  ID INT PRIMARY KEY NOT NULL," +
                 "  NAME TEXT NOT NULL,"    +
@@ -76,7 +75,7 @@ public class SqliteMain {
             }
 
             // insert two rows
-            sql = allocator.allocateUtf8String(
+            sql = session.allocateUtf8String(
                 "INSERT INTO EMPLOYEE (ID,NAME,SALARY) " +
                     "VALUES (134, 'Xyz', 200000.0); " +
                 "INSERT INTO EMPLOYEE (ID,NAME,SALARY) " +
@@ -97,8 +96,8 @@ public class SqliteMain {
             var callback = sqlite3_exec$callback.allocate((a, argc, argv, columnNames) -> {
                 System.out.println("Row num: " + rowNum[0]++);
                 System.out.println("numColumns = " + argc);
-                var argv_seg = MemorySegment.ofAddress(argv, C_POINTER.byteSize() * argc, scope);
-                var columnNames_seg = MemorySegment.ofAddress(columnNames, C_POINTER.byteSize() * argc, scope);
+                var argv_seg = MemorySegment.ofAddress(argv, C_POINTER.byteSize() * argc, session);
+                var columnNames_seg = MemorySegment.ofAddress(columnNames, C_POINTER.byteSize() * argc, session);
                 for (int i = 0; i < argc; i++) {
                      String name = columnNames_seg.getAtIndex(C_POINTER, i).getUtf8String(0);
                      String value = argv_seg.getAtIndex(C_POINTER, i).getUtf8String(0);
@@ -106,10 +105,10 @@ public class SqliteMain {
                      System.out.printf("%s = %s\n", name, value);
                 }
                 return 0;
-            }, scope);
+            }, session);
 
             // select query
-            sql = allocator.allocateUtf8String("SELECT * FROM EMPLOYEE");
+            sql = session.allocateUtf8String("SELECT * FROM EMPLOYEE");
             rc = sqlite3_exec(dbPtr, sql, callback, NULL, errMsgPtrPtr);
 
             if (rc != 0) {

@@ -53,9 +53,8 @@ public class TCLMain {
             puts "Full name: $name(first) $name(last)"
         """;
 
-        try (var scope = MemorySession.openConfined()) {
-            var allocator = scope;
-            var str = allocator.allocateUtf8String(script);
+        try (var session = MemorySession.openConfined()) {
+            var str = session.allocateUtf8String(script);
             Tcl_Eval(interp, str);
         }
 

@@ -41,9 +41,8 @@ public class CurlMain {
        curl_global_init(CURL_GLOBAL_DEFAULT());
        var curl = curl_easy_init();
        if(!curl.equals(NULL)) {
-           try (var scope = MemorySession.openConfined()) {
-               var allocator = scope;
-               var url = allocator.allocateUtf8String(urlStr);
+           try (var session = MemorySession.openConfined()) {
+               var url = session.allocateUtf8String(urlStr);
                curl_easy_setopt(curl, CURLOPT_URL(), url.address());
                int res = curl_easy_perform(curl);
                if (res != CURLE_OK()) {

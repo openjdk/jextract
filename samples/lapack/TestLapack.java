@@ -39,12 +39,11 @@ public class TestLapack {
     public static void main(String[] args) {
 
         /* Locals */
-        try (var scope = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            var A = allocator.allocateArray(C_DOUBLE, new double[]{
+        try (var session = MemorySession.openConfined()) {
+            var A = session.allocateArray(C_DOUBLE, new double[]{
                     1, 2, 3, 4, 5, 1, 3, 5, 2, 4, 1, 4, 2, 5, 3
             });
-            var b = allocator.allocateArray(C_DOUBLE, new double[]{
+            var b = session.allocateArray(C_DOUBLE, new double[]{
                     -10, 12, 14, 16, 18, -3, 14, 12, 16, 16
             });
             int info, m, n, lda, ldb, nrhs;

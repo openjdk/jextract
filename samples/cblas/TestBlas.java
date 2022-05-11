@@ -54,18 +54,17 @@ public class TestBlas {
         alpha = 1;
         beta = 0;
  
-        try (var scope = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            var a = allocator.allocateArray(C_DOUBLE, new double[] {
+        try (var session = MemorySession.openConfined()) {
+            var a = session.allocateArray(C_DOUBLE, new double[] {
                 1.0, 2.0, 3.0, 4.0,
                 1.0, 1.0, 1.0, 1.0,
                 3.0, 4.0, 5.0, 6.0,
                 5.0, 6.0, 7.0, 8.0
             });
-            var x = allocator.allocateArray(C_DOUBLE, new double[] {
+            var x = session.allocateArray(C_DOUBLE, new double[] {
                 1.0, 2.0, 1.0, 1.0
             });
-            var y = allocator.allocateArray(C_DOUBLE, n);
+            var y = session.allocateArray(C_DOUBLE, n);
         
             cblas_dgemv(Layout, transa, m, n, alpha, a, lda, x, incx, beta, y, incy);
             /* Print y */

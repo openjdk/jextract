@@ -41,9 +41,8 @@ public class PythonMain {
         String script = "print(sum([33, 55, 66])); print('Hello from Python!')\n";
 
         Py_Initialize();
-        try (var scope = MemorySession.openConfined()) {
-            var allocator = scope;
-            var str = allocator.allocateUtf8String(script);
+        try (var session = MemorySession.openConfined()) {
+            var str = session.allocateUtf8String(script);
             PyRun_SimpleStringFlags(str, NULL);
             Py_Finalize();
         }

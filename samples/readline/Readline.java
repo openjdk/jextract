@@ -36,9 +36,8 @@ import org.unix.*;
 
 public class Readline {
     public static void main(String[] args) {
-       try (var scope = MemorySession.openConfined()) {
-            var allocator = scope;
-            var url = allocator.allocateUtf8String("name? ");
+       try (var session = MemorySession.openConfined()) {
+            var url = session.allocateUtf8String("name? ");
 
             // call "readline" API
             var p = readline(url);

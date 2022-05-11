@@ -36,10 +36,9 @@ import org.unix.*;
 
 public class PanamaTime {
     public static void main(String[] args) {
-        try (var scope = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            var now = allocator.allocate(C_LONG, System.currentTimeMillis() / 1000);
-            MemorySegment time = tm.allocate(scope);
+        try (var session = MemorySession.openConfined()) {
+            var now = session.allocate(C_LONG, System.currentTimeMillis() / 1000);
+            MemorySegment time = tm.allocate(session);
             localtime_r(now, time);
             System.err.printf("Time = %d:%d\n", tm.tm_hour$get(time), tm.tm_min$get(time));
         }

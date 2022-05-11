@@ -43,11 +43,10 @@ public class GitClone {
               System.exit(1);
           }
           git_libgit2_init();
-          try (var scope = MemorySession.openConfined()) {
-              var allocator = SegmentAllocator.newNativeArena(scope);
-              var repo = allocator.allocate(C_POINTER);
-              var url = allocator.allocateUtf8String(args[0]);
-              var path = allocator.allocateUtf8String(args[1]);
+          try (var session = MemorySession.openConfined()) {
+              var repo = session.allocate(C_POINTER);
+              var url = session.allocateUtf8String(args[0]);
+              var path = session.allocateUtf8String(args[1]);
               System.out.println(git_clone(repo, url, path, NULL));
           }          
           git_libgit2_shutdown();

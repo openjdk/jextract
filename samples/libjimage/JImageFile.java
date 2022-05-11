@@ -38,14 +38,13 @@ import static org.openjdk.jimage_h.*;
 public class JImageFile {
     public static void main(String[] args) {
         String javaHome = System.getProperty("java.home");
-        try (var scope = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            var jintResPtr = allocator.allocate(jint);
-            var moduleFilePath = allocator.allocateUtf8String(javaHome + "/lib/modules");
+        try (var session = MemorySession.openConfined()) {
+            var jintResPtr = session.allocate(jint);
+            var moduleFilePath = session.allocateUtf8String(javaHome + "/lib/modules");
             var jimageFile = JIMAGE_Open(moduleFilePath, jintResPtr);
 
             var mod = JIMAGE_PackageToModule(jimageFile,
-                allocator.allocateUtf8String("java/util"));
+                session.allocateUtf8String("java/util"));
             System.out.println(mod);
 
             // const char* module_name, const char* version, const char* package,
@@ -57,7 +56,7 @@ public class JImageFile {
                    System.out.println("package " + package_name.getUtf8String(0));
                    System.out.println("name " + name.getUtf8String(0));
                    return 1;
-                }, scope);
+                }, session);
 
             JIMAGE_ResourceIterator(jimageFile, visitor, NULL);
 

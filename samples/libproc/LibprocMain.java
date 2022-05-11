@@ -40,18 +40,17 @@ public class LibprocMain {
     private static final int NAME_BUF_MAX = 256;
 
     public static void main(String[] args) {
-        try (var scope = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
+        try (var session = MemorySession.openConfined()) {
             // get the number of processes
             int numPids = proc_listallpids(NULL, 0);
             // allocate an array
-            var pids = allocator.allocateArray(C_INT, numPids);
+            var pids = session.allocateArray(C_INT, numPids);
             // list all the pids into the native array
             proc_listallpids(pids, numPids);
             // convert native array to java array
             int[] jpids = pids.toArray(C_INT);
             // buffer for process name
-            var nameBuf = allocator.allocateArray(C_CHAR, NAME_BUF_MAX);
+            var nameBuf = session.allocateArray(C_CHAR, NAME_BUF_MAX);
             for (int i = 0; i < jpids.length; i++) {
                 int pid = jpids[i];
                 // get the process name
