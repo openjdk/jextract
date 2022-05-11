@@ -40,9 +40,9 @@ public interface CXCursorVisitor {
     }
     static CXCursorVisitor ofAddress(MemoryAddress addr, MemorySession scope) {
         MemorySegment symbol = MemorySegment.ofAddress(addr, 0, scope);
-return (java.lang.foreign.MemorySegment _cursor, java.lang.foreign.MemorySegment _parent, java.lang.foreign.MemoryAddress _client_data) -> {
+        return (java.lang.foreign.MemorySegment _cursor, java.lang.foreign.MemorySegment _parent, java.lang.foreign.MemoryAddress _client_data) -> {
             try {
-                return (int)constants$13.CXCursorVisitor$MH.invokeExact(symbol, _cursor, _parent, (java.lang.foreign.Addressable)_client_data);
+                return (int)constants$13.CXCursorVisitor$MH.invokeExact((Addressable)symbol, _cursor, _parent, (java.lang.foreign.Addressable)_client_data);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
