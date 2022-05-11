@@ -37,30 +37,19 @@ final class RuntimeHelper {
     final static SegmentAllocator CONSTANT_ALLOCATOR =
             (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.openImplicit());
 
-    // looks up symbols using dlsym - manual change
-    private static SymbolLookup dlopenLookup(String libraryName) {
-        System.out.println("loading " + libraryName);
-        var globalScope = MemorySession.global();
-        try (var openScope = MemorySession.openConfined()) {
-            var openScopeAllocator = openScope;
-            final MemoryAddress handle = dlfcn_h.dlopen(openScopeAllocator.allocateUtf8String(libraryName), dlfcn_h.RTLD_LOCAL());
-            if (handle == MemoryAddress.NULL) {
-                throw new IllegalArgumentException("Cannot find library: " + libraryName);
-            }
-            globalScope.addCloseAction(() -> dlfcn_h.dlclose(handle));
-            return name -> {
-                var allocator = SegmentAllocator.newNativeArena(globalScope);
-                MemoryAddress addr = dlfcn_h.dlsym(handle, allocator.allocateUtf8String(name));
-                return addr == MemoryAddress.NULL ?
-                            Optional.empty() : Optional.of(MemorySegment.ofAddress(addr, 0, globalScope));
-            };
-        }
-    }
-
     static {
         // manual change
-        SymbolLookup dlopenLookup = dlopenLookup(System.getProperty("java.home") + "/lib/libjimage.dylib");
-        SYMBOL_LOOKUP = name -> dlopenLookup.lookup(name).or(() -> LINKER.defaultLookup().lookup(name));
+        var libPath = System.getProperty("java.home");
+        var OS = System.getProperty("os.name");
+        if (OS.contains("Mac OS X")) {
+            libPath += "/lib/libjimage.dylib";
+        } else if (OS.contains("Windows")) {
+            libPath = "/bin/jimage.dll";
+        } else {
+            libPath = "/lib/libjimage.so"; // some Unix
+        }
+        SymbolLookup loaderLookup = SymbolLookup.libraryLookup(libPath, MemorySession.global());
+        SYMBOL_LOOKUP = name -> loaderLookup.lookup(name).or(() -> LINKER.defaultLookup().lookup(name));
     }
 
     static <T> T requireNonNull(T obj, String symbolName) {
