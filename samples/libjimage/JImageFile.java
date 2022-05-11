@@ -31,6 +31,9 @@
 
 import java.lang.foreign.MemorySession;
 import java.lang.foreign.SegmentAllocator;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.openjdk.*;
 import static java.lang.foreign.MemoryAddress.NULL;
 import static org.openjdk.jimage_h.*;
@@ -38,11 +41,20 @@ import static org.openjdk.jimage_h.*;
 public class JImageFile {
     public static void main(String[] args) {
         String javaHome = System.getProperty("java.home");
+        Path modPath = Paths.get(javaHome + "/lib/modules");
+        if (!Files.exists(modPath)) {
+           System.err.println(modPath + " not found, please check if your java.home");
+           return;
+        }
         try (var session = MemorySession.openConfined()) {
             var jintResPtr = session.allocate(jint);
             var moduleFilePath = session.allocateUtf8String(javaHome + "/lib/modules");
             var jimageFile = JIMAGE_Open(moduleFilePath, jintResPtr);
 
+            if (jimageFile == NULL) {
+                System.err.println("JIMAGE_Open failed to open " + modPath);
+                return;
+            }
             var mod = JIMAGE_PackageToModule(jimageFile,
                 session.allocateUtf8String("java/util"));
             System.out.println(mod);

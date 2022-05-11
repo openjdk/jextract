@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.unix.dlfcn_h;
 import static java.lang.foreign.Linker.*;
 import static java.lang.foreign.ValueLayout.*;
 
