@@ -6,4 +6,4 @@ jextract --source -l python3.8 \
   -t org.python \
   ${ANACONDA3_HOME}/include/python3.8/Python.h
 
-javac --add-modules jdk.incubator.foreign org/python/*.java
+javac --enable-preview --source=19 org/python/*.java

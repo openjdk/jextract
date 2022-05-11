@@ -3,4 +3,4 @@ jextract --source -t org.jextract -lcurl \
   -I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/curl/ \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/curl/curl.h
 
-javac --add-modules jdk.incubator.foreign org/jextract/*.java
+javac --enable-preview --source=19 org/jextract/*.java

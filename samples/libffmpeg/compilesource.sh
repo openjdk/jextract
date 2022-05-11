@@ -8,4 +8,4 @@ jextract --source -t libffmpeg \
   --header-class-name Libffmpeg \
   libffmpeg.h
 
-javac --add-modules jdk.incubator.foreign libffmpeg/*.java
+javac --enable-preview --source=19 libffmpeg/*.java
