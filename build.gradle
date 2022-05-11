@@ -66,7 +66,7 @@ task createJextractImage(type: Exec) {
     executable = "${jdk19_home}/bin/jlink"
     args = [
          "--module-path=$buildDir/libs",
-         "--add-modules=org.openjdk.jextract,jdk.compiler",
+         "--add-modules=org.openjdk.jextract,jdk.compiler,jdk.zipfs",
          "--output=${jextract_app_dir}",
          "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
          "--add-options",
