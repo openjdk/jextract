@@ -25,6 +25,7 @@
 
 package org.openjdk.jextract;
 
+import org.openjdk.jextract.clang.LibClang;
 import org.openjdk.jextract.impl.ClangException;
 import org.openjdk.jextract.impl.CommandLine;
 import org.openjdk.jextract.impl.IncludeHelper;
@@ -353,7 +354,9 @@ public final class JextractTool {
         }
 
         if (optionSet.has("--version")) {
-            err.println(System.getProperty("java.version"));
+            err.printf("%s %s\n", "jextract", System.getProperty("java.version"));
+            err.printf("%s %s\n", "JDK version", System.getProperty("java.runtime.version"));
+            err.printf("%s\n", LibClang.version());
             return SUCCESS;
         }
 
