@@ -342,6 +342,7 @@ public final class JextractTool {
         parser.accepts("--output", format("help.output"), true);
         parser.accepts("--source", format("help.source"), false);
         parser.accepts("-t", List.of("--target-package"), format("help.t"), true);
+        parser.accepts("--version", format("help.version"), false);
 
         OptionSet optionSet;
         try {
@@ -349,6 +350,11 @@ public final class JextractTool {
         } catch (OptionException oe) {
             printOptionError(oe);
             return OPTION_ERROR;
+        }
+
+        if (optionSet.has("--version")) {
+            err.println(System.getProperty("java.version"));
+            return SUCCESS;
         }
 
         if (optionSet.has("-h")) {
