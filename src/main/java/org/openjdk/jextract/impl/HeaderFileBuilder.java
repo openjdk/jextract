@@ -129,11 +129,9 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         append(" {\n");
         incrAlign();
         indent();
-        append("var mh$ = RuntimeHelper.requireNonNull(");
-        append(mhConstant.accessExpression());
-        append(", \"");
-        append(nativeName);
-        append("\");\n");
+        append("var mh$ = ");
+        append(mhConstant.kind().fieldName(javaName));
+        append("();\n");
         indent();
         append("try {\n");
         incrAlign();
