@@ -140,6 +140,18 @@ public class ConstantBuilder extends ClassSourceBuilder {
             this.kind = kind;
         }
 
+        String className() {
+            return className;
+        }
+
+        String javaName() {
+            return javaName;
+        }
+
+        Kind kind() {
+            return kind;
+        }
+
         List<String> getterNameParts() {
             return List.of(className, javaName, kind.nameSuffix);
         }
@@ -190,7 +202,13 @@ public class ConstantBuilder extends ClassSourceBuilder {
         String fieldName = Constant.Kind.METHOD_HANDLE.fieldName(javaName);
         indent();
         append(memberMods() + "MethodHandle ");
-        append(fieldName + " = RuntimeHelper.downcallHandle(\n");
+        append(fieldName + " = RuntimeHelper.");
+        if (isVarargs) {
+            append("downcallHandleVariadic");
+        } else {
+            append("downcallHandle");
+        }
+        append("(\n");
         incrAlign();
         indent();
         if (!virtual) {
@@ -199,9 +217,6 @@ public class ConstantBuilder extends ClassSourceBuilder {
             indent();
         }
         append(functionDesc.accessExpression());
-        append(", ");
-        // isVariadic
-        append(isVarargs);
         append("\n");
         decrAlign();
         indent();
