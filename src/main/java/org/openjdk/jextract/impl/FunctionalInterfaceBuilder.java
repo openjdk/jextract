@@ -95,8 +95,8 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             append(MEMBER_MODS + " NativeSymbol allocate(" + className() + " fi, ResourceScope scope) {\n");
             incrAlign();
             indent();
-            append("return RuntimeHelper.upcallStub(" + className() + ".class, fi, " + functionDesc.accessExpression() + ", " +
-                    "\"" + fiType.toMethodDescriptorString() + "\", scope);\n");
+            append("return RuntimeHelper.upcallStub(" + className() + ".class, fi, " +
+                functionDesc.accessExpression() + ", scope);\n");
             decrAlign();
             indent();
             append("}\n");
