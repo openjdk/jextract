@@ -137,7 +137,7 @@ The `jextract` tool includes several customization options. Users can select in 
 | `--source`                                                   | generate java sources instead of classfiles                  |
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
 | `--include-[function,macro,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings (see below). When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
-| '--version`                                                  | print version information and exit                           |
+| `--version`                                                  | print version information and exit                           |
 
 
 #### Additional clang options
