@@ -17,9 +17,28 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 1
+        
+    - name: 'Prepare'
+      shell: sh
+      run: |
+        mkdir deps
 
-    - name: 'Setup JDK 18'
-      uses: oracle-actions/setup-java@v1
+    - name: 'Download JDK 19'
+      id: download_jdk_19
+      uses: oracle-actions/setup-java@v1.1.1
+      with:
+        website: jdk.java.net
+        release: 19
+        install: false
+        
+    - name: 'Extract JDK 19'
+      shell: sh
+      run: |
+        tar -xvf ${{ steps.download_jdk_19.outputs.archive }} -C deps
+        ls ./deps/jdk-19
+        
+    - name: 'Setup Java 18'
+      uses: oracle-actions/setup-java@v1.1.1
       with:
         release: 18
 
@@ -32,15 +51,14 @@ jobs:
     - name: 'Setup LLVM'
       shell: sh
       run: |
-        mkdir deps
-        wget -O deps/LLVM.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
-        tar -xvf deps/LLVM.tar.xz -C deps
+        wget -O deps/LLVM.tar.gz https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+        tar -xvf deps/LLVM.tar.gz -C deps
         ls ./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04
 
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Pllvm_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 clean verify        
+        sh ./gradlew -Pjdk19_home=$(realpath ./deps/jdk-19) -Pllvm_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 clean verify        
 
     - name: 'Check out JTReg'
       uses: actions/checkout@v2
@@ -60,4 +78,4 @@ jobs:
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk18_home=$JAVA_HOME -Pllvm_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
+        sh ./gradlew -Pjdk19_home=$(realpath ./deps/jdk-19) -Pllvm_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
