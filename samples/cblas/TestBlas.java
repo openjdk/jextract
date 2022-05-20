@@ -55,15 +55,15 @@ public class TestBlas {
         beta = 0;
 
         try (var session = MemorySession.openConfined()) {
-            var a = session.allocateArray(C_DOUBLE, new double[] {
+            var a = session.allocateArray(C_DOUBLE,
                 1.0, 2.0, 3.0, 4.0,
                 1.0, 1.0, 1.0, 1.0,
                 3.0, 4.0, 5.0, 6.0,
                 5.0, 6.0, 7.0, 8.0
-            });
-            var x = session.allocateArray(C_DOUBLE, new double[] {
+            );
+            var x = session.allocateArray(C_DOUBLE,
                 1.0, 2.0, 1.0, 1.0
-            });
+            );
             var y = session.allocateArray(C_DOUBLE, n);
 
             cblas_dgemv(Layout, transa, m, n, alpha, a, lda, x, incx, beta, y, incy);
