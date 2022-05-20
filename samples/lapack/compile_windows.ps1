@@ -3,13 +3,8 @@ param(
   [string]$lapackPath
 )
 
-. ../shared_windows.ps1
-
-$jextract = find-tool("jextract")
-
-& $jextract `
+jextract `
   -t lapack `
   -I "$lapackPath\include" `
   -l liblapacke `
-  -- `
   "$lapackPath\include\lapacke.h"

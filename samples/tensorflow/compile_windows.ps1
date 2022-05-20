@@ -3,13 +3,8 @@ param(
   [string]$tensorflowPath
 )
 
-. ../shared_windows.ps1
-
-$jextract = find-tool("jextract")
-
-& $jextract `
+jextract `
   -t org.tensorflow `
   -I "$tensorflowPath\include" `
   -l tensorflow `
-  -- `
   "$tensorflowPath\include\tensorflow\c\c_api.h"
