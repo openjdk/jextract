@@ -60,19 +60,19 @@ public class TestLapack {
             /* Print Right Rand Side */
             print_matrix_colmajor("Right Hand Side b", n, nrhs, b, ldb );
             System.out.println();
-            
+
             /* Executable statements */
             //            printf( "LAPACKE_dgels (col-major, high-level) Example Program Results\n" );
             /* Solve least squares problem*/
             info = LAPACKE_dgels(LAPACK_COL_MAJOR(), (byte)'N', m, n, nrhs, A, lda, b, ldb);
- 
+
             /* Print Solution */
             print_matrix_colmajor("Solution", n, nrhs, b, ldb );
             System.out.println();
             System.exit(info);
-        }   
-    }   
-    
+        }
+    }
+
     static void print_matrix_colmajor(String msg, int m, int n, MemorySegment mat, int ldm) {
         int i, j;
         System.out.printf("\n %s\n", msg);

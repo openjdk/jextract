@@ -48,7 +48,7 @@ public class GitClone {
               var url = session.allocateUtf8String(args[0]);
               var path = session.allocateUtf8String(args[1]);
               System.out.println(git_clone(repo, url, path, NULL));
-          }          
+          }
           git_libgit2_shutdown();
     }
 }

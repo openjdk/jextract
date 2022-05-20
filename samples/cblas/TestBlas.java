@@ -42,7 +42,7 @@ public class TestBlas {
 
         double alpha, beta;
         int m, n, lda, incx, incy, i;
- 
+
         Layout = CblasColMajor();
         transa = CblasNoTrans();
 
@@ -53,7 +53,7 @@ public class TestBlas {
         incy = 1;
         alpha = 1;
         beta = 0;
- 
+
         try (var session = MemorySession.openConfined()) {
             var a = session.allocateArray(C_DOUBLE, new double[] {
                 1.0, 2.0, 3.0, 4.0,
@@ -65,7 +65,7 @@ public class TestBlas {
                 1.0, 2.0, 1.0, 1.0
             });
             var y = session.allocateArray(C_DOUBLE, n);
-        
+
             cblas_dgemv(Layout, transa, m, n, alpha, a, lda, x, incx, beta, y, incy);
             /* Print y */
             for (i = 0; i < n; i++) {
