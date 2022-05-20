@@ -30,19 +30,19 @@ package org.openjdk.jextract.clang.libclang;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 public interface CXCursorVisitor {
 
-    int apply(jdk.incubator.foreign.MemorySegment cursor, jdk.incubator.foreign.MemorySegment parent, jdk.incubator.foreign.MemoryAddress client_data);
-    static NativeSymbol allocate(CXCursorVisitor fi, ResourceScope scope) {
-        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, "(Ljdk/incubator/foreign/MemorySegment;Ljdk/incubator/foreign/MemorySegment;Ljdk/incubator/foreign/MemoryAddress;)I", scope);
+    int apply(java.lang.foreign.MemorySegment cursor, java.lang.foreign.MemorySegment parent, java.lang.foreign.MemoryAddress client_data);
+    static MemorySegment allocate(CXCursorVisitor fi, MemorySession session) {
+        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, "(Ljava/lang/foreign/MemorySegment;Ljava/lang/foreign/MemorySegment;Ljava/lang/foreign/MemoryAddress;)I", session);
     }
-    static CXCursorVisitor ofAddress(MemoryAddress addr, ResourceScope scope) {
-        NativeSymbol symbol = NativeSymbol.ofAddress("CXCursorVisitor::" + Long.toHexString(addr.toRawLongValue()), addr, scope);
-return (jdk.incubator.foreign.MemorySegment _cursor, jdk.incubator.foreign.MemorySegment _parent, jdk.incubator.foreign.MemoryAddress _client_data) -> {
+    static CXCursorVisitor ofAddress(MemoryAddress addr, MemorySession session) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
+        return (java.lang.foreign.MemorySegment _cursor, java.lang.foreign.MemorySegment _parent, java.lang.foreign.MemoryAddress _client_data) -> {
             try {
-                return (int)constants$13.CXCursorVisitor$MH.invokeExact(symbol, _cursor, _parent, (jdk.incubator.foreign.Addressable)_client_data);
+                return (int)constants$13.CXCursorVisitor$MH.invokeExact((Addressable)symbol, _cursor, _parent, (java.lang.foreign.Addressable)_client_data);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

@@ -25,7 +25,7 @@
 
 package org.openjdk.jextract.impl;
 
-import jdk.incubator.foreign.*;
+import java.lang.foreign.*;
 
 import org.openjdk.jextract.impl.ConstantBuilder.Constant;
 
@@ -48,8 +48,8 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, String className,
                                FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(enclosing, Kind.INTERFACE, className);
-        this.fiType = CLinker.upcallType(descriptor);
-        this.downcallType = CLinker.downcallType(descriptor);
+        this.fiType = Linker.upcallType(descriptor);
+        this.downcallType = Linker.downcallType(descriptor);
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
     }
@@ -92,11 +92,11 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             Constant functionDesc = constantBuilder.addFunctionDesc(className(), fiDesc);
             incrAlign();
             indent();
-            append(MEMBER_MODS + " NativeSymbol allocate(" + className() + " fi, ResourceScope scope) {\n");
+            append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, MemorySession session) {\n");
             incrAlign();
             indent();
             append("return RuntimeHelper.upcallStub(" + className() + ".class, fi, " +
-                functionDesc.accessExpression() + ", scope);\n");
+                functionDesc.accessExpression() + ", session);\n");
             decrAlign();
             indent();
             append("}\n");
@@ -110,11 +110,12 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                  fiDesc, false, true);
             incrAlign();
             indent();
-            append(MEMBER_MODS + " " + className() + " ofAddress(MemoryAddress addr, ResourceScope scope) {\n");
+            append(MEMBER_MODS + " " + className() + " ofAddress(MemoryAddress addr, MemorySession session) {\n");
             incrAlign();
             indent();
-            append("NativeSymbol symbol = NativeSymbol.ofAddress(");
-            append("\"" + className() + "::\" + Long.toHexString(addr.toRawLongValue()), addr, scope);\n");
+            append("MemorySegment symbol = MemorySegment.ofAddress(");
+            append("addr, 0, session);\n");
+            indent();
             append("return (");
             String delim = "";
             for (int i = 0 ; i < fiType.parameterCount(); i++) {
@@ -136,7 +137,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                     append("(" + downcallType.returnType().getName() + ")");
                 }
             }
-            append(mhConstant.accessExpression() + ".invokeExact(symbol");
+            append(mhConstant.accessExpression() + ".invokeExact((Addressable)symbol");
             if (fiType.parameterCount() > 0) {
                 String params = IntStream.range(0, fiType.parameterCount())
                         .mapToObj(i -> {

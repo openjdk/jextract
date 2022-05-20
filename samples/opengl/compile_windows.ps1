@@ -3,15 +3,10 @@ param(
   [string]$freeglutPath
 )
 
-. ../shared_windows.ps1
-
-$jextract = find-tool("jextract")
-
-& $jextract `
+jextract `
   -I "$freeglutPath\include" `
   "-l" opengl32 `
   "-l" glu32 `
   "-l" freeglut `
   "-t" "opengl" `
-  "--" `
   "$freeglutPath\include\GL\glut.h"

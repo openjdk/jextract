@@ -29,9 +29,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.SegmentAllocator;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
 import lapack.*;
 import static lapack.lapacke_h.*;
 
@@ -39,14 +39,13 @@ public class TestLapack {
     public static void main(String[] args) {
 
         /* Locals */
-        try (var scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            var A = allocator.allocateArray(C_DOUBLE, new double[]{
+        try (var session = MemorySession.openConfined()) {
+            var A = session.allocateArray(C_DOUBLE,
                     1, 2, 3, 4, 5, 1, 3, 5, 2, 4, 1, 4, 2, 5, 3
-            });
-            var b = allocator.allocateArray(C_DOUBLE, new double[]{
+            );
+            var b = session.allocateArray(C_DOUBLE,
                     -10, 12, 14, 16, 18, -3, 14, 12, 16, 16
-            });
+            );
             int info, m, n, lda, ldb, nrhs;
 
             /* Initialization */

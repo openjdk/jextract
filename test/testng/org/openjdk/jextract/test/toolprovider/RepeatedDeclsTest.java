@@ -23,15 +23,14 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
-import jdk.incubator.foreign.Addressable;
-import jdk.incubator.foreign.CLinker;
+import java.lang.foreign.Addressable;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 
 import java.nio.file.Path;
-import jdk.incubator.foreign.GroupLayout;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
 import testlib.JextractToolRunner;
 
 import static org.testng.Assert.assertNotNull;

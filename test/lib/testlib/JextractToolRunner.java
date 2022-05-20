@@ -37,9 +37,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.spi.ToolProvider;
 
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemoryLayout.PathElement;
-import jdk.incubator.foreign.ValueLayout;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemoryLayout.PathElement;
+import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.JextractTool;
 import org.openjdk.jextract.Type;
 

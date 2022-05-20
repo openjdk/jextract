@@ -21,15 +21,14 @@
  * questions.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.MemorySegment;
 
 import static org.testng.Assert.assertEquals;
 import static test.jextract.printf.printf_h.*;
-import static jdk.incubator.foreign.CLinker.*;
+import static java.lang.foreign.Linker.*;
 
 /*
  * @test id=classes
@@ -50,11 +49,10 @@ import static jdk.incubator.foreign.CLinker.*;
 public class Test8244959 {
     @Test
     public void testsPrintf() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            MemorySegment s = allocator.allocate(1024);
+        try (MemorySession session = MemorySession.openConfined()) {
+            MemorySegment s = session.allocate(1024);
             my_sprintf(s,
-                    allocator.allocateUtf8String("%hhd %c %.2f %.2f %lld %lld %d %hd %d %d %lld %c"), 12,
+                    session.allocateUtf8String("%hhd %c %.2f %.2f %lld %lld %d %hd %d %d %lld %c"), 12,
                     (byte) 1, 'b', -1.25f, 5.5d, -200L, Long.MAX_VALUE, (byte) -2, (short) 2, 3, (short) -4, 5L, 'a');
             String str = s.getUtf8String(0);
             assertEquals(str, "1 b -1.25 5.50 -200 " + Long.MAX_VALUE + " -2 2 3 -4 5 a");

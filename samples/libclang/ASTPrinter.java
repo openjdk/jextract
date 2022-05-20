@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.MemoryAddress.NULL;
+import java.lang.foreign.*;
+import static java.lang.foreign.MemoryAddress.NULL;
 import static org.llvm.clang.Index_h.*;
 import org.llvm.clang.*;
 
@@ -47,25 +47,24 @@ public class ASTPrinter {
             System.exit(1);
         }
 
-        try (var scope = ResourceScope.newConfinedScope()) {
+        try (var session = MemorySession.openConfined()) {
             // parse the C header/source passed from the command line
             var index = clang_createIndex(0, 0);
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            var tu = clang_parseTranslationUnit(index, allocator.allocateUtf8String(args[0]),
+            var tu = clang_parseTranslationUnit(index, session.allocateUtf8String(args[0]),
                     NULL, 0, NULL, 0, CXTranslationUnit_None());
             // array trick to update within lambda
             var level = new int[1];
-            var visitor = new NativeSymbol[1];
+            var visitor = new MemorySegment[1];
 
             // clang Cursor visitor callback
             visitor[0] = CXCursorVisitor.allocate((cursor, parent, data) -> {
                 var kind = clang_getCursorKind(cursor);
-                var name = asJavaString(clang_getCursorSpelling(scope, cursor));
-                var kindName = asJavaString(clang_getCursorKindSpelling(scope, kind));
+                var name = asJavaString(clang_getCursorSpelling(session, cursor));
+                var kindName = asJavaString(clang_getCursorKindSpelling(session, kind));
                 System.out.printf("%s %s %s", " ".repeat(level[0]), kindName, name);
-                var type = clang_getCursorType(scope, cursor);
+                var type = clang_getCursorType(session, cursor);
                 if (CXType.kind$get(type) != CXType_Invalid()) {
-                    var typeName = asJavaString(clang_getTypeSpelling(scope, type));
+                    var typeName = asJavaString(clang_getTypeSpelling(session, type));
                     System.out.printf(" <%s>", typeName);
                 }
                 System.out.println();
@@ -76,10 +75,10 @@ public class ASTPrinter {
                 level[0]--;
 
                 return CXChildVisit_Continue();
-            }, scope);
+            }, session);
 
             // get the AST root and visit it
-            var root = clang_getTranslationUnitCursor(scope, tu);
+            var root = clang_getTranslationUnitCursor(session, tu);
             clang_visitChildren(root, visitor[0], NULL);
 
             clang_disposeTranslationUnit(tu);

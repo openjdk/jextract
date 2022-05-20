@@ -25,9 +25,8 @@ package org.openjdk.jextract.test.toolprovider;
 
 import java.nio.file.Path;
 
-import jdk.incubator.foreign.CLinker;
-import jdk.incubator.foreign.GroupLayout;
-import jdk.incubator.foreign.MemoryLayout;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryLayout;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;

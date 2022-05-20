@@ -21,16 +21,15 @@
  * questions.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
-import jdk.incubator.foreign.VaList;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.VaList;
 import org.testng.annotations.Test;
 
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.MemorySegment;
 
 import static org.testng.Assert.assertEquals;
 import static test.jextract.vsprintf.vsprintf_h.*;
-import static jdk.incubator.foreign.CLinker.*;
 
 /*
  * @test id=classes
@@ -51,16 +50,15 @@ import static jdk.incubator.foreign.CLinker.*;
 public class Test8252016 {
     @Test
     public void testsVsprintf() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            MemorySegment s = allocator.allocate(1024);
+        try (MemorySession session = MemorySession.openConfined()) {
+            MemorySegment s = session.allocate(1024);
             VaList vaList = VaList.make(b -> {
                 b.addVarg(C_INT, 12);
                 b.addVarg(C_DOUBLE, 5.5d);
                 b.addVarg(C_LONG_LONG, -200L);
                 b.addVarg(C_LONG_LONG, Long.MAX_VALUE);
-            }, scope);
-            my_vsprintf(s, allocator.allocateUtf8String("%hhd %.2f %lld %lld"), vaList);
+            }, session);
+            my_vsprintf(s, session.allocateUtf8String("%hhd %.2f %lld %lld"), vaList);
             String str = s.getUtf8String(0);
             assertEquals(str, "12 5.50 -200 " + Long.MAX_VALUE);
        }

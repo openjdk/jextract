@@ -3,4 +3,4 @@ jextract --source -t org.llvm.clang -lclang \
   -I ${LIBCLANG_HOME}/include/ \
   -I ${LIBCLANG_HOME}/include/clang-c \
   ${LIBCLANG_HOME}/include/clang-c/Index.h
-javac --add-modules jdk.incubator.foreign org/llvm/clang/*.java
+javac --enable-preview --source=19 org/llvm/clang/*.java

@@ -22,7 +22,7 @@
  */
 
 import org.testng.annotations.Test;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemorySession;
 import static org.testng.Assert.assertEquals;
 import static test.jextract.test8244938.test8244938_h.*;
 import test.jextract.test8244938.*;
@@ -47,8 +47,8 @@ import test.jextract.test8244938.*;
 public class Test8244938 {
     @Test
     public void testNestedStructReturn() {
-         try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-             var seg = func(scope);
+         try (MemorySession session = MemorySession.openConfined()) {
+             var seg = func(session);
              assertEquals(seg.byteSize(), Point.sizeof());
              assertEquals(Point.k$get(seg), 44);
              var point2dSeg = Point.point2d$slice(seg);

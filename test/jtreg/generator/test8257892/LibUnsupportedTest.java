@@ -22,11 +22,11 @@
  */
 
 import java.lang.reflect.Method;
-import jdk.incubator.foreign.GroupLayout;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemoryLayout.PathElement;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemoryLayout.PathElement;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 
 import test.jextract.unsupported.unsupported_h;
@@ -53,8 +53,8 @@ import test.jextract.unsupported.*;
 public class LibUnsupportedTest {
     @Test
     public void testAllocateFoo() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            var seg = Foo.allocate(scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var seg = Foo.allocate(session);
             Foo.i$set(seg, 32);
             Foo.c$set(seg, (byte)'z');
             assertEquals(Foo.i$get(seg), 32);
@@ -64,8 +64,8 @@ public class LibUnsupportedTest {
 
     @Test
     public void testGetFoo() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            var seg = MemorySegment.ofAddress(getFoo(), Foo.sizeof(), scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var seg = MemorySegment.ofAddress(getFoo(), Foo.sizeof(), session);
             Foo.i$set(seg, 42);
             Foo.c$set(seg, (byte)'j');
             assertEquals(Foo.i$get(seg), 42);

@@ -5,4 +5,4 @@ jextract --source \
   -l ${LIBTENSORFLOW_HOME}/lib/libtensorflow.dylib \
   ${LIBTENSORFLOW_HOME}/include/tensorflow/c/c_api.h
 
-javac --add-modules jdk.incubator.foreign org/tensorflow/*.java
+javac --enable-preview --source=19 org/tensorflow/*.java

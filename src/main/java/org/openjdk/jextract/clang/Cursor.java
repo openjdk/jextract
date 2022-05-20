@@ -26,11 +26,10 @@
 
 package org.openjdk.jextract.clang;
 
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.NativeSymbol;
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -119,9 +118,8 @@ public final class Cursor {
 
     public SourceLocation getSourceLocation() {
         MemorySegment loc = Index_h.clang_getCursorLocation(IMPLICIT_ALLOCATOR, cursor);
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(
-                    SegmentAllocator.nativeAllocator(scope))) != 0) {
+        try (MemorySession session = MemorySession.openConfined()) {
+            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(session)) != 0) {
                 return null;
             }
         }
@@ -184,13 +182,13 @@ public final class Cursor {
 
     private static class CursorChildren {
         private static final ArrayList<Cursor> children = new ArrayList<>();
-        private static final NativeSymbol callback = CXCursorVisitor.allocate((c, p, d) -> {
-            MemorySegment copy = MemorySegment.allocateNative(c.byteSize(), ResourceScope.newImplicitScope());
+        private static final MemorySegment callback = CXCursorVisitor.allocate((c, p, d) -> {
+            MemorySegment copy = MemorySegment.allocateNative(c.byteSize(), MemorySession.openImplicit());
             copy.copyFrom(c);
             Cursor cursor = new Cursor(copy);
             children.add(cursor);
             return Index_h.CXChildVisit_Continue();
-        }, ResourceScope.newImplicitScope());
+        }, MemorySession.openImplicit());
 
         synchronized static Stream<Cursor> get(Cursor c) {
             try {

@@ -1,5 +1,6 @@
 ANACONDA3_HOME=/opt/anaconda3
 
-java --enable-native-access=ALL-UNNAMED --add-modules jdk.incubator.foreign \
+java --enable-native-access=ALL-UNNAMED \
+    --enable-preview --source=19 \
     -Djava.library.path=${ANACONDA3_HOME}/lib \
     PythonMain.java

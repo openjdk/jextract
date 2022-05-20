@@ -29,23 +29,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.openjdk.*;
-import static jdk.incubator.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemoryAddress.NULL;
 import static org.openjdk.jimage_h.*;
 
 public class JImageFile {
     public static void main(String[] args) {
         String javaHome = System.getProperty("java.home");
-        try (var scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            var jintResPtr = allocator.allocate(jint);
-            var moduleFilePath = allocator.allocateUtf8String(javaHome + "/lib/modules");
+        Path modPath = Paths.get(javaHome + "/lib/modules");
+        if (!Files.exists(modPath)) {
+           System.err.println(modPath + " not found, please check if your java.home");
+           return;
+        }
+        try (var session = MemorySession.openConfined()) {
+            var jintResPtr = session.allocate(jint);
+            var moduleFilePath = session.allocateUtf8String(javaHome + "/lib/modules");
             var jimageFile = JIMAGE_Open(moduleFilePath, jintResPtr);
 
+            if (jimageFile == NULL) {
+                System.err.println("JIMAGE_Open failed to open " + modPath);
+                return;
+            }
             var mod = JIMAGE_PackageToModule(jimageFile,
-                allocator.allocateUtf8String("java/util"));
+                session.allocateUtf8String("java/util"));
             System.out.println(mod);
 
             // const char* module_name, const char* version, const char* package,
@@ -57,7 +68,7 @@ public class JImageFile {
                    System.out.println("package " + package_name.getUtf8String(0));
                    System.out.println("name " + name.getUtf8String(0));
                    return 1;
-                }, scope);
+                }, session);
 
             JIMAGE_ResourceIterator(jimageFile, visitor, NULL);
 

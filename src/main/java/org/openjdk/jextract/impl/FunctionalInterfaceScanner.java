@@ -27,7 +27,7 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import jdk.incubator.foreign.FunctionDescriptor;
+import java.lang.foreign.FunctionDescriptor;
 
 import java.util.Optional;
 import java.util.Set;

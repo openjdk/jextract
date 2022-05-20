@@ -26,7 +26,7 @@
 
 package org.openjdk.jextract.impl;
 
-import jdk.incubator.foreign.MemoryLayout;
+import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;

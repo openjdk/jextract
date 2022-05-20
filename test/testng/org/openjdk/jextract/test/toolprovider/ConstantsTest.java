@@ -22,8 +22,7 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
-import jdk.incubator.foreign.CLinker;
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
@@ -33,8 +32,8 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import jdk.incubator.foreign.GroupLayout;
-import jdk.incubator.foreign.MemoryAddress;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryAddress;
 import testlib.JextractToolRunner;
 
 import static org.testng.Assert.assertEquals;

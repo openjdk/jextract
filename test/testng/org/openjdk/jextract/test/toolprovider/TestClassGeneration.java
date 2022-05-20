@@ -22,11 +22,10 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.NativeSymbol;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
 import testlib.TestUtils;
 import org.testng.annotations.*;
 import testlib.JextractToolRunner;
@@ -39,13 +38,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 import static java.lang.invoke.MethodType.methodType;
-import static jdk.incubator.foreign.MemoryLayout.PathElement.sequenceElement;
+import static java.lang.foreign.MemoryLayout.PathElement.sequenceElement;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 public class TestClassGeneration extends JextractToolRunner {
 
-    private static final VarHandle VH_bytes = MemoryLayout.sequenceLayout(C_CHAR).varHandle(sequenceElement());
+    private static final VarHandle VH_bytes = MemoryLayout.sequenceLayout(0, C_CHAR).varHandle(sequenceElement());
 
     private Path outputDir;
     private TestUtils.Loader loader;
@@ -181,8 +180,8 @@ public class TestClassGeneration extends JextractToolRunner {
         Class<?> structCls = loader.loadClass("com.acme." + structName);
         Method layout_getter = checkMethod(structCls, "$LAYOUT", MemoryLayout.class);
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            MemorySegment struct = MemorySegment.allocateNative(structLayout, scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            MemorySegment struct = MemorySegment.allocateNative(structLayout, session);
             Method vh_getter = checkMethod(structCls, memberName + "$VH", VarHandle.class);
             VarHandle vh = (VarHandle) vh_getter.invoke(null);
             assertEquals(vh.varType(), expectedType);
@@ -200,7 +199,7 @@ public class TestClassGeneration extends JextractToolRunner {
         Class<?> fiClass = loader.loadClass("com.acme." + name);
         assertNotNull(fiClass);
         checkMethod(fiClass, "apply", type);
-        checkMethod(fiClass, "allocate", NativeSymbol.class, fiClass, ResourceScope.class);
+        checkMethod(fiClass, "allocate", MemorySegment.class, fiClass, MemorySession.class);
     }
 
     @BeforeClass

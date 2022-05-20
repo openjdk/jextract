@@ -29,16 +29,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import static org.unix.readline_h.*;
 import org.unix.*;
 
 public class Readline {
     public static void main(String[] args) {
-       try (var scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.nativeAllocator(scope);
-            var url = allocator.allocateUtf8String("name? ");
+       try (var session = MemorySession.openConfined()) {
+            var url = session.allocateUtf8String("name? ");
 
             // call "readline" API
             var p = readline(url);

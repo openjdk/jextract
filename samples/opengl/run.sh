@@ -1,2 +1,3 @@
-java -XstartOnFirstThread --enable-native-access=ALL-UNNAMED --add-modules jdk.incubator.foreign \
+java -XstartOnFirstThread --enable-native-access=ALL-UNNAMED \
+    --enable-preview --source=19 \
     -Djava.library.path=.:/System/Library/Frameworks/OpenGL.framework/Versions/Current/Libraries/ Teapot.java $*

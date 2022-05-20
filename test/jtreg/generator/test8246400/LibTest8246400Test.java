@@ -21,10 +21,10 @@
  * questions.
  */
 
-import jdk.incubator.foreign.Addressable;
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.Addressable;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 import test.jextract.test8246400.*;
 import static org.testng.Assert.assertEquals;
@@ -51,16 +51,16 @@ public class LibTest8246400Test {
     @Test
     public void testSegmentRegister() {
         MemorySegment sum = null;
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            var v1 = Vector.allocate(scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var v1 = Vector.allocate(session);
             Vector.x$set(v1, 1.0);
             Vector.y$set(v1, 0.0);
 
-            var v2 = Vector.allocate(scope);
+            var v2 = Vector.allocate(session);
             Vector.x$set(v2, 0.0);
             Vector.y$set(v2, 1.0);
 
-            sum = add(scope, v1, v2);
+            sum = add(session, v1, v2);
 
             assertEquals(Vector.x$get(sum), 1.0, 0.1);
             assertEquals(Vector.y$get(sum), 1.0, 0.1);
@@ -68,7 +68,7 @@ public class LibTest8246400Test {
             Addressable callback = cosine_similarity$dot.allocate((a, b) -> {
                 return (Vector.x$get(a) * Vector.x$get(b)) +
                     (Vector.y$get(a) * Vector.y$get(b));
-            }, scope);
+            }, session);
 
             var value = cosine_similarity(v1, v2, callback);
             assertEquals(value, 0.0, 0.1);
@@ -76,6 +76,6 @@ public class LibTest8246400Test {
             value = cosine_similarity(v1, v1, callback);
             assertEquals(value, 1.0, 0.1);
         }
-        assertTrue(!sum.scope().isAlive());
+        assertTrue(!sum.session().isAlive());
     }
 }

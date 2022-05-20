@@ -3,13 +3,8 @@ param(
   [string]$blasPath
 )
 
-. ../shared_windows.ps1
-
-$jextract = find-tool("jextract")
-
-& $jextract `
+jextract `
   -t blas `
   -I "$blasPath\include" `
   -l libcblas `
-  -- `
   "$blasPath\include\cblas.h"

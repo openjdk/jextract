@@ -24,9 +24,9 @@
 import org.testng.annotations.Test;
 
 import java.util.stream.IntStream;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import static org.testng.Assert.assertEquals;
 
 import test.jextract.arrayparam.*;
@@ -51,10 +51,9 @@ import static test.jextract.arrayparam.arrayparam_h.*;
 public class Test8252121 {
     @Test
     public void test() {
-        try (var scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.nativeAllocator(scope);
+        try (var session = MemorySession.openConfined()) {
             int[] array = { 3, 5, 89, 34, -33 };
-            MemorySegment seg = allocator.allocateArray(C_INT, array);
+            MemorySegment seg = session.allocateArray(C_INT, array);
             assertEquals(IntStream.of(array).sum(), sum(seg));
             assertEquals(IntStream.of(array).reduce(1, (a,b) -> a*b), mul(seg));
         }

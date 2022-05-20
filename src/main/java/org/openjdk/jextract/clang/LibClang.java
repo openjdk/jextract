@@ -25,13 +25,13 @@
  */
 package org.openjdk.jextract.clang;
 
-import jdk.incubator.foreign.Addressable;
-import jdk.incubator.foreign.CLinker;
-import jdk.incubator.foreign.FunctionDescriptor;
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.Addressable;
+import java.lang.foreign.Linker;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.CXString;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -50,7 +50,7 @@ public class LibClang {
     private static final boolean CRASH_RECOVERY = IS_WINDOWS || Boolean.getBoolean("libclang.crash_recovery");
 
     final static SegmentAllocator IMPLICIT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align, ResourceScope.newImplicitScope());
+            (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.openImplicit());
 
     private final static MemorySegment disableCrashRecovery =
             IMPLICIT_ALLOCATOR.allocateUtf8String("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
@@ -60,9 +60,9 @@ public class LibClang {
             //this is an hack - needed because clang_toggleCrashRecovery only takes effect _after_ the
             //first call to createIndex.
             try {
-                CLinker linker = CLinker.systemCLinker();
+                Linker linker = Linker.nativeLinker();
                 String putenv = IS_WINDOWS ? "_putenv" : "putenv";
-                MethodHandle PUT_ENV = linker.downcallHandle(linker.lookup(putenv).get(),
+                MethodHandle PUT_ENV = linker.downcallHandle(linker.defaultLookup().lookup(putenv).get(),
                                 FunctionDescriptor.of(C_INT, C_POINTER));
                 int res = (int) PUT_ENV.invokeExact((Addressable)disableCrashRecovery);
             } catch (Throwable ex) {
@@ -94,7 +94,7 @@ public class LibClang {
      * conversion. The size of the prefix segment is set to 256, which should be enough to hold a CXString.
      */
     private final static SegmentAllocator STRING_ALLOCATOR = SegmentAllocator.prefixAllocator(
-            MemorySegment.allocateNative(CXString.sizeof(), 8, ResourceScope.newImplicitScope()));
+            MemorySegment.allocateNative(CXString.sizeof(), 8, MemorySession.openImplicit()));
 
     public static String version() {
         return CXStrToString(Index_h::clang_getClangVersion);

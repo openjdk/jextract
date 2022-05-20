@@ -7,13 +7,9 @@ param(
   [string]$path
 )
 
-. ../shared_windows.ps1
-
-$java = find-tool("java")
-
-& $java `
+java `
   --enable-native-access=ALL-UNNAMED `
-  --add-modules jdk.incubator.foreign `
+  --enable-preview --source=19 `
   -D"java.library.path=$libgit2path\bin" `
   GitClone.java `
   $url $path

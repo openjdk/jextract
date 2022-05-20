@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.MemoryAddress.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.MemoryAddress.*;
 import static org.tensorflow.c_api_h.*;
 import org.tensorflow.*;
 
@@ -45,15 +45,15 @@ public class TensorflowLoadSavedModel {
             System.exit(1);
         }
 
-        try (var scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
+        try (var session = MemorySession.openConfined()) {
+            var allocator = SegmentAllocator.newNativeArena(session);
             var graph = TF_NewGraph();
             var status = TF_NewStatus();
             var sessionOpts = TF_NewSessionOptions();
 
             var savedModelDir = allocator.allocateUtf8String(args[0]);
             var tags = allocator.allocate(C_POINTER, allocator.allocateUtf8String("serve"));
-            var session = TF_LoadSessionFromSavedModel(sessionOpts, NULL, savedModelDir, tags, 1, graph, NULL, status);
+            var tf_session = TF_LoadSessionFromSavedModel(sessionOpts, NULL, savedModelDir, tags, 1, graph, NULL, status);
 
             if (TF_GetCode(status) != TF_OK()) {
                 System.err.printf("cannot load session from saved model: %s\n",
@@ -72,7 +72,7 @@ public class TensorflowLoadSavedModel {
             }
 
             TF_DeleteGraph(graph);
-            TF_DeleteSession(session, status);
+            TF_DeleteSession(tf_session, status);
             TF_DeleteSessionOptions(sessionOpts);
             TF_DeleteStatus(status);
         }

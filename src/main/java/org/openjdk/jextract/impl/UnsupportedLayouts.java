@@ -24,8 +24,8 @@
  */
 package org.openjdk.jextract.impl;
 
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.ValueLayout;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 

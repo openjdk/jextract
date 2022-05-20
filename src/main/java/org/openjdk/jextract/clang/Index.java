@@ -26,12 +26,10 @@
 
 package org.openjdk.jextract.clang;
 
-import jdk.incubator.foreign.CLinker;
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemoryHandles;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.SegmentAllocator;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 import java.lang.invoke.VarHandle;
@@ -82,8 +80,8 @@ public class Index implements AutoCloseable {
 
     public TranslationUnit parseTU(String file, Consumer<Diagnostic> dh, int options, String... args)
             throws ParsingFailedException {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            SegmentAllocator allocator = SegmentAllocator.newNativeArena(scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            SegmentAllocator allocator = SegmentAllocator.newNativeArena(session);
             MemorySegment src = allocator.allocateUtf8String(file);
             MemorySegment cargs = args.length == 0 ? null : allocator.allocateArray(C_POINTER, args.length);
             for (int i = 0 ; i < args.length ; i++) {

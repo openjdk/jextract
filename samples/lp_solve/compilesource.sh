@@ -8,4 +8,4 @@ jextract \
   -l lpsolve55 \
   /usr/local/Cellar/lp_solve/5.5.2.11/include/lp_lib.h
 
-javac --add-modules jdk.incubator.foreign net/sourceforge/lpsolve/*.java
+javac --enable-preview --source=19 net/sourceforge/lpsolve/*.java

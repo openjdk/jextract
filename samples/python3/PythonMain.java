@@ -29,9 +29,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
-import static jdk.incubator.foreign.MemoryAddress.NULL;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
+import static java.lang.foreign.MemoryAddress.NULL;
 // import jextracted python 'header' class
 import static org.python.Python_h.*;
 import org.python.*;
@@ -41,9 +41,8 @@ public class PythonMain {
         String script = "print(sum([33, 55, 66])); print('Hello from Python!')\n";
 
         Py_Initialize();
-        try (var scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.nativeAllocator(scope);
-            var str = allocator.allocateUtf8String(script);
+        try (var session = MemorySession.openConfined()) {
+            var str = session.allocateUtf8String(script);
             PyRun_SimpleStringFlags(str, NULL);
             Py_Finalize();
         }

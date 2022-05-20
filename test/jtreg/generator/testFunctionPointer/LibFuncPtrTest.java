@@ -21,7 +21,7 @@
  * questions.
  */
 
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -43,8 +43,8 @@ import test.jextract.fp.*;
 public class LibFuncPtrTest {
     @Test
     public void test() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            var handle = func$f.allocate(x -> x * x, scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var handle = func$f.allocate(x -> x * x, session);
             assertEquals(func(handle, 35), 35 * 35 + 35);
         }
     }

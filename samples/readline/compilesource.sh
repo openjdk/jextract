@@ -5,4 +5,4 @@ jextract --source -l readline -t org.unix \
   --include-function free \
   myreadline.h
 
-javac --add-modules jdk.incubator.foreign org/unix/*.java
+javac --enable-preview --source=19 org/unix/*.java

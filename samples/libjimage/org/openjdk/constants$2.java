@@ -5,45 +5,45 @@ package org.openjdk;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import jdk.incubator.foreign.*;
-import static jdk.incubator.foreign.ValueLayout.*;
+import java.lang.foreign.*;
+import static java.lang.foreign.ValueLayout.*;
 class constants$2 {
 
-    static final FunctionDescriptor JIMAGE_GetResource$FUNC = FunctionDescriptor.of(JAVA_LONG,
-        ADDRESS,
-        JAVA_LONG,
-        ADDRESS,
-        JAVA_LONG
+    static final FunctionDescriptor JIMAGE_GetResource$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_LONG_LONG$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_LONG_LONG$LAYOUT
     );
     static final MethodHandle JIMAGE_GetResource$MH = RuntimeHelper.downcallHandle(
         "JIMAGE_GetResource",
         constants$2.JIMAGE_GetResource$FUNC, false
     );
-    static final FunctionDescriptor JImageGetResource_t$FUNC = FunctionDescriptor.of(JAVA_LONG,
-        ADDRESS,
-        JAVA_LONG,
-        ADDRESS,
-        JAVA_LONG
+    static final FunctionDescriptor JImageGetResource_t$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_LONG_LONG$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_LONG_LONG$LAYOUT
     );
     static final MethodHandle JImageGetResource_t$MH = RuntimeHelper.downcallHandle(
         constants$2.JImageGetResource_t$FUNC, false
     );
-    static final FunctionDescriptor JImageResourceVisitor_t$FUNC = FunctionDescriptor.of(JAVA_INT,
-        ADDRESS,
-        ADDRESS,
-        ADDRESS,
-        ADDRESS,
-        ADDRESS,
-        ADDRESS,
-        ADDRESS
+    static final FunctionDescriptor JImageResourceVisitor_t$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle JImageResourceVisitor_t$MH = RuntimeHelper.downcallHandle(
         constants$2.JImageResourceVisitor_t$FUNC, false
     );
     static final FunctionDescriptor JIMAGE_ResourceIterator$FUNC = FunctionDescriptor.ofVoid(
-        ADDRESS,
-        ADDRESS,
-        ADDRESS
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle JIMAGE_ResourceIterator$MH = RuntimeHelper.downcallHandle(
         "JIMAGE_ResourceIterator",

@@ -26,9 +26,9 @@
 
 package org.openjdk.jextract.clang;
 
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.CXType;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -101,8 +101,8 @@ public final class Type {
 
     // Struct/RecordType
     private long getOffsetOf0(String fieldName) {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.nativeAllocator(scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var allocator = session;
             MemorySegment cfname = allocator.allocateUtf8String(fieldName);
             return Index_h.clang_Type_getOffsetOf(type, cfname);
         }

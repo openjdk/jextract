@@ -26,9 +26,9 @@
 
 package org.openjdk.jextract.impl;
 
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.VaList;
-import jdk.incubator.foreign.ValueLayout;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.VaList;
+import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;

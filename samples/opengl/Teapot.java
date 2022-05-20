@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import opengl.*;
 import static opengl.glut_h.*;
 
@@ -71,7 +71,7 @@ public class Teapot {
     }
 
     public static void main(String[] args) {
-        try (var scope = ResourceScope.newConfinedScope()) {
+        try (var scope = MemorySession.openConfined()) {
             var allocator = SegmentAllocator.newNativeArena(scope);
             var argc = allocator.allocate(C_INT, 0);
             glutInit(argc, argc);
@@ -79,8 +79,8 @@ public class Teapot {
             glutInitWindowSize(500, 500);
             glutCreateWindow(allocator.allocateUtf8String("Hello Panama!"));
             var teapot = new Teapot(allocator);
-            var displayStub = glutDisplayFunc$func.allocate(teapot::display, scope);
-            var idleStub = glutIdleFunc$func.allocate(teapot::onIdle, scope);
+            var displayStub = glutDisplayFunc$callback.allocate(teapot::display, scope);
+            var idleStub = glutIdleFunc$callback.allocate(teapot::onIdle, scope);
             glutDisplayFunc(displayStub);
             glutIdleFunc(idleStub);
             glutMainLoop();

@@ -29,7 +29,7 @@ package org.openjdk.jextract.impl;
 import java.lang.constant.Constable;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jdk.incubator.foreign.MemoryLayout;
+import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;

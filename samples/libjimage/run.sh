@@ -1,4 +1,4 @@
 java -cp build \
    --enable-native-access=ALL-UNNAMED \
-   --add-modules jdk.incubator.foreign \
+   --enable-preview --source=19 \
    JImageFile.java

@@ -22,7 +22,7 @@
  */
 
 import org.testng.annotations.Test;
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.MemorySession;
 import test.jextract.test8261511.*;
 import static org.testng.Assert.assertEquals;
 import static test.jextract.test8261511.test8261511_h.*;
@@ -46,9 +46,9 @@ import static test.jextract.test8261511.test8261511_h.*;
 public class Test8261511 {
     @Test
     public void test() {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-            var funcPtr = Foo.sum$get(get_foo(scope));
-            var sumIface = Foo.sum.ofAddress(funcPtr, scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var funcPtr = Foo.sum$get(get_foo(session));
+            var sumIface = Foo.sum.ofAddress(funcPtr, session);
             assertEquals(sumIface.apply(15,20), 35);
             assertEquals(sum(1.2, 4.5), 5.7, 0.001);
         }

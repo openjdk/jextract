@@ -22,7 +22,7 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
-import jdk.incubator.foreign.Addressable;
+import java.lang.foreign.Addressable;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;

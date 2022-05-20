@@ -24,7 +24,7 @@
  */
 package org.openjdk.jextract.impl;
 
-import jdk.incubator.foreign.*;
+import java.lang.foreign.*;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
@@ -424,18 +424,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
 
-        boolean sizeAvailable;
-        try {
-            layout.byteSize();
-            sizeAvailable = true;
-        } catch (Exception ignored) {
-            sizeAvailable = false;
-        }
-        if (sizeAvailable) {
-            currentBuilder.addVar(fieldName, tree.name(), layout, Optional.ofNullable(fiName));
-        } else {
-            warn("Layout size not available for " + fieldName);
-        }
+        currentBuilder.addVar(fieldName, tree.name(), layout, Optional.ofNullable(fiName));
 
         return null;
     }

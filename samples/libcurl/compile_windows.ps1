@@ -3,24 +3,18 @@ param(
   [string]$curlpath
 )
 
-. ../shared_windows.ps1
-
-$jextract = find-tool("jextract")
-
-& $jextract `
+jextract `
   -I "$curlpath\include" `
   -I "$curlpath\include\curl" `
   --dump-includes 'includes_all.conf' `
-  -- `
   "$curlpath\include\curl\curl.h"
   
-filter_file 'includes_all.conf' 'curl' 'includes_filtered.conf'
+Select-String -Path 'includes_all.conf' -Pattern 'curl' | %{ $_.Line } | Out-File -FilePath 'includes_filtered.conf' -Encoding ascii
 
-& $jextract `
+jextract `
   -t org.jextract `
   -I "$curlpath\include" `
   -I "$curlpath\include\curl" `
   -llibcurl `
   '@includes_filtered.conf' `
-  -- `
   "$curlpath\include\curl\curl.h"

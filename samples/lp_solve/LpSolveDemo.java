@@ -29,9 +29,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.incubator.foreign.*;
+import java.lang.foreign.*;
 import static net.sourceforge.lpsolve.lp_lib_h.*;
-import static jdk.incubator.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemoryAddress.NULL;
 
 // This is port of C example from http://web.mit.edu/lpsolve/doc/
 
@@ -47,10 +47,9 @@ class LpSolveDemo {
              return;
         }
 
-        try (var scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.nativeAllocator(scope);
-            var colno = allocator.allocateArray(C_INT, Ncol);
-            var row = allocator.allocateArray(C_DOUBLE, Ncol);
+        try (var session = MemorySession.openConfined()) {
+            var colno = session.allocateArray(C_INT, Ncol);
+            var row = session.allocateArray(C_DOUBLE, Ncol);
 
             // makes building the model faster if it is done rows by row
             set_add_rowmode(lp, TRUE);

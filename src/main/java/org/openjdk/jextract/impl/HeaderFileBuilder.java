@@ -24,16 +24,16 @@
  */
 package org.openjdk.jextract.impl;
 
-import jdk.incubator.foreign.CLinker;
-import jdk.incubator.foreign.FunctionDescriptor;
-import jdk.incubator.foreign.GroupLayout;
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemorySegment;
-import jdk.incubator.foreign.ResourceScope;
-import jdk.incubator.foreign.SegmentAllocator;
-import jdk.incubator.foreign.SequenceLayout;
-import jdk.incubator.foreign.ValueLayout;
+import java.lang.foreign.Linker;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Type;
 
 import org.openjdk.jextract.impl.ConstantBuilder.Constant;
@@ -68,8 +68,10 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             emitWithConstantClass(constantBuilder -> {
-                constantBuilder.addSegment(javaName, nativeName, layout)
+                if (layout.byteSize() > 0) {
+                    constantBuilder.addSegment(javaName, nativeName, layout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
+                }
             });
         } else if (layout instanceof ValueLayout valueLayout) {
             emitWithConstantClass(constantBuilder -> {
@@ -81,6 +83,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
                 emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
                 emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
+
                 if (fiName.isPresent()) {
                     emitFunctionalInterfaceGetter(fiName.get(), javaName);
                 }
@@ -93,12 +96,8 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         emitWithConstantClass(constantBuilder -> {
             Constant mhConstant = constantBuilder.addMethodHandle(javaName, nativeName, descriptor, isVarargs, false)
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
-            MethodType downcallType = CLinker.downcallType(descriptor);
+            MethodType downcallType = Linker.downcallType(descriptor);
             emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, isVarargs, parameterNames);
-            if (downcallType.returnType().equals(MemorySegment.class)) {
-                // emit scoped overload
-                emitFunctionWrapperScopedOverload(javaName, downcallType, isVarargs, parameterNames);
-            }
         });
     }
 
@@ -156,31 +155,6 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    private void emitFunctionWrapperScopedOverload(String javaName, MethodType declType, boolean isVarargs, List<String> parameterNames) {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS + " ");
-        List<String> paramNames = new ArrayList<>(parameterNames);
-        paramNames.add(0, "scope");
-        List<String> pExprs = emitFunctionWrapperDecl(javaName,
-                declType.insertParameterTypes(0, ResourceScope.class),
-                isVarargs,
-        paramNames);
-        String param = pExprs.remove(0);
-        pExprs.add(0, "SegmentAllocator.nativeAllocator(" + param + ")");
-        append(" {\n");
-        incrAlign();
-        indent();
-        if (!declType.returnType().equals(void.class)) {
-            append("return ");
-        }
-        append(javaName + "(" + String.join(", ", pExprs) + ");\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
-    }
-
     private List<String> emitFunctionWrapperDecl(String javaName, MethodType methodType, boolean isVarargs, List<String> paramNames) {
         append(methodType.returnType().getSimpleName() + " " + javaName + " (");
         String delim = "";
@@ -212,7 +186,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         append(fiName + " " + javaName + " () {\n");
         incrAlign();
         indent();
-        append("return " + fiName + ".ofAddress(" + javaName + "$get(), ResourceScope.globalScope());\n");
+        append("return " + fiName + ".ofAddress(" + javaName + "$get(), MemorySession.global());\n");
         decrAlign();
         indent();
         append("}\n");

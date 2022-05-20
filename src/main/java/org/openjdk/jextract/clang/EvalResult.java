@@ -26,9 +26,8 @@
 
 package org.openjdk.jextract.clang;
 
-import jdk.incubator.foreign.CLinker;
-import jdk.incubator.foreign.MemoryAddress;
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 public class EvalResult implements AutoCloseable {

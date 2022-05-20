@@ -3,12 +3,8 @@ param(
   [string]$freeglutPath
 )
 
-. ../shared_windows.ps1
-
-$java = find-tool("java")
-
-& $java `
+java `
   --enable-native-access=ALL-UNNAMED `
-  --add-modules jdk.incubator.foreign `
+  --enable-preview --source=19 `
   -D"java.library.path=C:\Windows\System32`;$freeglutPath\bin\x64" `
   Teapot.java

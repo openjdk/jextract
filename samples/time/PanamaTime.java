@@ -30,16 +30,15 @@
  */
 
 import static org.unix.time_h.*;
-import static jdk.incubator.foreign.CLinker.*;
-import jdk.incubator.foreign.*;
+import static java.lang.foreign.Linker.*;
+import java.lang.foreign.*;
 import org.unix.*;
 
 public class PanamaTime {
     public static void main(String[] args) {
-        try (var scope = ResourceScope.newConfinedScope()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
-            var now = allocator.allocate(C_LONG, System.currentTimeMillis() / 1000);
-            MemorySegment time = tm.allocate(scope);
+        try (var session = MemorySession.openConfined()) {
+            var now = session.allocate(C_LONG, System.currentTimeMillis() / 1000);
+            MemorySegment time = tm.allocate(session);
             localtime_r(now, time);
             System.err.printf("Time = %d:%d\n", tm.tm_hour$get(time), tm.tm_min$get(time));
         }

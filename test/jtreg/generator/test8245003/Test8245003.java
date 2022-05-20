@@ -22,12 +22,12 @@
  */
 
 import org.testng.annotations.Test;
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.MemorySegment;
 import test.jextract.test8245003.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static test.jextract.test8245003.test8245003_h.*;
-import static jdk.incubator.foreign.CLinker.*;
+import static java.lang.foreign.Linker.*;
 
 /*
  * @test id=classes
