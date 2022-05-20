@@ -30,7 +30,6 @@ import java.lang.foreign.MemorySegment;
 
 import static org.testng.Assert.assertEquals;
 import static test.jextract.vsprintf.vsprintf_h.*;
-import static java.lang.foreign.Linker.*;
 
 /*
  * @test id=classes

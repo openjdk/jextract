@@ -30,7 +30,6 @@ import test.jextract.test8246341.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static test.jextract.test8246341.test8246341_h.*;
-import static java.lang.foreign.Linker.*;
 
 /*
  * @test id=classes

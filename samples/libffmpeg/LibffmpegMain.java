@@ -39,7 +39,7 @@ import libffmpeg.AVFrame;
 import libffmpeg.AVPacket;
 import libffmpeg.AVStream;
 import static libffmpeg.Libffmpeg.*;
-import static java.lang.foreign.MemoryAddress.*;
+import static java.lang.foreign.MemoryAddress.NULL;
 
 /*
  * This sample is based on C sample from the ffmpeg tutorial at
