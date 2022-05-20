@@ -6,6 +6,16 @@
 
 `jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable [jdk 19 distribution](https://jdk.java.net/19/) is also required.
 
+<details><summary><strong>Building older jextract versions</strong></summary>
+
+The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by chercking out the appropriate branch.
+For example, to build a jextract tool which works against JDK 18:
+
+`git checkout jdk18`
+
+Over time, new branches will be added, each targeting a specific JDK version.
+</details>
+
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead):
 
 ```sh
