@@ -1,15 +1,15 @@
 ## Jextract
 
-`jextract` is a tool which mechanically generates Java bindings from a native library headers. This tools leverages the [clang C API](https://clang.llvm.org/doxygen/group__CINDEX.html) in order to parse the headers associated with a given native library, and the generated Java bindings build upon the [Foreign Function & Memory API](https://openjdk.java.net/jeps/419). The `jextract` tool was originally developed in the context of [Project Panama](https://openjdk.java.net/projects/panama/) (and then made available in the Project Panama [Early Access binaries](https://jdk.java.net/panama/)).
+`jextract` is a tool which mechanically generates Java bindings from a native library headers. This tools leverages the [clang C API](https://clang.llvm.org/doxygen/group__CINDEX.html) in order to parse the headers associated with a given native library, and the generated Java bindings build upon the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424). The `jextract` tool was originally developed in the context of [Project Panama](https://openjdk.java.net/projects/panama/) (and then made available in the Project Panama [Early Access binaries](https://jdk.java.net/panama/)).
 
 ### Getting started
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/419), so a suitable [jdk 18 distribution](https://jdk.java.net/18/) is also required.
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable [jdk 19 distribution](https://jdk.java.net/19/) is also required.
 
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Pllvm_home=<libclang_dir> clean verify
+$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
 
@@ -38,7 +38,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk18_home=<jdk18_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
 
 Note however that running `jtreg` task requires `cmake` to be available on the `PATH`.
