@@ -47,8 +47,8 @@ import test.jextract.test8244938.*;
 public class Test8244938 {
     @Test
     public void testNestedStructReturn() {
-         try (MemorySession scope = MemorySession.openConfined()) {
-             var seg = func(scope);
+         try (MemorySession session = MemorySession.openConfined()) {
+             var seg = func(session);
              assertEquals(seg.byteSize(), Point.sizeof());
              assertEquals(Point.k$get(seg), 44);
              var point2dSeg = Point.point2d$slice(seg);

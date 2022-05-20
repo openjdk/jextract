@@ -154,10 +154,10 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + " (MemorySegment segment, MemorySession scope) {\n");
+        append(fiName + " " + javaName + " (MemorySegment segment, MemorySession session) {\n");
         incrAlign();
         indent();
-        append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), scope);\n");
+        append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), session);\n");
         decrAlign();
         indent();
         append("}\n");
@@ -258,7 +258,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS);
-        append(" MemorySegment ofAddress(MemoryAddress addr, MemorySession scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }\n");
+        append(" MemorySegment ofAddress(MemoryAddress addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }\n");
         decrAlign();
     }
 

@@ -80,8 +80,8 @@ public class Index implements AutoCloseable {
 
     public TranslationUnit parseTU(String file, Consumer<Diagnostic> dh, int options, String... args)
             throws ParsingFailedException {
-        try (MemorySession scope = MemorySession.openConfined()) {
-            SegmentAllocator allocator = SegmentAllocator.newNativeArena(scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            SegmentAllocator allocator = SegmentAllocator.newNativeArena(session);
             MemorySegment src = allocator.allocateUtf8String(file);
             MemorySegment cargs = args.length == 0 ? null : allocator.allocateArray(C_POINTER, args.length);
             for (int i = 0 ; i < args.length ; i++) {

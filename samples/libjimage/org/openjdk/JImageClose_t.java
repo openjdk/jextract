@@ -10,11 +10,11 @@ import static java.lang.foreign.ValueLayout.*;
 public interface JImageClose_t {
 
     void apply(java.lang.foreign.MemoryAddress jimage);
-    static MemorySegment allocate(JImageClose_t fi, MemorySession scope) {
-        return RuntimeHelper.upcallStub(JImageClose_t.class, fi, constants$0.JImageClose_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;)V", scope);
+    static MemorySegment allocate(JImageClose_t fi, MemorySession session) {
+        return RuntimeHelper.upcallStub(JImageClose_t.class, fi, constants$0.JImageClose_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;)V", session);
     }
-    static JImageClose_t ofAddress(MemoryAddress addr, MemorySession scope) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, scope);
+    static JImageClose_t ofAddress(MemoryAddress addr, MemorySession session) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
         return (java.lang.foreign.MemoryAddress _jimage) -> {
             try {
                 constants$0.JImageClose_t$MH.invokeExact((Addressable)symbol, (java.lang.foreign.Addressable)_jimage);

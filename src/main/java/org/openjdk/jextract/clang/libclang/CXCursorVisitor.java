@@ -35,11 +35,11 @@ import static java.lang.foreign.ValueLayout.*;
 public interface CXCursorVisitor {
 
     int apply(java.lang.foreign.MemorySegment cursor, java.lang.foreign.MemorySegment parent, java.lang.foreign.MemoryAddress client_data);
-    static MemorySegment allocate(CXCursorVisitor fi, MemorySession scope) {
-        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, "(Ljava/lang/foreign/MemorySegment;Ljava/lang/foreign/MemorySegment;Ljava/lang/foreign/MemoryAddress;)I", scope);
+    static MemorySegment allocate(CXCursorVisitor fi, MemorySession session) {
+        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, "(Ljava/lang/foreign/MemorySegment;Ljava/lang/foreign/MemorySegment;Ljava/lang/foreign/MemoryAddress;)I", session);
     }
-    static CXCursorVisitor ofAddress(MemoryAddress addr, MemorySession scope) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, scope);
+    static CXCursorVisitor ofAddress(MemoryAddress addr, MemorySession session) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
         return (java.lang.foreign.MemorySegment _cursor, java.lang.foreign.MemorySegment _parent, java.lang.foreign.MemoryAddress _client_data) -> {
             try {
                 return (int)constants$13.CXCursorVisitor$MH.invokeExact((Addressable)symbol, _cursor, _parent, (java.lang.foreign.Addressable)_client_data);

@@ -52,16 +52,16 @@ public class LibTest8246341Test {
     @Test
     public void testPointerArray() {
         boolean[] callbackCalled = new boolean[1];
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             var callback = func$callback.allocate((argc, argv) -> {
                 callbackCalled[0] = true;
-                var addr = MemorySegment.ofAddress(argv, C_POINTER.byteSize() * argc, scope);
+                var addr = MemorySegment.ofAddress(argv, C_POINTER.byteSize() * argc, session);
                 assertEquals(argc, 4);
                 assertEquals(addr.get(C_POINTER, 0).getUtf8String(0), "java");
                 assertEquals(addr.get(C_POINTER, C_POINTER.byteSize() * 1).getUtf8String(0), "python");
                 assertEquals(addr.get(C_POINTER, C_POINTER.byteSize() * 2).getUtf8String(0), "javascript");
                 assertEquals(addr.get(C_POINTER, C_POINTER.byteSize() * 3).getUtf8String(0), "c++");
-            }, scope);
+            }, session);
             func(callback);
         }
         assertTrue(callbackCalled[0]);
@@ -69,8 +69,8 @@ public class LibTest8246341Test {
 
     @Test
     public void testPointerAllocate() {
-        try (var scope = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(C_POINTER.byteSize(), scope);
+        try (var session = MemorySession.openConfined()) {
+            var allocator = SegmentAllocator.newNativeArena(C_POINTER.byteSize(), session);
             var addr = allocator.allocate(C_POINTER);
             addr.set(C_POINTER, 0, MemoryAddress.NULL);
             fillin(addr);

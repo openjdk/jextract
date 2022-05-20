@@ -10,11 +10,11 @@ import static java.lang.foreign.ValueLayout.*;
 public interface JImageResourceIterator_t {
 
     void apply(java.lang.foreign.MemoryAddress jimage, java.lang.foreign.MemoryAddress visitor, java.lang.foreign.MemoryAddress arg);
-    static MemorySegment allocate(JImageResourceIterator_t fi, MemorySession scope) {
-        return RuntimeHelper.upcallStub(JImageResourceIterator_t.class, fi, constants$3.JImageResourceIterator_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;)V", scope);
+    static MemorySegment allocate(JImageResourceIterator_t fi, MemorySession session) {
+        return RuntimeHelper.upcallStub(JImageResourceIterator_t.class, fi, constants$3.JImageResourceIterator_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;)V", session);
     }
-    static JImageResourceIterator_t ofAddress(MemoryAddress addr, MemorySession scope) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, scope);
+    static JImageResourceIterator_t ofAddress(MemoryAddress addr, MemorySession session) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
         return (java.lang.foreign.MemoryAddress _jimage, java.lang.foreign.MemoryAddress _visitor, java.lang.foreign.MemoryAddress _arg) -> {
             try {
                 constants$3.JImageResourceIterator_t$MH.invokeExact((Addressable)symbol, (java.lang.foreign.Addressable)_jimage, (java.lang.foreign.Addressable)_visitor, (java.lang.foreign.Addressable)_arg);

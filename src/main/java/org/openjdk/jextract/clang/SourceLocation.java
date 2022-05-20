@@ -55,11 +55,11 @@ public class SourceLocation {
 
     @SuppressWarnings("unchecked")
     private Location getLocation(LocationFactory fn) {
-        try (var scope = MemorySession.openConfined()) {
-             MemorySegment file = MemorySegment.allocateNative(C_POINTER, scope);
-             MemorySegment line = MemorySegment.allocateNative(C_INT, scope);
-             MemorySegment col = MemorySegment.allocateNative(C_INT, scope);
-             MemorySegment offset = MemorySegment.allocateNative(C_INT, scope);
+        try (var session = MemorySession.openConfined()) {
+             MemorySegment file = MemorySegment.allocateNative(C_POINTER, session);
+             MemorySegment line = MemorySegment.allocateNative(C_INT, session);
+             MemorySegment col = MemorySegment.allocateNative(C_INT, session);
+             MemorySegment offset = MemorySegment.allocateNative(C_INT, session);
 
             fn.get(loc, file, line, col, offset);
             MemoryAddress fname = file.get(C_POINTER, 0);

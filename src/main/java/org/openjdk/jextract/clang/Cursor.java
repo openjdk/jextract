@@ -118,8 +118,8 @@ public final class Cursor {
 
     public SourceLocation getSourceLocation() {
         MemorySegment loc = Index_h.clang_getCursorLocation(IMPLICIT_ALLOCATOR, cursor);
-        try (MemorySession scope = MemorySession.openConfined()) {
-            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(scope)) != 0) {
+        try (MemorySession session = MemorySession.openConfined()) {
+            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(session)) != 0) {
                 return null;
             }
         }

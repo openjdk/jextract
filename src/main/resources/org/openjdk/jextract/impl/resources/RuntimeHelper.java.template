@@ -70,18 +70,18 @@ final class RuntimeHelper {
                 orElse(null);
     }
 
-    static final <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, MemorySession scope) {
+    static final <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, MemorySession session) {
         try {
             MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", Linker.upcallType(fdesc));
             handle = handle.bindTo(z);
-            return LINKER.upcallStub(handle, fdesc, scope);
+            return LINKER.upcallStub(handle, fdesc, session);
         } catch (Throwable ex) {
             throw new AssertionError(ex);
         }
     }
 
-    static MemorySegment asArray(MemoryAddress addr, MemoryLayout layout, int numElements, MemorySession scope) {
-         return MemorySegment.ofAddress(addr, numElements * layout.byteSize(), scope);
+    static MemorySegment asArray(MemoryAddress addr, MemoryLayout layout, int numElements, MemorySession session) {
+         return MemorySegment.ofAddress(addr, numElements * layout.byteSize(), session);
     }
 
     // Internals only below this point

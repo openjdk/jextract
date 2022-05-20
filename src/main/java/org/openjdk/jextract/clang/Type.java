@@ -101,8 +101,8 @@ public final class Type {
 
     // Struct/RecordType
     private long getOffsetOf0(String fieldName) {
-        try (MemorySession scope = MemorySession.openConfined()) {
-            var allocator = scope;
+        try (MemorySession session = MemorySession.openConfined()) {
+            var allocator = session;
             MemorySegment cfname = allocator.allocateUtf8String(fieldName);
             return Index_h.clang_Type_getOffsetOf(type, cfname);
         }

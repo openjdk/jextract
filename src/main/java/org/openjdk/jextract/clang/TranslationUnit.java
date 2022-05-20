@@ -70,8 +70,8 @@ public class TranslationUnit implements AutoCloseable {
     }
 
     public final void save(Path path) throws TranslationUnitSaveException {
-        try (MemorySession scope = MemorySession.openConfined()) {
-            var allocator = scope;
+        try (MemorySession session = MemorySession.openConfined()) {
+            var allocator = session;
             MemorySegment pathStr = allocator.allocateUtf8String(path.toAbsolutePath().toString());
             SaveError res = SaveError.valueOf(Index_h.clang_saveTranslationUnit(tu, pathStr, 0));
             if (res != SaveError.None) {
@@ -92,8 +92,8 @@ public class TranslationUnit implements AutoCloseable {
     static long LENGTH_OFFSET = CXUnsavedFile.$LAYOUT().byteOffset(MemoryLayout.PathElement.groupElement("Length"));
 
     public void reparse(Index.UnsavedFile... inMemoryFiles) {
-        try (MemorySession scope = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var allocator = SegmentAllocator.newNativeArena(session);
             MemorySegment files = inMemoryFiles.length == 0 ?
                     null :
                     allocator.allocateArray(CXUnsavedFile.$LAYOUT(), inMemoryFiles.length);
@@ -134,9 +134,9 @@ public class TranslationUnit implements AutoCloseable {
     }
 
     public Tokens tokenize(SourceRange range) {
-        try (MemorySession scope = MemorySession.openConfined()) {
-            MemorySegment p = MemorySegment.allocateNative(C_POINTER, scope);
-            MemorySegment pCnt = MemorySegment.allocateNative(C_INT, scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            MemorySegment p = MemorySegment.allocateNative(C_POINTER, session);
+            MemorySegment pCnt = MemorySegment.allocateNative(C_INT, session);
             Index_h.clang_tokenize(tu, range.range, p, pCnt);
             Tokens rv = new Tokens(p.get(C_POINTER, 0), pCnt.get(C_INT, 0));
             return rv;

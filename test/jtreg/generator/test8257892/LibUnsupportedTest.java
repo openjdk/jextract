@@ -53,8 +53,8 @@ import test.jextract.unsupported.*;
 public class LibUnsupportedTest {
     @Test
     public void testAllocateFoo() {
-        try (MemorySession scope = MemorySession.openConfined()) {
-            var seg = Foo.allocate(scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var seg = Foo.allocate(session);
             Foo.i$set(seg, 32);
             Foo.c$set(seg, (byte)'z');
             assertEquals(Foo.i$get(seg), 32);
@@ -64,8 +64,8 @@ public class LibUnsupportedTest {
 
     @Test
     public void testGetFoo() {
-        try (MemorySession scope = MemorySession.openConfined()) {
-            var seg = MemorySegment.ofAddress(getFoo(), Foo.sizeof(), scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var seg = MemorySegment.ofAddress(getFoo(), Foo.sizeof(), session);
             Foo.i$set(seg, 42);
             Foo.c$set(seg, (byte)'j');
             assertEquals(Foo.i$get(seg), 42);

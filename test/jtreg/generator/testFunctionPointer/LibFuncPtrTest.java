@@ -43,8 +43,8 @@ import test.jextract.fp.*;
 public class LibFuncPtrTest {
     @Test
     public void test() {
-        try (MemorySession scope = MemorySession.openConfined()) {
-            var handle = func$f.allocate(x -> x * x, scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var handle = func$f.allocate(x -> x * x, session);
             assertEquals(func(handle, 35), 35 * 35 + 35);
         }
     }

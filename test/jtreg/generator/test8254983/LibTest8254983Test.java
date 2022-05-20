@@ -48,9 +48,9 @@ import test.jextract.test8254983.*;
 public class LibTest8254983Test {
     @Test
     public void testOuterStruct() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             assertEquals(((GroupLayout)Foo._struct.$LAYOUT()).memberLayouts().size(), 1);
-            MemorySegment str = Foo._struct.allocate(scope);
+            MemorySegment str = Foo._struct.allocate(session);
             Foo._struct.x$set(str, 42);
             assertEquals(Foo._struct.x$get(str), 42);
         }
@@ -59,8 +59,8 @@ public class LibTest8254983Test {
     @Test
     public void testInnerStruct() {
         assertEquals(((GroupLayout)Foo._union._struct.$LAYOUT()).memberLayouts().size(), 2);
-        try (MemorySession scope = MemorySession.openConfined()) {
-            MemorySegment str = Foo._union._struct.allocate(scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            MemorySegment str = Foo._union._struct.allocate(session);
             Foo._union._struct.x$set(str, 42);
             assertEquals(Foo._union._struct.x$get(str), 42);
         }

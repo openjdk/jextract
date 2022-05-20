@@ -49,9 +49,9 @@ import test.jextract.test8253102.*;
 public class LibTest8253102Test {
     @Test
     public void test() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             MemoryAddress addr = make(14, 99);
-            MemorySegment seg = Point.ofAddress(addr, scope);
+            MemorySegment seg = Point.ofAddress(addr, session);
             assertEquals(Point.x$get(seg), 14);
             assertEquals(Point.y$get(seg), 99);
             freePoint(addr);

@@ -80,19 +80,19 @@ final class RuntimeHelper {
         return LINKER.downcallHandle(fdesc);
     }
 
-    static final <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, String mtypeDesc, MemorySession scope) {
+    static final <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, String mtypeDesc, MemorySession session) {
         try {
             MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply",
                     MethodType.fromMethodDescriptorString(mtypeDesc, LOADER));
             handle = handle.bindTo(z);
-            return LINKER.upcallStub(handle, fdesc, scope);
+            return LINKER.upcallStub(handle, fdesc, session);
         } catch (Throwable ex) {
             throw new AssertionError(ex);
         }
     }
 
-    static MemorySegment asArray(MemoryAddress addr, MemoryLayout layout, int numElements, MemorySession scope) {
-         return MemorySegment.ofAddress(addr, numElements * layout.byteSize(), scope);
+    static MemorySegment asArray(MemoryAddress addr, MemoryLayout layout, int numElements, MemorySession session) {
+         return MemorySegment.ofAddress(addr, numElements * layout.byteSize(), session);
     }
 
     // Internals only below this point

@@ -48,11 +48,11 @@ import test.jextract.test8252465.*;
 public class LibTest8252465Test {
     @Test
     public void test() {
-        try (var scope = MemorySession.openConfined()) {
-            var foo = Foo.allocate(scope);
+        try (var session = MemorySession.openConfined()) {
+            var foo = Foo.allocate(session);
             Foo.x$set(foo, 3.14f);
             assertEquals(Foo.x$get(foo), 3.14f, 0.001f);
-            var bar = Bar.allocate(scope);
+            var bar = Bar.allocate(session);
             Bar.x$set(bar, -42);
             assertEquals(Bar.x$get(bar), -42);
         }

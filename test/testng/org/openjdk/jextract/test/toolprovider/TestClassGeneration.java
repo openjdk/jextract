@@ -180,8 +180,8 @@ public class TestClassGeneration extends JextractToolRunner {
         Class<?> structCls = loader.loadClass("com.acme." + structName);
         Method layout_getter = checkMethod(structCls, "$LAYOUT", MemoryLayout.class);
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
-        try (MemorySession scope = MemorySession.openConfined()) {
-            MemorySegment struct = MemorySegment.allocateNative(structLayout, scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            MemorySegment struct = MemorySegment.allocateNative(structLayout, session);
             Method vh_getter = checkMethod(structCls, memberName + "$VH", VarHandle.class);
             VarHandle vh = (VarHandle) vh_getter.invoke(null);
             assertEquals(vh.varType(), expectedType);

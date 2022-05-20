@@ -51,16 +51,16 @@ public class LibTest8246400Test {
     @Test
     public void testSegmentRegister() {
         MemorySegment sum = null;
-        try (MemorySession scope = MemorySession.openConfined()) {
-            var v1 = Vector.allocate(scope);
+        try (MemorySession session = MemorySession.openConfined()) {
+            var v1 = Vector.allocate(session);
             Vector.x$set(v1, 1.0);
             Vector.y$set(v1, 0.0);
 
-            var v2 = Vector.allocate(scope);
+            var v2 = Vector.allocate(session);
             Vector.x$set(v2, 0.0);
             Vector.y$set(v2, 1.0);
 
-            sum = add(scope, v1, v2);
+            sum = add(session, v1, v2);
 
             assertEquals(Vector.x$get(sum), 1.0, 0.1);
             assertEquals(Vector.y$get(sum), 1.0, 0.1);
@@ -68,7 +68,7 @@ public class LibTest8246400Test {
             Addressable callback = cosine_similarity$dot.allocate((a, b) -> {
                 return (Vector.x$get(a) * Vector.x$get(b)) +
                     (Vector.y$get(a) * Vector.y$get(b));
-            }, scope);
+            }, session);
 
             var value = cosine_similarity(v1, v2, callback);
             assertEquals(value, 0.0, 0.1);

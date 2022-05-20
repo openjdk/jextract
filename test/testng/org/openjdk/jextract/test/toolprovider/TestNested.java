@@ -155,8 +155,8 @@ public class TestNested extends JextractToolRunner {
             if (type == MemorySegment.class) {
                 Method slicer = cls.getMethod(fieldName + "$slice", MemorySegment.class);
                 assertEquals(slicer.getReturnType(), MemorySegment.class);
-                try (MemorySession scope = MemorySession.openConfined()) {
-                    MemorySegment struct = MemorySegment.allocateNative(layout, scope);
+                try (MemorySession session = MemorySession.openConfined()) {
+                    MemorySegment struct = MemorySegment.allocateNative(layout, session);
                     MemorySegment slice = (MemorySegment) slicer.invoke(null, struct);
                     assertEquals(slice.byteSize(), fieldLayout.byteSize());
                 }
@@ -167,8 +167,8 @@ public class TestNested extends JextractToolRunner {
                 assertEquals(setter.getReturnType(), void.class);
 
                 Object zero = MethodHandles.zero(type).invoke();
-                try (MemorySession scope = MemorySession.openConfined()) {
-                    MemorySegment struct = MemorySegment.allocateNative(layout, scope);
+                try (MemorySession session = MemorySession.openConfined()) {
+                    MemorySegment struct = MemorySegment.allocateNative(layout, session);
                     setter.invoke(null, struct, zero);
                     Object actual = getter.invoke(null, struct);
                     assertEquals(actual, zero);

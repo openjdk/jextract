@@ -48,31 +48,31 @@ import test.jextract.funcpointers.*;
 public class TestFuncPointerInvokers {
     @Test
     public void testStructFieldTypedef() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            MemorySegment bar = Bar.allocate(scope);
-            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), scope).address());
-            Bar.foo(bar, scope).apply(42);
+            MemorySegment bar = Bar.allocate(session);
+            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session).address());
+            Bar.foo(bar, session).apply(42);
             assertEquals(val.get(), 42);
         }
     }
 
     @Test
     public void testStructFieldFITypedef() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            MemorySegment bar = Bar.allocate(scope);
-            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), scope).address());
-            Foo.ofAddress(Bar.foo$get(bar), scope).apply(42);
+            MemorySegment bar = Bar.allocate(session);
+            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session).address());
+            Foo.ofAddress(Bar.foo$get(bar), session).apply(42);
             assertEquals(val.get(), 42);
         }
     }
 
     @Test
     public void testGlobalTypedef() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            f$set(Foo.allocate((i) -> val.set(i), scope).address());
+            f$set(Foo.allocate((i) -> val.set(i), session).address());
             f().apply(42);
             assertEquals(val.get(), 42);
         }
@@ -80,41 +80,41 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFITypedef() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            f$set(Foo.allocate((i) -> val.set(i), scope).address());
-            Foo.ofAddress(f$get(), scope).apply(42);
+            f$set(Foo.allocate((i) -> val.set(i), session).address());
+            Foo.ofAddress(f$get(), session).apply(42);
             assertEquals(val.get(), 42);
         }
     }
 
     @Test
     public void testStructFieldFunctionPointer() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            MemorySegment baz = Baz.allocate(scope);
-            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), scope).address());
-            Baz.fp(baz, scope).apply(42);
+            MemorySegment baz = Baz.allocate(session);
+            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session).address());
+            Baz.fp(baz, session).apply(42);
             assertEquals(val.get(), 42);
         }
     }
 
     @Test
     public void testStructFieldFIFunctionPointer() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            MemorySegment baz = Baz.allocate(scope);
-            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), scope).address());
-            Baz.fp.ofAddress(Baz.fp$get(baz), scope).apply(42);
+            MemorySegment baz = Baz.allocate(session);
+            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session).address());
+            Baz.fp.ofAddress(Baz.fp$get(baz), session).apply(42);
             assertEquals(val.get(), 42);
         }
     }
 
     @Test
     public void testGlobalFunctionPointer() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            fp$set(fp.allocate((i) -> val.set(i), scope).address());
+            fp$set(fp.allocate((i) -> val.set(i), session).address());
             fp().apply(42);
             assertEquals(val.get(), 42);
         }
@@ -122,19 +122,19 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFIFunctionPointer() {
-        try (MemorySession scope = MemorySession.openConfined()) {
+        try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            fp$set(fp.allocate((i) -> val.set(i), scope).address());
-            fp.ofAddress(fp$get(), scope).apply(42);
+            fp$set(fp.allocate((i) -> val.set(i), session).address());
+            fp.ofAddress(fp$get(), session).apply(42);
             assertEquals(val.get(), 42);
         }
     }
 
     @Test
     public void testGlobalFIFunctionPointerAddress() {
-        try (MemorySession scope = MemorySession.openConfined()) {
-            fp_addr$set(fp_addr.allocate((addr) -> MemoryAddress.ofLong(addr.toRawLongValue() + 1), scope).address());
-            assertEquals(fp_addr.ofAddress(fp_addr$get(), scope).apply(MemoryAddress.ofLong(42)), MemoryAddress.ofLong(43));
+        try (MemorySession session = MemorySession.openConfined()) {
+            fp_addr$set(fp_addr.allocate((addr) -> MemoryAddress.ofLong(addr.toRawLongValue() + 1), session).address());
+            assertEquals(fp_addr.ofAddress(fp_addr$get(), session).apply(MemoryAddress.ofLong(42)), MemoryAddress.ofLong(43));
         }
     }
 }
