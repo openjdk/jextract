@@ -6,8 +6,6 @@ plugins {
     id "java"
 }
 
-version = '1.0'
-
 def static checkPath(String p) {
     if (!Files.exists(Path.of(p))) {
         throw new IllegalArgumentException("Error: the path ${p} does not exist");
@@ -24,6 +22,11 @@ if (clang_versions.length == 0) {
 }
 def clang_version = clang_versions[0]
 
+def jextract_version = "19"
+def jmods_dir = "$buildDir/jmods"
+def jextract_jmod_file = "$jmods_dir/jextract.jmod"
+def jextract_jmod_libs_dir = "$buildDir/jextract_jmod_libs"
+def jextract_jmod_conf_dir = "$buildDir/jextract_jmod_conf";
 def jextract_app_dir = "$buildDir/jextract"
 def clang_include_dir = "${llvm_home}/lib/clang/${clang_version}/include"
 checkPath(clang_include_dir)
@@ -48,8 +51,51 @@ jar {
     archiveVersion = project.version
 }
 
-task createJextractImage(type: Exec) {
+task copyLibClang(type: Copy) {
     dependsOn jar
+
+    def dir_prefix_len = "$buildDir".length()
+    def libs_dir = jextract_jmod_libs_dir.substring(dir_prefix_len)
+    def conf_dir = jextract_jmod_conf_dir.substring(dir_prefix_len)
+
+    into("$buildDir")
+
+    from("${libclang_dir}") {
+        include("*clang.*")
+        include("libLLVM.*")
+        into(libs_dir)
+    }
+
+    from("$clang_include_dir") {
+        include("*.h")
+        into(conf_dir + "/jextract")
+    }
+}
+
+task createJextractJmod(type: Exec) {
+    dependsOn copyLibClang
+
+    // if these inputs or outputs change, gradle will rerun the task
+    inputs.file(jar.archiveFile.get())
+    outputs.file(jextract_jmod_file)
+
+    doFirst {
+        delete(jextract_jmod_file)
+    }
+
+    executable = "${jdk19_home}/bin/jmod"
+    args = [
+          "create",
+          "--module-version=$jextract_version",
+          "--class-path=" + jar.archiveFile.get(),
+          "--libs=$jextract_jmod_libs_dir",
+          "--conf=$jextract_jmod_conf_dir",
+          "${jextract_jmod_file}"
+    ]
+}
+
+task createJextractImage(type: Exec) {
+    dependsOn createJextractJmod
 
     // if these inputs or outputs change, gradle will rerun the task
     inputs.file(jar.archiveFile.get())
@@ -65,7 +111,7 @@ task createJextractImage(type: Exec) {
 
     executable = "${jdk19_home}/bin/jlink"
     args = [
-         "--module-path=$buildDir/libs",
+         "--module-path=$jmods_dir",
          "--add-modules=org.openjdk.jextract,jdk.compiler,jdk.zipfs",
          "--output=${jextract_app_dir}",
          "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
@@ -74,34 +120,12 @@ task createJextractImage(type: Exec) {
     ]
 }
 
-task copyLibClang(type: Copy) {
-    dependsOn createJextractImage
-
-    into("$buildDir")
-
-    from("${libclang_dir}") {
-        include("*clang.*")
-        include("libLLVM.*")
-        into("jextract/${os_lib_dir}")
-    }
-
-    from("$clang_include_dir") {
-        include("*.h")
-        into("jextract/conf/jextract")
-    }
-}
-
-// jextract jdk image
-task jextractapp() {
-    dependsOn copyLibClang
-}
-
 // build the jextract image when the build or assemble task is run
-assemble.dependsOn(jextractapp)
+assemble.dependsOn(createJextractImage)
 
 // very simple integration test for generated jextract
 task verify(type: Exec) {
-    dependsOn jextractapp
+    dependsOn createJextractImage
 
     executable = "${jextract_app_dir}/bin/jextract${os_script_extension}"
     args = [ "test.h", "--output", "$buildDir/integration_test" ]
@@ -123,27 +147,10 @@ task createRuntimeImageForTest(type: Exec) {
 
     executable = "${jdk19_home}/bin/jlink"
     args = [
-         "--module-path=$buildDir/libs" + File.pathSeparator + "$jdk19_home/jmods",
+         "--module-path=$jmods_dir" + File.pathSeparator + "$jdk19_home/jmods",
          "--add-modules=ALL-MODULE-PATH",
          "--output=$out_dir",
     ]
-}
-
-task prepareTestJDK(type: Copy) {
-    dependsOn createRuntimeImageForTest
-
-    into("$buildDir")
-
-    from("${libclang_dir}") {
-        include("*clang.*")
-        include("libLLVM.*")
-        into("jextract-jdk-test-image/${os_lib_dir}")
-    }
-
-    from("$clang_include_dir") {
-        include("*.h")
-        into("jextract-jdk-test-image/conf/jextract")
-    }
 }
 
 task cmakeConfigure(type: Exec) {
@@ -170,7 +177,7 @@ task cmakeBuild(type: Exec) {
 
 // run jtreg tests. Note: needs jtreg_home variable set to point to the jtreg
 task jtreg(type: JavaExec) {
-    dependsOn prepareTestJDK,cmakeBuild
+    dependsOn createRuntimeImageForTest,cmakeBuild
 
     doFirst {
         if (findProperty("jtreg_home") == null) {
