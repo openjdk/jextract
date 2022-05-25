@@ -170,8 +170,11 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitConstant(Declaration.Constant constant, Declaration parent) {
-        if (!constants.add(constant.name()) || !includeHelper.isIncluded(constant)) {
-            //skip
+        boolean isEnumConstant = parent instanceof Declaration.Scoped scoped &&
+                scoped.kind() == Declaration.Scoped.Kind.ENUM;
+
+        if ((!isEnumConstant && !includeHelper.isIncluded(constant)) ||
+                !constants.add(constant.name())) {
             return null;
         }
 
@@ -196,16 +199,16 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             case STRUCT, UNION -> true;
             default -> false;
         };
+        String scopedName = d.name();
+        if (!scopedName.isEmpty() && !includeHelper.isIncluded(d)) {
+            return null;
+        }
         StructBuilder structBuilder = null;
         if (isStructKind) {
-            String className = d.name();
-            if (!className.isEmpty() && !includeHelper.isIncluded(d)) {
-                return null;
-            }
             GroupLayout layout = (GroupLayout) layoutFor(d);
-            currentBuilder = structBuilder = currentBuilder.addStruct(className, parent, layout, Type.declared(d));
+            currentBuilder = structBuilder = currentBuilder.addStruct(scopedName, parent, layout, Type.declared(d));
             structBuilder.classBegin();
-            if (!className.isEmpty()) {
+            if (!scopedName.isEmpty()) {
                 addStructDefinition(d, structBuilder.fullName());
             }
         }

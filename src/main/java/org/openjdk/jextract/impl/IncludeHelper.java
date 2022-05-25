@@ -51,7 +51,8 @@ public class IncludeHelper {
         FUNCTION,
         TYPEDEF,
         STRUCT,
-        UNION;
+        UNION,
+        ENUM;
 
         public String optionName() {
             return "include-" + name().toLowerCase();
@@ -77,6 +78,7 @@ public class IncludeHelper {
             return switch (scoped.kind()) {
                 case STRUCT -> IncludeKind.STRUCT;
                 case UNION ->  IncludeKind.UNION;
+                case ENUM -> IncludeKind.ENUM;
                 default -> throw new IllegalStateException("Cannot get here!");
             };
         }
