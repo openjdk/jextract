@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -92,7 +93,8 @@ public class TestFilters extends JextractToolRunner {
         CONSTANT("_constant", "--include-macro"),
         TYPEDEF("_typedef", "--include-typedef"),
         STRUCT("_struct", "--include-struct"),
-        UNION("_union", "--include-union");
+        UNION("_union", "--include-union"),
+        ENUM("_enum", "--include-enum");
 
         final String symbolName;
         final String filterOption;
@@ -113,6 +115,15 @@ public class TestFilters extends JextractToolRunner {
                     } catch (ReflectiveOperationException ex) {
                         yield null;
                     }
+                }
+                case ENUM -> {
+                    String[] constantNames = { "one", "two", "three" };
+                    Method method = null;
+                    for (String c : constantNames) {
+                        method = findMethod(headerClass, c);
+                        if (method == null) break;
+                    }
+                    yield method;
                 }
             };
         }
