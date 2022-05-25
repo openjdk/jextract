@@ -22,8 +22,10 @@ LIBCLANG_LIB_DIR := $(LIBCLANG_HOME)/$(OS_LIB_DIR)
 LIBCLANG_INCLUDE_DIR := $(LIBCLANG_HOME)/lib/clang/$(LIBCLANG_VERSION)/include
 
 BUILD_CLASSES_DIR := $(BUILD_DIR)/classes
-BUILD_MODULES_DIR := $(BUILD_DIR)/modules
+BUILD_MODULES_DIR := $(BUILD_DIR)/jmods
 BUILD_TEST_SUPPORT_DIR := $(BUILD_DIR)/support/test
+JEXTRACT_JMOD_LIBS_DIR := $(BUILD_DIR)/jextract_jmod_libs
+JEXTRACT_JMOD_CONF_DIR := $(BUILD_DIR)/jextract_jmod_conf
 
 ifeq ($(PLATFORM_OS), macosx)
   BUNDLE_PLATFORM := macos-$(PLATFORM_CPU)
@@ -45,8 +47,8 @@ $(foreach file,$(NATIVE_TEST_SOURCES),$(eval $(call BuildNativeLibrary,$(file),$
 $(BUILD_CLASSES_DIR):
 	$(MKDIR) -p $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
-	    --release=18 \
-	    --add-modules=jdk.incubator.foreign \
+	    --release=19 \
+	    --enable-preview \
 	    -d "$(BUILD_CLASSES_DIR)" \
 	    src/main/java/module-info.java \
 	    src/main/java/org/openjdk/jextract/*.java \
@@ -57,10 +59,23 @@ $(BUILD_CLASSES_DIR):
 	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 
 $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
-	$(MKDIR) -p $(BUILD_MODULES_DIR)/org.openjdk.jextract
+	$(MKDIR) -p $(BUILD_MODULES_DIR)
+	$(MKDIR) -p $(JEXTRACT_JMOD_LIBS_DIR)
+	$(MKDIR) -p $(JEXTRACT_JMOD_CONF_DIR)
 
-        # Copy org.openjdk.jextract classes to the right place
-	$(CP) -r $(BUILD_CLASSES_DIR)/* $(BUILD_MODULES_DIR)/org.openjdk.jextract
+	# Copy libclang library and header files
+	$(CP) "$(LIBCLANG_LIB_DIR)/"*clang.* "$(JEXTRACT_JMOD_LIBS_DIR)"
+	$(MKDIR) -p "$(JEXTRACT_JMOD_CONF_DIR)/jextract"
+	$(CP) "$(LIBCLANG_INCLUDE_DIR)/"*.h "$(JEXTRACT_JMOD_CONF_DIR)/jextract/"
+
+	# create jextract jmod file
+	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jmod \
+	    create \
+	    --module-version=18 \
+	    --class-path=$(BUILD_CLASSES_DIR) \
+	    --libs=$(JEXTRACT_JMOD_LIBS_DIR) \
+	    --conf=$(JEXTRACT_JMOD_CONF_DIR) \
+	    $(BUILD_MODULES_DIR)/org.openjdk.jextract.jmod
 
 $(JEXTRACT_IMAGE_DIR): $(BUILD_MODULES_DIR)
         # jlink the modules to create a custom runtime image for jextract
@@ -70,12 +85,8 @@ $(JEXTRACT_IMAGE_DIR): $(BUILD_MODULES_DIR)
 	    --add-modules org.openjdk.jextract \
 	    --add-modules jdk.compiler \
 	    --add-options \"--enable-native-access=org.openjdk.jextract\" \
+	    --add-options \"--enable-preview\" \
 	    --launcher jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool
-
-        # Copy libclang library and header files into the jlink'ed image
-	$(CP) "$(LIBCLANG_LIB_DIR)/"*clang.* "$(JEXTRACT_IMAGE_DIR)/$(OS_LIB_DIR)"
-	$(MKDIR) -p $(JEXTRACT_IMAGE_DIR)/conf/jextract
-	$(CP) "$(LIBCLANG_INCLUDE_DIR)/"*.h "$(JEXTRACT_IMAGE_DIR)/conf/jextract/"
 
 $(JEXTRACT_IMAGE_TEST_JDK_DIR): $(JEXTRACT_IMAGE_DIR)
         # jlink the modules to create a custom runtime image for jextract testing
@@ -84,11 +95,6 @@ $(JEXTRACT_IMAGE_TEST_JDK_DIR): $(JEXTRACT_IMAGE_DIR)
 	    --output "$(JEXTRACT_IMAGE_TEST_JDK_DIR)" \
 	    --module-path "$(BUILD_MODULES_DIR):$(PANAMA_JAVA_HOME)/jmods" \
 	    --add-modules ALL-MODULE-PATH
-
-        # Copy libclang library and header files into the jlink'ed test image
-	$(CP) $(LIBCLANG_LIB_DIR)/*clang.* $(JEXTRACT_IMAGE_TEST_JDK_DIR)/$(OS_LIB_DIR)
-	$(MKDIR) -p $(JEXTRACT_IMAGE_TEST_JDK_DIR)/conf/jextract
-	$(CP) $(LIBCLANG_INCLUDE_DIR)/*.h $(JEXTRACT_IMAGE_TEST_JDK_DIR)/conf/jextract/
 
 
 $(JEXTRACT_BUNDLE): $(JEXTRACT_IMAGE_DIR)
