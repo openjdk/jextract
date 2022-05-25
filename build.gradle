@@ -24,7 +24,7 @@ def clang_version = clang_versions[0]
 
 def jextract_version = "18"
 def jmods_dir = "$buildDir/jmods"
-def jextract_jmod_file = "$jmods_dir/jextract.jmod"
+def jextract_jmod_file = "$jmods_dir/org.openjdk.jextract.jmod"
 def jextract_jmod_libs_dir = "$buildDir/jextract_jmod_libs"
 def jextract_jmod_conf_dir = "$buildDir/jextract_jmod_conf";
 def jextract_app_dir = "$buildDir/jextract"
