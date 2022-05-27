@@ -354,7 +354,8 @@ public final class JextractTool {
         }
 
         if (optionSet.has("--version")) {
-            err.printf("%s %s\n", "jextract", System.getProperty("java.version"));
+            var version = JextractTool.class.getModule().getDescriptor().version();
+            err.printf("%s %s\n", "jextract", version.get());
             err.printf("%s %s\n", "JDK version", System.getProperty("java.runtime.version"));
             err.printf("%s\n", LibClang.version());
             return SUCCESS;

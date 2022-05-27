@@ -85,23 +85,22 @@ class TestPoint {
 As we can see, the `jextract` tool generated a `Point2d` class, modelling the C struct, and a `point_h` class which contains static native function wrappers, such as `distance`. If we look inside the generated code for `distance` we can find the following:
 
 ```java
-static final FunctionDescriptor distance$FUNC =
-    FunctionDescriptor.of(Constants$root.C_DOUBLE$LAYOUT,
-                          MemoryLayout.structLayout(
-    	                      Constants$root.C_DOUBLE$LAYOUT.withName("x"),
-                              Constants$root.C_DOUBLE$LAYOUT.withName("y")
-                          ).withName("Point2d"));
-
+static final FunctionDescriptor distance$FUNC = FunctionDescriptor.of(Constants$root.C_DOUBLE$LAYOUT,
+    MemoryLayout.structLayout(
+         Constants$root.C_DOUBLE$LAYOUT.withName("x"),
+         Constants$root.C_DOUBLE$LAYOUT.withName("y")
+    ).withName("Point2d")
+);
 static final MethodHandle distance$MH = RuntimeHelper.downcallHandle(
     "distance",
-    constants$0.distance$FUNC, false
+    constants$0.distance$FUNC
 );
 
 public static MethodHandle distance$MH() {
     return RuntimeHelper.requireNonNull(constants$0.distance$MH,"distance");
 }
 public static double distance ( MemorySegment x0) {
-    var mh$ = RuntimeHelper.requireNonNull(constants$0.distance$MH, "distance");
+    var mh$ = distance$MH();
     try {
         return (double)mh$.invokeExact(x0);
     } catch (Throwable ex$) {
