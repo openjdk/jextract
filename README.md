@@ -40,8 +40,7 @@ After building, there should be a new `jextract` folder under `build`.
 To run the `jextract` tool, simply run the `jextract` command in the `bin` folder:
 
 ```sh
-build/jextract/bin/jextract 
-WARNING: Using incubator modules: jdk.incubator.foreign
+$ build/jextract/bin/jextract
 Expected a header file
 ```
 
@@ -76,14 +75,14 @@ jextract --source -t org.jextract point.h
 We can then use the generated code as follows:
 
 ```java
-import jdk.incubator.foreign.*;
+import java.lang.foreign.*;
 import static org.jextract.point_h.*;
 import org.jextract.Point2d;
 
 class TestPoint {
     public static void main(String[] args) {
-        try (ResourceScope scope = ResourceScope.newConfinedScope()) {
-           MemorySegment point = MemorySegment.allocateNative(Point2d.$LAYOUT(), scope);
+        try (var session = MemorySession.openConfined()) {
+           MemorySegment point = MemorySegment.allocateNative(Point2d.$LAYOUT(), session);
            Point2d.x$set(point, 3d);
            Point2d.y$set(point, 4d);
            distance(point);
@@ -95,23 +94,22 @@ class TestPoint {
 As we can see, the `jextract` tool generated a `Point2d` class, modelling the C struct, and a `point_h` class which contains static native function wrappers, such as `distance`. If we look inside the generated code for `distance` we can find the following:
 
 ```java
-static final FunctionDescriptor distance$FUNC =
-    FunctionDescriptor.of(Constants$root.C_DOUBLE$LAYOUT,
-                          MemoryLayout.structLayout(
-    	                      Constants$root.C_DOUBLE$LAYOUT.withName("x"),
-                              Constants$root.C_DOUBLE$LAYOUT.withName("y")
-                          ).withName("Point2d"));
-
+static final FunctionDescriptor distance$FUNC = FunctionDescriptor.of(Constants$root.C_DOUBLE$LAYOUT,
+    MemoryLayout.structLayout(
+         Constants$root.C_DOUBLE$LAYOUT.withName("x"),
+         Constants$root.C_DOUBLE$LAYOUT.withName("y")
+    ).withName("Point2d")
+);
 static final MethodHandle distance$MH = RuntimeHelper.downcallHandle(
     "distance",
-    constants$0.distance$FUNC, false
+    constants$0.distance$FUNC
 );
 
 public static MethodHandle distance$MH() {
     return RuntimeHelper.requireNonNull(constants$0.distance$MH,"distance");
 }
 public static double distance ( MemorySegment x0) {
-    var mh$ = RuntimeHelper.requireNonNull(constants$0.distance$MH, "distance");
+    var mh$ = distance$MH();
     try {
         return (double)mh$.invokeExact(x0);
     } catch (Throwable ex$) {
