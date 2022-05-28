@@ -7,10 +7,21 @@ on:
       - pr/*
   workflow_dispatch:
 
+env:
+  CLANG_LLVM_RELEASE_VERSION: "13.0.0"
+
 jobs:
 
   linux-x64:
-    runs-on: "ubuntu-20.04"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-20.04]
+        include:
+          - os: ubuntu-20.04
+            URL: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ env.CLANG_LLVM_RELEASE_VERSION }}/clang+llvm-{{ env.CLANG_LLVM_RELEASE_VERSION }}-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+          - os: macos-latest
+            URL: https://github.com/llvm/llvm-project/releases/download/llvmorg-{{ env.CLANG_LLVM_RELEASE_VERSION }}/clang+llvm-{{ env.CLANG_LLVM_RELEASE_VERSION }}-x86_64-apple-darwin.tar.xz
 
     steps:
     - name: 'Check out repository'
@@ -51,14 +62,14 @@ jobs:
     - name: 'Setup LLVM'
       shell: sh
       run: |
-        wget -O deps/LLVM.tar.gz https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
-        tar -xvf deps/LLVM.tar.gz -C deps
-        ls ./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04
+        wget -O deps/LLVM.tar.gz {{ matrix.URL }}
+        tar --strip-components=1 -zvxf deps/LLVM.tar.gz -C clang_llvm
+        ls ./clang_llvm
 
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk19_home=$(realpath ./deps/jdk-19) -Pllvm_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 clean verify        
+        sh ./gradlew -Pjdk19_home=$(realpath ./deps/jdk-19) -Pllvm_home=./clang_llvm clean verify        
 
     - name: 'Check out JTReg'
       uses: actions/checkout@v2
@@ -78,4 +89,4 @@ jobs:
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk19_home=$(realpath ./deps/jdk-19) -Pllvm_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
+        sh ./gradlew -Pjdk19_home=$(realpath ./deps/jdk-19) -Pllvm_home=./clang_llvm -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
