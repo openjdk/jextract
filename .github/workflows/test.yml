@@ -13,7 +13,7 @@ env:
 
 jobs:
 
-  linux-x64:
+  build-and-test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
