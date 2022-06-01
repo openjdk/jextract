@@ -17,7 +17,6 @@ ifeq ($(TEST),)
 endif
 
 # These variables are absolutely necessary
-$(eval $(call SetupVariable,OUTPUTDIR,$(BUILD_DIR),MKDIR))
 $(eval $(call SetupVariable,JTREG_HOME))
 $(eval $(call SetupVariable,JTREG_JAVA_HOME))
 $(eval $(call SetupVariable,JEXTRACT_DIR))
@@ -26,21 +25,33 @@ $(eval $(call SetupVariable,JEXTRACT_NATIVE_TEST_DIR))
 
 JTREG_CONCURRENCY ?= 4
 
+ifeq ($(CUSTOM_ROOT), )
+  JTREG_TOPDIR := $(TOPDIR)
+else
+  JTREG_TOPDIR := $(CUSTOM_ROOT)
+endif
+
+ifeq ($(OUTPUTDIR), )
+  JTREG_OUTPUT_DIR := $(BUILD_DIR)
+else
+  JTREG_OUTPUT_DIR := $(OUTPUTDIR)
+endif
+
 JAVA := $(JTREG_JAVA_HOME)/bin/java
 
 # CMH: Make platform dependent
 JEXTRACT := $(JEXTRACT_DIR)/bin/jextract
 
 # For JextractToolRunner.java and JextractApiTestBase.java
-TEST_SOURCE_ROOT := $(TOPDIR)/open/test/java
+TEST_SOURCE_ROOT := $(TOPDIR)/open/test
 
 #
 # $1: Test id (make friendly string)
 # $2: Path to test(s) to run
 #
 define SetupRunJtregTest
-  $1_TEST_RESULTS_DIR := $$(OUTPUTDIR)/test-results/$1
-  $1_TEST_SUPPORT_DIR := $$(OUTPUTDIR)/test-support/$1
+  $1_TEST_RESULTS_DIR := $$(JTREG_OUTPUT_DIR)/test-results/$1
+  $1_TEST_SUPPORT_DIR := $$(JTREG_OUTPUT_DIR)/test-support/$1
   $1_EXITCODE := $$($1_TEST_RESULTS_DIR)/exitcode.txt
 
   clean-workdir-$1:
@@ -50,7 +61,7 @@ define SetupRunJtregTest
 	$$(FIXPATH) $$(JAVA) \
 	    -Dprogram=jtreg -jar $$(JTREG_HOME)/lib/jtreg.jar \
 	    -testjdk:$$(JEXTRACT_TEST_JDK) \
-	    -dir:$$(TOPDIR) \
+	    -dir:$$(JTREG_TOPDIR) \
 	    -reportDir:$$($1_TEST_RESULTS_DIR) \
 	    -workDir:$$($1_TEST_SUPPORT_DIR) \
 	    -avm \
@@ -62,8 +73,30 @@ define SetupRunJtregTest
 	    && $$(ECHO) $$$$? > $$($1_EXITCODE) \
             || $$(ECHO) $$$$? > $$($1_EXITCODE)
 
+  $1_RESULT_FILE := $$($1_TEST_RESULTS_DIR)/text/stats.txt
+
   parse-test-$1: run-test-$1
-	@$$(ECHO) "Would parse test results here"
+	$$(if $$(wildcard $$($1_RESULT_FILE)), \
+	  $$(eval $1_PASSED := $$(shell $$(AWK) '{ gsub(/[,;]/, ""); \
+	      for (i=1; i<=NF; i++) { if ($$$$i == "passed:") \
+	      print $$$$(i+1) } }' $$($1_RESULT_FILE))) \
+	  $$(if $$($1_PASSED), , $$(eval $1_PASSED := 0)) \
+	  $$(eval $1_FAILED := $$(shell $$(AWK) '{gsub(/[,;]/, ""); \
+	      for (i=1; i<=NF; i++) { if ($$$$i == "failed:") \
+	      print $$$$(i+1) } }' $$($1_RESULT_FILE))) \
+	  $$(if $$($1_FAILED), , $$(eval $1_FAILED := 0)) \
+	  $$(eval $1_ERROR := $$(shell $$(AWK) '{gsub(/[,;]/, ""); \
+	      for (i=1; i<=NF; i++) { if ($$$$i == "error:") \
+	      print $$$$(i+1) } }' $$($1_RESULT_FILE))) \
+	  $$(if $$($1_ERROR), , $$(eval $1_ERROR := 0)) \
+	  $$(eval $1_TOTAL := $$(shell \
+	      $$(EXPR) $$($1_PASSED) + $$($1_FAILED) + $$($1_ERROR))) \
+	, \
+	  $$(eval $1_PASSED := 0) \
+	  $$(eval $1_FAILED := 0) \
+	  $$(eval $1_ERROR := 1) \
+	  $$(eval $1_TOTAL := 1) \
+	)
 
   $1: run-test-$1 parse-test-$1 clean-workdir-$1
 
