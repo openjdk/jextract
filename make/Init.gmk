@@ -59,6 +59,7 @@ test-prebuilt:
 	        JEXTRACT_TEST_JDK="$(JEXTRACT_TEST_JDK)" \
 	        JEXTRACT_NATIVE_TEST_DIR="$(JEXTRACT_NATIVE_TEST_DIR)" \
 	        JEXTRACT_DIR="$(JEXTRACT_DIR)" \
+			CUSTOM_ROOT="$(CUSTOM_ROOT)" \
 	        TEST="$(TEST)" \
 	)
 
