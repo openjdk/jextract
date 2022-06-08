@@ -7,10 +7,24 @@ on:
       - pr/*
   workflow_dispatch:
 
+env:
+  CLANG_LLVM_BASE_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64"
+  ARCHIVE_EXT: "tar.xz"
+
 jobs:
 
-  linux-x64:
-    runs-on: "ubuntu-20.04"
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-20.04]
+        include:
+          - os: ubuntu-20.04
+            TARGET: linux-gnu-ubuntu-20.04
+            JAVA19_HOME: /tmp/deps/jdk-19
+          - os: macos-latest
+            TARGET: apple-darwin
+            JAVA19_HOME: /tmp/deps/jdk-19/jdk-19.jdk/Contents/Home
 
     steps:
     - name: 'Check out repository'
@@ -21,7 +35,8 @@ jobs:
     - name: 'Prepare'
       shell: sh
       run: |
-        mkdir deps
+        mkdir -p deps/jtreg
+        mkdir -p /tmp/deps
 
     - name: 'Download JDK 19'
       id: download_jdk_19
@@ -34,15 +49,21 @@ jobs:
     - name: 'Extract JDK 19'
       shell: sh
       run: |
-        tar -xvf ${{ steps.download_jdk_19.outputs.archive }} -C deps
-        ls ./deps/jdk-19
-        
+        mkdir -p /tmp/deps/jdk-19
+        tar --strip-components=1 -xvf ${{ steps.download_jdk_19.outputs.archive }} -C /tmp/deps/jdk-19
+        ls -lah /tmp/deps/jdk-19
+
+    - name: 'Check Java 19 version'
+      shell: sh
+      run: |
+        ${{ matrix.JAVA19_HOME }}/bin/java --version
+
     - name: 'Setup Java 18'
       uses: oracle-actions/setup-java@v1.1.1
       with:
         release: 18
 
-    - name: 'Check Java version'
+    - name: 'Check default Java version'
       shell: sh
       run: |
         java --version
@@ -51,14 +72,15 @@ jobs:
     - name: 'Setup LLVM'
       shell: sh
       run: |
-        wget -O deps/LLVM.tar.gz https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
-        tar -xvf deps/LLVM.tar.gz -C deps
-        ls ./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04
+        mkdir -p /tmp/deps/clang_llvm
+        wget -O /tmp/deps/LLVM.tar.gz ${{ env.CLANG_LLVM_BASE_URL }}-${{ matrix.TARGET }}.${{ env.ARCHIVE_EXT }}
+        tar --strip-components=1 -xvf /tmp/deps/LLVM.tar.gz -C /tmp/deps/clang_llvm
+        ls -lah /tmp/deps/clang_llvm
 
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk19_home=$(realpath ./deps/jdk-19) -Pllvm_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 clean verify        
+        sh ./gradlew -Pjdk19_home=${{ matrix.JAVA19_HOME }} -Pllvm_home=/tmp/deps/clang_llvm clean verify        
 
     - name: 'Check out JTReg'
       uses: actions/checkout@v2
@@ -78,4 +100,4 @@ jobs:
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk19_home=$(realpath ./deps/jdk-19) -Pllvm_home=./deps/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
+        sh ./gradlew -Pjdk19_home=${{ matrix.JAVA19_HOME }} -Pllvm_home=/tmp/deps/clang_llvm -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
