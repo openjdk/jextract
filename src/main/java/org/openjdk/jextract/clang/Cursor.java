@@ -34,6 +34,7 @@ import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static org.openjdk.jextract.clang.LibClang.IMPLICIT_ALLOCATOR;
@@ -180,37 +181,39 @@ public final class Cursor {
                 IMPLICIT_ALLOCATOR, cursor));
     }
 
+    public void forEach(Consumer<Cursor> action) {
+        CursorChildren.forEach(this, action);
+    }
+
     private static class CursorChildren {
-        private static final ArrayList<Cursor> children = new ArrayList<>();
+        private static Consumer<Cursor> action = cursor -> {
+            throw new IllegalStateException("NOT SET!");
+        };
+
+        static RuntimeException pendingException = null;
         private static final MemorySegment callback = CXCursorVisitor.allocate((c, p, d) -> {
-            MemorySegment copy = MemorySegment.allocateNative(c.byteSize(), MemorySession.openImplicit());
-            copy.copyFrom(c);
-            Cursor cursor = new Cursor(copy);
-            children.add(cursor);
-            return Index_h.CXChildVisit_Continue();
+            try {
+                action.accept(new Cursor(c));
+                return Index_h.CXChildVisit_Continue();
+            } catch (RuntimeException ex) {
+                pendingException = ex;
+                return Index_h.CXChildVisit_Break();
+            }
         }, MemorySession.openImplicit());
 
-        synchronized static Stream<Cursor> get(Cursor c) {
+        synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
+            Consumer<Cursor> prev = action;
             try {
+                action = op;
                 Index_h.clang_visitChildren(c.cursor, callback, MemoryAddress.NULL);
-                return new ArrayList<>(children).stream();
+                if (pendingException != null) {
+                    throw pendingException;
+                }
             } finally {
-                children.clear();
+                action = prev;
+                pendingException = null;
             }
         }
-    }
-
-    public Stream<Cursor> children() {
-        return CursorChildren.get(this);
-    }
-
-    public Stream<Cursor> allChildren() {
-        return children().flatMap(c -> Stream.concat(Stream.of(c), c.children()));
-    }
-
-    public String getMangling() {
-        return LibClang.CXStrToString(allocator ->
-                Index_h.clang_Cursor_getMangling(allocator, cursor));
     }
 
     public TranslationUnit getTranslationUnit() {

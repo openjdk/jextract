@@ -33,11 +33,8 @@ import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.Type;
 import org.openjdk.jextract.clang.TypeKind;
 
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Base class for C struct, union MemoryLayout computer helper classes.
@@ -88,25 +85,25 @@ abstract class RecordLayoutComputer {
     }
 
     final org.openjdk.jextract.Type.Declared compute(String anonName) {
-        Stream<Cursor> fieldCursors = Utils.flattenableChildren(cursor);
-        for (Cursor fc : fieldCursors.collect(Collectors.toList())) {
-            /*
-             * Ignore bitfields of zero width.
-             *
-             * struct Foo {
-             *     int i:0;
-             * }
-             *
-             * And bitfields without a name.
-             * (padding is computed automatically)
-             */
-            if (fc.isBitField() && (fc.getBitFieldWidth() == 0 || fc.spelling().isEmpty())) {
-                startBitfield();
-                continue;
+        cursor.forEach(fc -> {
+            if (Utils.isFlattenable(fc)) {
+                /*
+                 * Ignore bitfields of zero width.
+                 *
+                 * struct Foo {
+                 *     int i:0;
+                 * }
+                 *
+                 * And bitfields without a name.
+                 * (padding is computed automatically)
+                 */
+                if (fc.isBitField() && (fc.getBitFieldWidth() == 0 || fc.spelling().isEmpty())) {
+                    startBitfield();
+                } else {
+                    processField(fc);
+                }
             }
-
-            processField(fc);
-        }
+        });
 
         return finishRecord(anonName);
     }
@@ -173,9 +170,13 @@ abstract class RecordLayoutComputer {
         if (c.kind() == CursorKind.FieldDecl) {
             return parent.getOffsetOf(c.spelling());
         } else {
-            return Utils.flattenableChildren(c)
-                    .mapToLong(child -> offsetOf(parent, child))
-                    .findFirst()
+            List<Long> offsets = new ArrayList<>();
+            c.forEach(child -> {
+                if (Utils.isFlattenable(child)) {
+                    offsets.add(offsetOf(parent, child));
+                }
+            });
+            return offsets.stream().findFirst()
                     .orElseThrow(() -> new IllegalStateException(
                             "Can not find offset of: " + c + ", in: " + parent));
         }

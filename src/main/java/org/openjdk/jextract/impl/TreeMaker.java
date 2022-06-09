@@ -28,6 +28,7 @@ package org.openjdk.jextract.impl;
 import java.lang.constant.Constable;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -52,11 +53,14 @@ class TreeMaker {
     }
 
     Map<String, List<Constable>> collectAttributes(Cursor c) {
-        return c.children().filter(Cursor::isAttribute)
-                .collect(Collectors.groupingBy(
-                        attr -> attr.kind().name(),
-                        Collectors.mapping(Cursor::spelling, Collectors.toList())
-                ));
+        Map<String, List<Constable>> attributeMap = new HashMap<>();
+        c.forEach(child -> {
+            if (child.isAttribute()) {
+                List<Constable> attrs = attributeMap.computeIfAbsent(child.kind().name(), _unused -> new ArrayList<>());
+                attrs.add(child.spelling());
+            }
+        });
+        return attributeMap;
     }
 
     public Declaration createTree(Cursor c) {
@@ -158,9 +162,8 @@ class TreeMaker {
                 params.toArray(new Declaration.Variable[0]));
     }
 
-    public Declaration.Constant createMacro(Cursor c, String name, Type type, Object value) {
-        checkCursorAny(c, CursorKind.MacroDefinition);
-        return Declaration.constant(CursorPosition.of(c), name, value, type);
+    public Declaration.Constant createMacro(Position pos, String name, Type type, Object value) {
+        return Declaration.constant(pos, name, value, type);
     }
 
     public Declaration.Constant createEnumConstant(Cursor c) {
@@ -188,15 +191,13 @@ class TreeMaker {
     }
 
     public Declaration.Scoped createEnum(Cursor c) {
-        List<Declaration> decls = filterNestedDeclarations(c.children()
-                .filter(fc -> {
-                    if (fc.isBitField()) {
-                        // only non-empty and named bit fields are generated
-                        return fc.getBitFieldWidth() != 0 && !fc.spelling().isEmpty();
-                    }
-                    return true;
-                })
-                .map(this::createTree).collect(Collectors.toList()));
+        List<Declaration> allDecls = new ArrayList<>();
+        c.forEach(child -> {
+            if (!child.isBitField() || (child.getBitFieldWidth() != 0 && !child.spelling().isEmpty())) {
+                allDecls.add(createTree(child));
+            }
+        });
+        List<Declaration> decls = filterNestedDeclarations(allDecls);
         if (c.isDefinition()) {
             //just a declaration AND definition, we have a layout
             MemoryLayout layout = TypeMaker.valueLayoutForSize(c.type().size() * 8).layout().orElseThrow();
@@ -222,7 +223,7 @@ class TreeMaker {
     }
 
     private static boolean isAnonymousStruct(Declaration declaration) {
-        return ((CursorPosition)declaration.pos()).cursor.isAnonymousStruct();
+        return declaration.getAttribute("ANONYMOUS").isPresent();
     }
 
     private List<Declaration> filterNestedDeclarations(List<Declaration> declarations) {
@@ -259,12 +260,12 @@ class TreeMaker {
             }
         }
         if (funcType != null) {
-            List<String> params = c.children().
-                filter(ch -> ch.kind() == CursorKind.ParmDecl).
-                map(this::createTree).
-                map(Declaration.Variable.class::cast).
-                map(Declaration::name).
-                collect(Collectors.toList());
+            List<String> params = new ArrayList<>();
+            c.forEach(child -> {
+                if (child.kind() == CursorKind.ParmDecl) {
+                    params.add(createTree(child).name());
+                }
+            });
             if (!params.isEmpty()) {
                 canonicalType = funcType.withParameterNames(params);
                 if (isFuncPtrType) {

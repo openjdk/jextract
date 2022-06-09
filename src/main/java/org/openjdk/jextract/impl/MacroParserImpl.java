@@ -78,23 +78,18 @@ class MacroParserImpl {
      * If that is not possible (e.g. because the macro refers to other macro, or has a more complex grammar), fall
      * back to use clang evaluation support.
      */
-    Optional<Declaration.Constant> parseConstant(Position pos, String name, String[] tokens) {
-        if (!(pos instanceof TreeMaker.CursorPosition cursorPosition)) {
+    Optional<Declaration.Constant> parseConstant(Cursor cursor, String name, String[] tokens) {
+        if (cursor.isMacroFunctionLike()) {
             return Optional.empty();
-        } else {
-            Cursor cursor = cursorPosition.cursor();
-            if (cursor.isMacroFunctionLike()) {
-                return Optional.empty();
-            } else if (tokens.length == 2) {
-                //check for fast path
-                Integer num = toNumber(tokens[1]);
-                if (num != null) {
-                    return Optional.of(treeMaker.createMacro(cursor, name, Type.primitive(Type.Primitive.Kind.Int), (long)num));
-                }
+        } else if (tokens.length == 2) {
+            //check for fast path
+            Integer num = toNumber(tokens[1]);
+            if (num != null) {
+                return Optional.of(treeMaker.createMacro(TreeMaker.CursorPosition.of(cursor), name, Type.primitive(Type.Primitive.Kind.Int), (long)num));
             }
-            macroTable.enterMacro(name, tokens, cursor);
-            return Optional.empty();
         }
+        macroTable.enterMacro(name, tokens, TreeMaker.CursorPosition.of(cursor));
+        return Optional.empty();
     }
 
     private Integer toNumber(String str) {
@@ -142,10 +137,10 @@ class MacroParserImpl {
             }
         }
 
-        public Stream<Cursor> reparse(String snippet) {
+        public Cursor reparse(String snippet) {
             macroUnit.reparse(this::processDiagnostics,
                     Index.UnsavedFile.of(macro, snippet));
-            return macroUnit.getCursor().children();
+            return macroUnit.getCursor();
         }
     }
 
@@ -174,12 +169,12 @@ class MacroParserImpl {
         abstract class Entry {
             final String name;
             final String[] tokens;
-            final Cursor cursor;
+            final Position position;
 
-            Entry(String name, String[] tokens, Cursor cursor) {
+            Entry(String name, String[] tokens, Position position) {
                 this.name = name;
                 this.tokens = tokens;
-                this.cursor = cursor;
+                this.position = position;
             }
 
             String mangledName() {
@@ -210,20 +205,20 @@ class MacroParserImpl {
         }
 
         class Unparsed extends Entry {
-            Unparsed(String name, String[] tokens, Cursor cursor) {
-                super(name, tokens, cursor);
+            Unparsed(String name, String[] tokens, Position position) {
+                super(name, tokens, position);
             }
 
             @Override
             Entry success(Type type, Object value) {
-                return new Success(name, tokens, cursor, type, value);
+                return new Success(name, tokens, position, type, value);
             }
 
             @Override
             Entry failure(Type type) {
                 return type != null ?
-                        new RecoverableFailure(name, tokens, cursor, type) :
-                        new UnparseableMacro(name, tokens, cursor);
+                        new RecoverableFailure(name, tokens, type, position) :
+                        new UnparseableMacro(name, tokens, position);
             }
 
             @Override
@@ -241,19 +236,19 @@ class MacroParserImpl {
 
             final Type type;
 
-            public RecoverableFailure(String name, String[] tokens, Cursor cursor, Type type) {
-                super(name, tokens, cursor);
+            public RecoverableFailure(String name, String[] tokens, Type type, Position position) {
+                super(name, tokens, position);
                 this.type = type;
             }
 
             @Override
             Entry success(Type type, Object value) {
-                return new Success(name, tokens, cursor, this.type, value);
+                return new Success(name, tokens, position, this.type, value);
             }
 
             @Override
             Entry failure(Type type) {
-                return new UnparseableMacro(name, tokens, cursor);
+                return new UnparseableMacro(name, tokens, position);
             }
 
             @Override
@@ -263,13 +258,11 @@ class MacroParserImpl {
         }
 
         class Success extends Entry {
-            final Type type;
-            final Object value;
+            final Declaration.Constant constant;
 
-            public Success(String name, String[] tokens, Cursor cursor, Type type, Object value) {
-                super(name, tokens, cursor);
-                this.type = type;
-                this.value = value;
+            public Success(String name, String[] tokens, Position position, Type type, Object value) {
+                super(name, tokens, position);
+                constant = treeMaker.createMacro(position, name, type, value);
             }
 
             @Override
@@ -277,15 +270,15 @@ class MacroParserImpl {
                 return true;
             }
 
-            public Object value() {
-                return value;
+            Declaration.Constant constant() {
+                return constant;
             }
         }
 
         class UnparseableMacro extends Entry {
 
-            UnparseableMacro(String name, String[] tokens, Cursor cursor) {
-                super(name, tokens, cursor);
+            UnparseableMacro(String name, String[] tokens, Position position) {
+                super(name, tokens, position);
             }
 
             @Override
@@ -294,8 +287,8 @@ class MacroParserImpl {
             }
         };
 
-        void enterMacro(String name, String[] tokens, Cursor cursor) {
-            Unparsed unparsed = new Unparsed(name, tokens, cursor);
+        void enterMacro(String name, String[] tokens, Position position) {
+            Unparsed unparsed = new Unparsed(name, tokens, position);
             macrosByMangledName.put(unparsed.mangledName(), unparsed);
         }
 
@@ -311,7 +304,7 @@ class MacroParserImpl {
             treeMaker.typeMaker.resolveTypeReferences();
             return macrosByMangledName.values().stream()
                     .filter(Entry::isSuccess)
-                    .map(e -> treeMaker.createMacro(e.cursor, e.name, ((Success)e).type, ((Success)e).value))
+                    .map(e -> ((Success)e).constant())
                     .collect(Collectors.toList());
         }
 
@@ -346,10 +339,12 @@ class MacroParserImpl {
             String snippet = macroDecl(recovery);
             TreeMaker treeMaker = new TreeMaker();
             try {
-                reparser.reparse(snippet)
-                        .filter(c -> c.kind() == CursorKind.VarDecl &&
-                                c.spelling().contains("jextract$"))
-                        .forEach(c -> updateTable(treeMaker.typeMaker, c));
+                reparser.reparse(snippet).forEach(c -> {
+                    if (c.kind() == CursorKind.VarDecl &&
+                            c.spelling().contains("jextract$")) {
+                        updateTable(treeMaker.typeMaker, c);
+                    }
+                });
             } finally {
                 treeMaker.typeMaker.resolveTypeReferences();
             }

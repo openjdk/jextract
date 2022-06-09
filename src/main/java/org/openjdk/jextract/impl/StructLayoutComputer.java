@@ -148,7 +148,11 @@ final class StructLayoutComputer extends RecordLayoutComputer {
         } else if (anonName != null) {
             g = g.withName(anonName);
         }
-        return org.openjdk.jextract.Type.declared(Declaration.struct(TreeMaker.CursorPosition.of(cursor), cursor.spelling(), g, fieldDecls.stream().toArray(Declaration[]::new)));
+        Declaration.Scoped declaration = Declaration.struct(TreeMaker.CursorPosition.of(cursor), cursor.spelling(), g, fieldDecls.stream().toArray(Declaration[]::new));
+        if (cursor.isAnonymousStruct()) {
+            declaration = (Declaration.Scoped)declaration.withAttribute("ANONYMOUS", true);
+        }
+        return org.openjdk.jextract.Type.declared(declaration);
     }
 
     // process bitfields if any and clear bitfield layouts

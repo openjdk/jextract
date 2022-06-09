@@ -63,8 +63,7 @@ public class Parser {
 
         List<Declaration> decls = new ArrayList<>();
         Cursor tuCursor = tu.getCursor();
-        tuCursor.children().
-            forEach(c -> {
+        tuCursor.forEach(c -> {
                 SourceLocation loc = c.getSourceLocation();
                 if (loc == null) {
                     return;
@@ -79,9 +78,12 @@ public class Parser {
                 if (c.isDeclaration()) {
                     if (c.kind() == CursorKind.UnexposedDecl ||
                         c.kind() == CursorKind.Namespace) {
-                        c.children().map(treeMaker::createTree)
-                                .filter(t -> t != null)
-                                .forEach(decls::add);
+                        c.forEach(t -> {
+                            Declaration declaration = treeMaker.createTree(t);
+                            if (declaration != null) {
+                                decls.add(declaration);
+                            }
+                        });
                     } else {
                         Declaration decl = treeMaker.createTree(c);
                         if (decl != null) {
@@ -91,7 +93,7 @@ public class Parser {
                 } else if (isMacro(c) && src.path() != null) {
                     SourceRange range = c.getExtent();
                     String[] tokens = c.getTranslationUnit().tokens(range);
-                    Optional<Declaration.Constant> constant = macroParser.parseConstant(TreeMaker.CursorPosition.of(c), c.spelling(), tokens);
+                    Optional<Declaration.Constant> constant = macroParser.parseConstant(c, c.spelling(), tokens);
                     if (constant.isPresent()) {
                         decls.add(constant.get());
                     }
