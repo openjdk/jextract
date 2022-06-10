@@ -105,12 +105,17 @@ abstract class RecordLayoutComputer {
             }
         });
 
-        return finishRecord(anonName);
+        Declaration.Scoped declaration = finishRecord(anonName);
+        if (cursor.isAnonymousStruct()) {
+            // record this with a declaration attribute, so we don't have to rely on the cursor again later
+            declaration = (Declaration.Scoped)declaration.withAttribute("ANONYMOUS", true);
+        }
+        return org.openjdk.jextract.Type.declared(declaration);
     }
 
     abstract void startBitfield();
     abstract void processField(Cursor c);
-    abstract org.openjdk.jextract.Type.Declared finishRecord(String anonName);
+    abstract Declaration.Scoped finishRecord(String anonName);
 
     void addField(Declaration declaration) {
         fieldDecls.add(declaration);

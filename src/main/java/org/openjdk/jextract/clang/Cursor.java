@@ -183,6 +183,13 @@ public final class Cursor extends ClangDisposable.Owned {
         CursorChildren.forEach(this, action);
     }
 
+    /**
+     * We run the visitor action inside the upcall, so that we do not have to worry about
+     * having to copy cursors into separate off-heap storage. To do this, we have to setup
+     * some context for the upcall, so that the upcall code can call the "correct" user-defined visitor action.
+     * Note: exceptions must be delayed until after the upcall has returned; this is necessary as upcalls
+     * cannot throw (if they do, they cause a JVM crash).
+     */
     private static class CursorChildren {
 
         static class Context {
@@ -196,12 +203,16 @@ public final class Cursor extends ClangDisposable.Owned {
             }
 
             boolean visit(MemorySegment segment) {
-                MemorySegment child =
-                        MemorySegment.ofAddress(segment.address(), segment.byteSize(), owner.session());
+                // Note: the session of this cursor is smaller than that of the translation unit
+                // this is because the cursor will be destroyed when the upcall ends. This means
+                // that the cursor passed by the visitor must NOT be leaked into a field and accessed
+                // at a later time (or the liveness check will fail with IllegalStateException).
                 try {
-                    action.accept(new Cursor(child, owner));
+                    // run the visitor action
+                    action.accept(new Cursor(segment, owner));
                     return true;
                 } catch (RuntimeException ex) {
+                    // if we fail, record the exception, and return false to stop the visit
                     exception = ex;
                     return false;
                 }
@@ -225,6 +236,7 @@ public final class Cursor extends ClangDisposable.Owned {
         }, MemorySession.openImplicit());
 
         synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
+            // everything is confined, no need to synchronize
             Context prevContext = pendingContext;
             try {
                 pendingContext = new Context(op, c.owner);
