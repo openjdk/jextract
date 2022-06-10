@@ -26,25 +26,21 @@
 package org.openjdk.jextract.clang;
 
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
-import static org.openjdk.jextract.clang.LibClang.IMPLICIT_ALLOCATOR;
+public class SourceRange extends ClangDisposable.Owned {
 
-public class SourceRange {
-    final MemorySegment range;
-
-    SourceRange(MemorySegment range) {
-        this.range = range;
+    SourceRange(MemorySegment range, ClangDisposable owner) {
+        super(range, owner);
     }
 
     public SourceLocation getBegin() {
-        MemorySegment loc = Index_h.clang_getRangeStart(IMPLICIT_ALLOCATOR, range);
-        return new SourceLocation(loc);
+        var rangeStart = Index_h.clang_getRangeStart(owner.arena(), segment);
+        return new SourceLocation(rangeStart, owner);
     }
 
     public SourceLocation getEnd() {
-        MemorySegment loc = Index_h.clang_getRangeEnd(IMPLICIT_ALLOCATOR, range);
-        return new SourceLocation(loc);
+        var rangeEnd = Index_h.clang_getRangeEnd(owner.arena(), segment);
+        return new SourceLocation(rangeEnd, owner);
     }
 }

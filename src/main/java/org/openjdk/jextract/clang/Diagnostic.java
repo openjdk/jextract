@@ -26,14 +26,11 @@
 package org.openjdk.jextract.clang;
 
 import java.lang.foreign.MemoryAddress;
-import java.lang.foreign.MemorySession;
-import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
-import static org.openjdk.jextract.clang.LibClang.IMPLICIT_ALLOCATOR;
+import static org.openjdk.jextract.clang.LibClang.STRING_ALLOCATOR;
 
-public class Diagnostic {
-    final MemoryAddress ptr;
+public class Diagnostic extends ClangDisposable {
 
     // Various Diagnostic severity levels - from Clang enum CXDiagnosticSeverity
 
@@ -68,7 +65,7 @@ public class Diagnostic {
     public static final int CXDiagnostic_Fatal   = Index_h.CXDiagnostic_Fatal();
 
     Diagnostic(MemoryAddress ptr) {
-        this.ptr = ptr;
+        super(ptr, () -> Index_h.clang_disposeDiagnostic(ptr));
     }
 
     public int severity() {
@@ -76,21 +73,19 @@ public class Diagnostic {
     }
 
     public SourceLocation location() {
-        return new SourceLocation(Index_h.clang_getDiagnosticLocation(IMPLICIT_ALLOCATOR, ptr));
+        var loc = Index_h.clang_getDiagnosticLocation(arena, ptr);
+        return new SourceLocation(loc, this);
     }
 
     public String spelling() {
-       return LibClang.CXStrToString(allocator -> Index_h.clang_getDiagnosticSpelling(allocator, ptr));
-    }
-
-    public void dispose() {
-        Index_h.clang_disposeDiagnostic(ptr);
+       var spelling = Index_h.clang_getDiagnosticSpelling(STRING_ALLOCATOR, ptr);
+       return LibClang.CXStrToString(spelling);
     }
 
     @Override
     public String toString() {
-        return LibClang.CXStrToString(allocator ->
-            Index_h.clang_formatDiagnostic(allocator, ptr,
-                Index_h.clang_defaultDiagnosticDisplayOptions()));
+        var diagString = Index_h.clang_formatDiagnostic(arena, ptr,
+                Index_h.clang_defaultDiagnosticDisplayOptions());
+        return LibClang.CXStrToString(diagString);
     }
 }

@@ -49,7 +49,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class MacroParserImpl {
+class MacroParserImpl implements AutoCloseable {
 
     private final ClangReparser reparser;
     private final TreeMaker treeMaker;
@@ -304,7 +304,7 @@ class MacroParserImpl {
             treeMaker.typeMaker.resolveTypeReferences();
             return macrosByMangledName.values().stream()
                     .filter(Entry::isSuccess)
-                    .map(e -> ((Success)e).constant())
+                    .map(e -> ((Success) e).constant())
                     .collect(Collectors.toList());
         }
 
@@ -370,5 +370,11 @@ class MacroParserImpl {
                     });
             return buf.toString();
         }
+    }
+
+    @Override
+    public void close() {
+        reparser.macroUnit.close();
+        reparser.macroIndex.close();
     }
 }

@@ -28,16 +28,15 @@ package org.openjdk.jextract.clang;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
-import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.CXType;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
-import static org.openjdk.jextract.clang.LibClang.IMPLICIT_ALLOCATOR;
+import static org.openjdk.jextract.clang.LibClang.STRING_ALLOCATOR;
 
-public final class Type {
-    private final MemorySegment type;
-    Type(MemorySegment type) {
-        this.type = type;
+public final class Type extends ClangDisposable.Owned {
+    
+    Type(MemorySegment segment, ClangDisposable owner) {
+        super(segment, owner);
     }
 
     public boolean isInvalid() {
@@ -46,19 +45,21 @@ public final class Type {
 
     // Function Types
     public boolean isVariadic() {
-        return Index_h.clang_isFunctionTypeVariadic(type) != 0;
+        return Index_h.clang_isFunctionTypeVariadic(segment) != 0;
     }
     public Type resultType() {
-        return new Type(Index_h.clang_getResultType(IMPLICIT_ALLOCATOR, type));
+        var resultType = Index_h.clang_getResultType(owner.arena(), segment);
+        return new Type(resultType, owner);
     }
     public int numberOfArgs() {
-        return Index_h.clang_getNumArgTypes(type);
+        return Index_h.clang_getNumArgTypes(segment);
     }
     public Type argType(int idx) {
-        return new Type(Index_h.clang_getArgType(IMPLICIT_ALLOCATOR, type, idx));
+        var argType = Index_h.clang_getArgType(owner.arena(), segment, idx);
+        return new Type(argType, owner);
     }
     private int getCallingConvention0() {
-        return Index_h.clang_getFunctionTypeCallingConv(type);
+        return Index_h.clang_getFunctionTypeCallingConv(segment);
     }
 
     public CallingConvention getCallingConvention() {
@@ -85,18 +86,20 @@ public final class Type {
            kind == TypeKind.DependentSizedArray;
     }
 
-    // Pointer type
+    // Pointer segment
     public Type getPointeeType() {
-        return new Type(Index_h.clang_getPointeeType(IMPLICIT_ALLOCATOR, type));
+        var pointee = Index_h.clang_getPointeeType(owner.arena(), segment);
+        return new Type(pointee, owner);
     }
 
-    // array/vector type
+    // array/vector segment
     public Type getElementType() {
-        return new Type(Index_h.clang_getElementType(IMPLICIT_ALLOCATOR, type));
+        var elementType = Index_h.clang_getElementType(owner.arena(), segment);
+        return new Type(elementType, owner);
     }
 
     public long getNumberOfElements() {
-        return Index_h.clang_getNumElements(type);
+        return Index_h.clang_getNumElements(segment);
     }
 
     // Struct/RecordType
@@ -104,29 +107,30 @@ public final class Type {
         try (MemorySession session = MemorySession.openConfined()) {
             var allocator = session;
             MemorySegment cfname = allocator.allocateUtf8String(fieldName);
-            return Index_h.clang_Type_getOffsetOf(type, cfname);
+            return Index_h.clang_Type_getOffsetOf(segment, cfname);
         }
     }
 
     public long getOffsetOf(String fieldName) {
         long res = getOffsetOf0(fieldName);
         if(TypeLayoutError.isError(res)) {
-            throw new TypeLayoutError(res, String.format("type: %s, fieldName: %s", this, fieldName));
+            throw new TypeLayoutError(res, String.format("segment: %s, fieldName: %s", this, fieldName));
         }
         return res;
     }
 
     // Typedef
     /**
-     * Return the canonical type for a Type.
+     * Return the canonical segment for a Type.
      *
-     * Clang's type system explicitly models typedefs and all the ways
-     * a specific type can be represented.  The canonical type is the underlying
-     * type with all the "sugar" removed.  For example, if 'T' is a typedef
-     * for 'int', the canonical type for 'T' would be 'int'.
+     * Clang's segment system explicitly models typedefs and all the ways
+     * a specific segment can be represented.  The canonical segment is the underlying
+     * segment with all the "sugar" removed.  For example, if 'T' is a typedef
+     * for 'int', the canonical segment for 'T' would be 'int'.
      */
     public Type canonicalType() {
-        return new Type(Index_h.clang_getCanonicalType(IMPLICIT_ALLOCATOR, type));
+        var canonicalType = Index_h.clang_getCanonicalType(owner.arena(), segment);
+        return new Type(canonicalType, owner);
     }
 
     /**
@@ -135,7 +139,7 @@ public final class Type {
      * different level.
      */
     public boolean isConstQualifierdType() {
-        return Index_h.clang_isConstQualifiedType(type) != 0;
+        return Index_h.clang_isConstQualifiedType(segment) != 0;
     }
 
     /**
@@ -144,26 +148,26 @@ public final class Type {
      * a different level.
      */
     public boolean isVolatileQualified() {
-        return Index_h.clang_isVolatileQualifiedType(type) != 0;
+        return Index_h.clang_isVolatileQualifiedType(segment) != 0;
     }
 
     public String spelling() {
-        return LibClang.CXStrToString(allocator ->
-                Index_h.clang_getTypeSpelling(allocator, type));
+        var spelling = Index_h.clang_getTypeSpelling(STRING_ALLOCATOR, segment);
+        return LibClang.CXStrToString(spelling);
     }
 
     public int kind0() {
-        return CXType.kind$get(type);
+        return CXType.kind$get(segment);
     }
 
     private long size0() {
-        return Index_h.clang_Type_getSizeOf(type);
+        return Index_h.clang_Type_getSizeOf(segment);
     }
 
     public long size() {
         long res = size0();
         if(TypeLayoutError.isError(res)) {
-            throw new TypeLayoutError(res, String.format("type: %s", this));
+            throw new TypeLayoutError(res, String.format("segment: %s", this));
         }
         return res;
     }
@@ -171,16 +175,17 @@ public final class Type {
     public TypeKind kind() {
         int v = kind0();
         TypeKind rv = TypeKind.valueOf(v);
-        // TODO: Atomic type doesn't work
+        // TODO: Atomic segment doesn't work
         return rv;
     }
 
     public Cursor getDeclarationCursor() {
-        return new Cursor(Index_h.clang_getTypeDeclaration(IMPLICIT_ALLOCATOR, type));
+        var cursorDecl = Index_h.clang_getTypeDeclaration(owner.arena(), segment);
+        return new Cursor(cursorDecl, owner);
     }
 
     public boolean equalType(Type other) {
-        return Index_h.clang_equalTypes(type, other.type) != 0;
+        return Index_h.clang_equalTypes(segment, other.segment) != 0;
     }
 
     @Override
@@ -188,7 +193,7 @@ public final class Type {
         if (this == other) {
             return true;
         }
-        return other instanceof Type type && equalType(type);
+        return other instanceof Type segment && equalType(segment);
     }
 
     @Override

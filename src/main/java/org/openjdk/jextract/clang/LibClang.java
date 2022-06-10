@@ -36,9 +36,6 @@ import org.openjdk.jextract.clang.libclang.CXString;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static org.openjdk.jextract.clang.libclang.Index_h.C_INT;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
@@ -79,8 +76,7 @@ public class LibClang {
         return index;
     }
 
-    public static String CXStrToString(Function<SegmentAllocator, MemorySegment> segmentSupplier) {
-        MemorySegment cxstr = segmentSupplier.apply(STRING_ALLOCATOR);
+    public static String CXStrToString(MemorySegment cxstr) {
         MemoryAddress buf = Index_h.clang_getCString(cxstr);
         String str = buf.getUtf8String(0);
         Index_h.clang_disposeString(cxstr);
@@ -93,10 +89,11 @@ public class LibClang {
      * associated segment. Since jextract is single-threaded, we can use a prefix allocator, to speed up string
      * conversion. The size of the prefix segment is set to 256, which should be enough to hold a CXString.
      */
-    private final static SegmentAllocator STRING_ALLOCATOR = SegmentAllocator.prefixAllocator(
+    public final static SegmentAllocator STRING_ALLOCATOR = SegmentAllocator.prefixAllocator(
             MemorySegment.allocateNative(CXString.sizeof(), 8, MemorySession.openImplicit()));
 
     public static String version() {
-        return CXStrToString(Index_h::clang_getClangVersion);
+        var clangVersion = Index_h.clang_getClangVersion(STRING_ALLOCATOR);
+        return CXStrToString(clangVersion);
     }
 }

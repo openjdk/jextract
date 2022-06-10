@@ -49,21 +49,19 @@ public class Parser {
     }
 
     public Declaration.Scoped parse(Path path, Collection<String> args) {
-        final Index index = LibClang.createIndex(false);
+        try (Index index = LibClang.createIndex(false) ;
+             TranslationUnit tu = index.parse(path.toString(),
+                d -> {
+                    if (d.severity() > Diagnostic.CXDiagnostic_Warning) {
+                        throw new ClangException(d.toString());
+                    }
+                },
+            true, args.toArray(new String[0])) ;
+            MacroParserImpl macroParser = MacroParserImpl.make(treeMaker, tu, args)) {
 
-        TranslationUnit tu = index.parse(path.toString(),
-            d -> {
-                if (d.severity() > Diagnostic.CXDiagnostic_Warning) {
-                    throw new ClangException(d.toString());
-                }
-            },
-            true, args.toArray(new String[0]));
-
-        MacroParserImpl macroParser = MacroParserImpl.make(treeMaker, tu, args);
-
-        List<Declaration> decls = new ArrayList<>();
-        Cursor tuCursor = tu.getCursor();
-        tuCursor.forEach(c -> {
+            List<Declaration> decls = new ArrayList<>();
+            Cursor tuCursor = tu.getCursor();
+            tuCursor.forEach(c -> {
                 SourceLocation loc = c.getSourceLocation();
                 if (loc == null) {
                     return;
@@ -77,7 +75,7 @@ public class Parser {
 
                 if (c.isDeclaration()) {
                     if (c.kind() == CursorKind.UnexposedDecl ||
-                        c.kind() == CursorKind.Namespace) {
+                            c.kind() == CursorKind.Namespace) {
                         c.forEach(t -> {
                             Declaration declaration = treeMaker.createTree(t);
                             if (declaration != null) {
@@ -100,11 +98,11 @@ public class Parser {
                 }
             });
 
-        decls.addAll(macroParser.macroTable.reparseConstants());
-        Declaration.Scoped rv = treeMaker.createHeader(tuCursor, decls);
-        treeMaker.freeze();
-        index.close();
-        return rv;
+            decls.addAll(macroParser.macroTable.reparseConstants());
+            Declaration.Scoped rv = treeMaker.createHeader(tuCursor, decls);
+            treeMaker.freeze();
+            return rv;
+        }
     }
 
     private boolean isMacro(Cursor c) {

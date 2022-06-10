@@ -32,24 +32,15 @@ import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.MemorySession;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
-import java.lang.invoke.VarHandle;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 
-public class Index implements AutoCloseable {
-    // Pointer to CXIndex
-    private MemoryAddress ptr;
-    // Set of TranslationUnit
-    public final List<TranslationUnit> translationUnits;
+public class Index extends ClangDisposable {
 
-    Index(MemoryAddress ptr) {
-        this.ptr = ptr;
-        translationUnits = new ArrayList<>();
+    Index(MemoryAddress addr) {
+        super(addr, () -> Index_h.clang_disposeIndex(addr));
     }
 
     public static class UnsavedFile {
@@ -106,7 +97,6 @@ public class Index implements AutoCloseable {
                 throw new ParsingFailedException(Path.of(file).toAbsolutePath(), code);
             }
 
-            translationUnits.add(rv);
             return rv;
         }
     }
@@ -128,21 +118,6 @@ public class Index implements AutoCloseable {
     public TranslationUnit parse(String file, boolean detailedPreprocessorRecord, String... args)
     throws ParsingFailedException {
         return parse(file, dh -> {}, detailedPreprocessorRecord, args);
-    }
-
-    @Override
-    public void close() {
-        dispose();
-    }
-
-    public void dispose() {
-        for (TranslationUnit tu: translationUnits) {
-            tu.dispose();
-        }
-        if (ptr != MemoryAddress.NULL) {
-            Index_h.clang_disposeIndex(ptr);
-        }
-        ptr = MemoryAddress.NULL;
     }
 
 }

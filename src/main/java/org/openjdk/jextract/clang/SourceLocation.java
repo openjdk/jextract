@@ -29,21 +29,22 @@ import java.lang.foreign.Addressable;
 import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
-import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
+import static org.openjdk.jextract.clang.LibClang.STRING_ALLOCATOR;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_INT;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 
-public class SourceLocation {
+public class SourceLocation extends ClangDisposable.Owned {
 
     private final MemorySegment loc;
 
-    SourceLocation(MemorySegment loc) {
+    SourceLocation(MemorySegment loc, ClangDisposable owner) {
+        super(loc, owner);
         this.loc = loc;
     }
 
@@ -71,8 +72,8 @@ public class SourceLocation {
     }
 
     private static String getFileName(MemoryAddress fname) {
-        return LibClang.CXStrToString(allocator ->
-                Index_h.clang_getFileName(allocator, fname));
+        var filename = Index_h.clang_getFileName(STRING_ALLOCATOR, fname);
+        return LibClang.CXStrToString(filename);
     }
 
     public Location getFileLocation() { return getLocation(Index_h::clang_getFileLocation); }
