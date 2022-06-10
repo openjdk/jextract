@@ -46,11 +46,9 @@ public class LibClang {
     // crash recovery is not an issue on Windows, so enable it there by default to work around a libclang issue with reparseTranslationUnit
     private static final boolean CRASH_RECOVERY = IS_WINDOWS || Boolean.getBoolean("libclang.crash_recovery");
 
-    final static SegmentAllocator IMPLICIT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.openImplicit());
-
     private final static MemorySegment disableCrashRecovery =
-            IMPLICIT_ALLOCATOR.allocateUtf8String("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
+            SegmentAllocator.implicitAllocator()
+                            .allocateUtf8String("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
 
     static {
         if (!CRASH_RECOVERY) {
