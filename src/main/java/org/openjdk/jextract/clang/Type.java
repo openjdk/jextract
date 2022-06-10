@@ -34,7 +34,7 @@ import org.openjdk.jextract.clang.libclang.Index_h;
 import static org.openjdk.jextract.clang.LibClang.STRING_ALLOCATOR;
 
 public final class Type extends ClangDisposable.Owned {
-    
+
     Type(MemorySegment segment, ClangDisposable owner) {
         super(segment, owner);
     }
