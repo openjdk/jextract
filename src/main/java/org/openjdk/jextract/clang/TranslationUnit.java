@@ -182,12 +182,12 @@ public class TranslationUnit extends ClangDisposable {
             }
 
             public SourceLocation getLocation() {
-                var tokenLoc = Index_h.clang_getTokenLocation(owner.arena(), TranslationUnit.this.ptr, segment);
+                var tokenLoc = Index_h.clang_getTokenLocation(owner, TranslationUnit.this.ptr, segment);
                 return new SourceLocation(tokenLoc, owner);
             }
 
             public SourceRange getExtent() {
-                var tokenExt = Index_h.clang_getTokenExtent(owner.arena(), TranslationUnit.this.ptr, segment);
+                var tokenExt = Index_h.clang_getTokenExtent(owner, TranslationUnit.this.ptr, segment);
                 return new SourceRange(tokenExt, owner);
             }
         }

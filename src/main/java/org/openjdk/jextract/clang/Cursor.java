@@ -100,22 +100,22 @@ public final class Cursor extends ClangDisposable.Owned {
     }
 
     public Type type() {
-        var cursorType = Index_h.clang_getCursorType(owner.arena(), segment);
+        var cursorType = Index_h.clang_getCursorType(owner, segment);
         return new Type(cursorType, owner);
     }
 
     public Type getEnumDeclIntegerType() {
-        var enumType = Index_h.clang_getEnumDeclIntegerType(owner.arena(), segment);
+        var enumType = Index_h.clang_getEnumDeclIntegerType(owner, segment);
         return new Type(enumType, owner);
     }
 
     public Cursor getDefinition() {
-        var cursorDef = Index_h.clang_getCursorDefinition(owner.arena(), segment);
+        var cursorDef = Index_h.clang_getCursorDefinition(owner, segment);
         return new Cursor(cursorDef, owner);
     }
 
     public SourceLocation getSourceLocation() {
-        MemorySegment loc = Index_h.clang_getCursorLocation(owner.arena(), segment);
+        MemorySegment loc = Index_h.clang_getCursorLocation(owner, segment);
         try (MemorySession session = MemorySession.openConfined()) {
             if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(session)) != 0) {
                 return null;
@@ -125,7 +125,7 @@ public final class Cursor extends ClangDisposable.Owned {
     }
 
     public SourceRange getExtent() {
-        MemorySegment range = Index_h.clang_getCursorExtent(owner.arena(), segment);
+        MemorySegment range = Index_h.clang_getCursorExtent(owner, segment);
         if (Index_h.clang_Range_isNull(range) != 0) {
             return null;
         }
@@ -137,7 +137,7 @@ public final class Cursor extends ClangDisposable.Owned {
     }
 
     public Cursor getArgument(int idx) {
-        var cursorArg = Index_h.clang_Cursor_getArgument(owner.arena(), segment, idx);
+        var cursorArg = Index_h.clang_Cursor_getArgument(owner, segment, idx);
         return new Cursor(cursorArg, owner);
     }
 
@@ -175,7 +175,7 @@ public final class Cursor extends ClangDisposable.Owned {
      * For a segment that is a reference, retrieve a segment representing the entity that it references.
      */
     public Cursor getCursorReferenced() {
-        var referenced = Index_h.clang_getCursorReferenced(owner.arena(), segment);
+        var referenced = Index_h.clang_getCursorReferenced(owner, segment);
         return new Cursor(referenced, owner);
     }
 

@@ -35,12 +35,12 @@ public class SourceRange extends ClangDisposable.Owned {
     }
 
     public SourceLocation getBegin() {
-        var rangeStart = Index_h.clang_getRangeStart(owner.arena(), segment);
+        var rangeStart = Index_h.clang_getRangeStart(owner, segment);
         return new SourceLocation(rangeStart, owner);
     }
 
     public SourceLocation getEnd() {
-        var rangeEnd = Index_h.clang_getRangeEnd(owner.arena(), segment);
+        var rangeEnd = Index_h.clang_getRangeEnd(owner, segment);
         return new SourceLocation(rangeEnd, owner);
     }
 }

@@ -37,7 +37,7 @@ import java.lang.foreign.SegmentAllocator;
  * the abstractions "owned" by this disposable. For instance, as a CXCursor's lifetime is the same as that of
  * the CXTranslationUnit's lifetime, cursors are allocated inside the translation unit's lifetime.
  */
-public abstract class ClangDisposable implements AutoCloseable {
+public abstract class ClangDisposable implements SegmentAllocator, AutoCloseable {
     protected final MemorySegment ptr;
     protected final MemorySession session;
     protected final SegmentAllocator arena;
@@ -58,16 +58,13 @@ public abstract class ClangDisposable implements AutoCloseable {
         session.close();
     }
 
-    MemorySession session() {
-        return session;
-    }
-
-    SegmentAllocator arena() {
-        return arena;
+    @Override
+    public MemorySegment allocate(long bytesSize, long bytesAlignment) {
+        return arena.allocate(bytesSize, bytesAlignment);
     }
 
     /**
-     * An libclang entity owned by some libclang disposable entity. Entities modelled by this class
+     * A libclang entity owned by some libclang disposable entity. Entities modelled by this class
      * do not have their own session; instead, they piggyback on the session of their owner.
      */
     static class Owned {

@@ -48,14 +48,14 @@ public final class Type extends ClangDisposable.Owned {
         return Index_h.clang_isFunctionTypeVariadic(segment) != 0;
     }
     public Type resultType() {
-        var resultType = Index_h.clang_getResultType(owner.arena(), segment);
+        var resultType = Index_h.clang_getResultType(owner, segment);
         return new Type(resultType, owner);
     }
     public int numberOfArgs() {
         return Index_h.clang_getNumArgTypes(segment);
     }
     public Type argType(int idx) {
-        var argType = Index_h.clang_getArgType(owner.arena(), segment, idx);
+        var argType = Index_h.clang_getArgType(owner, segment, idx);
         return new Type(argType, owner);
     }
     private int getCallingConvention0() {
@@ -88,13 +88,13 @@ public final class Type extends ClangDisposable.Owned {
 
     // Pointer segment
     public Type getPointeeType() {
-        var pointee = Index_h.clang_getPointeeType(owner.arena(), segment);
+        var pointee = Index_h.clang_getPointeeType(owner, segment);
         return new Type(pointee, owner);
     }
 
     // array/vector segment
     public Type getElementType() {
-        var elementType = Index_h.clang_getElementType(owner.arena(), segment);
+        var elementType = Index_h.clang_getElementType(owner, segment);
         return new Type(elementType, owner);
     }
 
@@ -129,7 +129,7 @@ public final class Type extends ClangDisposable.Owned {
      * for 'int', the canonical segment for 'T' would be 'int'.
      */
     public Type canonicalType() {
-        var canonicalType = Index_h.clang_getCanonicalType(owner.arena(), segment);
+        var canonicalType = Index_h.clang_getCanonicalType(owner, segment);
         return new Type(canonicalType, owner);
     }
 
@@ -180,7 +180,7 @@ public final class Type extends ClangDisposable.Owned {
     }
 
     public Cursor getDeclarationCursor() {
-        var cursorDecl = Index_h.clang_getTypeDeclaration(owner.arena(), segment);
+        var cursorDecl = Index_h.clang_getTypeDeclaration(owner, segment);
         return new Cursor(cursorDecl, owner);
     }
 
