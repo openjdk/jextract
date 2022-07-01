@@ -123,7 +123,7 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     }
 
     @Override
-    org.openjdk.jextract.Type.Declared finishRecord(String anonName) {
+    Declaration.Scoped finishRecord(String anonName) {
         // pad at the end, if any
         long expectedSize = type.size() * 8;
         if (actualSize < expectedSize) {
@@ -148,7 +148,8 @@ final class StructLayoutComputer extends RecordLayoutComputer {
         } else if (anonName != null) {
             g = g.withName(anonName);
         }
-        return org.openjdk.jextract.Type.declared(Declaration.struct(TreeMaker.CursorPosition.of(cursor), cursor.spelling(), g, fieldDecls.stream().toArray(Declaration[]::new)));
+        Declaration.Scoped declaration = Declaration.struct(TreeMaker.CursorPosition.of(cursor), cursor.spelling(), g, fieldDecls.stream().toArray(Declaration[]::new));
+        return declaration;
     }
 
     // process bitfields if any and clear bitfield layouts

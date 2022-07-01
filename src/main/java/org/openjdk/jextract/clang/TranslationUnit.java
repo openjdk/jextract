@@ -40,40 +40,27 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static org.openjdk.jextract.clang.LibClang.STRING_ALLOCATOR;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_INT;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 
-import static org.openjdk.jextract.clang.LibClang.IMPLICIT_ALLOCATOR;
-
-public class TranslationUnit implements AutoCloseable {
+public class TranslationUnit extends ClangDisposable {
     private static final int MAX_RETRIES = 10;
 
-    private MemoryAddress tu;
-
-    TranslationUnit(MemoryAddress tu) {
-        this.tu = tu;
+    TranslationUnit(MemoryAddress addr) {
+        super(addr, () -> Index_h.clang_disposeTranslationUnit(addr));
     }
 
     public Cursor getCursor() {
-        return new Cursor(Index_h.clang_getTranslationUnitCursor(IMPLICIT_ALLOCATOR, tu));
-    }
-
-    public Diagnostic[] getDiagnostics() {
-        int cntDiags = Index_h.clang_getNumDiagnostics(tu);
-        Diagnostic[] rv = new Diagnostic[cntDiags];
-        for (int i = 0; i < cntDiags; i++) {
-            MemoryAddress diag = Index_h.clang_getDiagnostic(tu, i);
-            rv[i] = new Diagnostic(diag);
-        }
-
-        return rv;
+        var cursor = Index_h.clang_getTranslationUnitCursor(arena, ptr);
+        return new Cursor(cursor, this);
     }
 
     public final void save(Path path) throws TranslationUnitSaveException {
         try (MemorySession session = MemorySession.openConfined()) {
             var allocator = session;
             MemorySegment pathStr = allocator.allocateUtf8String(path.toAbsolutePath().toString());
-            SaveError res = SaveError.valueOf(Index_h.clang_saveTranslationUnit(tu, pathStr, 0));
+            SaveError res = SaveError.valueOf(Index_h.clang_saveTranslationUnit(ptr, pathStr, 0));
             if (res != SaveError.None) {
                 throw new TranslationUnitSaveException(path, res);
             }
@@ -82,8 +69,10 @@ public class TranslationUnit implements AutoCloseable {
 
     void processDiagnostics(Consumer<Diagnostic> dh) {
         Objects.requireNonNull(dh);
-        for (Diagnostic diag : getDiagnostics()) {
-            dh.accept(diag);
+        int cntDiags = Index_h.clang_getNumDiagnostics(ptr);
+        for (int i = 0; i < cntDiags; i++) {
+            MemoryAddress diag = Index_h.clang_getDiagnostic(ptr, i);
+            dh.accept(new Diagnostic(diag));
         }
     }
 
@@ -107,10 +96,10 @@ public class TranslationUnit implements AutoCloseable {
             int tries = 0;
             do {
                 code = ErrorCode.valueOf(Index_h.clang_reparseTranslationUnit(
-                        tu,
+                        ptr,
                         inMemoryFiles.length,
                         files == null ? MemoryAddress.NULL : files,
-                        Index_h.clang_defaultReparseOptions(tu)));
+                        Index_h.clang_defaultReparseOptions(ptr)));
             } while(code == ErrorCode.Crashed && (++tries) < MAX_RETRIES); // this call can crash on Windows. Retry in that case.
 
             if (code != ErrorCode.Success) {
@@ -125,47 +114,32 @@ public class TranslationUnit implements AutoCloseable {
     }
 
     public String[] tokens(SourceRange range) {
-        Tokens tokens = tokenize(range);
-        String rv[] = new String[tokens.size()];
-        for (int i = 0; i < rv.length; i++) {
-            rv[i] = tokens.getToken(i).spelling();
+        try (Tokens tokens = tokenize(range)) {
+            String rv[] = new String[tokens.size()];
+            for (int i = 0; i < rv.length; i++) {
+                rv[i] = tokens.getToken(i).spelling();
+            }
+            return rv;
         }
-        return rv;
     }
 
     public Tokens tokenize(SourceRange range) {
         try (MemorySession session = MemorySession.openConfined()) {
             MemorySegment p = MemorySegment.allocateNative(C_POINTER, session);
             MemorySegment pCnt = MemorySegment.allocateNative(C_INT, session);
-            Index_h.clang_tokenize(tu, range.range, p, pCnt);
+            Index_h.clang_tokenize(ptr, range.segment, p, pCnt);
             Tokens rv = new Tokens(p.get(C_POINTER, 0), pCnt.get(C_INT, 0));
             return rv;
         }
     }
 
-    @Override
-    public void close() {
-        dispose();
-    }
-
-    public void dispose() {
-        if (tu != MemoryAddress.NULL) {
-            Index_h.clang_disposeTranslationUnit(tu);
-            tu = MemoryAddress.NULL;
-        }
-    }
-
-    public class Tokens {
-        private final MemoryAddress ar;
+    public class Tokens extends ClangDisposable {
         private final int size;
 
-        Tokens(MemoryAddress ar, int size) {
-            this.ar = ar;
+        Tokens(MemoryAddress addr, int size) {
+            super(addr, size * CXToken.$LAYOUT().byteSize(),
+                    () -> Index_h.clang_disposeTokens(TranslationUnit.this.ptr, addr, size));
             this.size = size;
-        }
-
-        public void dispose() {
-            Index_h.clang_disposeTokens(tu, ar, size);
         }
 
         public int size() {
@@ -173,12 +147,11 @@ public class TranslationUnit implements AutoCloseable {
         }
 
         public MemorySegment getTokenSegment(int idx) {
-            MemoryAddress p = ar.addOffset(idx * CXToken.$LAYOUT().byteSize());
-            return MemorySegment.ofAddress(p, CXToken.$LAYOUT().byteSize(), MemorySession.openConfined());
+            return ptr.asSlice(idx * CXToken.$LAYOUT().byteSize());
         }
 
         public Token getToken(int index) {
-            return new Token(getTokenSegment(index));
+            return new Token(getTokenSegment(index), this);
         }
 
         @Override
@@ -188,39 +161,35 @@ public class TranslationUnit implements AutoCloseable {
                 sb.append("Token[");
                 sb.append(i);
                 sb.append("]=");
-                int pos = i;
-                sb.append(LibClang.CXStrToString(allocator ->
-                        Index_h.clang_getTokenSpelling(allocator, tu, getTokenSegment(pos))));
+                sb.append(getToken(i).spelling());
                 sb.append("\n");
             }
             return sb.toString();
         }
-    }
 
-    public class Token {
-        final MemorySegment token;
+        public class Token extends ClangDisposable.Owned {
+            Token(MemorySegment token, ClangDisposable owner) {
+                super(token, owner);
+            }
 
-        Token(MemorySegment token) {
-            this.token = token;
-        }
+            public int kind() {
+                return Index_h.clang_getTokenKind(segment);
+            }
 
-        public int kind() {
-            return Index_h.clang_getTokenKind(token);
-        }
+            public String spelling() {
+                var spelling = Index_h.clang_getTokenSpelling(STRING_ALLOCATOR, TranslationUnit.this.ptr, segment);
+                return LibClang.CXStrToString(spelling);
+            }
 
-        public String spelling() {
-            return LibClang.CXStrToString(allocator ->
-                    Index_h.clang_getTokenSpelling(allocator, tu, token));
-        }
+            public SourceLocation getLocation() {
+                var tokenLoc = Index_h.clang_getTokenLocation(owner, TranslationUnit.this.ptr, segment);
+                return new SourceLocation(tokenLoc, owner);
+            }
 
-        public SourceLocation getLocation() {
-            return new SourceLocation(Index_h.clang_getTokenLocation(
-                IMPLICIT_ALLOCATOR, tu, token));
-        }
-
-        public SourceRange getExtent() {
-            return new SourceRange(Index_h.clang_getTokenExtent(IMPLICIT_ALLOCATOR,
-                    tu, token));
+            public SourceRange getExtent() {
+                var tokenExt = Index_h.clang_getTokenExtent(owner, TranslationUnit.this.ptr, segment);
+                return new SourceRange(tokenExt, owner);
+            }
         }
     }
 

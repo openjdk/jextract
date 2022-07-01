@@ -26,9 +26,6 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.MemoryAddress;
-import java.lang.foreign.VaList;
-import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
@@ -215,9 +212,8 @@ class Utils {
         return sb.toString();
     }
 
-    static Stream<Cursor> flattenableChildren(Cursor c) {
-        return c.children()
-                .filter(cx -> cx.isAnonymousStruct() || cx.kind() == CursorKind.FieldDecl);
+    static boolean isFlattenable(Cursor c) {
+        return c.isAnonymousStruct() || c.kind() == CursorKind.FieldDecl;
     }
 
     // return builtin Record types accessible from the given Type

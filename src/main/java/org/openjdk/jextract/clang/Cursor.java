@@ -29,23 +29,18 @@ package org.openjdk.jextract.clang;
 import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
-import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
-import java.util.ArrayList;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
 
-import static org.openjdk.jextract.clang.LibClang.IMPLICIT_ALLOCATOR;
+public final class Cursor extends ClangDisposable.Owned {
 
-public final class Cursor {
-
-    private final MemorySegment cursor;
     private final int kind;
 
-    Cursor(MemorySegment cursor) {
-        this.cursor = cursor;
-        kind = Index_h.clang_getCursorKind(cursor);
+    Cursor(MemorySegment segment, ClangDisposable owner) {
+        super(segment, owner);
+        kind = Index_h.clang_getCursorKind(segment);
     }
 
     public boolean isDeclaration() {
@@ -61,32 +56,32 @@ public final class Cursor {
     }
 
     public boolean isDefinition() {
-        return Index_h.clang_isCursorDefinition(cursor) != 0;
+        return Index_h.clang_isCursorDefinition(segment) != 0;
     }
 
     public boolean isAttribute() { return Index_h.clang_isAttribute(kind) != 0; }
 
     public boolean isAnonymousStruct() {
-        return Index_h.clang_Cursor_isAnonymousRecordDecl(cursor) != 0;
+        return Index_h.clang_Cursor_isAnonymousRecordDecl(segment) != 0;
     }
 
     public boolean isMacroFunctionLike() {
-        return Index_h.clang_Cursor_isMacroFunctionLike(cursor) != 0;
+        return Index_h.clang_Cursor_isMacroFunctionLike(segment) != 0;
     }
 
     public String spelling() {
-        return LibClang.CXStrToString(allocator ->
-            Index_h.clang_getCursorSpelling(allocator, cursor));
+        var spelling = Index_h.clang_getCursorSpelling(LibClang.STRING_ALLOCATOR, segment);
+        return LibClang.CXStrToString(spelling);
     }
 
     public String USR() {
-        return LibClang.CXStrToString(allocator ->
-                Index_h.clang_getCursorUSR(allocator, cursor));
+        var USR = Index_h.clang_getCursorUSR(LibClang.STRING_ALLOCATOR, segment);
+        return LibClang.CXStrToString(USR);
     }
 
     public String prettyPrinted(PrintingPolicy policy) {
-        return LibClang.CXStrToString(allocator ->
-            Index_h.clang_getCursorPrettyPrinted(allocator, cursor, policy.ptr()));
+        var prettyOutput = Index_h.clang_getCursorPrettyPrinted(LibClang.STRING_ALLOCATOR, segment, policy.ptr());
+        return LibClang.CXStrToString(prettyOutput);
     }
 
     public String prettyPrinted() {
@@ -96,68 +91,72 @@ public final class Cursor {
     }
 
     public String displayName() {
-        return LibClang.CXStrToString(allocator ->
-                Index_h.clang_getCursorDisplayName(allocator, cursor));
+        var displayName = Index_h.clang_getCursorDisplayName(LibClang.STRING_ALLOCATOR, segment);
+        return LibClang.CXStrToString(displayName);
     }
 
     public boolean equalCursor(Cursor other) {
-        return Index_h.clang_equalCursors(cursor, other.cursor) != 0;
+        return Index_h.clang_equalCursors(segment, other.segment) != 0;
     }
 
     public Type type() {
-        return new Type(Index_h.clang_getCursorType(IMPLICIT_ALLOCATOR, cursor));
+        var cursorType = Index_h.clang_getCursorType(owner, segment);
+        return new Type(cursorType, owner);
     }
 
     public Type getEnumDeclIntegerType() {
-        return new Type(Index_h.clang_getEnumDeclIntegerType(IMPLICIT_ALLOCATOR, cursor));
+        var enumType = Index_h.clang_getEnumDeclIntegerType(owner, segment);
+        return new Type(enumType, owner);
     }
 
     public Cursor getDefinition() {
-        return new Cursor(Index_h.clang_getCursorDefinition(IMPLICIT_ALLOCATOR, cursor));
+        var cursorDef = Index_h.clang_getCursorDefinition(owner, segment);
+        return new Cursor(cursorDef, owner);
     }
 
     public SourceLocation getSourceLocation() {
-        MemorySegment loc = Index_h.clang_getCursorLocation(IMPLICIT_ALLOCATOR, cursor);
+        MemorySegment loc = Index_h.clang_getCursorLocation(owner, segment);
         try (MemorySession session = MemorySession.openConfined()) {
             if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(session)) != 0) {
                 return null;
             }
         }
-        return new SourceLocation(loc);
+        return new SourceLocation(loc, owner);
     }
 
     public SourceRange getExtent() {
-        MemorySegment range = Index_h.clang_getCursorExtent(IMPLICIT_ALLOCATOR, cursor);
+        MemorySegment range = Index_h.clang_getCursorExtent(owner, segment);
         if (Index_h.clang_Range_isNull(range) != 0) {
             return null;
         }
-        return new SourceRange(range);
+        return new SourceRange(range, owner);
     }
 
     public int numberOfArgs() {
-        return Index_h.clang_Cursor_getNumArguments(cursor);
+        return Index_h.clang_Cursor_getNumArguments(segment);
     }
 
     public Cursor getArgument(int idx) {
-        return new Cursor(Index_h.clang_Cursor_getArgument(IMPLICIT_ALLOCATOR, cursor, idx));
+        var cursorArg = Index_h.clang_Cursor_getArgument(owner, segment, idx);
+        return new Cursor(cursorArg, owner);
     }
 
     // C long long, 64-bit
     public long getEnumConstantValue() {
-        return Index_h.clang_getEnumConstantDeclValue(cursor);
+        return Index_h.clang_getEnumConstantDeclValue(segment);
     }
 
     // C unsigned long long, 64-bit
     public long getEnumConstantUnsignedValue() {
-        return Index_h.clang_getEnumConstantDeclUnsignedValue(cursor);
+        return Index_h.clang_getEnumConstantDeclUnsignedValue(segment);
     }
 
     public boolean isBitField() {
-        return Index_h.clang_Cursor_isBitField(cursor) != 0;
+        return Index_h.clang_Cursor_isBitField(segment) != 0;
     }
 
     public int getBitFieldWidth() {
-        return Index_h.clang_getFieldDeclBitWidth(cursor);
+        return Index_h.clang_getFieldDeclBitWidth(segment);
     }
 
     public CursorKind kind() {
@@ -165,7 +164,7 @@ public final class Cursor {
     }
 
     public CursorLanguage language() {
-        return CursorLanguage.valueOf(Index_h.clang_getCursorLanguage(cursor));
+        return CursorLanguage.valueOf(Index_h.clang_getCursorLanguage(segment));
     }
 
     public int kind0() {
@@ -173,52 +172,88 @@ public final class Cursor {
     }
 
     /**
-     * For a cursor that is a reference, retrieve a cursor representing the entity that it references.
+     * For a segment that is a reference, retrieve a segment representing the entity that it references.
      */
     public Cursor getCursorReferenced() {
-        return new Cursor(Index_h.clang_getCursorReferenced(
-                IMPLICIT_ALLOCATOR, cursor));
+        var referenced = Index_h.clang_getCursorReferenced(owner, segment);
+        return new Cursor(referenced, owner);
     }
 
+    public void forEach(Consumer<Cursor> action) {
+        CursorChildren.forEach(this, action);
+    }
+
+    /**
+     * We run the visitor action inside the upcall, so that we do not have to worry about
+     * having to copy cursors into separate off-heap storage. To do this, we have to setup
+     * some context for the upcall, so that the upcall code can call the "correct" user-defined visitor action.
+     * Note: exceptions must be delayed until after the upcall has returned; this is necessary as upcalls
+     * cannot throw (if they do, they cause a JVM crash).
+     */
     private static class CursorChildren {
-        private static final ArrayList<Cursor> children = new ArrayList<>();
+
+        static class Context {
+            private final Consumer<Cursor> action;
+            private final ClangDisposable owner;
+            private RuntimeException exception;
+
+            Context(Consumer<Cursor> action, ClangDisposable owner) {
+                this.action = action;
+                this.owner = owner;
+            }
+
+            boolean visit(MemorySegment segment) {
+                // Note: the session of this cursor is smaller than that of the translation unit
+                // this is because the cursor will be destroyed when the upcall ends. This means
+                // that the cursor passed by the visitor must NOT be leaked into a field and accessed
+                // at a later time (or the liveness check will fail with IllegalStateException).
+                try {
+                    // run the visitor action
+                    action.accept(new Cursor(segment, owner));
+                    return true;
+                } catch (RuntimeException ex) {
+                    // if we fail, record the exception, and return false to stop the visit
+                    exception = ex;
+                    return false;
+                }
+            }
+
+            void handleExceptions() {
+                if (exception != null) {
+                    throw exception;
+                }
+            }
+        }
+
+        static Context pendingContext = null;
+
         private static final MemorySegment callback = CXCursorVisitor.allocate((c, p, d) -> {
-            MemorySegment copy = MemorySegment.allocateNative(c.byteSize(), MemorySession.openImplicit());
-            copy.copyFrom(c);
-            Cursor cursor = new Cursor(copy);
-            children.add(cursor);
-            return Index_h.CXChildVisit_Continue();
+            if (pendingContext.visit(c)) {
+                return Index_h.CXChildVisit_Continue();
+            } else {
+                return Index_h.CXChildVisit_Break();
+            }
         }, MemorySession.openImplicit());
 
-        synchronized static Stream<Cursor> get(Cursor c) {
+        synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
+            // everything is confined, no need to synchronize
+            Context prevContext = pendingContext;
             try {
-                Index_h.clang_visitChildren(c.cursor, callback, MemoryAddress.NULL);
-                return new ArrayList<>(children).stream();
+                pendingContext = new Context(op, c.owner);
+                Index_h.clang_visitChildren(c.segment, callback, MemoryAddress.NULL);
+                pendingContext.handleExceptions();
             } finally {
-                children.clear();
+                pendingContext = prevContext;
             }
         }
     }
 
-    public Stream<Cursor> children() {
-        return CursorChildren.get(this);
-    }
-
-    public Stream<Cursor> allChildren() {
-        return children().flatMap(c -> Stream.concat(Stream.of(c), c.children()));
-    }
-
-    public String getMangling() {
-        return LibClang.CXStrToString(allocator ->
-                Index_h.clang_Cursor_getMangling(allocator, cursor));
-    }
-
     public TranslationUnit getTranslationUnit() {
-        return new TranslationUnit(Index_h.clang_Cursor_getTranslationUnit(cursor));
+        return new TranslationUnit(Index_h.clang_Cursor_getTranslationUnit(segment));
     }
 
     private MemoryAddress eval0() {
-        return Index_h.clang_Cursor_Evaluate(cursor);
+        return Index_h.clang_Cursor_Evaluate(segment);
     }
 
     public EvalResult eval() {
@@ -227,7 +262,7 @@ public final class Cursor {
     }
 
     public PrintingPolicy getPrintingPolicy() {
-        return new PrintingPolicy(Index_h.clang_getCursorPrintingPolicy(cursor));
+        return new PrintingPolicy(Index_h.clang_getCursorPrintingPolicy(segment));
     }
 
     @Override
@@ -236,7 +271,7 @@ public final class Cursor {
             return true;
         }
         return other instanceof Cursor otherCursor &&
-                (Index_h.clang_equalCursors(cursor, otherCursor.cursor) != 0);
+                (Index_h.clang_equalCursors(segment, otherCursor.segment) != 0);
     }
 
     @Override
