@@ -154,7 +154,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + " (MemorySegment segment, MemorySession session) {\n");
+        append(fiName + " " + javaName + " (MemorySegment segment, Arena session) {\n");
         incrAlign();
         indent();
         append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), session);\n");
@@ -258,7 +258,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS);
-        append(" MemorySegment ofAddress(MemoryAddress addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }\n");
+        append(" MemorySegment ofAddress(MemorySegment addr, Arena session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }\n");
         decrAlign();
     }
 

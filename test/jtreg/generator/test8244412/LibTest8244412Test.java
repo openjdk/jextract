@@ -22,8 +22,8 @@
  */
 
 
-import java.lang.foreign.MemoryAddress;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.NativeArena;
 
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
@@ -51,7 +51,7 @@ import static test.jextract.test8244412.test8244412_h.*;
 public class LibTest8244412Test {
     @Test
     public void test() {
-        try (var session = MemorySession.openConfined()) {
+        try (var session = NativeArena.openConfined()) {
             var addr = session.allocate(mysize_t, 0L);
             assertEquals(addr.get(C_LONG_LONG, 0), 0L);
             addr.set(C_LONG_LONG, 0, 13455566L);

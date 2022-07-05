@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import testlib.JextractToolRunner;
 
 import static org.testng.Assert.assertEquals;
@@ -96,8 +96,8 @@ public class ConstantsTest extends JextractToolRunner {
                 // pointer type values
                 { "STR", MemorySegment.class, equalsToJavaStr("Hello") },
                 { "QUOTE", MemorySegment.class, equalsToJavaStr("QUOTE") },
-                { "ZERO_PTR", MemoryAddress.class, equalsPtrContents(0) },
-                { "F_PTR", MemoryAddress.class, equalsPtrContents(0xFFFFFFFFFFFFFFFFL) },
+                { "ZERO_PTR", MemorySegment.class, equalsPtrContents(0) },
+                { "F_PTR", MemorySegment.class, equalsPtrContents(0xFFFFFFFFFFFFFFFFL) },
         };
     }
 
@@ -109,7 +109,7 @@ public class ConstantsTest extends JextractToolRunner {
         return actual -> assertEquals(actual.getUtf8String(0), expected);
     }
 
-    static Consumer<MemoryAddress> equalsPtrContents(long expected) {
+    static Consumer<MemorySegment> equalsPtrContents(long expected) {
         return actual -> assertEquals(actual.toRawLongValue(), expected);
     }
 

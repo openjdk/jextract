@@ -46,32 +46,32 @@ public class CXUnsavedFile {
     public static VarHandle Filename$VH() {
         return CXUnsavedFile.Filename$VH;
     }
-    public static MemoryAddress Filename$get(MemorySegment seg) {
-        return (java.lang.foreign.MemoryAddress)CXUnsavedFile.Filename$VH.get(seg);
+    public static MemorySegment Filename$get(MemorySegment seg) {
+        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Filename$VH.get(seg);
     }
-    public static void Filename$set( MemorySegment seg, MemoryAddress x) {
+    public static void Filename$set( MemorySegment seg, MemorySegment x) {
         CXUnsavedFile.Filename$VH.set(seg, x);
     }
-    public static MemoryAddress Filename$get(MemorySegment seg, long index) {
-        return (java.lang.foreign.MemoryAddress)CXUnsavedFile.Filename$VH.get(seg.asSlice(index*sizeof()));
+    public static MemorySegment Filename$get(MemorySegment seg, long index) {
+        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Filename$VH.get(seg.asSlice(index*sizeof()));
     }
-    public static void Filename$set(MemorySegment seg, long index, MemoryAddress x) {
+    public static void Filename$set(MemorySegment seg, long index, MemorySegment x) {
         CXUnsavedFile.Filename$VH.set(seg.asSlice(index*sizeof()), x);
     }
     static final VarHandle Contents$VH = $struct$LAYOUT.varHandle(MemoryLayout.PathElement.groupElement("Contents"));
     public static VarHandle Contents$VH() {
         return CXUnsavedFile.Contents$VH;
     }
-    public static MemoryAddress Contents$get(MemorySegment seg) {
-        return (java.lang.foreign.MemoryAddress)CXUnsavedFile.Contents$VH.get(seg);
+    public static MemorySegment Contents$get(MemorySegment seg) {
+        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Contents$VH.get(seg);
     }
-    public static void Contents$set( MemorySegment seg, MemoryAddress x) {
+    public static void Contents$set( MemorySegment seg, MemorySegment x) {
         CXUnsavedFile.Contents$VH.set(seg, x);
     }
-    public static MemoryAddress Contents$get(MemorySegment seg, long index) {
-        return (java.lang.foreign.MemoryAddress)CXUnsavedFile.Contents$VH.get(seg.asSlice(index*sizeof()));
+    public static MemorySegment Contents$get(MemorySegment seg, long index) {
+        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Contents$VH.get(seg.asSlice(index*sizeof()));
     }
-    public static void Contents$set(MemorySegment seg, long index, MemoryAddress x) {
+    public static void Contents$set(MemorySegment seg, long index, MemorySegment x) {
         CXUnsavedFile.Contents$VH.set(seg.asSlice(index*sizeof()), x);
     }
     static final VarHandle Length$VH = $struct$LAYOUT.varHandle(MemoryLayout.PathElement.groupElement("Length"));
@@ -95,7 +95,7 @@ public class CXUnsavedFile {
     public static MemorySegment allocateArray(int len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment ofAddress(MemoryAddress addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }
+    public static MemorySegment ofAddress(MemorySegment addr, Arena session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }
 }
 
 

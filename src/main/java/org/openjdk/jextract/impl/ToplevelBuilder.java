@@ -26,7 +26,7 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
@@ -254,8 +254,8 @@ class ToplevelBuilder extends JavaSourceBuilder {
                 return "JAVA_LONG.withBitAlignment(" + vl.bitAlignment() + ")";
             } else if (vl.carrier() == double.class) {
                 return "JAVA_DOUBLE.withBitAlignment(" + vl.bitAlignment() + ")";
-            } else if (vl.carrier() == MemoryAddress.class) {
-                return "ADDRESS.withBitAlignment(" + vl.bitAlignment() + ")";
+            } else if (vl.carrier() == MemorySegment.class) {
+                return "ADDRESS.withBitAlignment(" + vl.bitAlignment() + ").asUnbounded()";
             } else {
                 return "MemoryLayout.paddingLayout(" + vl.bitSize() +  ")";
             }

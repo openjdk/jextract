@@ -23,6 +23,7 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
+import java.lang.foreign.NativeArena;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -30,7 +31,6 @@ import java.util.function.BiConsumer;
 
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
@@ -155,8 +155,8 @@ public class TestNested extends JextractToolRunner {
             if (type == MemorySegment.class) {
                 Method slicer = cls.getMethod(fieldName + "$slice", MemorySegment.class);
                 assertEquals(slicer.getReturnType(), MemorySegment.class);
-                try (MemorySession session = MemorySession.openConfined()) {
-                    MemorySegment struct = MemorySegment.allocateNative(layout, session);
+                try (NativeArena session = NativeArena.openConfined()) {
+                    MemorySegment struct = session.allocate(layout);
                     MemorySegment slice = (MemorySegment) slicer.invoke(null, struct);
                     assertEquals(slice.byteSize(), fieldLayout.byteSize());
                 }
@@ -167,8 +167,8 @@ public class TestNested extends JextractToolRunner {
                 assertEquals(setter.getReturnType(), void.class);
 
                 Object zero = MethodHandles.zero(type).invoke();
-                try (MemorySession session = MemorySession.openConfined()) {
-                    MemorySegment struct = MemorySegment.allocateNative(layout, session);
+                try (NativeArena session = NativeArena.openConfined()) {
+                    MemorySegment struct = session.allocate(layout);
                     setter.invoke(null, struct, zero);
                     Object actual = getter.invoke(null, struct);
                     assertEquals(actual, zero);

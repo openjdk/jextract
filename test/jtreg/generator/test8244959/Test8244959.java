@@ -21,7 +21,7 @@
  * questions.
  */
 
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.NativeArena;
 import org.testng.annotations.Test;
 
 import java.lang.foreign.MemorySegment;
@@ -49,7 +49,7 @@ import static java.lang.foreign.Linker.*;
 public class Test8244959 {
     @Test
     public void testsPrintf() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (NativeArena session = NativeArena.openConfined()) {
             MemorySegment s = session.allocate(1024);
             my_sprintf(s,
                     session.allocateUtf8String("%hhd %c %.2f %.2f %lld %lld %d %hd %d %d %lld %c"), 12,

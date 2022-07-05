@@ -27,10 +27,8 @@ package org.openjdk.jextract.impl;
 import java.lang.foreign.Linker;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemoryAddress;
-import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
@@ -96,14 +94,16 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         emitWithConstantClass(constantBuilder -> {
             Constant mhConstant = constantBuilder.addMethodHandle(javaName, nativeName, descriptor, isVarargs, false)
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
-            MethodType downcallType = Linker.downcallType(descriptor);
-            emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, isVarargs, parameterNames);
+            MethodType downcallType = Linker.methodType(descriptor);
+            boolean needsAllocator = descriptor.returnLayout().isPresent() &&
+                    descriptor.returnLayout().get() instanceof GroupLayout;
+            emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, needsAllocator, isVarargs, parameterNames);
         });
     }
 
     @Override
     public void addConstant(String javaName, Class<?> type, Object value) {
-        if (type.equals(MemorySegment.class) || type.equals(MemoryAddress.class)) {
+        if (type.equals(MemorySegment.class)) {
             emitWithConstantClass(constantBuilder -> {
                 constantBuilder.addConstantDesc(javaName, type, value)
                         .emitGetter(this, MEMBER_MODS, Constant.JAVA_NAME);
@@ -115,11 +115,12 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
 
     // private generation
 
-    private void emitFunctionWrapper(Constant mhConstant, String javaName, String nativeName, MethodType declType, boolean isVarargs, List<String> parameterNames) {
+    private void emitFunctionWrapper(Constant mhConstant, String javaName, String nativeName, MethodType declType,
+                                     boolean needsAllocator, boolean isVarargs, List<String> parameterNames) {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        if (declType.returnType().equals(MemorySegment.class)) {
+        if (needsAllocator) {
             // needs allocator parameter
             declType = declType.insertParameterTypes(0, SegmentAllocator.class);
             parameterNames = new ArrayList<>(parameterNames);
@@ -186,7 +187,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         append(fiName + " " + javaName + " () {\n");
         incrAlign();
         indent();
-        append("return " + fiName + ".ofAddress(" + javaName + "$get(), MemorySession.global());\n");
+        append("return " + fiName + ".ofAddress(" + javaName + "$get(), Arena.global());\n");
         decrAlign();
         indent();
         append("}\n");

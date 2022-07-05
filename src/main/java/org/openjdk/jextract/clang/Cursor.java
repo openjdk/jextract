@@ -26,12 +26,12 @@
 
 package org.openjdk.jextract.clang;
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
+import java.lang.foreign.NativeArena;
 import java.util.function.Consumer;
 
 public final class Cursor extends ClangDisposable.Owned {
@@ -116,8 +116,8 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public SourceLocation getSourceLocation() {
         MemorySegment loc = Index_h.clang_getCursorLocation(owner, segment);
-        try (MemorySession session = MemorySession.openConfined()) {
-            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(session)) != 0) {
+        try (NativeArena arena = NativeArena.openConfined()) {
+            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(arena)) != 0) {
                 return null;
             }
         }
@@ -233,14 +233,14 @@ public final class Cursor extends ClangDisposable.Owned {
             } else {
                 return Index_h.CXChildVisit_Break();
             }
-        }, MemorySession.openImplicit());
+        }, Arena.global());
 
         synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
             // everything is confined, no need to synchronize
             Context prevContext = pendingContext;
             try {
                 pendingContext = new Context(op, c.owner);
-                Index_h.clang_visitChildren(c.segment, callback, MemoryAddress.NULL);
+                Index_h.clang_visitChildren(c.segment, callback, MemorySegment.NULL);
                 pendingContext.handleExceptions();
             } finally {
                 pendingContext = prevContext;
@@ -252,13 +252,13 @@ public final class Cursor extends ClangDisposable.Owned {
         return new TranslationUnit(Index_h.clang_Cursor_getTranslationUnit(segment));
     }
 
-    private MemoryAddress eval0() {
+    private MemorySegment eval0() {
         return Index_h.clang_Cursor_Evaluate(segment);
     }
 
     public EvalResult eval() {
-        MemoryAddress ptr = eval0();
-        return ptr == MemoryAddress.NULL ? EvalResult.erroneous : new EvalResult(ptr);
+        MemorySegment ptr = eval0();
+        return ptr == MemorySegment.NULL ? EvalResult.erroneous : new EvalResult(ptr);
     }
 
     public PrintingPolicy getPrintingPolicy() {

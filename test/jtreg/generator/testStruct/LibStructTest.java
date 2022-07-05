@@ -24,7 +24,7 @@
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.NativeArena;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -49,7 +49,7 @@ import test.jextract.struct.*;
 public class LibStructTest {
     @Test
     public void testMakePoint() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (NativeArena session = NativeArena.openConfined()) {
             var seg = makePoint(session, 42, -39);
             assertEquals(Point.x$get(seg), 42);
             assertEquals(Point.y$get(seg), -39);
@@ -58,7 +58,7 @@ public class LibStructTest {
 
     @Test
     public void testAllocate() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (NativeArena session = NativeArena.openConfined()) {
             var seg = Point.allocate(session);
             Point.x$set(seg, 56);
             Point.y$set(seg, 65);
@@ -69,7 +69,7 @@ public class LibStructTest {
 
     @Test
     public void testAllocateArray() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (NativeArena session = NativeArena.openConfined()) {
             var seg = Point.allocateArray(3, session);
             for (int i = 0; i < 3; i++) {
                 Point.x$set(seg, i, 56 + i);

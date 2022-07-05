@@ -27,7 +27,7 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
@@ -96,10 +96,10 @@ public class ConstantBuilder extends ClassSourceBuilder {
     }
 
     public Constant addConstantDesc(String javaName, Class<?> type, Object value) {
-        if (type == MemorySegment.class) {
+        if (value instanceof String) {
             return emitIfAbsent(javaName, Constant.Kind.SEGMENT,
                     () -> emitConstantSegment(javaName, value));
-        } else if (type == MemoryAddress.class) {
+        } else if (type == MemorySegment.class) {
             return emitIfAbsent(javaName, Constant.Kind.ADDRESS,
                     () -> emitConstantAddress(javaName, value));
         } else {
@@ -114,7 +114,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
             METHOD_HANDLE(MethodHandle.class, "$MH"),
             VAR_HANDLE(VarHandle.class, "$VH"),
             FUNCTION_DESCRIPTOR(FunctionDescriptor.class, "$FUNC"),
-            ADDRESS(MemoryAddress.class, "$ADDR"),
+            ADDRESS(MemorySegment.class, "$ADDR"),
             SEGMENT(MemorySegment.class, "$SEGMENT");
 
             final Class<?> type;
@@ -357,9 +357,9 @@ public class ConstantBuilder extends ClassSourceBuilder {
         indent();
         String fieldName = Constant.Kind.ADDRESS.fieldName(javaName);
         append(memberMods());
-        append("MemoryAddress ");
+        append("MemorySegment ");
         append(fieldName);
-        append(" = MemoryAddress.ofLong(");
+        append(" = MemorySegment.ofLong(");
         append(((Number)value).longValue());
         append("L);\n");
         decrAlign();

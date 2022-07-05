@@ -61,10 +61,10 @@ public class Index_h  {
     public static MethodHandle clang_getCString$MH() {
         return RuntimeHelper.requireNonNull(constants$0.clang_getCString$MH,"clang_getCString");
     }
-    public static MemoryAddress clang_getCString ( MemorySegment string) {
+    public static MemorySegment clang_getCString ( MemorySegment string) {
         var mh$ = clang_getCString$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(string);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(string);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -115,10 +115,10 @@ public class Index_h  {
     public static MethodHandle clang_createIndex$MH() {
         return RuntimeHelper.requireNonNull(constants$0.clang_createIndex$MH,"clang_createIndex");
     }
-    public static MemoryAddress clang_createIndex ( int excludeDeclarationsFromPCH,  int displayDiagnostics) {
+    public static MemorySegment clang_createIndex ( int excludeDeclarationsFromPCH,  int displayDiagnostics) {
         var mh$ = clang_createIndex$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(excludeDeclarationsFromPCH, displayDiagnostics);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(excludeDeclarationsFromPCH, displayDiagnostics);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -126,7 +126,7 @@ public class Index_h  {
     public static MethodHandle clang_disposeIndex$MH() {
         return RuntimeHelper.requireNonNull(constants$0.clang_disposeIndex$MH,"clang_disposeIndex");
     }
-    public static void clang_disposeIndex ( Addressable index) {
+    public static void clang_disposeIndex ( MemorySegment index) {
         var mh$ = clang_disposeIndex$MH();
         try {
             mh$.invokeExact(index);
@@ -137,7 +137,7 @@ public class Index_h  {
     public static MethodHandle clang_getFileName$MH() {
         return RuntimeHelper.requireNonNull(constants$0.clang_getFileName$MH,"clang_getFileName");
     }
-    public static MemorySegment clang_getFileName ( SegmentAllocator allocator,  Addressable SFile) {
+    public static MemorySegment clang_getFileName ( SegmentAllocator allocator,  MemorySegment SFile) {
         var mh$ = clang_getFileName$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, SFile);
@@ -170,7 +170,7 @@ public class Index_h  {
     public static MethodHandle clang_getLocation$MH() {
         return RuntimeHelper.requireNonNull(constants$1.clang_getLocation$MH,"clang_getLocation");
     }
-    public static MemorySegment clang_getLocation ( SegmentAllocator allocator,  Addressable tu,  Addressable file,  int line,  int column) {
+    public static MemorySegment clang_getLocation ( SegmentAllocator allocator,  MemorySegment tu,  MemorySegment file,  int line,  int column) {
         var mh$ = clang_getLocation$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, line, column);
@@ -181,7 +181,7 @@ public class Index_h  {
     public static MethodHandle clang_getLocationForOffset$MH() {
         return RuntimeHelper.requireNonNull(constants$1.clang_getLocationForOffset$MH,"clang_getLocationForOffset");
     }
-    public static MemorySegment clang_getLocationForOffset ( SegmentAllocator allocator,  Addressable tu,  Addressable file,  int offset) {
+    public static MemorySegment clang_getLocationForOffset ( SegmentAllocator allocator,  MemorySegment tu,  MemorySegment file,  int offset) {
         var mh$ = clang_getLocationForOffset$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, offset);
@@ -225,7 +225,7 @@ public class Index_h  {
     public static MethodHandle clang_getExpansionLocation$MH() {
         return RuntimeHelper.requireNonNull(constants$2.clang_getExpansionLocation$MH,"clang_getExpansionLocation");
     }
-    public static void clang_getExpansionLocation ( MemorySegment location,  Addressable file,  Addressable line,  Addressable column,  Addressable offset) {
+    public static void clang_getExpansionLocation ( MemorySegment location,  MemorySegment file,  MemorySegment line,  MemorySegment column,  MemorySegment offset) {
         var mh$ = clang_getExpansionLocation$MH();
         try {
             mh$.invokeExact(location, file, line, column, offset);
@@ -236,7 +236,7 @@ public class Index_h  {
     public static MethodHandle clang_getSpellingLocation$MH() {
         return RuntimeHelper.requireNonNull(constants$2.clang_getSpellingLocation$MH,"clang_getSpellingLocation");
     }
-    public static void clang_getSpellingLocation ( MemorySegment location,  Addressable file,  Addressable line,  Addressable column,  Addressable offset) {
+    public static void clang_getSpellingLocation ( MemorySegment location,  MemorySegment file,  MemorySegment line,  MemorySegment column,  MemorySegment offset) {
         var mh$ = clang_getSpellingLocation$MH();
         try {
             mh$.invokeExact(location, file, line, column, offset);
@@ -247,7 +247,7 @@ public class Index_h  {
     public static MethodHandle clang_getFileLocation$MH() {
         return RuntimeHelper.requireNonNull(constants$2.clang_getFileLocation$MH,"clang_getFileLocation");
     }
-    public static void clang_getFileLocation ( MemorySegment location,  Addressable file,  Addressable line,  Addressable column,  Addressable offset) {
+    public static void clang_getFileLocation ( MemorySegment location,  MemorySegment file,  MemorySegment line,  MemorySegment column,  MemorySegment offset) {
         var mh$ = clang_getFileLocation$MH();
         try {
             mh$.invokeExact(location, file, line, column, offset);
@@ -295,10 +295,10 @@ public class Index_h  {
     public static MethodHandle clang_getChildDiagnostics$MH() {
         return RuntimeHelper.requireNonNull(constants$2.clang_getChildDiagnostics$MH,"clang_getChildDiagnostics");
     }
-    public static MemoryAddress clang_getChildDiagnostics ( Addressable D) {
+    public static MemorySegment clang_getChildDiagnostics ( MemorySegment D) {
         var mh$ = clang_getChildDiagnostics$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(D);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(D);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -306,7 +306,7 @@ public class Index_h  {
     public static MethodHandle clang_getNumDiagnostics$MH() {
         return RuntimeHelper.requireNonNull(constants$3.clang_getNumDiagnostics$MH,"clang_getNumDiagnostics");
     }
-    public static int clang_getNumDiagnostics ( Addressable Unit) {
+    public static int clang_getNumDiagnostics ( MemorySegment Unit) {
         var mh$ = clang_getNumDiagnostics$MH();
         try {
             return (int)mh$.invokeExact(Unit);
@@ -317,10 +317,10 @@ public class Index_h  {
     public static MethodHandle clang_getDiagnostic$MH() {
         return RuntimeHelper.requireNonNull(constants$3.clang_getDiagnostic$MH,"clang_getDiagnostic");
     }
-    public static MemoryAddress clang_getDiagnostic ( Addressable Unit,  int Index) {
+    public static MemorySegment clang_getDiagnostic ( MemorySegment Unit,  int Index) {
         var mh$ = clang_getDiagnostic$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(Unit, Index);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(Unit, Index);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -328,7 +328,7 @@ public class Index_h  {
     public static MethodHandle clang_disposeDiagnostic$MH() {
         return RuntimeHelper.requireNonNull(constants$3.clang_disposeDiagnostic$MH,"clang_disposeDiagnostic");
     }
-    public static void clang_disposeDiagnostic ( Addressable Diagnostic) {
+    public static void clang_disposeDiagnostic ( MemorySegment Diagnostic) {
         var mh$ = clang_disposeDiagnostic$MH();
         try {
             mh$.invokeExact(Diagnostic);
@@ -357,7 +357,7 @@ public class Index_h  {
     public static MethodHandle clang_formatDiagnostic$MH() {
         return RuntimeHelper.requireNonNull(constants$3.clang_formatDiagnostic$MH,"clang_formatDiagnostic");
     }
-    public static MemorySegment clang_formatDiagnostic ( SegmentAllocator allocator,  Addressable Diagnostic,  int Options) {
+    public static MemorySegment clang_formatDiagnostic ( SegmentAllocator allocator,  MemorySegment Diagnostic,  int Options) {
         var mh$ = clang_formatDiagnostic$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, Diagnostic, Options);
@@ -379,7 +379,7 @@ public class Index_h  {
     public static MethodHandle clang_getDiagnosticSeverity$MH() {
         return RuntimeHelper.requireNonNull(constants$3.clang_getDiagnosticSeverity$MH,"clang_getDiagnosticSeverity");
     }
-    public static int clang_getDiagnosticSeverity ( Addressable x0) {
+    public static int clang_getDiagnosticSeverity ( MemorySegment x0) {
         var mh$ = clang_getDiagnosticSeverity$MH();
         try {
             return (int)mh$.invokeExact(x0);
@@ -390,7 +390,7 @@ public class Index_h  {
     public static MethodHandle clang_getDiagnosticLocation$MH() {
         return RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticLocation$MH,"clang_getDiagnosticLocation");
     }
-    public static MemorySegment clang_getDiagnosticLocation ( SegmentAllocator allocator,  Addressable x1) {
+    public static MemorySegment clang_getDiagnosticLocation ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = clang_getDiagnosticLocation$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
@@ -401,7 +401,7 @@ public class Index_h  {
     public static MethodHandle clang_getDiagnosticSpelling$MH() {
         return RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticSpelling$MH,"clang_getDiagnosticSpelling");
     }
-    public static MemorySegment clang_getDiagnosticSpelling ( SegmentAllocator allocator,  Addressable x1) {
+    public static MemorySegment clang_getDiagnosticSpelling ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = clang_getDiagnosticSpelling$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
@@ -463,10 +463,10 @@ public class Index_h  {
     public static MethodHandle clang_parseTranslationUnit$MH() {
         return RuntimeHelper.requireNonNull(constants$4.clang_parseTranslationUnit$MH,"clang_parseTranslationUnit");
     }
-    public static MemoryAddress clang_parseTranslationUnit ( Addressable CIdx,  Addressable source_filename,  Addressable command_line_args,  int num_command_line_args,  Addressable unsaved_files,  int num_unsaved_files,  int options) {
+    public static MemorySegment clang_parseTranslationUnit ( MemorySegment CIdx,  MemorySegment source_filename,  MemorySegment command_line_args,  int num_command_line_args,  MemorySegment unsaved_files,  int num_unsaved_files,  int options) {
         var mh$ = clang_parseTranslationUnit$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -474,7 +474,7 @@ public class Index_h  {
     public static MethodHandle clang_parseTranslationUnit2$MH() {
         return RuntimeHelper.requireNonNull(constants$4.clang_parseTranslationUnit2$MH,"clang_parseTranslationUnit2");
     }
-    public static int clang_parseTranslationUnit2 ( Addressable CIdx,  Addressable source_filename,  Addressable command_line_args,  int num_command_line_args,  Addressable unsaved_files,  int num_unsaved_files,  int options,  Addressable out_TU) {
+    public static int clang_parseTranslationUnit2 ( MemorySegment CIdx,  MemorySegment source_filename,  MemorySegment command_line_args,  int num_command_line_args,  MemorySegment unsaved_files,  int num_unsaved_files,  int options,  MemorySegment out_TU) {
         var mh$ = clang_parseTranslationUnit2$MH();
         try {
             return (int)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options, out_TU);
@@ -500,7 +500,7 @@ public class Index_h  {
     public static MethodHandle clang_saveTranslationUnit$MH() {
         return RuntimeHelper.requireNonNull(constants$4.clang_saveTranslationUnit$MH,"clang_saveTranslationUnit");
     }
-    public static int clang_saveTranslationUnit ( Addressable TU,  Addressable FileName,  int options) {
+    public static int clang_saveTranslationUnit ( MemorySegment TU,  MemorySegment FileName,  int options) {
         var mh$ = clang_saveTranslationUnit$MH();
         try {
             return (int)mh$.invokeExact(TU, FileName, options);
@@ -511,7 +511,7 @@ public class Index_h  {
     public static MethodHandle clang_disposeTranslationUnit$MH() {
         return RuntimeHelper.requireNonNull(constants$4.clang_disposeTranslationUnit$MH,"clang_disposeTranslationUnit");
     }
-    public static void clang_disposeTranslationUnit ( Addressable x0) {
+    public static void clang_disposeTranslationUnit ( MemorySegment x0) {
         var mh$ = clang_disposeTranslationUnit$MH();
         try {
             mh$.invokeExact(x0);
@@ -525,7 +525,7 @@ public class Index_h  {
     public static MethodHandle clang_defaultReparseOptions$MH() {
         return RuntimeHelper.requireNonNull(constants$5.clang_defaultReparseOptions$MH,"clang_defaultReparseOptions");
     }
-    public static int clang_defaultReparseOptions ( Addressable TU) {
+    public static int clang_defaultReparseOptions ( MemorySegment TU) {
         var mh$ = clang_defaultReparseOptions$MH();
         try {
             return (int)mh$.invokeExact(TU);
@@ -536,7 +536,7 @@ public class Index_h  {
     public static MethodHandle clang_reparseTranslationUnit$MH() {
         return RuntimeHelper.requireNonNull(constants$5.clang_reparseTranslationUnit$MH,"clang_reparseTranslationUnit");
     }
-    public static int clang_reparseTranslationUnit ( Addressable TU,  int num_unsaved_files,  Addressable unsaved_files,  int options) {
+    public static int clang_reparseTranslationUnit ( MemorySegment TU,  int num_unsaved_files,  MemorySegment unsaved_files,  int options) {
         var mh$ = clang_reparseTranslationUnit$MH();
         try {
             return (int)mh$.invokeExact(TU, num_unsaved_files, unsaved_files, options);
@@ -1335,7 +1335,7 @@ public class Index_h  {
     public static MethodHandle clang_getTranslationUnitCursor$MH() {
         return RuntimeHelper.requireNonNull(constants$5.clang_getTranslationUnitCursor$MH,"clang_getTranslationUnitCursor");
     }
-    public static MemorySegment clang_getTranslationUnitCursor ( SegmentAllocator allocator,  Addressable x1) {
+    public static MemorySegment clang_getTranslationUnitCursor ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = clang_getTranslationUnitCursor$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
@@ -1446,10 +1446,10 @@ public class Index_h  {
     public static MethodHandle clang_Cursor_getTranslationUnit$MH() {
         return RuntimeHelper.requireNonNull(constants$7.clang_Cursor_getTranslationUnit$MH,"clang_Cursor_getTranslationUnit");
     }
-    public static MemoryAddress clang_Cursor_getTranslationUnit ( MemorySegment x0) {
+    public static MemorySegment clang_Cursor_getTranslationUnit ( MemorySegment x0) {
         var mh$ = clang_Cursor_getTranslationUnit$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(x0);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -2242,7 +2242,7 @@ public class Index_h  {
     public static MethodHandle clang_Type_getOffsetOf$MH() {
         return RuntimeHelper.requireNonNull(constants$12.clang_Type_getOffsetOf$MH,"clang_Type_getOffsetOf");
     }
-    public static long clang_Type_getOffsetOf ( MemorySegment T,  Addressable S) {
+    public static long clang_Type_getOffsetOf ( MemorySegment T,  MemorySegment S) {
         var mh$ = clang_Type_getOffsetOf$MH();
         try {
             return (long)mh$.invokeExact(T, S);
@@ -2295,7 +2295,7 @@ public class Index_h  {
     public static MethodHandle clang_visitChildren$MH() {
         return RuntimeHelper.requireNonNull(constants$13.clang_visitChildren$MH,"clang_visitChildren");
     }
-    public static int clang_visitChildren ( MemorySegment parent,  Addressable visitor,  Addressable client_data) {
+    public static int clang_visitChildren ( MemorySegment parent,  MemorySegment visitor,  MemorySegment client_data) {
         var mh$ = clang_visitChildren$MH();
         try {
             return (int)mh$.invokeExact(parent, visitor, client_data);
@@ -2409,7 +2409,7 @@ public class Index_h  {
     public static MethodHandle clang_PrintingPolicy_getProperty$MH() {
         return RuntimeHelper.requireNonNull(constants$13.clang_PrintingPolicy_getProperty$MH,"clang_PrintingPolicy_getProperty");
     }
-    public static int clang_PrintingPolicy_getProperty ( Addressable Policy,  int Property) {
+    public static int clang_PrintingPolicy_getProperty ( MemorySegment Policy,  int Property) {
         var mh$ = clang_PrintingPolicy_getProperty$MH();
         try {
             return (int)mh$.invokeExact(Policy, Property);
@@ -2420,7 +2420,7 @@ public class Index_h  {
     public static MethodHandle clang_PrintingPolicy_setProperty$MH() {
         return RuntimeHelper.requireNonNull(constants$14.clang_PrintingPolicy_setProperty$MH,"clang_PrintingPolicy_setProperty");
     }
-    public static void clang_PrintingPolicy_setProperty ( Addressable Policy,  int Property,  int Value) {
+    public static void clang_PrintingPolicy_setProperty ( MemorySegment Policy,  int Property,  int Value) {
         var mh$ = clang_PrintingPolicy_setProperty$MH();
         try {
             mh$.invokeExact(Policy, Property, Value);
@@ -2431,10 +2431,10 @@ public class Index_h  {
     public static MethodHandle clang_getCursorPrintingPolicy$MH() {
         return RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrintingPolicy$MH,"clang_getCursorPrintingPolicy");
     }
-    public static MemoryAddress clang_getCursorPrintingPolicy ( MemorySegment x0) {
+    public static MemorySegment clang_getCursorPrintingPolicy ( MemorySegment x0) {
         var mh$ = clang_getCursorPrintingPolicy$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(x0);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -2442,7 +2442,7 @@ public class Index_h  {
     public static MethodHandle clang_PrintingPolicy_dispose$MH() {
         return RuntimeHelper.requireNonNull(constants$14.clang_PrintingPolicy_dispose$MH,"clang_PrintingPolicy_dispose");
     }
-    public static void clang_PrintingPolicy_dispose ( Addressable Policy) {
+    public static void clang_PrintingPolicy_dispose ( MemorySegment Policy) {
         var mh$ = clang_PrintingPolicy_dispose$MH();
         try {
             mh$.invokeExact(Policy);
@@ -2453,7 +2453,7 @@ public class Index_h  {
     public static MethodHandle clang_getCursorPrettyPrinted$MH() {
         return RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrettyPrinted$MH,"clang_getCursorPrettyPrinted");
     }
-    public static MemorySegment clang_getCursorPrettyPrinted ( SegmentAllocator allocator,  MemorySegment Cursor,  Addressable Policy) {
+    public static MemorySegment clang_getCursorPrettyPrinted ( SegmentAllocator allocator,  MemorySegment Cursor,  MemorySegment Policy) {
         var mh$ = clang_getCursorPrettyPrinted$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, Cursor, Policy);
@@ -2556,7 +2556,7 @@ public class Index_h  {
     public static MethodHandle clang_getTokenSpelling$MH() {
         return RuntimeHelper.requireNonNull(constants$15.clang_getTokenSpelling$MH,"clang_getTokenSpelling");
     }
-    public static MemorySegment clang_getTokenSpelling ( SegmentAllocator allocator,  Addressable x1,  MemorySegment x2) {
+    public static MemorySegment clang_getTokenSpelling ( SegmentAllocator allocator,  MemorySegment x1,  MemorySegment x2) {
         var mh$ = clang_getTokenSpelling$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
@@ -2567,7 +2567,7 @@ public class Index_h  {
     public static MethodHandle clang_getTokenLocation$MH() {
         return RuntimeHelper.requireNonNull(constants$16.clang_getTokenLocation$MH,"clang_getTokenLocation");
     }
-    public static MemorySegment clang_getTokenLocation ( SegmentAllocator allocator,  Addressable x1,  MemorySegment x2) {
+    public static MemorySegment clang_getTokenLocation ( SegmentAllocator allocator,  MemorySegment x1,  MemorySegment x2) {
         var mh$ = clang_getTokenLocation$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
@@ -2578,7 +2578,7 @@ public class Index_h  {
     public static MethodHandle clang_getTokenExtent$MH() {
         return RuntimeHelper.requireNonNull(constants$16.clang_getTokenExtent$MH,"clang_getTokenExtent");
     }
-    public static MemorySegment clang_getTokenExtent ( SegmentAllocator allocator,  Addressable x1,  MemorySegment x2) {
+    public static MemorySegment clang_getTokenExtent ( SegmentAllocator allocator,  MemorySegment x1,  MemorySegment x2) {
         var mh$ = clang_getTokenExtent$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
@@ -2589,7 +2589,7 @@ public class Index_h  {
     public static MethodHandle clang_tokenize$MH() {
         return RuntimeHelper.requireNonNull(constants$16.clang_tokenize$MH,"clang_tokenize");
     }
-    public static void clang_tokenize ( Addressable TU,  MemorySegment Range,  Addressable Tokens,  Addressable NumTokens) {
+    public static void clang_tokenize ( MemorySegment TU,  MemorySegment Range,  MemorySegment Tokens,  MemorySegment NumTokens) {
         var mh$ = clang_tokenize$MH();
         try {
             mh$.invokeExact(TU, Range, Tokens, NumTokens);
@@ -2600,7 +2600,7 @@ public class Index_h  {
     public static MethodHandle clang_disposeTokens$MH() {
         return RuntimeHelper.requireNonNull(constants$16.clang_disposeTokens$MH,"clang_disposeTokens");
     }
-    public static void clang_disposeTokens ( Addressable TU,  Addressable Tokens,  int NumTokens) {
+    public static void clang_disposeTokens ( MemorySegment TU,  MemorySegment Tokens,  int NumTokens) {
         var mh$ = clang_disposeTokens$MH();
         try {
             mh$.invokeExact(TU, Tokens, NumTokens);
@@ -2644,10 +2644,10 @@ public class Index_h  {
     public static MethodHandle clang_Cursor_Evaluate$MH() {
         return RuntimeHelper.requireNonNull(constants$17.clang_Cursor_Evaluate$MH,"clang_Cursor_Evaluate");
     }
-    public static MemoryAddress clang_Cursor_Evaluate ( MemorySegment C) {
+    public static MemorySegment clang_Cursor_Evaluate ( MemorySegment C) {
         var mh$ = clang_Cursor_Evaluate$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(C);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(C);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -2655,7 +2655,7 @@ public class Index_h  {
     public static MethodHandle clang_EvalResult_getKind$MH() {
         return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getKind$MH,"clang_EvalResult_getKind");
     }
-    public static int clang_EvalResult_getKind ( Addressable E) {
+    public static int clang_EvalResult_getKind ( MemorySegment E) {
         var mh$ = clang_EvalResult_getKind$MH();
         try {
             return (int)mh$.invokeExact(E);
@@ -2666,7 +2666,7 @@ public class Index_h  {
     public static MethodHandle clang_EvalResult_getAsInt$MH() {
         return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getAsInt$MH,"clang_EvalResult_getAsInt");
     }
-    public static int clang_EvalResult_getAsInt ( Addressable E) {
+    public static int clang_EvalResult_getAsInt ( MemorySegment E) {
         var mh$ = clang_EvalResult_getAsInt$MH();
         try {
             return (int)mh$.invokeExact(E);
@@ -2677,7 +2677,7 @@ public class Index_h  {
     public static MethodHandle clang_EvalResult_getAsLongLong$MH() {
         return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getAsLongLong$MH,"clang_EvalResult_getAsLongLong");
     }
-    public static long clang_EvalResult_getAsLongLong ( Addressable E) {
+    public static long clang_EvalResult_getAsLongLong ( MemorySegment E) {
         var mh$ = clang_EvalResult_getAsLongLong$MH();
         try {
             return (long)mh$.invokeExact(E);
@@ -2688,7 +2688,7 @@ public class Index_h  {
     public static MethodHandle clang_EvalResult_isUnsignedInt$MH() {
         return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_isUnsignedInt$MH,"clang_EvalResult_isUnsignedInt");
     }
-    public static int clang_EvalResult_isUnsignedInt ( Addressable E) {
+    public static int clang_EvalResult_isUnsignedInt ( MemorySegment E) {
         var mh$ = clang_EvalResult_isUnsignedInt$MH();
         try {
             return (int)mh$.invokeExact(E);
@@ -2699,7 +2699,7 @@ public class Index_h  {
     public static MethodHandle clang_EvalResult_getAsUnsigned$MH() {
         return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsUnsigned$MH,"clang_EvalResult_getAsUnsigned");
     }
-    public static long clang_EvalResult_getAsUnsigned ( Addressable E) {
+    public static long clang_EvalResult_getAsUnsigned ( MemorySegment E) {
         var mh$ = clang_EvalResult_getAsUnsigned$MH();
         try {
             return (long)mh$.invokeExact(E);
@@ -2710,7 +2710,7 @@ public class Index_h  {
     public static MethodHandle clang_EvalResult_getAsDouble$MH() {
         return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsDouble$MH,"clang_EvalResult_getAsDouble");
     }
-    public static double clang_EvalResult_getAsDouble ( Addressable E) {
+    public static double clang_EvalResult_getAsDouble ( MemorySegment E) {
         var mh$ = clang_EvalResult_getAsDouble$MH();
         try {
             return (double)mh$.invokeExact(E);
@@ -2721,10 +2721,10 @@ public class Index_h  {
     public static MethodHandle clang_EvalResult_getAsStr$MH() {
         return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsStr$MH,"clang_EvalResult_getAsStr");
     }
-    public static MemoryAddress clang_EvalResult_getAsStr ( Addressable E) {
+    public static MemorySegment clang_EvalResult_getAsStr ( MemorySegment E) {
         var mh$ = clang_EvalResult_getAsStr$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(E);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(E);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -2732,7 +2732,7 @@ public class Index_h  {
     public static MethodHandle clang_EvalResult_dispose$MH() {
         return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_dispose$MH,"clang_EvalResult_dispose");
     }
-    public static void clang_EvalResult_dispose ( Addressable E) {
+    public static void clang_EvalResult_dispose ( MemorySegment E) {
         var mh$ = clang_EvalResult_dispose$MH();
         try {
             mh$.invokeExact(E);

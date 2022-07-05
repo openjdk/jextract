@@ -21,10 +21,10 @@
  * questions.
  */
 
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.NativeArena;
 import org.testng.annotations.Test;
 import test.jextract.test8258605.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static test.jextract.test8258605.funcParam_h.*;
@@ -48,7 +48,7 @@ import static test.jextract.test8258605.funcParam_h.*;
 public class LibTest8258605Test {
     @Test
     public void testFunctionCallback() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (NativeArena session = NativeArena.openConfined()) {
              boolean[] callbackReached = new boolean[1];
              f(CB.allocate(i -> {
                  assertTrue(i == 10);
@@ -60,7 +60,7 @@ public class LibTest8258605Test {
 
     @Test
     public void testStructFunctionPointerCallback() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (NativeArena session = NativeArena.openConfined()) {
              boolean[] callbackReached = new boolean[1];
 
              // get struct Foo instance

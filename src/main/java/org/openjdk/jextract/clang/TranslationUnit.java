@@ -26,10 +26,9 @@
 
 package org.openjdk.jextract.clang;
 
-import java.lang.foreign.MemoryAddress;
-import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.CXToken;
 import org.openjdk.jextract.clang.libclang.Index_h;
@@ -47,7 +46,7 @@ import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 public class TranslationUnit extends ClangDisposable {
     private static final int MAX_RETRIES = 10;
 
-    TranslationUnit(MemoryAddress addr) {
+    TranslationUnit(MemorySegment addr) {
         super(addr, () -> Index_h.clang_disposeTranslationUnit(addr));
     }
 
@@ -57,7 +56,7 @@ public class TranslationUnit extends ClangDisposable {
     }
 
     public final void save(Path path) throws TranslationUnitSaveException {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (NativeArena session = NativeArena.openConfined()) {
             var allocator = session;
             MemorySegment pathStr = allocator.allocateUtf8String(path.toAbsolutePath().toString());
             SaveError res = SaveError.valueOf(Index_h.clang_saveTranslationUnit(ptr, pathStr, 0));
@@ -71,7 +70,7 @@ public class TranslationUnit extends ClangDisposable {
         Objects.requireNonNull(dh);
         int cntDiags = Index_h.clang_getNumDiagnostics(ptr);
         for (int i = 0; i < cntDiags; i++) {
-            MemoryAddress diag = Index_h.clang_getDiagnostic(ptr, i);
+            MemorySegment diag = Index_h.clang_getDiagnostic(ptr, i);
             dh.accept(new Diagnostic(diag));
         }
     }
@@ -81,8 +80,8 @@ public class TranslationUnit extends ClangDisposable {
     static long LENGTH_OFFSET = CXUnsavedFile.$LAYOUT().byteOffset(MemoryLayout.PathElement.groupElement("Length"));
 
     public void reparse(Index.UnsavedFile... inMemoryFiles) {
-        try (MemorySession session = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(session);
+        try (NativeArena session = NativeArena.openConfined()) {
+            var allocator = SegmentAllocator.bumpAllocator(session);
             MemorySegment files = inMemoryFiles.length == 0 ?
                     null :
                     allocator.allocateArray(CXUnsavedFile.$LAYOUT(), inMemoryFiles.length);
@@ -98,7 +97,7 @@ public class TranslationUnit extends ClangDisposable {
                 code = ErrorCode.valueOf(Index_h.clang_reparseTranslationUnit(
                         ptr,
                         inMemoryFiles.length,
-                        files == null ? MemoryAddress.NULL : files,
+                        files == null ? MemorySegment.NULL : files,
                         Index_h.clang_defaultReparseOptions(ptr)));
             } while(code == ErrorCode.Crashed && (++tries) < MAX_RETRIES); // this call can crash on Windows. Retry in that case.
 
@@ -124,9 +123,9 @@ public class TranslationUnit extends ClangDisposable {
     }
 
     public Tokens tokenize(SourceRange range) {
-        try (MemorySession session = MemorySession.openConfined()) {
-            MemorySegment p = MemorySegment.allocateNative(C_POINTER, session);
-            MemorySegment pCnt = MemorySegment.allocateNative(C_INT, session);
+        try (NativeArena session = NativeArena.openConfined()) {
+            MemorySegment p = session.allocate(C_POINTER);
+            MemorySegment pCnt = session.allocate(C_INT);
             Index_h.clang_tokenize(ptr, range.segment, p, pCnt);
             Tokens rv = new Tokens(p.get(C_POINTER, 0), pCnt.get(C_INT, 0));
             return rv;
@@ -136,7 +135,7 @@ public class TranslationUnit extends ClangDisposable {
     public class Tokens extends ClangDisposable {
         private final int size;
 
-        Tokens(MemoryAddress addr, int size) {
+        Tokens(MemorySegment addr, int size) {
             super(addr, size * CXToken.$LAYOUT().byteSize(),
                     () -> Index_h.clang_disposeTokens(TranslationUnit.this.ptr, addr, size));
             this.size = size;

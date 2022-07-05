@@ -25,12 +25,10 @@
  */
 package org.openjdk.jextract.clang;
 
-import java.lang.foreign.Addressable;
-import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
+import java.lang.foreign.NativeArena;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -50,28 +48,28 @@ public class SourceLocation extends ClangDisposable.Owned {
 
     @FunctionalInterface
     private interface LocationFactory {
-        void get(MemorySegment loc, Addressable file,
-                 Addressable line, Addressable column, Addressable offset);
+        void get(MemorySegment loc, MemorySegment file,
+                 MemorySegment line, MemorySegment column, MemorySegment offset);
     }
 
     @SuppressWarnings("unchecked")
     private Location getLocation(LocationFactory fn) {
-        try (var session = MemorySession.openConfined()) {
-             MemorySegment file = MemorySegment.allocateNative(C_POINTER, session);
-             MemorySegment line = MemorySegment.allocateNative(C_INT, session);
-             MemorySegment col = MemorySegment.allocateNative(C_INT, session);
-             MemorySegment offset = MemorySegment.allocateNative(C_INT, session);
+        try (var session = NativeArena.openConfined()) {
+             MemorySegment file = session.allocate(C_POINTER);
+             MemorySegment line = session.allocate(C_INT);
+             MemorySegment col = session.allocate(C_INT);
+             MemorySegment offset = session.allocate(C_INT);
 
             fn.get(loc, file, line, col, offset);
-            MemoryAddress fname = file.get(C_POINTER, 0);
-            String str = fname == MemoryAddress.NULL ?  null : getFileName(fname);
+            MemorySegment fname = file.get(C_POINTER, 0);
+            String str = fname.isNull() ?  null : getFileName(fname);
 
             return new Location(str, line.get(C_INT, 0),
                 col.get(C_INT, 0), offset.get(C_INT, 0));
         }
     }
 
-    private static String getFileName(MemoryAddress fname) {
+    private static String getFileName(MemorySegment fname) {
         var filename = Index_h.clang_getFileName(STRING_ALLOCATOR, fname);
         return LibClang.CXStrToString(filename);
     }

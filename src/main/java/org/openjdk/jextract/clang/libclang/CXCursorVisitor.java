@@ -34,15 +34,15 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 public interface CXCursorVisitor {
 
-    int apply(java.lang.foreign.MemorySegment cursor, java.lang.foreign.MemorySegment parent, java.lang.foreign.MemoryAddress client_data);
-    static MemorySegment allocate(CXCursorVisitor fi, MemorySession session) {
+    int apply(java.lang.foreign.MemorySegment cursor, java.lang.foreign.MemorySegment parent, java.lang.foreign.MemorySegment client_data);
+    static MemorySegment allocate(CXCursorVisitor fi, Arena session) {
         return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, session);
     }
-    static CXCursorVisitor ofAddress(MemoryAddress addr, MemorySession session) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
-        return (java.lang.foreign.MemorySegment _cursor, java.lang.foreign.MemorySegment _parent, java.lang.foreign.MemoryAddress _client_data) -> {
+    static CXCursorVisitor ofAddress(MemorySegment addr, Arena session) {
+        MemorySegment symbol = MemorySegment.ofNativeAddress(addr.toRawLongValue(), 0, null, session);
+        return (java.lang.foreign.MemorySegment _cursor, java.lang.foreign.MemorySegment _parent, java.lang.foreign.MemorySegment _client_data) -> {
             try {
-                return (int)constants$13.CXCursorVisitor$MH.invokeExact((Addressable)symbol, _cursor, _parent, (java.lang.foreign.Addressable)_client_data);
+                return (int)constants$13.CXCursorVisitor$MH.invokeExact((MemorySegment)symbol, _cursor, _parent, (java.lang.foreign.MemorySegment)_client_data);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

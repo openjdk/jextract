@@ -22,7 +22,7 @@
  */
 
 import org.testng.annotations.Test;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.NativeArena;
 import test.jextract.test8261511.*;
 import static org.testng.Assert.assertEquals;
 import static test.jextract.test8261511.test8261511_h.*;
@@ -46,7 +46,7 @@ import static test.jextract.test8261511.test8261511_h.*;
 public class Test8261511 {
     @Test
     public void test() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (NativeArena session = NativeArena.openConfined()) {
             var funcPtr = Foo.sum$get(get_foo(session));
             var sumIface = Foo.sum.ofAddress(funcPtr, session);
             assertEquals(sumIface.apply(15,20), 35);

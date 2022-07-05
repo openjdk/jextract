@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 
 import java.util.stream.IntStream;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
 import static org.testng.Assert.assertEquals;
 
@@ -51,7 +51,7 @@ import static test.jextract.arrayparam.arrayparam_h.*;
 public class Test8252121 {
     @Test
     public void test() {
-        try (var session = MemorySession.openConfined()) {
+        try (var session = NativeArena.openConfined()) {
             int[] array = { 3, 5, 89, 34, -33 };
             MemorySegment seg = session.allocateArray(C_INT, array);
             assertEquals(IntStream.of(array).sum(), sum(seg));

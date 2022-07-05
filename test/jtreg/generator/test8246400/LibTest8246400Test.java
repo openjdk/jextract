@@ -21,10 +21,8 @@
  * questions.
  */
 
-import java.lang.foreign.Addressable;
-import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.NativeArena;
 import org.testng.annotations.Test;
 import test.jextract.test8246400.*;
 import static org.testng.Assert.assertEquals;
@@ -51,7 +49,7 @@ public class LibTest8246400Test {
     @Test
     public void testSegmentRegister() {
         MemorySegment sum = null;
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (NativeArena session = NativeArena.openConfined()) {
             var v1 = Vector.allocate(session);
             Vector.x$set(v1, 1.0);
             Vector.y$set(v1, 0.0);
@@ -65,7 +63,7 @@ public class LibTest8246400Test {
             assertEquals(Vector.x$get(sum), 1.0, 0.1);
             assertEquals(Vector.y$get(sum), 1.0, 0.1);
 
-            Addressable callback = cosine_similarity$dot.allocate((a, b) -> {
+            MemorySegment callback = cosine_similarity$dot.allocate((a, b) -> {
                 return (Vector.x$get(a) * Vector.x$get(b)) +
                     (Vector.y$get(a) * Vector.y$get(b));
             }, session);
@@ -76,6 +74,6 @@ public class LibTest8246400Test {
             value = cosine_similarity(v1, v1, callback);
             assertEquals(value, 1.0, 0.1);
         }
-        assertTrue(!sum.session().isAlive());
+        assertTrue(!sum.arena().isAlive());
     }
 }

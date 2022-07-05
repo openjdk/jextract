@@ -27,7 +27,8 @@
 package org.openjdk.jextract.clang;
 
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.NativeArena;
+
 import org.openjdk.jextract.clang.libclang.CXType;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -104,9 +105,8 @@ public final class Type extends ClangDisposable.Owned {
 
     // Struct/RecordType
     private long getOffsetOf0(String fieldName) {
-        try (MemorySession session = MemorySession.openConfined()) {
-            var allocator = session;
-            MemorySegment cfname = allocator.allocateUtf8String(fieldName);
+        try (NativeArena arena = NativeArena.openConfined()) {
+            MemorySegment cfname = arena.allocateUtf8String(fieldName);
             return Index_h.clang_Type_getOffsetOf(segment, cfname);
         }
     }

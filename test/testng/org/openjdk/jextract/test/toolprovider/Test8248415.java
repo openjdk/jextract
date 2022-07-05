@@ -24,7 +24,7 @@
 package org.openjdk.jextract.test.toolprovider;
 
 import java.nio.file.Path;
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
@@ -41,12 +41,12 @@ public class Test8248415 extends JextractToolRunner {
             Class<?> nodeClass = loader.loadClass("Node");
 
             // Check if getters for pointer fields were generated
-            checkMethod(nodeClass, "next$get", MemoryAddress.class, MemorySegment.class);
-            checkMethod(nodeClass, "next$get", MemoryAddress.class, MemorySegment.class, long.class);
+            checkMethod(nodeClass, "next$get", MemorySegment.class, MemorySegment.class);
+            checkMethod(nodeClass, "next$get", MemorySegment.class, MemorySegment.class, long.class);
 
             // Check if setters for pointer fields were generated
-            checkMethod(nodeClass, "next$set", void.class, MemorySegment.class, MemoryAddress.class);
-            checkMethod(nodeClass, "next$set", void.class, MemorySegment.class, long.class, MemoryAddress.class);
+            checkMethod(nodeClass, "next$set", void.class, MemorySegment.class, MemorySegment.class);
+            checkMethod(nodeClass, "next$set", void.class, MemorySegment.class, long.class, MemorySegment.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }
