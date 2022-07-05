@@ -47,7 +47,7 @@ class constants$10 {
     );
     static final MethodHandle clang_getPointeeType$MH = RuntimeHelper.downcallHandle(
         "clang_getPointeeType",
-        constants$10.clang_getPointeeType$FUNC, false
+        constants$10.clang_getPointeeType$FUNC
     );
     static final FunctionDescriptor clang_getTypeDeclaration$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -62,7 +62,7 @@ class constants$10 {
     );
     static final MethodHandle clang_getTypeDeclaration$MH = RuntimeHelper.downcallHandle(
         "clang_getTypeDeclaration",
-        constants$10.clang_getTypeDeclaration$FUNC, false
+        constants$10.clang_getTypeDeclaration$FUNC
     );
     static final FunctionDescriptor clang_getTypeKindSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -73,7 +73,7 @@ class constants$10 {
     );
     static final MethodHandle clang_getTypeKindSpelling$MH = RuntimeHelper.downcallHandle(
         "clang_getTypeKindSpelling",
-        constants$10.clang_getTypeKindSpelling$FUNC, false
+        constants$10.clang_getTypeKindSpelling$FUNC
     );
     static final FunctionDescriptor clang_getFunctionTypeCallingConv$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -84,7 +84,7 @@ class constants$10 {
     );
     static final MethodHandle clang_getFunctionTypeCallingConv$MH = RuntimeHelper.downcallHandle(
         "clang_getFunctionTypeCallingConv",
-        constants$10.clang_getFunctionTypeCallingConv$FUNC, false
+        constants$10.clang_getFunctionTypeCallingConv$FUNC
     );
     static final FunctionDescriptor clang_getResultType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -99,7 +99,7 @@ class constants$10 {
     );
     static final MethodHandle clang_getResultType$MH = RuntimeHelper.downcallHandle(
         "clang_getResultType",
-        constants$10.clang_getResultType$FUNC, false
+        constants$10.clang_getResultType$FUNC
     );
     static final FunctionDescriptor clang_getNumArgTypes$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -110,7 +110,7 @@ class constants$10 {
     );
     static final MethodHandle clang_getNumArgTypes$MH = RuntimeHelper.downcallHandle(
         "clang_getNumArgTypes",
-        constants$10.clang_getNumArgTypes$FUNC, false
+        constants$10.clang_getNumArgTypes$FUNC
     );
 }
 

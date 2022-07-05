@@ -43,7 +43,7 @@ class constants$7 {
     );
     static final MethodHandle clang_Cursor_getTranslationUnit$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_getTranslationUnit",
-        constants$7.clang_Cursor_getTranslationUnit$FUNC, false
+        constants$7.clang_Cursor_getTranslationUnit$FUNC
     );
     static final FunctionDescriptor clang_getCursorLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
@@ -58,7 +58,7 @@ class constants$7 {
     );
     static final MethodHandle clang_getCursorLocation$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorLocation",
-        constants$7.clang_getCursorLocation$FUNC, false
+        constants$7.clang_getCursorLocation$FUNC
     );
     static final FunctionDescriptor clang_getCursorExtent$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
@@ -73,7 +73,7 @@ class constants$7 {
     );
     static final MethodHandle clang_getCursorExtent$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorExtent",
-        constants$7.clang_getCursorExtent$FUNC, false
+        constants$7.clang_getCursorExtent$FUNC
     );
     static final FunctionDescriptor clang_getCursorType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -88,7 +88,7 @@ class constants$7 {
     );
     static final MethodHandle clang_getCursorType$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorType",
-        constants$7.clang_getCursorType$FUNC, false
+        constants$7.clang_getCursorType$FUNC
     );
     static final FunctionDescriptor clang_getTypeSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -103,7 +103,7 @@ class constants$7 {
     );
     static final MethodHandle clang_getTypeSpelling$MH = RuntimeHelper.downcallHandle(
         "clang_getTypeSpelling",
-        constants$7.clang_getTypeSpelling$FUNC, false
+        constants$7.clang_getTypeSpelling$FUNC
     );
     static final FunctionDescriptor clang_getTypedefDeclUnderlyingType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -118,7 +118,7 @@ class constants$7 {
     );
     static final MethodHandle clang_getTypedefDeclUnderlyingType$MH = RuntimeHelper.downcallHandle(
         "clang_getTypedefDeclUnderlyingType",
-        constants$7.clang_getTypedefDeclUnderlyingType$FUNC, false
+        constants$7.clang_getTypedefDeclUnderlyingType$FUNC
     );
 }
 

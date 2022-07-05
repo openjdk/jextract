@@ -39,7 +39,7 @@ class constants$3 {
     );
     static final MethodHandle clang_getNumDiagnostics$MH = RuntimeHelper.downcallHandle(
         "clang_getNumDiagnostics",
-        constants$3.clang_getNumDiagnostics$FUNC, false
+        constants$3.clang_getNumDiagnostics$FUNC
     );
     static final FunctionDescriptor clang_getDiagnostic$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -47,14 +47,14 @@ class constants$3 {
     );
     static final MethodHandle clang_getDiagnostic$MH = RuntimeHelper.downcallHandle(
         "clang_getDiagnostic",
-        constants$3.clang_getDiagnostic$FUNC, false
+        constants$3.clang_getDiagnostic$FUNC
     );
     static final FunctionDescriptor clang_disposeDiagnostic$FUNC = FunctionDescriptor.ofVoid(
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_disposeDiagnostic$MH = RuntimeHelper.downcallHandle(
         "clang_disposeDiagnostic",
-        constants$3.clang_disposeDiagnostic$FUNC, false
+        constants$3.clang_disposeDiagnostic$FUNC
     );
     static final FunctionDescriptor clang_formatDiagnostic$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -66,19 +66,19 @@ class constants$3 {
     );
     static final MethodHandle clang_formatDiagnostic$MH = RuntimeHelper.downcallHandle(
         "clang_formatDiagnostic",
-        constants$3.clang_formatDiagnostic$FUNC, false
+        constants$3.clang_formatDiagnostic$FUNC
     );
     static final FunctionDescriptor clang_defaultDiagnosticDisplayOptions$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT);
     static final MethodHandle clang_defaultDiagnosticDisplayOptions$MH = RuntimeHelper.downcallHandle(
         "clang_defaultDiagnosticDisplayOptions",
-        constants$3.clang_defaultDiagnosticDisplayOptions$FUNC, false
+        constants$3.clang_defaultDiagnosticDisplayOptions$FUNC
     );
     static final FunctionDescriptor clang_getDiagnosticSeverity$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_getDiagnosticSeverity$MH = RuntimeHelper.downcallHandle(
         "clang_getDiagnosticSeverity",
-        constants$3.clang_getDiagnosticSeverity$FUNC, false
+        constants$3.clang_getDiagnosticSeverity$FUNC
     );
 }
 

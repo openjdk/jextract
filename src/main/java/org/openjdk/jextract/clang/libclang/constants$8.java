@@ -47,7 +47,7 @@ class constants$8 {
     );
     static final MethodHandle clang_getEnumDeclIntegerType$MH = RuntimeHelper.downcallHandle(
         "clang_getEnumDeclIntegerType",
-        constants$8.clang_getEnumDeclIntegerType$FUNC, false
+        constants$8.clang_getEnumDeclIntegerType$FUNC
     );
     static final FunctionDescriptor clang_getEnumConstantDeclValue$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
@@ -58,7 +58,7 @@ class constants$8 {
     );
     static final MethodHandle clang_getEnumConstantDeclValue$MH = RuntimeHelper.downcallHandle(
         "clang_getEnumConstantDeclValue",
-        constants$8.clang_getEnumConstantDeclValue$FUNC, false
+        constants$8.clang_getEnumConstantDeclValue$FUNC
     );
     static final FunctionDescriptor clang_getEnumConstantDeclUnsignedValue$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
@@ -69,7 +69,7 @@ class constants$8 {
     );
     static final MethodHandle clang_getEnumConstantDeclUnsignedValue$MH = RuntimeHelper.downcallHandle(
         "clang_getEnumConstantDeclUnsignedValue",
-        constants$8.clang_getEnumConstantDeclUnsignedValue$FUNC, false
+        constants$8.clang_getEnumConstantDeclUnsignedValue$FUNC
     );
     static final FunctionDescriptor clang_getFieldDeclBitWidth$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -80,7 +80,7 @@ class constants$8 {
     );
     static final MethodHandle clang_getFieldDeclBitWidth$MH = RuntimeHelper.downcallHandle(
         "clang_getFieldDeclBitWidth",
-        constants$8.clang_getFieldDeclBitWidth$FUNC, false
+        constants$8.clang_getFieldDeclBitWidth$FUNC
     );
     static final FunctionDescriptor clang_Cursor_getNumArguments$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -91,7 +91,7 @@ class constants$8 {
     );
     static final MethodHandle clang_Cursor_getNumArguments$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_getNumArguments",
-        constants$8.clang_Cursor_getNumArguments$FUNC, false
+        constants$8.clang_Cursor_getNumArguments$FUNC
     );
     static final FunctionDescriptor clang_Cursor_getArgument$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -107,7 +107,7 @@ class constants$8 {
     );
     static final MethodHandle clang_Cursor_getArgument$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_getArgument",
-        constants$8.clang_Cursor_getArgument$FUNC, false
+        constants$8.clang_Cursor_getArgument$FUNC
     );
 }
 

@@ -48,7 +48,7 @@ class constants$1 {
     );
     static final MethodHandle clang_equalLocations$MH = RuntimeHelper.downcallHandle(
         "clang_equalLocations",
-        constants$1.clang_equalLocations$FUNC, false
+        constants$1.clang_equalLocations$FUNC
     );
     static final FunctionDescriptor clang_getLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
@@ -62,7 +62,7 @@ class constants$1 {
     );
     static final MethodHandle clang_getLocation$MH = RuntimeHelper.downcallHandle(
         "clang_getLocation",
-        constants$1.clang_getLocation$FUNC, false
+        constants$1.clang_getLocation$FUNC
     );
     static final FunctionDescriptor clang_getLocationForOffset$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
@@ -75,7 +75,7 @@ class constants$1 {
     );
     static final MethodHandle clang_getLocationForOffset$MH = RuntimeHelper.downcallHandle(
         "clang_getLocationForOffset",
-        constants$1.clang_getLocationForOffset$FUNC, false
+        constants$1.clang_getLocationForOffset$FUNC
     );
     static final FunctionDescriptor clang_Location_isInSystemHeader$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -86,7 +86,7 @@ class constants$1 {
     );
     static final MethodHandle clang_Location_isInSystemHeader$MH = RuntimeHelper.downcallHandle(
         "clang_Location_isInSystemHeader",
-        constants$1.clang_Location_isInSystemHeader$FUNC, false
+        constants$1.clang_Location_isInSystemHeader$FUNC
     );
     static final FunctionDescriptor clang_Location_isFromMainFile$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -97,7 +97,7 @@ class constants$1 {
     );
     static final MethodHandle clang_Location_isFromMainFile$MH = RuntimeHelper.downcallHandle(
         "clang_Location_isFromMainFile",
-        constants$1.clang_Location_isFromMainFile$FUNC, false
+        constants$1.clang_Location_isFromMainFile$FUNC
     );
     static final FunctionDescriptor clang_Range_isNull$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -108,7 +108,7 @@ class constants$1 {
     );
     static final MethodHandle clang_Range_isNull$MH = RuntimeHelper.downcallHandle(
         "clang_Range_isNull",
-        constants$1.clang_Range_isNull$FUNC, false
+        constants$1.clang_Range_isNull$FUNC
     );
 }
 

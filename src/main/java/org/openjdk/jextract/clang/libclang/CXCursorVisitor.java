@@ -36,7 +36,7 @@ public interface CXCursorVisitor {
 
     int apply(java.lang.foreign.MemorySegment cursor, java.lang.foreign.MemorySegment parent, java.lang.foreign.MemoryAddress client_data);
     static MemorySegment allocate(CXCursorVisitor fi, MemorySession session) {
-        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, "(Ljava/lang/foreign/MemorySegment;Ljava/lang/foreign/MemorySegment;Ljava/lang/foreign/MemoryAddress;)I", session);
+        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, session);
     }
     static CXCursorVisitor ofAddress(MemoryAddress addr, MemorySession session) {
         MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
