@@ -43,8 +43,6 @@ struct _struct { int x; };
 
 union _union { int y; };
 
-enum _enum { one = 1, two = 2, three = 3 };
-
 #ifdef __cplusplus
 }
 #endif // __cplusplus
