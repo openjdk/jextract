@@ -62,11 +62,9 @@ final class RuntimeHelper {
             (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.openImplicit());
 
     static {
-        // Manual change to handle platform specific library name difference
-        String libName = System.getProperty("os.name").startsWith("Windows")? "libclang" : "clang";
-        System.loadLibrary(libName);
-
-        SYMBOL_LOOKUP = name -> SymbolLookup.loaderLookup().lookup(name).or(() -> LINKER.defaultLookup().lookup(name));
+        System.loadLibrary("clang");
+        SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
+        SYMBOL_LOOKUP = name -> loaderLookup.lookup(name).or(() -> LINKER.defaultLookup().lookup(name));
     }
 
     static <T> T requireNonNull(T obj, String symbolName) {
@@ -82,26 +80,25 @@ final class RuntimeHelper {
         return SYMBOL_LOOKUP.lookup(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), MemorySession.openShared())).orElse(null);
     }
 
-    static final MethodHandle downcallHandle(String name, FunctionDescriptor fdesc, boolean variadic) {
-        return SYMBOL_LOOKUP.lookup(name).map(
-                addr -> {
-                    return variadic ?
-                        VarargsInvoker.make(addr, fdesc) :
-                        LINKER.downcallHandle(addr, fdesc);
-                }).orElse(null);
+    static final MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {
+        return SYMBOL_LOOKUP.lookup(name).
+                map(addr -> LINKER.downcallHandle(addr, fdesc)).
+                orElse(null);
     }
 
-    static final MethodHandle downcallHandle(FunctionDescriptor fdesc, boolean variadic) {
-        if (variadic) {
-            throw new AssertionError("Cannot get here!");
-        }
+    static final MethodHandle downcallHandle(FunctionDescriptor fdesc) {
         return LINKER.downcallHandle(fdesc);
     }
 
-    static final <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, String mtypeDesc, MemorySession session) {
+    static final MethodHandle downcallHandleVariadic(String name, FunctionDescriptor fdesc) {
+        return SYMBOL_LOOKUP.lookup(name).
+                map(addr -> VarargsInvoker.make(addr, fdesc)).
+                orElse(null);
+    }
+
+    static final <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, MemorySession session) {
         try {
-            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply",
-                    MethodType.fromMethodDescriptorString(mtypeDesc, LOADER));
+            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", Linker.upcallType(fdesc));
             handle = handle.bindTo(z);
             return LINKER.upcallStub(handle, fdesc, session);
         } catch (Throwable ex) {

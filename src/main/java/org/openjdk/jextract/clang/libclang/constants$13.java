@@ -48,7 +48,7 @@ class constants$13 {
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle CXCursorVisitor$MH = RuntimeHelper.downcallHandle(
-        constants$13.CXCursorVisitor$FUNC, false
+        constants$13.CXCursorVisitor$FUNC
     );
     static final FunctionDescriptor clang_visitChildren$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -61,7 +61,7 @@ class constants$13 {
     );
     static final MethodHandle clang_visitChildren$MH = RuntimeHelper.downcallHandle(
         "clang_visitChildren",
-        constants$13.clang_visitChildren$FUNC, false
+        constants$13.clang_visitChildren$FUNC
     );
     static final FunctionDescriptor clang_getCursorUSR$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -76,7 +76,7 @@ class constants$13 {
     );
     static final MethodHandle clang_getCursorUSR$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorUSR",
-        constants$13.clang_getCursorUSR$FUNC, false
+        constants$13.clang_getCursorUSR$FUNC
     );
     static final FunctionDescriptor clang_getCursorSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -91,7 +91,7 @@ class constants$13 {
     );
     static final MethodHandle clang_getCursorSpelling$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorSpelling",
-        constants$13.clang_getCursorSpelling$FUNC, false
+        constants$13.clang_getCursorSpelling$FUNC
     );
     static final FunctionDescriptor clang_PrintingPolicy_getProperty$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -99,7 +99,7 @@ class constants$13 {
     );
     static final MethodHandle clang_PrintingPolicy_getProperty$MH = RuntimeHelper.downcallHandle(
         "clang_PrintingPolicy_getProperty",
-        constants$13.clang_PrintingPolicy_getProperty$FUNC, false
+        constants$13.clang_PrintingPolicy_getProperty$FUNC
     );
 }
 

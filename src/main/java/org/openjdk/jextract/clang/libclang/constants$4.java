@@ -43,7 +43,7 @@ class constants$4 {
     );
     static final MethodHandle clang_getDiagnosticLocation$MH = RuntimeHelper.downcallHandle(
         "clang_getDiagnosticLocation",
-        constants$4.clang_getDiagnosticLocation$FUNC, false
+        constants$4.clang_getDiagnosticLocation$FUNC
     );
     static final FunctionDescriptor clang_getDiagnosticSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -54,7 +54,7 @@ class constants$4 {
     );
     static final MethodHandle clang_getDiagnosticSpelling$MH = RuntimeHelper.downcallHandle(
         "clang_getDiagnosticSpelling",
-        constants$4.clang_getDiagnosticSpelling$FUNC, false
+        constants$4.clang_getDiagnosticSpelling$FUNC
     );
     static final FunctionDescriptor clang_parseTranslationUnit$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -67,7 +67,7 @@ class constants$4 {
     );
     static final MethodHandle clang_parseTranslationUnit$MH = RuntimeHelper.downcallHandle(
         "clang_parseTranslationUnit",
-        constants$4.clang_parseTranslationUnit$FUNC, false
+        constants$4.clang_parseTranslationUnit$FUNC
     );
     static final FunctionDescriptor clang_parseTranslationUnit2$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -81,7 +81,7 @@ class constants$4 {
     );
     static final MethodHandle clang_parseTranslationUnit2$MH = RuntimeHelper.downcallHandle(
         "clang_parseTranslationUnit2",
-        constants$4.clang_parseTranslationUnit2$FUNC, false
+        constants$4.clang_parseTranslationUnit2$FUNC
     );
     static final FunctionDescriptor clang_saveTranslationUnit$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -90,14 +90,14 @@ class constants$4 {
     );
     static final MethodHandle clang_saveTranslationUnit$MH = RuntimeHelper.downcallHandle(
         "clang_saveTranslationUnit",
-        constants$4.clang_saveTranslationUnit$FUNC, false
+        constants$4.clang_saveTranslationUnit$FUNC
     );
     static final FunctionDescriptor clang_disposeTranslationUnit$FUNC = FunctionDescriptor.ofVoid(
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_disposeTranslationUnit$MH = RuntimeHelper.downcallHandle(
         "clang_disposeTranslationUnit",
-        constants$4.clang_disposeTranslationUnit$FUNC, false
+        constants$4.clang_disposeTranslationUnit$FUNC
     );
 }
 

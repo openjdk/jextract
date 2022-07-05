@@ -39,7 +39,7 @@ class constants$17 {
     );
     static final MethodHandle clang_toggleCrashRecovery$MH = RuntimeHelper.downcallHandle(
         "clang_toggleCrashRecovery",
-        constants$17.clang_toggleCrashRecovery$FUNC, false
+        constants$17.clang_toggleCrashRecovery$FUNC
     );
     static final FunctionDescriptor clang_Cursor_Evaluate$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         MemoryLayout.structLayout(
@@ -50,35 +50,35 @@ class constants$17 {
     );
     static final MethodHandle clang_Cursor_Evaluate$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_Evaluate",
-        constants$17.clang_Cursor_Evaluate$FUNC, false
+        constants$17.clang_Cursor_Evaluate$FUNC
     );
     static final FunctionDescriptor clang_EvalResult_getKind$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getKind$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getKind",
-        constants$17.clang_EvalResult_getKind$FUNC, false
+        constants$17.clang_EvalResult_getKind$FUNC
     );
     static final FunctionDescriptor clang_EvalResult_getAsInt$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getAsInt$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsInt",
-        constants$17.clang_EvalResult_getAsInt$FUNC, false
+        constants$17.clang_EvalResult_getAsInt$FUNC
     );
     static final FunctionDescriptor clang_EvalResult_getAsLongLong$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getAsLongLong$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsLongLong",
-        constants$17.clang_EvalResult_getAsLongLong$FUNC, false
+        constants$17.clang_EvalResult_getAsLongLong$FUNC
     );
     static final FunctionDescriptor clang_EvalResult_isUnsignedInt$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_isUnsignedInt$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_isUnsignedInt",
-        constants$17.clang_EvalResult_isUnsignedInt$FUNC, false
+        constants$17.clang_EvalResult_isUnsignedInt$FUNC
     );
 }
 

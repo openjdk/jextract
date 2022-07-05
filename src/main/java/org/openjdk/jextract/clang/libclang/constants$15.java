@@ -47,7 +47,7 @@ class constants$15 {
     );
     static final MethodHandle clang_getCursorDefinition$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorDefinition",
-        constants$15.clang_getCursorDefinition$FUNC, false
+        constants$15.clang_getCursorDefinition$FUNC
     );
     static final FunctionDescriptor clang_isCursorDefinition$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -58,7 +58,7 @@ class constants$15 {
     );
     static final MethodHandle clang_isCursorDefinition$MH = RuntimeHelper.downcallHandle(
         "clang_isCursorDefinition",
-        constants$15.clang_isCursorDefinition$FUNC, false
+        constants$15.clang_isCursorDefinition$FUNC
     );
     static final FunctionDescriptor clang_Cursor_isVariadic$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -69,7 +69,7 @@ class constants$15 {
     );
     static final MethodHandle clang_Cursor_isVariadic$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_isVariadic",
-        constants$15.clang_Cursor_isVariadic$FUNC, false
+        constants$15.clang_Cursor_isVariadic$FUNC
     );
     static final FunctionDescriptor clang_Cursor_getMangling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -84,7 +84,7 @@ class constants$15 {
     );
     static final MethodHandle clang_Cursor_getMangling$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_getMangling",
-        constants$15.clang_Cursor_getMangling$FUNC, false
+        constants$15.clang_Cursor_getMangling$FUNC
     );
     static final FunctionDescriptor clang_getTokenKind$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -94,7 +94,7 @@ class constants$15 {
     );
     static final MethodHandle clang_getTokenKind$MH = RuntimeHelper.downcallHandle(
         "clang_getTokenKind",
-        constants$15.clang_getTokenKind$FUNC, false
+        constants$15.clang_getTokenKind$FUNC
     );
     static final FunctionDescriptor clang_getTokenSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -109,7 +109,7 @@ class constants$15 {
     );
     static final MethodHandle clang_getTokenSpelling$MH = RuntimeHelper.downcallHandle(
         "clang_getTokenSpelling",
-        constants$15.clang_getTokenSpelling$FUNC, false
+        constants$15.clang_getTokenSpelling$FUNC
     );
 }
 
