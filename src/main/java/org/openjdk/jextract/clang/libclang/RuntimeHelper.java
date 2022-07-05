@@ -62,7 +62,10 @@ final class RuntimeHelper {
             (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.openImplicit());
 
     static {
-        System.loadLibrary("clang");
+        // Manual change to handle platform specific library name difference
+        String libName = System.getProperty("os.name").startsWith("Windows")? "libclang" : "clang";
+        System.loadLibrary(libName);
+
         SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
         SYMBOL_LOOKUP = name -> loaderLookup.lookup(name).or(() -> LINKER.defaultLookup().lookup(name));
     }
