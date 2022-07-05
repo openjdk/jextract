@@ -43,7 +43,7 @@ class constants$0 {
     );
     static final MethodHandle clang_getCString$MH = RuntimeHelper.downcallHandle(
         "clang_getCString",
-        constants$0.clang_getCString$FUNC, false
+        constants$0.clang_getCString$FUNC
     );
     static final FunctionDescriptor clang_disposeString$FUNC = FunctionDescriptor.ofVoid(
         MemoryLayout.structLayout(
@@ -54,7 +54,7 @@ class constants$0 {
     );
     static final MethodHandle clang_disposeString$MH = RuntimeHelper.downcallHandle(
         "clang_disposeString",
-        constants$0.clang_disposeString$FUNC, false
+        constants$0.clang_disposeString$FUNC
     );
     static final FunctionDescriptor clang_createIndex$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_INT$LAYOUT,
@@ -62,14 +62,14 @@ class constants$0 {
     );
     static final MethodHandle clang_createIndex$MH = RuntimeHelper.downcallHandle(
         "clang_createIndex",
-        constants$0.clang_createIndex$FUNC, false
+        constants$0.clang_createIndex$FUNC
     );
     static final FunctionDescriptor clang_disposeIndex$FUNC = FunctionDescriptor.ofVoid(
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_disposeIndex$MH = RuntimeHelper.downcallHandle(
         "clang_disposeIndex",
-        constants$0.clang_disposeIndex$FUNC, false
+        constants$0.clang_disposeIndex$FUNC
     );
     static final FunctionDescriptor clang_getFileName$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -80,7 +80,7 @@ class constants$0 {
     );
     static final MethodHandle clang_getFileName$MH = RuntimeHelper.downcallHandle(
         "clang_getFileName",
-        constants$0.clang_getFileName$FUNC, false
+        constants$0.clang_getFileName$FUNC
     );
     static final FunctionDescriptor clang_getNullLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
@@ -89,7 +89,7 @@ class constants$0 {
     ));
     static final MethodHandle clang_getNullLocation$MH = RuntimeHelper.downcallHandle(
         "clang_getNullLocation",
-        constants$0.clang_getNullLocation$FUNC, false
+        constants$0.clang_getNullLocation$FUNC
     );
 }
 

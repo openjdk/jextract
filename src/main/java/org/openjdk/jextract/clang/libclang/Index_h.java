@@ -62,7 +62,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$0.clang_getCString$MH,"clang_getCString");
     }
     public static MemoryAddress clang_getCString ( MemorySegment string) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_getCString$MH, "clang_getCString");
+        var mh$ = clang_getCString$MH();
         try {
             return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(string);
         } catch (Throwable ex$) {
@@ -73,7 +73,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$0.clang_disposeString$MH,"clang_disposeString");
     }
     public static void clang_disposeString ( MemorySegment string) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_disposeString$MH, "clang_disposeString");
+        var mh$ = clang_disposeString$MH();
         try {
             mh$.invokeExact(string);
         } catch (Throwable ex$) {
@@ -116,7 +116,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$0.clang_createIndex$MH,"clang_createIndex");
     }
     public static MemoryAddress clang_createIndex ( int excludeDeclarationsFromPCH,  int displayDiagnostics) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_createIndex$MH, "clang_createIndex");
+        var mh$ = clang_createIndex$MH();
         try {
             return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(excludeDeclarationsFromPCH, displayDiagnostics);
         } catch (Throwable ex$) {
@@ -127,7 +127,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$0.clang_disposeIndex$MH,"clang_disposeIndex");
     }
     public static void clang_disposeIndex ( Addressable index) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_disposeIndex$MH, "clang_disposeIndex");
+        var mh$ = clang_disposeIndex$MH();
         try {
             mh$.invokeExact(index);
         } catch (Throwable ex$) {
@@ -138,7 +138,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$0.clang_getFileName$MH,"clang_getFileName");
     }
     public static MemorySegment clang_getFileName ( SegmentAllocator allocator,  Addressable SFile) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_getFileName$MH, "clang_getFileName");
+        var mh$ = clang_getFileName$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, SFile);
         } catch (Throwable ex$) {
@@ -152,7 +152,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$0.clang_getNullLocation$MH,"clang_getNullLocation");
     }
     public static MemorySegment clang_getNullLocation ( SegmentAllocator allocator) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$0.clang_getNullLocation$MH, "clang_getNullLocation");
+        var mh$ = clang_getNullLocation$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator);
         } catch (Throwable ex$) {
@@ -166,7 +166,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$1.clang_equalLocations$MH,"clang_equalLocations");
     }
     public static int clang_equalLocations ( MemorySegment loc1,  MemorySegment loc2) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$1.clang_equalLocations$MH, "clang_equalLocations");
+        var mh$ = clang_equalLocations$MH();
         try {
             return (int)mh$.invokeExact(loc1, loc2);
         } catch (Throwable ex$) {
@@ -177,7 +177,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$1.clang_getLocation$MH,"clang_getLocation");
     }
     public static MemorySegment clang_getLocation ( SegmentAllocator allocator,  Addressable tu,  Addressable file,  int line,  int column) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$1.clang_getLocation$MH, "clang_getLocation");
+        var mh$ = clang_getLocation$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, line, column);
         } catch (Throwable ex$) {
@@ -191,7 +191,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$1.clang_getLocationForOffset$MH,"clang_getLocationForOffset");
     }
     public static MemorySegment clang_getLocationForOffset ( SegmentAllocator allocator,  Addressable tu,  Addressable file,  int offset) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$1.clang_getLocationForOffset$MH, "clang_getLocationForOffset");
+        var mh$ = clang_getLocationForOffset$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, offset);
         } catch (Throwable ex$) {
@@ -205,7 +205,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$1.clang_Location_isInSystemHeader$MH,"clang_Location_isInSystemHeader");
     }
     public static int clang_Location_isInSystemHeader ( MemorySegment location) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$1.clang_Location_isInSystemHeader$MH, "clang_Location_isInSystemHeader");
+        var mh$ = clang_Location_isInSystemHeader$MH();
         try {
             return (int)mh$.invokeExact(location);
         } catch (Throwable ex$) {
@@ -216,7 +216,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$1.clang_Location_isFromMainFile$MH,"clang_Location_isFromMainFile");
     }
     public static int clang_Location_isFromMainFile ( MemorySegment location) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$1.clang_Location_isFromMainFile$MH, "clang_Location_isFromMainFile");
+        var mh$ = clang_Location_isFromMainFile$MH();
         try {
             return (int)mh$.invokeExact(location);
         } catch (Throwable ex$) {
@@ -227,7 +227,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$1.clang_Range_isNull$MH,"clang_Range_isNull");
     }
     public static int clang_Range_isNull ( MemorySegment range) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$1.clang_Range_isNull$MH, "clang_Range_isNull");
+        var mh$ = clang_Range_isNull$MH();
         try {
             return (int)mh$.invokeExact(range);
         } catch (Throwable ex$) {
@@ -238,7 +238,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$2.clang_getExpansionLocation$MH,"clang_getExpansionLocation");
     }
     public static void clang_getExpansionLocation ( MemorySegment location,  Addressable file,  Addressable line,  Addressable column,  Addressable offset) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$2.clang_getExpansionLocation$MH, "clang_getExpansionLocation");
+        var mh$ = clang_getExpansionLocation$MH();
         try {
             mh$.invokeExact(location, file, line, column, offset);
         } catch (Throwable ex$) {
@@ -249,7 +249,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$2.clang_getSpellingLocation$MH,"clang_getSpellingLocation");
     }
     public static void clang_getSpellingLocation ( MemorySegment location,  Addressable file,  Addressable line,  Addressable column,  Addressable offset) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$2.clang_getSpellingLocation$MH, "clang_getSpellingLocation");
+        var mh$ = clang_getSpellingLocation$MH();
         try {
             mh$.invokeExact(location, file, line, column, offset);
         } catch (Throwable ex$) {
@@ -260,7 +260,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$2.clang_getFileLocation$MH,"clang_getFileLocation");
     }
     public static void clang_getFileLocation ( MemorySegment location,  Addressable file,  Addressable line,  Addressable column,  Addressable offset) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$2.clang_getFileLocation$MH, "clang_getFileLocation");
+        var mh$ = clang_getFileLocation$MH();
         try {
             mh$.invokeExact(location, file, line, column, offset);
         } catch (Throwable ex$) {
@@ -271,7 +271,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$2.clang_getRangeStart$MH,"clang_getRangeStart");
     }
     public static MemorySegment clang_getRangeStart ( SegmentAllocator allocator,  MemorySegment range) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$2.clang_getRangeStart$MH, "clang_getRangeStart");
+        var mh$ = clang_getRangeStart$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, range);
         } catch (Throwable ex$) {
@@ -285,7 +285,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$2.clang_getRangeEnd$MH,"clang_getRangeEnd");
     }
     public static MemorySegment clang_getRangeEnd ( SegmentAllocator allocator,  MemorySegment range) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$2.clang_getRangeEnd$MH, "clang_getRangeEnd");
+        var mh$ = clang_getRangeEnd$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, range);
         } catch (Throwable ex$) {
@@ -314,7 +314,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$2.clang_getChildDiagnostics$MH,"clang_getChildDiagnostics");
     }
     public static MemoryAddress clang_getChildDiagnostics ( Addressable D) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$2.clang_getChildDiagnostics$MH, "clang_getChildDiagnostics");
+        var mh$ = clang_getChildDiagnostics$MH();
         try {
             return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(D);
         } catch (Throwable ex$) {
@@ -325,7 +325,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$3.clang_getNumDiagnostics$MH,"clang_getNumDiagnostics");
     }
     public static int clang_getNumDiagnostics ( Addressable Unit) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$3.clang_getNumDiagnostics$MH, "clang_getNumDiagnostics");
+        var mh$ = clang_getNumDiagnostics$MH();
         try {
             return (int)mh$.invokeExact(Unit);
         } catch (Throwable ex$) {
@@ -336,7 +336,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$3.clang_getDiagnostic$MH,"clang_getDiagnostic");
     }
     public static MemoryAddress clang_getDiagnostic ( Addressable Unit,  int Index) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$3.clang_getDiagnostic$MH, "clang_getDiagnostic");
+        var mh$ = clang_getDiagnostic$MH();
         try {
             return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(Unit, Index);
         } catch (Throwable ex$) {
@@ -347,7 +347,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$3.clang_disposeDiagnostic$MH,"clang_disposeDiagnostic");
     }
     public static void clang_disposeDiagnostic ( Addressable Diagnostic) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$3.clang_disposeDiagnostic$MH, "clang_disposeDiagnostic");
+        var mh$ = clang_disposeDiagnostic$MH();
         try {
             mh$.invokeExact(Diagnostic);
         } catch (Throwable ex$) {
@@ -376,7 +376,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$3.clang_formatDiagnostic$MH,"clang_formatDiagnostic");
     }
     public static MemorySegment clang_formatDiagnostic ( SegmentAllocator allocator,  Addressable Diagnostic,  int Options) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$3.clang_formatDiagnostic$MH, "clang_formatDiagnostic");
+        var mh$ = clang_formatDiagnostic$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, Diagnostic, Options);
         } catch (Throwable ex$) {
@@ -390,7 +390,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$3.clang_defaultDiagnosticDisplayOptions$MH,"clang_defaultDiagnosticDisplayOptions");
     }
     public static int clang_defaultDiagnosticDisplayOptions () {
-        var mh$ = RuntimeHelper.requireNonNull(constants$3.clang_defaultDiagnosticDisplayOptions$MH, "clang_defaultDiagnosticDisplayOptions");
+        var mh$ = clang_defaultDiagnosticDisplayOptions$MH();
         try {
             return (int)mh$.invokeExact();
         } catch (Throwable ex$) {
@@ -401,7 +401,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$3.clang_getDiagnosticSeverity$MH,"clang_getDiagnosticSeverity");
     }
     public static int clang_getDiagnosticSeverity ( Addressable x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$3.clang_getDiagnosticSeverity$MH, "clang_getDiagnosticSeverity");
+        var mh$ = clang_getDiagnosticSeverity$MH();
         try {
             return (int)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -412,7 +412,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticLocation$MH,"clang_getDiagnosticLocation");
     }
     public static MemorySegment clang_getDiagnosticLocation ( SegmentAllocator allocator,  Addressable x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticLocation$MH, "clang_getDiagnosticLocation");
+        var mh$ = clang_getDiagnosticLocation$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -426,7 +426,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticSpelling$MH,"clang_getDiagnosticSpelling");
     }
     public static MemorySegment clang_getDiagnosticSpelling ( SegmentAllocator allocator,  Addressable x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticSpelling$MH, "clang_getDiagnosticSpelling");
+        var mh$ = clang_getDiagnosticSpelling$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -491,7 +491,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$4.clang_parseTranslationUnit$MH,"clang_parseTranslationUnit");
     }
     public static MemoryAddress clang_parseTranslationUnit ( Addressable CIdx,  Addressable source_filename,  Addressable command_line_args,  int num_command_line_args,  Addressable unsaved_files,  int num_unsaved_files,  int options) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$4.clang_parseTranslationUnit$MH, "clang_parseTranslationUnit");
+        var mh$ = clang_parseTranslationUnit$MH();
         try {
             return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
         } catch (Throwable ex$) {
@@ -502,7 +502,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$4.clang_parseTranslationUnit2$MH,"clang_parseTranslationUnit2");
     }
     public static int clang_parseTranslationUnit2 ( Addressable CIdx,  Addressable source_filename,  Addressable command_line_args,  int num_command_line_args,  Addressable unsaved_files,  int num_unsaved_files,  int options,  Addressable out_TU) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$4.clang_parseTranslationUnit2$MH, "clang_parseTranslationUnit2");
+        var mh$ = clang_parseTranslationUnit2$MH();
         try {
             return (int)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options, out_TU);
         } catch (Throwable ex$) {
@@ -528,7 +528,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$4.clang_saveTranslationUnit$MH,"clang_saveTranslationUnit");
     }
     public static int clang_saveTranslationUnit ( Addressable TU,  Addressable FileName,  int options) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$4.clang_saveTranslationUnit$MH, "clang_saveTranslationUnit");
+        var mh$ = clang_saveTranslationUnit$MH();
         try {
             return (int)mh$.invokeExact(TU, FileName, options);
         } catch (Throwable ex$) {
@@ -539,7 +539,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$4.clang_disposeTranslationUnit$MH,"clang_disposeTranslationUnit");
     }
     public static void clang_disposeTranslationUnit ( Addressable x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$4.clang_disposeTranslationUnit$MH, "clang_disposeTranslationUnit");
+        var mh$ = clang_disposeTranslationUnit$MH();
         try {
             mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -553,7 +553,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$5.clang_defaultReparseOptions$MH,"clang_defaultReparseOptions");
     }
     public static int clang_defaultReparseOptions ( Addressable TU) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$5.clang_defaultReparseOptions$MH, "clang_defaultReparseOptions");
+        var mh$ = clang_defaultReparseOptions$MH();
         try {
             return (int)mh$.invokeExact(TU);
         } catch (Throwable ex$) {
@@ -564,7 +564,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$5.clang_reparseTranslationUnit$MH,"clang_reparseTranslationUnit");
     }
     public static int clang_reparseTranslationUnit ( Addressable TU,  int num_unsaved_files,  Addressable unsaved_files,  int options) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$5.clang_reparseTranslationUnit$MH, "clang_reparseTranslationUnit");
+        var mh$ = clang_reparseTranslationUnit$MH();
         try {
             return (int)mh$.invokeExact(TU, num_unsaved_files, unsaved_files, options);
         } catch (Throwable ex$) {
@@ -905,7 +905,7 @@ public class Index_h  {
         return (int)149L;
     }
     public static int CXCursor_LastExpr() {
-        return (int)149L;
+        return (int)152L;
     }
     public static int CXCursor_FirstStmt() {
         return (int)200L;
@@ -1169,7 +1169,7 @@ public class Index_h  {
         return (int)284L;
     }
     public static int CXCursor_LastStmt() {
-        return (int)285L;
+        return (int)293L;
     }
     public static int CXCursor_TranslationUnit() {
         return (int)300L;
@@ -1352,7 +1352,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$5.clang_getNullCursor$MH,"clang_getNullCursor");
     }
     public static MemorySegment clang_getNullCursor ( SegmentAllocator allocator) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$5.clang_getNullCursor$MH, "clang_getNullCursor");
+        var mh$ = clang_getNullCursor$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator);
         } catch (Throwable ex$) {
@@ -1366,7 +1366,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$5.clang_getTranslationUnitCursor$MH,"clang_getTranslationUnitCursor");
     }
     public static MemorySegment clang_getTranslationUnitCursor ( SegmentAllocator allocator,  Addressable x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$5.clang_getTranslationUnitCursor$MH, "clang_getTranslationUnitCursor");
+        var mh$ = clang_getTranslationUnitCursor$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -1380,7 +1380,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$5.clang_equalCursors$MH,"clang_equalCursors");
     }
     public static int clang_equalCursors ( MemorySegment x0,  MemorySegment x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$5.clang_equalCursors$MH, "clang_equalCursors");
+        var mh$ = clang_equalCursors$MH();
         try {
             return (int)mh$.invokeExact(x0, x1);
         } catch (Throwable ex$) {
@@ -1391,7 +1391,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$5.clang_Cursor_isNull$MH,"clang_Cursor_isNull");
     }
     public static int clang_Cursor_isNull ( MemorySegment cursor) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$5.clang_Cursor_isNull$MH, "clang_Cursor_isNull");
+        var mh$ = clang_Cursor_isNull$MH();
         try {
             return (int)mh$.invokeExact(cursor);
         } catch (Throwable ex$) {
@@ -1402,7 +1402,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$6.clang_getCursorKind$MH,"clang_getCursorKind");
     }
     public static int clang_getCursorKind ( MemorySegment x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$6.clang_getCursorKind$MH, "clang_getCursorKind");
+        var mh$ = clang_getCursorKind$MH();
         try {
             return (int)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -1413,7 +1413,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$6.clang_isDeclaration$MH,"clang_isDeclaration");
     }
     public static int clang_isDeclaration ( int x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$6.clang_isDeclaration$MH, "clang_isDeclaration");
+        var mh$ = clang_isDeclaration$MH();
         try {
             return (int)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -1424,7 +1424,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$6.clang_isAttribute$MH,"clang_isAttribute");
     }
     public static int clang_isAttribute ( int x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$6.clang_isAttribute$MH, "clang_isAttribute");
+        var mh$ = clang_isAttribute$MH();
         try {
             return (int)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -1435,7 +1435,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$6.clang_isInvalid$MH,"clang_isInvalid");
     }
     public static int clang_isInvalid ( int x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$6.clang_isInvalid$MH, "clang_isInvalid");
+        var mh$ = clang_isInvalid$MH();
         try {
             return (int)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -1446,7 +1446,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$6.clang_isPreprocessing$MH,"clang_isPreprocessing");
     }
     public static int clang_isPreprocessing ( int x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$6.clang_isPreprocessing$MH, "clang_isPreprocessing");
+        var mh$ = clang_isPreprocessing$MH();
         try {
             return (int)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -1469,7 +1469,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$6.clang_getCursorLanguage$MH,"clang_getCursorLanguage");
     }
     public static int clang_getCursorLanguage ( MemorySegment cursor) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$6.clang_getCursorLanguage$MH, "clang_getCursorLanguage");
+        var mh$ = clang_getCursorLanguage$MH();
         try {
             return (int)mh$.invokeExact(cursor);
         } catch (Throwable ex$) {
@@ -1480,7 +1480,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$7.clang_Cursor_getTranslationUnit$MH,"clang_Cursor_getTranslationUnit");
     }
     public static MemoryAddress clang_Cursor_getTranslationUnit ( MemorySegment x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_Cursor_getTranslationUnit$MH, "clang_Cursor_getTranslationUnit");
+        var mh$ = clang_Cursor_getTranslationUnit$MH();
         try {
             return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -1491,7 +1491,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$7.clang_getCursorLocation$MH,"clang_getCursorLocation");
     }
     public static MemorySegment clang_getCursorLocation ( SegmentAllocator allocator,  MemorySegment x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getCursorLocation$MH, "clang_getCursorLocation");
+        var mh$ = clang_getCursorLocation$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -1505,7 +1505,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$7.clang_getCursorExtent$MH,"clang_getCursorExtent");
     }
     public static MemorySegment clang_getCursorExtent ( SegmentAllocator allocator,  MemorySegment x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getCursorExtent$MH, "clang_getCursorExtent");
+        var mh$ = clang_getCursorExtent$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -1636,7 +1636,7 @@ public class Index_h  {
         return (int)2L;
     }
     public static int CXType_LastBuiltin() {
-        return (int)38L;
+        return (int)39L;
     }
     public static int CXType_Complex() {
         return (int)100L;
@@ -1933,7 +1933,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$7.clang_getCursorType$MH,"clang_getCursorType");
     }
     public static MemorySegment clang_getCursorType ( SegmentAllocator allocator,  MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getCursorType$MH, "clang_getCursorType");
+        var mh$ = clang_getCursorType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
@@ -1947,7 +1947,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$7.clang_getTypeSpelling$MH,"clang_getTypeSpelling");
     }
     public static MemorySegment clang_getTypeSpelling ( SegmentAllocator allocator,  MemorySegment CT) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getTypeSpelling$MH, "clang_getTypeSpelling");
+        var mh$ = clang_getTypeSpelling$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, CT);
         } catch (Throwable ex$) {
@@ -1961,7 +1961,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$7.clang_getTypedefDeclUnderlyingType$MH,"clang_getTypedefDeclUnderlyingType");
     }
     public static MemorySegment clang_getTypedefDeclUnderlyingType ( SegmentAllocator allocator,  MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$7.clang_getTypedefDeclUnderlyingType$MH, "clang_getTypedefDeclUnderlyingType");
+        var mh$ = clang_getTypedefDeclUnderlyingType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
@@ -1975,7 +1975,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$8.clang_getEnumDeclIntegerType$MH,"clang_getEnumDeclIntegerType");
     }
     public static MemorySegment clang_getEnumDeclIntegerType ( SegmentAllocator allocator,  MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$8.clang_getEnumDeclIntegerType$MH, "clang_getEnumDeclIntegerType");
+        var mh$ = clang_getEnumDeclIntegerType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
@@ -1989,7 +1989,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$8.clang_getEnumConstantDeclValue$MH,"clang_getEnumConstantDeclValue");
     }
     public static long clang_getEnumConstantDeclValue ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$8.clang_getEnumConstantDeclValue$MH, "clang_getEnumConstantDeclValue");
+        var mh$ = clang_getEnumConstantDeclValue$MH();
         try {
             return (long)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2000,7 +2000,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$8.clang_getEnumConstantDeclUnsignedValue$MH,"clang_getEnumConstantDeclUnsignedValue");
     }
     public static long clang_getEnumConstantDeclUnsignedValue ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$8.clang_getEnumConstantDeclUnsignedValue$MH, "clang_getEnumConstantDeclUnsignedValue");
+        var mh$ = clang_getEnumConstantDeclUnsignedValue$MH();
         try {
             return (long)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2011,7 +2011,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$8.clang_getFieldDeclBitWidth$MH,"clang_getFieldDeclBitWidth");
     }
     public static int clang_getFieldDeclBitWidth ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$8.clang_getFieldDeclBitWidth$MH, "clang_getFieldDeclBitWidth");
+        var mh$ = clang_getFieldDeclBitWidth$MH();
         try {
             return (int)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2022,7 +2022,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$8.clang_Cursor_getNumArguments$MH,"clang_Cursor_getNumArguments");
     }
     public static int clang_Cursor_getNumArguments ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$8.clang_Cursor_getNumArguments$MH, "clang_Cursor_getNumArguments");
+        var mh$ = clang_Cursor_getNumArguments$MH();
         try {
             return (int)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2033,7 +2033,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$8.clang_Cursor_getArgument$MH,"clang_Cursor_getArgument");
     }
     public static MemorySegment clang_Cursor_getArgument ( SegmentAllocator allocator,  MemorySegment C,  int i) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$8.clang_Cursor_getArgument$MH, "clang_Cursor_getArgument");
+        var mh$ = clang_Cursor_getArgument$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C, i);
         } catch (Throwable ex$) {
@@ -2047,7 +2047,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$9.clang_equalTypes$MH,"clang_equalTypes");
     }
     public static int clang_equalTypes ( MemorySegment A,  MemorySegment B) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$9.clang_equalTypes$MH, "clang_equalTypes");
+        var mh$ = clang_equalTypes$MH();
         try {
             return (int)mh$.invokeExact(A, B);
         } catch (Throwable ex$) {
@@ -2058,7 +2058,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$9.clang_getCanonicalType$MH,"clang_getCanonicalType");
     }
     public static MemorySegment clang_getCanonicalType ( SegmentAllocator allocator,  MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$9.clang_getCanonicalType$MH, "clang_getCanonicalType");
+        var mh$ = clang_getCanonicalType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
@@ -2072,7 +2072,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$9.clang_isConstQualifiedType$MH,"clang_isConstQualifiedType");
     }
     public static int clang_isConstQualifiedType ( MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$9.clang_isConstQualifiedType$MH, "clang_isConstQualifiedType");
+        var mh$ = clang_isConstQualifiedType$MH();
         try {
             return (int)mh$.invokeExact(T);
         } catch (Throwable ex$) {
@@ -2083,7 +2083,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$9.clang_Cursor_isMacroFunctionLike$MH,"clang_Cursor_isMacroFunctionLike");
     }
     public static int clang_Cursor_isMacroFunctionLike ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$9.clang_Cursor_isMacroFunctionLike$MH, "clang_Cursor_isMacroFunctionLike");
+        var mh$ = clang_Cursor_isMacroFunctionLike$MH();
         try {
             return (int)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2094,7 +2094,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$9.clang_isVolatileQualifiedType$MH,"clang_isVolatileQualifiedType");
     }
     public static int clang_isVolatileQualifiedType ( MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$9.clang_isVolatileQualifiedType$MH, "clang_isVolatileQualifiedType");
+        var mh$ = clang_isVolatileQualifiedType$MH();
         try {
             return (int)mh$.invokeExact(T);
         } catch (Throwable ex$) {
@@ -2105,7 +2105,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$9.clang_getTypedefName$MH,"clang_getTypedefName");
     }
     public static MemorySegment clang_getTypedefName ( SegmentAllocator allocator,  MemorySegment CT) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$9.clang_getTypedefName$MH, "clang_getTypedefName");
+        var mh$ = clang_getTypedefName$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, CT);
         } catch (Throwable ex$) {
@@ -2119,7 +2119,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$10.clang_getPointeeType$MH,"clang_getPointeeType");
     }
     public static MemorySegment clang_getPointeeType ( SegmentAllocator allocator,  MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getPointeeType$MH, "clang_getPointeeType");
+        var mh$ = clang_getPointeeType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
@@ -2133,7 +2133,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$10.clang_getTypeDeclaration$MH,"clang_getTypeDeclaration");
     }
     public static MemorySegment clang_getTypeDeclaration ( SegmentAllocator allocator,  MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getTypeDeclaration$MH, "clang_getTypeDeclaration");
+        var mh$ = clang_getTypeDeclaration$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
@@ -2147,7 +2147,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$10.clang_getTypeKindSpelling$MH,"clang_getTypeKindSpelling");
     }
     public static MemorySegment clang_getTypeKindSpelling ( SegmentAllocator allocator,  int K) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getTypeKindSpelling$MH, "clang_getTypeKindSpelling");
+        var mh$ = clang_getTypeKindSpelling$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, K);
         } catch (Throwable ex$) {
@@ -2161,7 +2161,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$10.clang_getFunctionTypeCallingConv$MH,"clang_getFunctionTypeCallingConv");
     }
     public static int clang_getFunctionTypeCallingConv ( MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getFunctionTypeCallingConv$MH, "clang_getFunctionTypeCallingConv");
+        var mh$ = clang_getFunctionTypeCallingConv$MH();
         try {
             return (int)mh$.invokeExact(T);
         } catch (Throwable ex$) {
@@ -2172,7 +2172,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$10.clang_getResultType$MH,"clang_getResultType");
     }
     public static MemorySegment clang_getResultType ( SegmentAllocator allocator,  MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getResultType$MH, "clang_getResultType");
+        var mh$ = clang_getResultType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
@@ -2186,7 +2186,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$10.clang_getNumArgTypes$MH,"clang_getNumArgTypes");
     }
     public static int clang_getNumArgTypes ( MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$10.clang_getNumArgTypes$MH, "clang_getNumArgTypes");
+        var mh$ = clang_getNumArgTypes$MH();
         try {
             return (int)mh$.invokeExact(T);
         } catch (Throwable ex$) {
@@ -2197,7 +2197,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$11.clang_getArgType$MH,"clang_getArgType");
     }
     public static MemorySegment clang_getArgType ( SegmentAllocator allocator,  MemorySegment T,  int i) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_getArgType$MH, "clang_getArgType");
+        var mh$ = clang_getArgType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T, i);
         } catch (Throwable ex$) {
@@ -2211,7 +2211,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$11.clang_isFunctionTypeVariadic$MH,"clang_isFunctionTypeVariadic");
     }
     public static int clang_isFunctionTypeVariadic ( MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_isFunctionTypeVariadic$MH, "clang_isFunctionTypeVariadic");
+        var mh$ = clang_isFunctionTypeVariadic$MH();
         try {
             return (int)mh$.invokeExact(T);
         } catch (Throwable ex$) {
@@ -2222,7 +2222,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$11.clang_getCursorResultType$MH,"clang_getCursorResultType");
     }
     public static MemorySegment clang_getCursorResultType ( SegmentAllocator allocator,  MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_getCursorResultType$MH, "clang_getCursorResultType");
+        var mh$ = clang_getCursorResultType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
@@ -2236,7 +2236,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$11.clang_getElementType$MH,"clang_getElementType");
     }
     public static MemorySegment clang_getElementType ( SegmentAllocator allocator,  MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_getElementType$MH, "clang_getElementType");
+        var mh$ = clang_getElementType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
@@ -2250,7 +2250,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$11.clang_getNumElements$MH,"clang_getNumElements");
     }
     public static long clang_getNumElements ( MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_getNumElements$MH, "clang_getNumElements");
+        var mh$ = clang_getNumElements$MH();
         try {
             return (long)mh$.invokeExact(T);
         } catch (Throwable ex$) {
@@ -2261,7 +2261,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$11.clang_getArrayElementType$MH,"clang_getArrayElementType");
     }
     public static MemorySegment clang_getArrayElementType ( SegmentAllocator allocator,  MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$11.clang_getArrayElementType$MH, "clang_getArrayElementType");
+        var mh$ = clang_getArrayElementType$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
@@ -2275,7 +2275,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$12.clang_getArraySize$MH,"clang_getArraySize");
     }
     public static long clang_getArraySize ( MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$12.clang_getArraySize$MH, "clang_getArraySize");
+        var mh$ = clang_getArraySize$MH();
         try {
             return (long)mh$.invokeExact(T);
         } catch (Throwable ex$) {
@@ -2316,7 +2316,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$12.clang_Type_getSizeOf$MH,"clang_Type_getSizeOf");
     }
     public static long clang_Type_getSizeOf ( MemorySegment T) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$12.clang_Type_getSizeOf$MH, "clang_Type_getSizeOf");
+        var mh$ = clang_Type_getSizeOf$MH();
         try {
             return (long)mh$.invokeExact(T);
         } catch (Throwable ex$) {
@@ -2327,7 +2327,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$12.clang_Type_getOffsetOf$MH,"clang_Type_getOffsetOf");
     }
     public static long clang_Type_getOffsetOf ( MemorySegment T,  Addressable S) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$12.clang_Type_getOffsetOf$MH, "clang_Type_getOffsetOf");
+        var mh$ = clang_Type_getOffsetOf$MH();
         try {
             return (long)mh$.invokeExact(T, S);
         } catch (Throwable ex$) {
@@ -2338,7 +2338,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$12.clang_Cursor_isAnonymous$MH,"clang_Cursor_isAnonymous");
     }
     public static int clang_Cursor_isAnonymous ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$12.clang_Cursor_isAnonymous$MH, "clang_Cursor_isAnonymous");
+        var mh$ = clang_Cursor_isAnonymous$MH();
         try {
             return (int)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2349,7 +2349,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$12.clang_Cursor_isAnonymousRecordDecl$MH,"clang_Cursor_isAnonymousRecordDecl");
     }
     public static int clang_Cursor_isAnonymousRecordDecl ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$12.clang_Cursor_isAnonymousRecordDecl$MH, "clang_Cursor_isAnonymousRecordDecl");
+        var mh$ = clang_Cursor_isAnonymousRecordDecl$MH();
         try {
             return (int)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2360,7 +2360,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$12.clang_Cursor_isBitField$MH,"clang_Cursor_isBitField");
     }
     public static int clang_Cursor_isBitField ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$12.clang_Cursor_isBitField$MH, "clang_Cursor_isBitField");
+        var mh$ = clang_Cursor_isBitField$MH();
         try {
             return (int)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2380,7 +2380,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$13.clang_visitChildren$MH,"clang_visitChildren");
     }
     public static int clang_visitChildren ( MemorySegment parent,  Addressable visitor,  Addressable client_data) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$13.clang_visitChildren$MH, "clang_visitChildren");
+        var mh$ = clang_visitChildren$MH();
         try {
             return (int)mh$.invokeExact(parent, visitor, client_data);
         } catch (Throwable ex$) {
@@ -2391,7 +2391,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$13.clang_getCursorUSR$MH,"clang_getCursorUSR");
     }
     public static MemorySegment clang_getCursorUSR ( SegmentAllocator allocator,  MemorySegment x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$13.clang_getCursorUSR$MH, "clang_getCursorUSR");
+        var mh$ = clang_getCursorUSR$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -2405,7 +2405,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$13.clang_getCursorSpelling$MH,"clang_getCursorSpelling");
     }
     public static MemorySegment clang_getCursorSpelling ( SegmentAllocator allocator,  MemorySegment x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$13.clang_getCursorSpelling$MH, "clang_getCursorSpelling");
+        var mh$ = clang_getCursorSpelling$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -2500,7 +2500,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$13.clang_PrintingPolicy_getProperty$MH,"clang_PrintingPolicy_getProperty");
     }
     public static int clang_PrintingPolicy_getProperty ( Addressable Policy,  int Property) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$13.clang_PrintingPolicy_getProperty$MH, "clang_PrintingPolicy_getProperty");
+        var mh$ = clang_PrintingPolicy_getProperty$MH();
         try {
             return (int)mh$.invokeExact(Policy, Property);
         } catch (Throwable ex$) {
@@ -2511,7 +2511,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$14.clang_PrintingPolicy_setProperty$MH,"clang_PrintingPolicy_setProperty");
     }
     public static void clang_PrintingPolicy_setProperty ( Addressable Policy,  int Property,  int Value) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_PrintingPolicy_setProperty$MH, "clang_PrintingPolicy_setProperty");
+        var mh$ = clang_PrintingPolicy_setProperty$MH();
         try {
             mh$.invokeExact(Policy, Property, Value);
         } catch (Throwable ex$) {
@@ -2522,7 +2522,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrintingPolicy$MH,"clang_getCursorPrintingPolicy");
     }
     public static MemoryAddress clang_getCursorPrintingPolicy ( MemorySegment x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrintingPolicy$MH, "clang_getCursorPrintingPolicy");
+        var mh$ = clang_getCursorPrintingPolicy$MH();
         try {
             return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -2533,7 +2533,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$14.clang_PrintingPolicy_dispose$MH,"clang_PrintingPolicy_dispose");
     }
     public static void clang_PrintingPolicy_dispose ( Addressable Policy) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_PrintingPolicy_dispose$MH, "clang_PrintingPolicy_dispose");
+        var mh$ = clang_PrintingPolicy_dispose$MH();
         try {
             mh$.invokeExact(Policy);
         } catch (Throwable ex$) {
@@ -2544,7 +2544,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrettyPrinted$MH,"clang_getCursorPrettyPrinted");
     }
     public static MemorySegment clang_getCursorPrettyPrinted ( SegmentAllocator allocator,  MemorySegment Cursor,  Addressable Policy) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrettyPrinted$MH, "clang_getCursorPrettyPrinted");
+        var mh$ = clang_getCursorPrettyPrinted$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, Cursor, Policy);
         } catch (Throwable ex$) {
@@ -2558,7 +2558,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$14.clang_getCursorDisplayName$MH,"clang_getCursorDisplayName");
     }
     public static MemorySegment clang_getCursorDisplayName ( SegmentAllocator allocator,  MemorySegment x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_getCursorDisplayName$MH, "clang_getCursorDisplayName");
+        var mh$ = clang_getCursorDisplayName$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -2572,7 +2572,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$14.clang_getCursorReferenced$MH,"clang_getCursorReferenced");
     }
     public static MemorySegment clang_getCursorReferenced ( SegmentAllocator allocator,  MemorySegment x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$14.clang_getCursorReferenced$MH, "clang_getCursorReferenced");
+        var mh$ = clang_getCursorReferenced$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -2586,7 +2586,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$15.clang_getCursorDefinition$MH,"clang_getCursorDefinition");
     }
     public static MemorySegment clang_getCursorDefinition ( SegmentAllocator allocator,  MemorySegment x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$15.clang_getCursorDefinition$MH, "clang_getCursorDefinition");
+        var mh$ = clang_getCursorDefinition$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -2600,7 +2600,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$15.clang_isCursorDefinition$MH,"clang_isCursorDefinition");
     }
     public static int clang_isCursorDefinition ( MemorySegment x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$15.clang_isCursorDefinition$MH, "clang_isCursorDefinition");
+        var mh$ = clang_isCursorDefinition$MH();
         try {
             return (int)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -2611,7 +2611,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$15.clang_Cursor_isVariadic$MH,"clang_Cursor_isVariadic");
     }
     public static int clang_Cursor_isVariadic ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$15.clang_Cursor_isVariadic$MH, "clang_Cursor_isVariadic");
+        var mh$ = clang_Cursor_isVariadic$MH();
         try {
             return (int)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2622,7 +2622,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$15.clang_Cursor_getMangling$MH,"clang_Cursor_getMangling");
     }
     public static MemorySegment clang_Cursor_getMangling ( SegmentAllocator allocator,  MemorySegment x1) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$15.clang_Cursor_getMangling$MH, "clang_Cursor_getMangling");
+        var mh$ = clang_Cursor_getMangling$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
         } catch (Throwable ex$) {
@@ -2651,7 +2651,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$15.clang_getTokenKind$MH,"clang_getTokenKind");
     }
     public static int clang_getTokenKind ( MemorySegment x0) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$15.clang_getTokenKind$MH, "clang_getTokenKind");
+        var mh$ = clang_getTokenKind$MH();
         try {
             return (int)mh$.invokeExact(x0);
         } catch (Throwable ex$) {
@@ -2662,7 +2662,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$15.clang_getTokenSpelling$MH,"clang_getTokenSpelling");
     }
     public static MemorySegment clang_getTokenSpelling ( SegmentAllocator allocator,  Addressable x1,  MemorySegment x2) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$15.clang_getTokenSpelling$MH, "clang_getTokenSpelling");
+        var mh$ = clang_getTokenSpelling$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
         } catch (Throwable ex$) {
@@ -2676,7 +2676,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$16.clang_getTokenLocation$MH,"clang_getTokenLocation");
     }
     public static MemorySegment clang_getTokenLocation ( SegmentAllocator allocator,  Addressable x1,  MemorySegment x2) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_getTokenLocation$MH, "clang_getTokenLocation");
+        var mh$ = clang_getTokenLocation$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
         } catch (Throwable ex$) {
@@ -2690,7 +2690,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$16.clang_getTokenExtent$MH,"clang_getTokenExtent");
     }
     public static MemorySegment clang_getTokenExtent ( SegmentAllocator allocator,  Addressable x1,  MemorySegment x2) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_getTokenExtent$MH, "clang_getTokenExtent");
+        var mh$ = clang_getTokenExtent$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
         } catch (Throwable ex$) {
@@ -2704,7 +2704,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$16.clang_tokenize$MH,"clang_tokenize");
     }
     public static void clang_tokenize ( Addressable TU,  MemorySegment Range,  Addressable Tokens,  Addressable NumTokens) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_tokenize$MH, "clang_tokenize");
+        var mh$ = clang_tokenize$MH();
         try {
             mh$.invokeExact(TU, Range, Tokens, NumTokens);
         } catch (Throwable ex$) {
@@ -2715,7 +2715,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$16.clang_disposeTokens$MH,"clang_disposeTokens");
     }
     public static void clang_disposeTokens ( Addressable TU,  Addressable Tokens,  int NumTokens) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_disposeTokens$MH, "clang_disposeTokens");
+        var mh$ = clang_disposeTokens$MH();
         try {
             mh$.invokeExact(TU, Tokens, NumTokens);
         } catch (Throwable ex$) {
@@ -2726,7 +2726,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$16.clang_getCursorKindSpelling$MH,"clang_getCursorKindSpelling");
     }
     public static MemorySegment clang_getCursorKindSpelling ( SegmentAllocator allocator,  int Kind) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_getCursorKindSpelling$MH, "clang_getCursorKindSpelling");
+        var mh$ = clang_getCursorKindSpelling$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator, Kind);
         } catch (Throwable ex$) {
@@ -2740,7 +2740,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$16.clang_getClangVersion$MH,"clang_getClangVersion");
     }
     public static MemorySegment clang_getClangVersion ( SegmentAllocator allocator) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$16.clang_getClangVersion$MH, "clang_getClangVersion");
+        var mh$ = clang_getClangVersion$MH();
         try {
             return (jdk.incubator.foreign.MemorySegment)mh$.invokeExact(allocator);
         } catch (Throwable ex$) {
@@ -2754,7 +2754,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$17.clang_toggleCrashRecovery$MH,"clang_toggleCrashRecovery");
     }
     public static void clang_toggleCrashRecovery ( int isEnabled) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$17.clang_toggleCrashRecovery$MH, "clang_toggleCrashRecovery");
+        var mh$ = clang_toggleCrashRecovery$MH();
         try {
             mh$.invokeExact(isEnabled);
         } catch (Throwable ex$) {
@@ -2765,7 +2765,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$17.clang_Cursor_Evaluate$MH,"clang_Cursor_Evaluate");
     }
     public static MemoryAddress clang_Cursor_Evaluate ( MemorySegment C) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$17.clang_Cursor_Evaluate$MH, "clang_Cursor_Evaluate");
+        var mh$ = clang_Cursor_Evaluate$MH();
         try {
             return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(C);
         } catch (Throwable ex$) {
@@ -2776,7 +2776,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getKind$MH,"clang_EvalResult_getKind");
     }
     public static int clang_EvalResult_getKind ( Addressable E) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getKind$MH, "clang_EvalResult_getKind");
+        var mh$ = clang_EvalResult_getKind$MH();
         try {
             return (int)mh$.invokeExact(E);
         } catch (Throwable ex$) {
@@ -2787,7 +2787,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getAsInt$MH,"clang_EvalResult_getAsInt");
     }
     public static int clang_EvalResult_getAsInt ( Addressable E) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getAsInt$MH, "clang_EvalResult_getAsInt");
+        var mh$ = clang_EvalResult_getAsInt$MH();
         try {
             return (int)mh$.invokeExact(E);
         } catch (Throwable ex$) {
@@ -2798,7 +2798,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getAsLongLong$MH,"clang_EvalResult_getAsLongLong");
     }
     public static long clang_EvalResult_getAsLongLong ( Addressable E) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getAsLongLong$MH, "clang_EvalResult_getAsLongLong");
+        var mh$ = clang_EvalResult_getAsLongLong$MH();
         try {
             return (long)mh$.invokeExact(E);
         } catch (Throwable ex$) {
@@ -2809,7 +2809,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_isUnsignedInt$MH,"clang_EvalResult_isUnsignedInt");
     }
     public static int clang_EvalResult_isUnsignedInt ( Addressable E) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_isUnsignedInt$MH, "clang_EvalResult_isUnsignedInt");
+        var mh$ = clang_EvalResult_isUnsignedInt$MH();
         try {
             return (int)mh$.invokeExact(E);
         } catch (Throwable ex$) {
@@ -2820,7 +2820,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsUnsigned$MH,"clang_EvalResult_getAsUnsigned");
     }
     public static long clang_EvalResult_getAsUnsigned ( Addressable E) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsUnsigned$MH, "clang_EvalResult_getAsUnsigned");
+        var mh$ = clang_EvalResult_getAsUnsigned$MH();
         try {
             return (long)mh$.invokeExact(E);
         } catch (Throwable ex$) {
@@ -2831,7 +2831,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsDouble$MH,"clang_EvalResult_getAsDouble");
     }
     public static double clang_EvalResult_getAsDouble ( Addressable E) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsDouble$MH, "clang_EvalResult_getAsDouble");
+        var mh$ = clang_EvalResult_getAsDouble$MH();
         try {
             return (double)mh$.invokeExact(E);
         } catch (Throwable ex$) {
@@ -2842,7 +2842,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsStr$MH,"clang_EvalResult_getAsStr");
     }
     public static MemoryAddress clang_EvalResult_getAsStr ( Addressable E) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsStr$MH, "clang_EvalResult_getAsStr");
+        var mh$ = clang_EvalResult_getAsStr$MH();
         try {
             return (jdk.incubator.foreign.MemoryAddress)mh$.invokeExact(E);
         } catch (Throwable ex$) {
@@ -2853,7 +2853,7 @@ public class Index_h  {
         return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_dispose$MH,"clang_EvalResult_dispose");
     }
     public static void clang_EvalResult_dispose ( Addressable E) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_dispose$MH, "clang_EvalResult_dispose");
+        var mh$ = clang_EvalResult_dispose$MH();
         try {
             mh$.invokeExact(E);
         } catch (Throwable ex$) {

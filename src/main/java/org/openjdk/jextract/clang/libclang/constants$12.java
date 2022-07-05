@@ -43,7 +43,7 @@ class constants$12 {
     );
     static final MethodHandle clang_getArraySize$MH = RuntimeHelper.downcallHandle(
         "clang_getArraySize",
-        constants$12.clang_getArraySize$FUNC, false
+        constants$12.clang_getArraySize$FUNC
     );
     static final FunctionDescriptor clang_Type_getSizeOf$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
@@ -54,7 +54,7 @@ class constants$12 {
     );
     static final MethodHandle clang_Type_getSizeOf$MH = RuntimeHelper.downcallHandle(
         "clang_Type_getSizeOf",
-        constants$12.clang_Type_getSizeOf$FUNC, false
+        constants$12.clang_Type_getSizeOf$FUNC
     );
     static final FunctionDescriptor clang_Type_getOffsetOf$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
@@ -66,7 +66,7 @@ class constants$12 {
     );
     static final MethodHandle clang_Type_getOffsetOf$MH = RuntimeHelper.downcallHandle(
         "clang_Type_getOffsetOf",
-        constants$12.clang_Type_getOffsetOf$FUNC, false
+        constants$12.clang_Type_getOffsetOf$FUNC
     );
     static final FunctionDescriptor clang_Cursor_isAnonymous$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -77,7 +77,7 @@ class constants$12 {
     );
     static final MethodHandle clang_Cursor_isAnonymous$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_isAnonymous",
-        constants$12.clang_Cursor_isAnonymous$FUNC, false
+        constants$12.clang_Cursor_isAnonymous$FUNC
     );
     static final FunctionDescriptor clang_Cursor_isAnonymousRecordDecl$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -88,7 +88,7 @@ class constants$12 {
     );
     static final MethodHandle clang_Cursor_isAnonymousRecordDecl$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_isAnonymousRecordDecl",
-        constants$12.clang_Cursor_isAnonymousRecordDecl$FUNC, false
+        constants$12.clang_Cursor_isAnonymousRecordDecl$FUNC
     );
     static final FunctionDescriptor clang_Cursor_isBitField$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -99,7 +99,7 @@ class constants$12 {
     );
     static final MethodHandle clang_Cursor_isBitField$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_isBitField",
-        constants$12.clang_Cursor_isBitField$FUNC, false
+        constants$12.clang_Cursor_isBitField$FUNC
     );
 }
 

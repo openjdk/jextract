@@ -39,28 +39,28 @@ class constants$18 {
     );
     static final MethodHandle clang_EvalResult_getAsUnsigned$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsUnsigned",
-        constants$18.clang_EvalResult_getAsUnsigned$FUNC, false
+        constants$18.clang_EvalResult_getAsUnsigned$FUNC
     );
     static final FunctionDescriptor clang_EvalResult_getAsDouble$FUNC = FunctionDescriptor.of(Constants$root.C_DOUBLE$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getAsDouble$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsDouble",
-        constants$18.clang_EvalResult_getAsDouble$FUNC, false
+        constants$18.clang_EvalResult_getAsDouble$FUNC
     );
     static final FunctionDescriptor clang_EvalResult_getAsStr$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_getAsStr$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsStr",
-        constants$18.clang_EvalResult_getAsStr$FUNC, false
+        constants$18.clang_EvalResult_getAsStr$FUNC
     );
     static final FunctionDescriptor clang_EvalResult_dispose$FUNC = FunctionDescriptor.ofVoid(
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_EvalResult_dispose$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_dispose",
-        constants$18.clang_EvalResult_dispose$FUNC, false
+        constants$18.clang_EvalResult_dispose$FUNC
     );
 }
 

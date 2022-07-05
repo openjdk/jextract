@@ -39,7 +39,7 @@ class constants$5 {
     );
     static final MethodHandle clang_defaultReparseOptions$MH = RuntimeHelper.downcallHandle(
         "clang_defaultReparseOptions",
-        constants$5.clang_defaultReparseOptions$FUNC, false
+        constants$5.clang_defaultReparseOptions$FUNC
     );
     static final FunctionDescriptor clang_reparseTranslationUnit$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -49,7 +49,7 @@ class constants$5 {
     );
     static final MethodHandle clang_reparseTranslationUnit$MH = RuntimeHelper.downcallHandle(
         "clang_reparseTranslationUnit",
-        constants$5.clang_reparseTranslationUnit$FUNC, false
+        constants$5.clang_reparseTranslationUnit$FUNC
     );
     static final FunctionDescriptor clang_getNullCursor$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -58,7 +58,7 @@ class constants$5 {
     ));
     static final MethodHandle clang_getNullCursor$MH = RuntimeHelper.downcallHandle(
         "clang_getNullCursor",
-        constants$5.clang_getNullCursor$FUNC, false
+        constants$5.clang_getNullCursor$FUNC
     );
     static final FunctionDescriptor clang_getTranslationUnitCursor$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -69,7 +69,7 @@ class constants$5 {
     );
     static final MethodHandle clang_getTranslationUnitCursor$MH = RuntimeHelper.downcallHandle(
         "clang_getTranslationUnitCursor",
-        constants$5.clang_getTranslationUnitCursor$FUNC, false
+        constants$5.clang_getTranslationUnitCursor$FUNC
     );
     static final FunctionDescriptor clang_equalCursors$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -85,7 +85,7 @@ class constants$5 {
     );
     static final MethodHandle clang_equalCursors$MH = RuntimeHelper.downcallHandle(
         "clang_equalCursors",
-        constants$5.clang_equalCursors$FUNC, false
+        constants$5.clang_equalCursors$FUNC
     );
     static final FunctionDescriptor clang_Cursor_isNull$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -96,7 +96,7 @@ class constants$5 {
     );
     static final MethodHandle clang_Cursor_isNull$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_isNull",
-        constants$5.clang_Cursor_isNull$FUNC, false
+        constants$5.clang_Cursor_isNull$FUNC
     );
 }
 
