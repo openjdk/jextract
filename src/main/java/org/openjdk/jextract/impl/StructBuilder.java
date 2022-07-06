@@ -144,24 +144,7 @@ class StructBuilder extends ConstantBuilder {
             emitFieldSetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldGetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldSetter(vhConstant, javaName, valueLayout.carrier());
-            if (fiName.isPresent()) {
-                emitFunctionalInterfaceGetter(fiName.get(), javaName);
-            }
         }
-    }
-
-    private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + " (MemorySegment segment, Arena session) {\n");
-        incrAlign();
-        indent();
-        append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), session);\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
     }
 
     private void emitFieldGetter(Constant vhConstant, String javaName, Class<?> type) {

@@ -51,9 +51,8 @@ public class LibTest8253102Test {
     public void test() {
         try (NativeArena session = NativeArena.openConfined()) {
             MemorySegment addr = make(14, 99);
-            MemorySegment seg = Point.ofAddress(addr, session);
-            assertEquals(Point.x$get(seg), 14);
-            assertEquals(Point.y$get(seg), 99);
+            assertEquals(Point.x$get(addr), 14);
+            assertEquals(Point.y$get(addr), 99);
             freePoint(addr);
         }
     }

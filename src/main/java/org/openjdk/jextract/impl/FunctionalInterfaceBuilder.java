@@ -41,7 +41,6 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private static final String MEMBER_MODS = "static";
 
     private final MethodType fiType;
-    private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
 
@@ -49,7 +48,6 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                                FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(enclosing, Kind.INTERFACE, className);
         this.fiType = Linker.methodType(descriptor);
-        this.downcallType = Linker.methodType(descriptor);
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
     }
@@ -110,21 +108,14 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                  fiDesc, false, true);
             incrAlign();
             indent();
-            append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena session) {\n");
-            incrAlign();
-            indent();
-            append("MemorySegment symbol = MemorySegment.ofNativeAddress(");
-            append("addr.toRawLongValue(), 0, null, session);\n");
-            indent();
-            append("return (");
-            String delim = "";
+            append(MEMBER_MODS + " " + fiType.returnType().getName() + " apply(MemorySegment symbol\n");
+            String delim = ", ";
             for (int i = 0 ; i < fiType.parameterCount(); i++) {
                 append(delim + fiType.parameterType(i).getName());
                 append(" ");
                 append("_" + parameterName(i));
-                delim = ", ";
             }
-            append(") -> {\n");
+            append(") {\n");
             incrAlign();
             indent();
             append("try {\n");
@@ -132,22 +123,13 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             indent();
             if (!fiType.returnType().equals(void.class)) {
                 append("return (" + fiType.returnType().getName() + ")");
-                if (fiType.returnType() != downcallType.returnType()) {
-                    // add cast for invokeExact
-                    append("(" + downcallType.returnType().getName() + ")");
-                }
             }
-            append(mhConstant.accessExpression() + ".invokeExact((MemorySegment)symbol");
+            append(mhConstant.accessExpression() + ".invokeExact(symbol");
             if (fiType.parameterCount() > 0) {
                 String params = IntStream.range(0, fiType.parameterCount())
                         .mapToObj(i -> {
                             String paramExpr = "_" + parameterName(i);
-                            if (fiType.parameterType(i) != downcallType.parameterType(i)) {
-                                // add cast for invokeExact
-                                return "(" + downcallType.parameterType(i).getName() + ")" + paramExpr;
-                            } else {
-                                return paramExpr;
-                            }
+                            return paramExpr;
                         })
                         .collect(Collectors.joining(", "));
                 append(", " + params);
@@ -162,9 +144,6 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             decrAlign();
             indent();
             append("}\n");
-            decrAlign();
-            indent();
-            append("};\n");
             decrAlign();
             indent();
             append("}\n");

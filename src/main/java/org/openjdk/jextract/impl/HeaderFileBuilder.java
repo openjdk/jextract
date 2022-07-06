@@ -81,10 +81,6 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
                 emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
                 emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
-
-                if (fiName.isPresent()) {
-                    emitFunctionalInterfaceGetter(fiName.get(), javaName);
-                }
             });
         }
     }
@@ -178,20 +174,6 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         }
         append(")");
         return pExprs;
-    }
-
-    private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + " () {\n");
-        incrAlign();
-        indent();
-        append("return " + fiName + ".ofAddress(" + javaName + "$get(), Arena.global());\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
     }
 
     void emitPrimitiveTypedef(Type.Primitive primType, String name) {

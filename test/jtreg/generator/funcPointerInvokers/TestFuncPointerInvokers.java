@@ -52,7 +52,7 @@ public class TestFuncPointerInvokers {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(session);
             Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session));
-            Bar.foo(bar, session).apply(42);
+            Foo.apply(Bar.foo$get(bar), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -63,7 +63,7 @@ public class TestFuncPointerInvokers {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(session);
             Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session));
-            Foo.ofAddress(Bar.foo$get(bar), session).apply(42);
+            Foo.apply(Bar.foo$get(bar), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -73,7 +73,7 @@ public class TestFuncPointerInvokers {
         try (NativeArena session = NativeArena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             f$set(Foo.allocate((i) -> val.set(i), session));
-            f().apply(42);
+            Foo.apply(f$get(), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -83,7 +83,7 @@ public class TestFuncPointerInvokers {
         try (NativeArena session = NativeArena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             f$set(Foo.allocate((i) -> val.set(i), session));
-            Foo.ofAddress(f$get(), session).apply(42);
+            Foo.apply(f$get(), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -94,7 +94,7 @@ public class TestFuncPointerInvokers {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(session);
             Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session));
-            Baz.fp(baz, session).apply(42);
+            Baz.fp.apply(Baz.fp$get(baz), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -105,7 +105,7 @@ public class TestFuncPointerInvokers {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(session);
             Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session));
-            Baz.fp.ofAddress(Baz.fp$get(baz), session).apply(42);
+            Baz.fp.apply(Baz.fp$get(baz), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -115,7 +115,7 @@ public class TestFuncPointerInvokers {
         try (NativeArena session = NativeArena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             fp$set(fp.allocate((i) -> val.set(i), session));
-            fp().apply(42);
+            fp.apply(fp$get(), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -125,7 +125,7 @@ public class TestFuncPointerInvokers {
         try (NativeArena session = NativeArena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             fp$set(fp.allocate((i) -> val.set(i), session));
-            fp.ofAddress(fp$get(), session).apply(42);
+            fp.apply(fp$get(), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -134,7 +134,7 @@ public class TestFuncPointerInvokers {
     public void testGlobalFIFunctionPointerAddress() {
         try (NativeArena session = NativeArena.openConfined()) {
             fp_addr$set(fp_addr.allocate((addr) -> MemorySegment.ofLong(addr.toRawLongValue() + 1), session));
-            assertEquals(fp_addr.ofAddress(fp_addr$get(), session).apply(MemorySegment.ofLong(42)).toRawLongValue(), MemorySegment.ofLong(43).toRawLongValue());
+            assertEquals(fp_addr.apply(fp_addr$get(), MemorySegment.ofLong(42)).toRawLongValue(), MemorySegment.ofLong(43).toRawLongValue());
         }
     }
 }

@@ -48,8 +48,7 @@ public class Test8261511 {
     public void test() {
         try (NativeArena session = NativeArena.openConfined()) {
             var funcPtr = Foo.sum$get(get_foo(session));
-            var sumIface = Foo.sum.ofAddress(funcPtr, session);
-            assertEquals(sumIface.apply(15,20), 35);
+            assertEquals(Foo.sum.apply(funcPtr, 15,20), 35);
             assertEquals(sum(1.2, 4.5), 5.7, 0.001);
         }
     }
