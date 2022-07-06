@@ -48,8 +48,8 @@ public class Dlopen {
             session.addCloseAction(() -> dlclose(handle));
             return name -> {
                 var addr = dlsym(handle, session.allocateUtf8String(name));
-                return addr == MemoryAddress.NULL ?
-                            Optional.empty() : Optional.of(MemorySegment.ofAddress(addr, 0, session));
+                return addr == MemorySegment.NULL ?
+                            Optional.empty() : Optional.of(MemorySegment.ofNativeAddress(addr, 0, null, session));
             };
         }
     }
