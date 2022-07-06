@@ -29,13 +29,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.openjdk.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import static org.openjdk.jimage_h.*;
 
 public class JImageFile {
@@ -46,7 +46,7 @@ public class JImageFile {
            System.err.println(modPath + " not found, please check if your java.home");
            return;
         }
-        try (var session = MemorySession.openConfined()) {
+        try (var session = NativeArena.openConfined()) {
             var jintResPtr = session.allocate(jint);
             var moduleFilePath = session.allocateUtf8String(javaHome + "/lib/modules");
             var jimageFile = JIMAGE_Open(moduleFilePath, jintResPtr);

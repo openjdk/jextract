@@ -30,7 +30,7 @@
  */
 
 import java.lang.foreign.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import static org.llvm.clang.Index_h.*;
 import org.llvm.clang.*;
 
@@ -47,7 +47,7 @@ public class ASTPrinter {
             System.exit(1);
         }
 
-        try (var session = MemorySession.openConfined()) {
+        try (var session = NativeArena.openConfined()) {
             // parse the C header/source passed from the command line
             var index = clang_createIndex(0, 0);
             var tu = clang_parseTranslationUnit(index, session.allocateUtf8String(args[0]),

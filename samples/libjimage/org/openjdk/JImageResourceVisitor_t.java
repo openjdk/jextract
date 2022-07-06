@@ -9,19 +9,17 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 public interface JImageResourceVisitor_t {
 
-    int apply(java.lang.foreign.MemoryAddress jimage, java.lang.foreign.MemoryAddress module_name, java.lang.foreign.MemoryAddress version, java.lang.foreign.MemoryAddress package_, java.lang.foreign.MemoryAddress name, java.lang.foreign.MemoryAddress extension, java.lang.foreign.MemoryAddress arg);
-    static MemorySegment allocate(JImageResourceVisitor_t fi, MemorySession session) {
-        return RuntimeHelper.upcallStub(JImageResourceVisitor_t.class, fi, constants$2.JImageResourceVisitor_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;)I", session);
+    int apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment module_name, java.lang.foreign.MemorySegment version, java.lang.foreign.MemorySegment package_, java.lang.foreign.MemorySegment name, java.lang.foreign.MemorySegment extension, java.lang.foreign.MemorySegment arg);
+    static MemorySegment allocate(JImageResourceVisitor_t fi, Arena session) {
+        return RuntimeHelper.upcallStub(JImageResourceVisitor_t.class, fi, constants$2.JImageResourceVisitor_t$FUNC, session);
     }
-    static JImageResourceVisitor_t ofAddress(MemoryAddress addr, MemorySession session) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
-        return (java.lang.foreign.MemoryAddress _jimage, java.lang.foreign.MemoryAddress _module_name, java.lang.foreign.MemoryAddress _version, java.lang.foreign.MemoryAddress _package_, java.lang.foreign.MemoryAddress _name, java.lang.foreign.MemoryAddress _extension, java.lang.foreign.MemoryAddress _arg) -> {
-            try {
-                return (int)constants$2.JImageResourceVisitor_t$MH.invokeExact((Addressable)symbol, (java.lang.foreign.Addressable)_jimage, (java.lang.foreign.Addressable)_module_name, (java.lang.foreign.Addressable)_version, (java.lang.foreign.Addressable)_package_, (java.lang.foreign.Addressable)_name, (java.lang.foreign.Addressable)_extension, (java.lang.foreign.Addressable)_arg);
-            } catch (Throwable ex$) {
-                throw new AssertionError("should not reach here", ex$);
-            }
-        };
+    static int apply(MemorySegment symbol
+, java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _module_name, java.lang.foreign.MemorySegment _version, java.lang.foreign.MemorySegment _package_, java.lang.foreign.MemorySegment _name, java.lang.foreign.MemorySegment _extension, java.lang.foreign.MemorySegment _arg) {
+        try {
+            return (int)constants$2.JImageResourceVisitor_t$MH.invokeExact(symbol, _jimage, _module_name, _version, _package_, _name, _extension, _arg);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
     }
 }
 

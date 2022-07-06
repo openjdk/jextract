@@ -29,11 +29,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
-import java.lang.foreign.MemorySession;
 import static com.github.git2_h.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import com.github.*;
 
 public class GitClone {
@@ -43,7 +42,7 @@ public class GitClone {
               System.exit(1);
           }
           git_libgit2_init();
-          try (var session = MemorySession.openConfined()) {
+          try (var session = NativeArena.openConfined()) {
               var repo = session.allocate(C_POINTER);
               var url = session.allocateUtf8String(args[0]);
               var path = session.allocateUtf8String(args[1]);

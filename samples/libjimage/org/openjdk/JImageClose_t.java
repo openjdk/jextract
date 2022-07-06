@@ -9,19 +9,17 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 public interface JImageClose_t {
 
-    void apply(java.lang.foreign.MemoryAddress jimage);
-    static MemorySegment allocate(JImageClose_t fi, MemorySession session) {
-        return RuntimeHelper.upcallStub(JImageClose_t.class, fi, constants$0.JImageClose_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;)V", session);
+    void apply(java.lang.foreign.MemorySegment jimage);
+    static MemorySegment allocate(JImageClose_t fi, Arena session) {
+        return RuntimeHelper.upcallStub(JImageClose_t.class, fi, constants$0.JImageClose_t$FUNC, session);
     }
-    static JImageClose_t ofAddress(MemoryAddress addr, MemorySession session) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
-        return (java.lang.foreign.MemoryAddress _jimage) -> {
-            try {
-                constants$0.JImageClose_t$MH.invokeExact((Addressable)symbol, (java.lang.foreign.Addressable)_jimage);
-            } catch (Throwable ex$) {
-                throw new AssertionError("should not reach here", ex$);
-            }
-        };
+    static void apply(MemorySegment symbol
+, java.lang.foreign.MemorySegment _jimage) {
+        try {
+            constants$0.JImageClose_t$MH.invokeExact(symbol, _jimage);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
     }
 }
 

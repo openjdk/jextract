@@ -39,7 +39,7 @@ import libffmpeg.AVFrame;
 import libffmpeg.AVPacket;
 import libffmpeg.AVStream;
 import static libffmpeg.Libffmpeg.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 
 /*
  * This sample is based on C sample from the ffmpeg tutorial at
@@ -74,9 +74,9 @@ public class LibffmpegMain {
         var pFrameRGB = NULL;
         var buffer = NULL;
 
-        try (var session = MemorySession.openConfined()) {
+        try (var session = NativeArena.openConfined()) {
             // AVFormatContext *ppFormatCtx;
-            var ppFormatCtx = MemorySegment.allocateNative(C_POINTER, session);
+            var ppFormatCtx = session.allocate(C_POINTER);
             // char* fileName;
             var fileName = session.allocateUtf8String(args[0]);
 
@@ -93,10 +93,9 @@ public class LibffmpegMain {
                 throw new ExitException(1, "Could not find stream information");
             }
 
-            session.addCloseAction(()-> {
+            MemorySegment.ofAddress(0, 0,
                 // Close the video file
-                avformat_close_input(ppFormatCtx);
-            });
+                ()-> avformat_close_input(ppFormatCtx), session);
 
             // Dump AV format info on stderr
             av_dump_format(pFormatCtx, 0, fileName, 0);
@@ -107,7 +106,7 @@ public class LibffmpegMain {
             int nb_streams = AVFormatContext.nb_streams$get(pFormatCtx);
             System.out.println("number of streams: " + nb_streams);
             // formatCtx.streams
-            var pStreams = AVFormatContext.streams$get(formatCtx);
+            var pStreams = AVFormatContext.streams$get(pFormatCtx);
 
             // AVCodecContext* pVideoCodecCtx;
             var pVideoCodecCtx = NULL;
@@ -122,7 +121,7 @@ public class LibffmpegMain {
                     videoStream = i;
                     pVideoCodecCtx = pCodecCtx;
                     // Find the decoder for the video stream
-                    pCodec = avcodec_find_decoder(AVCodecContext.codec_id$get(avcodecCtx));
+                    pCodec = avcodec_find_decoder(AVCodecContext.codec_id$get(pVideoCodecCtx));
                     break;
                 }
             }
@@ -181,7 +180,7 @@ public class LibffmpegMain {
             avpicture_fill(pFrameRGB, buffer, AV_PIX_FMT_RGB24(), width, height);
 
             // initialize SWS context for software scaling
-            int pix_fmt = AVCodecContext.pix_fmt$get(codecCtx);
+            int pix_fmt = AVCodecContext.pix_fmt$get(pCodecCtx);
             var sws_ctx = sws_getContext(width, height, pix_fmt, width, height,
                 AV_PIX_FMT_RGB24(), SWS_BILINEAR(), NULL, NULL, NULL);
 
@@ -189,7 +188,7 @@ public class LibffmpegMain {
             // ACPacket packet;
             var packet = AVPacket.allocate(session);
             // int* pFrameFinished;
-            var pFrameFinished = MemorySegment.allocateNative(C_INT, session);
+            var pFrameFinished = session.allocate(C_INT);
 
             while (av_read_frame(pFormatCtx, packet) >= 0) {
                 // Is this a packet from the video stream?
@@ -256,7 +255,7 @@ public class LibffmpegMain {
         System.exit(exitCode);
     }
 
-    private static void saveFrame(MemorySegment frameRGB, MemorySession session,
+    private static void saveFrame(MemorySegment frameRGB, NativeArena session,
             int width, int height, int iFrame)
             throws IOException {
         var header = String.format("P6\n%d %d\n255\n", width, height);

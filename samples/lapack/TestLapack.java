@@ -30,8 +30,8 @@
  */
 
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
-import java.lang.foreign.MemorySession;
 import lapack.*;
 import static lapack.lapacke_h.*;
 
@@ -39,7 +39,7 @@ public class TestLapack {
     public static void main(String[] args) {
 
         /* Locals */
-        try (var session = MemorySession.openConfined()) {
+        try (var session = NativeArena.openConfined()) {
             var A = session.allocateArray(C_DOUBLE,
                     1, 2, 3, 4, 5, 1, 3, 5, 2, 4, 1, 4, 2, 5, 3
             );

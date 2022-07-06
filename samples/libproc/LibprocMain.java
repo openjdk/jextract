@@ -30,17 +30,17 @@
  */
 
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
 import org.unix.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import static org.unix.libproc_h.*;
 
 public class LibprocMain {
     private static final int NAME_BUF_MAX = 256;
 
     public static void main(String[] args) {
-        try (var session = MemorySession.openConfined()) {
+        try (var session = NativeArena.openConfined()) {
             // get the number of processes
             int numPids = proc_listallpids(NULL, 0);
             // allocate an array

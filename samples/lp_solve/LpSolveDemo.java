@@ -31,7 +31,7 @@
 
 import java.lang.foreign.*;
 import static net.sourceforge.lpsolve.lp_lib_h.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 
 // This is port of C example from http://web.mit.edu/lpsolve/doc/
 
@@ -47,7 +47,7 @@ class LpSolveDemo {
              return;
         }
 
-        try (var session = MemorySession.openConfined()) {
+        try (var session = NativeArena.openConfined()) {
             var colno = session.allocateArray(C_INT, Ncol);
             var row = session.allocateArray(C_DOUBLE, Ncol);
 
