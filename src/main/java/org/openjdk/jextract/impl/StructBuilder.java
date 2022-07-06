@@ -91,7 +91,6 @@ class StructBuilder extends ConstantBuilder {
             emitSizeof();
             emitAllocatorAllocate();
             emitAllocatorAllocateArray();
-            emitOfAddressScoped();
             return super.classEnd();
         } else {
             // we're in an anonymous struct which got merged into this one, return this very builder and keep it open
@@ -234,14 +233,6 @@ class StructBuilder extends ConstantBuilder {
         decrAlign();
         indent();
         append("}\n");
-        decrAlign();
-    }
-
-    private void emitOfAddressScoped() {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS);
-        append(" MemorySegment ofAddress(MemorySegment addr, Arena session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }\n");
         decrAlign();
     }
 
