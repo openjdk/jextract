@@ -61,7 +61,7 @@ public class TestClassGeneration extends JextractToolRunner {
             { "macro_float",        float.class,         1.0F                      },
             { "macro_double",       double.class,        1.0D                      },
             { "macro_address_NULL", MemorySegment.class, MemorySegment.NULL        },
-            { "macro_address_123",  MemorySegment.class, MemorySegment.ofLong(123) },
+            { "macro_address_123",  MemorySegment.class, MemorySegment.ofAddress(123) },
             { "enum_0",             int.class,           0                         },
             { "enum_1",             int.class,           1                         },
             { "enum_2",             int.class,           2                         },

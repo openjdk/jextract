@@ -359,7 +359,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         append(memberMods());
         append("MemorySegment ");
         append(fieldName);
-        append(" = MemorySegment.ofLong(");
+        append(" = MemorySegment.ofAddress(");
         append(((Number)value).longValue());
         append("L);\n");
         decrAlign();

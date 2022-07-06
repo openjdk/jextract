@@ -39,7 +39,7 @@ public interface CXCursorVisitor {
         return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, session);
     }
     static CXCursorVisitor ofAddress(MemorySegment addr, Arena session) {
-        MemorySegment symbol = MemorySegment.ofNativeAddress(addr.toRawLongValue(), 0, null, session);
+        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, null, session);
         return (java.lang.foreign.MemorySegment _cursor, java.lang.foreign.MemorySegment _parent, java.lang.foreign.MemorySegment _client_data) -> {
             try {
                 return (int)constants$13.CXCursorVisitor$MH.invokeExact((MemorySegment)symbol, _cursor, _parent, (java.lang.foreign.MemorySegment)_client_data);

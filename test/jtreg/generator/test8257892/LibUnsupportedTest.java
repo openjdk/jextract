@@ -65,7 +65,7 @@ public class LibUnsupportedTest {
     @Test
     public void testGetFoo() {
         try (NativeArena session = NativeArena.openConfined()) {
-            var seg = MemorySegment.ofNativeAddress(getFoo().toRawLongValue(), Foo.sizeof(), null, session);
+            var seg = MemorySegment.ofAddress(getFoo().address(), Foo.sizeof(), null, session);
             Foo.i$set(seg, 42);
             Foo.c$set(seg, (byte)'j');
             assertEquals(Foo.i$get(seg), 42);

@@ -80,7 +80,7 @@ final class RuntimeHelper {
     private final static SegmentAllocator THROWING_ALLOCATOR = (x, y) -> { throw new AssertionError("should not reach here"); };
 
     static final MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
-        return SYMBOL_LOOKUP.lookup(name).map(symbol -> MemorySegment.ofNativeAddress(symbol.toRawLongValue(), layout.byteSize(), null, Arena.global())).orElse(null);
+        return SYMBOL_LOOKUP.lookup(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), null, Arena.global())).orElse(null);
     }
 
     static final MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {
@@ -110,7 +110,7 @@ final class RuntimeHelper {
     }
 
     static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena session) {
-         return MemorySegment.ofNativeAddress(addr.toRawLongValue(), numElements * layout.byteSize(), null, session);
+         return MemorySegment.ofAddress(addr.address(), numElements * layout.byteSize(), null, session);
     }
 
     // Internals only below this point

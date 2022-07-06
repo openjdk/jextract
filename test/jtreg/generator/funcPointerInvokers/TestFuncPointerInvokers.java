@@ -133,8 +133,8 @@ public class TestFuncPointerInvokers {
     @Test
     public void testGlobalFIFunctionPointerAddress() {
         try (NativeArena session = NativeArena.openConfined()) {
-            fp_addr$set(fp_addr.allocate((addr) -> MemorySegment.ofLong(addr.toRawLongValue() + 1), session));
-            assertEquals(fp_addr.apply(fp_addr$get(), MemorySegment.ofLong(42)).toRawLongValue(), MemorySegment.ofLong(43).toRawLongValue());
+            fp_addr$set(fp_addr.allocate((addr) -> MemorySegment.ofAddress(addr.address() + 1), session));
+            assertEquals(fp_addr.apply(fp_addr$get(), MemorySegment.ofAddress(42)).address(), MemorySegment.ofAddress(43).address());
         }
     }
 }
