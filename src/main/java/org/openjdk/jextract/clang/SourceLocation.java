@@ -62,7 +62,7 @@ public class SourceLocation extends ClangDisposable.Owned {
 
             fn.get(loc, file, line, col, offset);
             MemorySegment fname = file.get(C_POINTER, 0);
-            String str = fname.isNull() ?  null : getFileName(fname);
+            String str = fname == MemorySegment.NULL ?  null : getFileName(fname);
 
             return new Location(str, line.get(C_INT, 0),
                 col.get(C_INT, 0), offset.get(C_INT, 0));

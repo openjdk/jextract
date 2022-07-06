@@ -129,11 +129,7 @@ public class TestClassGeneration extends JextractToolRunner {
     @Test(dataProvider = "simpleConstants")
     public void testConstant(String name, Class<?> expectedType, Object expectedValue) throws Throwable {
         Method getter = checkMethod(cls, name, expectedType);
-        if (expectedType == MemorySegment.class) {
-            assertEquals(((MemorySegment)getter.invoke(null)).toRawLongValue(), ((MemorySegment)expectedValue).toRawLongValue());
-        } else {
-            assertEquals(getter.invoke(null), expectedValue);
-        }
+        assertEquals(getter.invoke(null), expectedValue);
     }
 
     @Test(dataProvider = "stringConstants")

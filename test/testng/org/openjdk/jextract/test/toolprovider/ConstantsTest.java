@@ -110,7 +110,7 @@ public class ConstantsTest extends JextractToolRunner {
     }
 
     static Consumer<MemorySegment> equalsPtrContents(long expected) {
-        return actual -> assertEquals(actual.toRawLongValue(), expected);
+        return actual -> assertEquals(actual, MemorySegment.ofLong(expected));
     }
 
     @DataProvider
