@@ -81,14 +81,13 @@ public class TranslationUnit extends ClangDisposable {
 
     public void reparse(Index.UnsavedFile... inMemoryFiles) {
         try (NativeArena session = NativeArena.openConfined()) {
-            var allocator = SegmentAllocator.bumpAllocator(session);
             MemorySegment files = inMemoryFiles.length == 0 ?
                     null :
-                    allocator.allocateArray(CXUnsavedFile.$LAYOUT(), inMemoryFiles.length);
+                    session.allocateArray(CXUnsavedFile.$LAYOUT(), inMemoryFiles.length);
             for (int i = 0; i < inMemoryFiles.length; i++) {
                 MemorySegment start = files.asSlice(i * CXUnsavedFile.$LAYOUT().byteSize());
-                start.set(C_POINTER, FILENAME_OFFSET, allocator.allocateUtf8String(inMemoryFiles[i].file));
-                start.set(C_POINTER, CONTENTS_OFFSET, allocator.allocateUtf8String(inMemoryFiles[i].contents));
+                start.set(C_POINTER, FILENAME_OFFSET, session.allocateUtf8String(inMemoryFiles[i].file));
+                start.set(C_POINTER, CONTENTS_OFFSET, session.allocateUtf8String(inMemoryFiles[i].contents));
                 start.set(C_INT, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
             }
             ErrorCode code;
