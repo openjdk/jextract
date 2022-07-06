@@ -65,7 +65,7 @@ public class TensorflowLoadSavedModel {
             // print operations
             var size = allocator.allocate(C_LONG_LONG);
             var operation = NULL;
-            while ((operation = TF_GraphNextOperation(graph, size)).address() != 0L) {
+            while (!(operation = TF_GraphNextOperation(graph, size)).equals(NULL)) {
                 System.out.printf("%s : %s\n",
                     TF_OperationName(operation).getUtf8String(0),
                     TF_OperationOpType(operation).getUtf8String(0));
