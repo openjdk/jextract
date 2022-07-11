@@ -48,7 +48,7 @@ class constants$9 {
     );
     static final MethodHandle clang_equalTypes$MH = RuntimeHelper.downcallHandle(
         "clang_equalTypes",
-        constants$9.clang_equalTypes$FUNC, false
+        constants$9.clang_equalTypes$FUNC
     );
     static final FunctionDescriptor clang_getCanonicalType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -63,7 +63,7 @@ class constants$9 {
     );
     static final MethodHandle clang_getCanonicalType$MH = RuntimeHelper.downcallHandle(
         "clang_getCanonicalType",
-        constants$9.clang_getCanonicalType$FUNC, false
+        constants$9.clang_getCanonicalType$FUNC
     );
     static final FunctionDescriptor clang_isConstQualifiedType$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -74,7 +74,7 @@ class constants$9 {
     );
     static final MethodHandle clang_isConstQualifiedType$MH = RuntimeHelper.downcallHandle(
         "clang_isConstQualifiedType",
-        constants$9.clang_isConstQualifiedType$FUNC, false
+        constants$9.clang_isConstQualifiedType$FUNC
     );
     static final FunctionDescriptor clang_Cursor_isMacroFunctionLike$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -85,7 +85,7 @@ class constants$9 {
     );
     static final MethodHandle clang_Cursor_isMacroFunctionLike$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_isMacroFunctionLike",
-        constants$9.clang_Cursor_isMacroFunctionLike$FUNC, false
+        constants$9.clang_Cursor_isMacroFunctionLike$FUNC
     );
     static final FunctionDescriptor clang_isVolatileQualifiedType$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -96,7 +96,7 @@ class constants$9 {
     );
     static final MethodHandle clang_isVolatileQualifiedType$MH = RuntimeHelper.downcallHandle(
         "clang_isVolatileQualifiedType",
-        constants$9.clang_isVolatileQualifiedType$FUNC, false
+        constants$9.clang_isVolatileQualifiedType$FUNC
     );
     static final FunctionDescriptor clang_getTypedefName$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
@@ -111,7 +111,7 @@ class constants$9 {
     );
     static final MethodHandle clang_getTypedefName$MH = RuntimeHelper.downcallHandle(
         "clang_getTypedefName",
-        constants$9.clang_getTypedefName$FUNC, false
+        constants$9.clang_getTypedefName$FUNC
     );
 }
 

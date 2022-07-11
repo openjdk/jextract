@@ -36,7 +36,7 @@ public interface CXCursorVisitor {
 
     int apply(jdk.incubator.foreign.MemorySegment cursor, jdk.incubator.foreign.MemorySegment parent, jdk.incubator.foreign.MemoryAddress client_data);
     static NativeSymbol allocate(CXCursorVisitor fi, ResourceScope scope) {
-        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, "(Ljdk/incubator/foreign/MemorySegment;Ljdk/incubator/foreign/MemorySegment;Ljdk/incubator/foreign/MemoryAddress;)I", scope);
+        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, scope);
     }
     static CXCursorVisitor ofAddress(MemoryAddress addr, ResourceScope scope) {
         NativeSymbol symbol = NativeSymbol.ofAddress("CXCursorVisitor::" + Long.toHexString(addr.toRawLongValue()), addr, scope);

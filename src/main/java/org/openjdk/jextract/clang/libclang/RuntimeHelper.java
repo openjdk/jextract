@@ -84,26 +84,25 @@ final class RuntimeHelper {
         return SYMBOL_LOOKUP.lookup(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), ResourceScope.newSharedScope())).orElse(null);
     }
 
-    static final MethodHandle downcallHandle(String name, FunctionDescriptor fdesc, boolean variadic) {
-        return SYMBOL_LOOKUP.lookup(name).map(
-                addr -> {
-                    return variadic ?
-                        VarargsInvoker.make(addr, fdesc) :
-                        LINKER.downcallHandle(addr, fdesc);
-                }).orElse(null);
+    static final MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {
+        return SYMBOL_LOOKUP.lookup(name).
+                map(addr -> LINKER.downcallHandle(addr, fdesc)).
+                orElse(null);
     }
 
-    static final MethodHandle downcallHandle(FunctionDescriptor fdesc, boolean variadic) {
-        if (variadic) {
-            throw new AssertionError("Cannot get here!");
-        }
+    static final MethodHandle downcallHandle(FunctionDescriptor fdesc) {
         return LINKER.downcallHandle(fdesc);
     }
 
-    static final <Z> NativeSymbol upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, String mtypeDesc, ResourceScope scope) {
+    static final MethodHandle downcallHandleVariadic(String name, FunctionDescriptor fdesc) {
+        return SYMBOL_LOOKUP.lookup(name).
+                map(addr -> VarargsInvoker.make(addr, fdesc)).
+                orElse(null);
+    }
+
+    static final <Z> NativeSymbol upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, ResourceScope scope) {
         try {
-            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply",
-                    MethodType.fromMethodDescriptorString(mtypeDesc, LOADER));
+            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", CLinker.upcallType(fdesc));
             handle = handle.bindTo(z);
             return LINKER.upcallStub(handle, fdesc, scope);
         } catch (Throwable ex) {

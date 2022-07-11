@@ -48,7 +48,7 @@ class constants$11 {
     );
     static final MethodHandle clang_getArgType$MH = RuntimeHelper.downcallHandle(
         "clang_getArgType",
-        constants$11.clang_getArgType$FUNC, false
+        constants$11.clang_getArgType$FUNC
     );
     static final FunctionDescriptor clang_isFunctionTypeVariadic$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -59,7 +59,7 @@ class constants$11 {
     );
     static final MethodHandle clang_isFunctionTypeVariadic$MH = RuntimeHelper.downcallHandle(
         "clang_isFunctionTypeVariadic",
-        constants$11.clang_isFunctionTypeVariadic$FUNC, false
+        constants$11.clang_isFunctionTypeVariadic$FUNC
     );
     static final FunctionDescriptor clang_getCursorResultType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -74,7 +74,7 @@ class constants$11 {
     );
     static final MethodHandle clang_getCursorResultType$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorResultType",
-        constants$11.clang_getCursorResultType$FUNC, false
+        constants$11.clang_getCursorResultType$FUNC
     );
     static final FunctionDescriptor clang_getElementType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -89,7 +89,7 @@ class constants$11 {
     );
     static final MethodHandle clang_getElementType$MH = RuntimeHelper.downcallHandle(
         "clang_getElementType",
-        constants$11.clang_getElementType$FUNC, false
+        constants$11.clang_getElementType$FUNC
     );
     static final FunctionDescriptor clang_getNumElements$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
@@ -100,7 +100,7 @@ class constants$11 {
     );
     static final MethodHandle clang_getNumElements$MH = RuntimeHelper.downcallHandle(
         "clang_getNumElements",
-        constants$11.clang_getNumElements$FUNC, false
+        constants$11.clang_getNumElements$FUNC
     );
     static final FunctionDescriptor clang_getArrayElementType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -115,7 +115,7 @@ class constants$11 {
     );
     static final MethodHandle clang_getArrayElementType$MH = RuntimeHelper.downcallHandle(
         "clang_getArrayElementType",
-        constants$11.clang_getArrayElementType$FUNC, false
+        constants$11.clang_getArrayElementType$FUNC
     );
 }
 

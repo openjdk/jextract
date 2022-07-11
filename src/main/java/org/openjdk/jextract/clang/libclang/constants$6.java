@@ -43,35 +43,35 @@ class constants$6 {
     );
     static final MethodHandle clang_getCursorKind$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorKind",
-        constants$6.clang_getCursorKind$FUNC, false
+        constants$6.clang_getCursorKind$FUNC
     );
     static final FunctionDescriptor clang_isDeclaration$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_isDeclaration$MH = RuntimeHelper.downcallHandle(
         "clang_isDeclaration",
-        constants$6.clang_isDeclaration$FUNC, false
+        constants$6.clang_isDeclaration$FUNC
     );
     static final FunctionDescriptor clang_isAttribute$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_isAttribute$MH = RuntimeHelper.downcallHandle(
         "clang_isAttribute",
-        constants$6.clang_isAttribute$FUNC, false
+        constants$6.clang_isAttribute$FUNC
     );
     static final FunctionDescriptor clang_isInvalid$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_isInvalid$MH = RuntimeHelper.downcallHandle(
         "clang_isInvalid",
-        constants$6.clang_isInvalid$FUNC, false
+        constants$6.clang_isInvalid$FUNC
     );
     static final FunctionDescriptor clang_isPreprocessing$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_INT$LAYOUT
     );
     static final MethodHandle clang_isPreprocessing$MH = RuntimeHelper.downcallHandle(
         "clang_isPreprocessing",
-        constants$6.clang_isPreprocessing$FUNC, false
+        constants$6.clang_isPreprocessing$FUNC
     );
     static final FunctionDescriptor clang_getCursorLanguage$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
@@ -82,7 +82,7 @@ class constants$6 {
     );
     static final MethodHandle clang_getCursorLanguage$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorLanguage",
-        constants$6.clang_getCursorLanguage$FUNC, false
+        constants$6.clang_getCursorLanguage$FUNC
     );
 }
 

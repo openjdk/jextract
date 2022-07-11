@@ -47,7 +47,7 @@ class constants$2 {
     );
     static final MethodHandle clang_getExpansionLocation$MH = RuntimeHelper.downcallHandle(
         "clang_getExpansionLocation",
-        constants$2.clang_getExpansionLocation$FUNC, false
+        constants$2.clang_getExpansionLocation$FUNC
     );
     static final FunctionDescriptor clang_getSpellingLocation$FUNC = FunctionDescriptor.ofVoid(
         MemoryLayout.structLayout(
@@ -62,7 +62,7 @@ class constants$2 {
     );
     static final MethodHandle clang_getSpellingLocation$MH = RuntimeHelper.downcallHandle(
         "clang_getSpellingLocation",
-        constants$2.clang_getSpellingLocation$FUNC, false
+        constants$2.clang_getSpellingLocation$FUNC
     );
     static final FunctionDescriptor clang_getFileLocation$FUNC = FunctionDescriptor.ofVoid(
         MemoryLayout.structLayout(
@@ -77,7 +77,7 @@ class constants$2 {
     );
     static final MethodHandle clang_getFileLocation$MH = RuntimeHelper.downcallHandle(
         "clang_getFileLocation",
-        constants$2.clang_getFileLocation$FUNC, false
+        constants$2.clang_getFileLocation$FUNC
     );
     static final FunctionDescriptor clang_getRangeStart$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
@@ -92,7 +92,7 @@ class constants$2 {
     );
     static final MethodHandle clang_getRangeStart$MH = RuntimeHelper.downcallHandle(
         "clang_getRangeStart",
-        constants$2.clang_getRangeStart$FUNC, false
+        constants$2.clang_getRangeStart$FUNC
     );
     static final FunctionDescriptor clang_getRangeEnd$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
@@ -107,14 +107,14 @@ class constants$2 {
     );
     static final MethodHandle clang_getRangeEnd$MH = RuntimeHelper.downcallHandle(
         "clang_getRangeEnd",
-        constants$2.clang_getRangeEnd$FUNC, false
+        constants$2.clang_getRangeEnd$FUNC
     );
     static final FunctionDescriptor clang_getChildDiagnostics$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle clang_getChildDiagnostics$MH = RuntimeHelper.downcallHandle(
         "clang_getChildDiagnostics",
-        constants$2.clang_getChildDiagnostics$FUNC, false
+        constants$2.clang_getChildDiagnostics$FUNC
     );
 }
 
