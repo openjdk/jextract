@@ -258,7 +258,7 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public EvalResult eval() {
         MemorySegment ptr = eval0();
-        return ptr == MemorySegment.NULL ? EvalResult.erroneous : new EvalResult(ptr);
+        return ptr.isNull() ? EvalResult.erroneous : new EvalResult(ptr);
     }
 
     public PrintingPolicy getPrintingPolicy() {

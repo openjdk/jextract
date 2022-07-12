@@ -106,7 +106,7 @@ public class EvalResult implements AutoCloseable {
 
     @Override
     public void close() {
-        if (ptr != MemorySegment.NULL) {
+        if (ptr == MemorySegment.NULL) {
             Index_h.clang_EvalResult_dispose(ptr);
             ptr = MemorySegment.NULL;
         }

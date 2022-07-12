@@ -93,9 +93,8 @@ public class LibffmpegMain {
                 throw new ExitException(1, "Could not find stream information");
             }
 
-            MemorySegment.ofAddress(0, 0,
-                // Close the video file
-                ()-> avformat_close_input(ppFormatCtx), session);
+            // Close the video file
+            session.addCloseAction(()-> avformat_close_input(ppFormatCtx));
 
             // Dump AV format info on stderr
             av_dump_format(pFormatCtx, 0, fileName, 0);

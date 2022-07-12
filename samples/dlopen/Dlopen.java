@@ -45,11 +45,11 @@ public class Dlopen {
             if (handle == MemorySegment.NULL) {
                 throw new IllegalArgumentException("Cannot find library: " + libraryName);
             }
-            MemorySegment.ofAddress(0, 0, () -> dlclose(handle), session);
+            session.addCloseAction(() -> dlclose(handle));
             return name -> {
                 var addr = dlsym(handle, session.allocateUtf8String(name));
                 return addr == MemorySegment.NULL ?
-                    Optional.empty() : Optional.of(MemorySegment.ofAddress(addr.address(), 0, null, session));
+                    Optional.empty() : Optional.of(MemorySegment.ofAddress(addr.address(), 0, session));
             };
         }
     }
