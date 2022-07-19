@@ -83,7 +83,7 @@ public abstract class JavaSourceBuilder {
     final String uniqueNestedClassName(String name) {
         name = Utils.javaSafeIdentifier(name);
         var notSeen = nestedClassNames.add(name.toLowerCase());
-        var notEnclosed = !isEnclosedBySameName(name.toLowerCase());
+        var notEnclosed = !isEnclosedBySameName(name);
         return notSeen && notEnclosed? name : (name + "$" + nestedClassNameCount++);
     }
 
