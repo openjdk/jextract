@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.NativeArena;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
 import static java.lang.foreign.MemorySegment.NULL;
 // import jextracted python 'header' class
@@ -41,7 +41,7 @@ public class PythonMain {
         String script = "print(sum([33, 55, 66])); print('Hello from Python!')\n";
 
         Py_Initialize();
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             var str = session.allocateUtf8String(script);
             PyRun_SimpleStringFlags(str, NULL);
             Py_Finalize();

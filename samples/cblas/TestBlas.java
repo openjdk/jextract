@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.NativeArena;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
 import blas.*;
 import static blas.cblas_h.*;
@@ -53,7 +53,7 @@ public class TestBlas {
         alpha = 1;
         beta = 0;
 
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             var a = session.allocateArray(C_DOUBLE,
                 1.0, 2.0, 3.0, 4.0,
                 1.0, 1.0, 1.0, 1.0,

@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
 import org.sqlite.*;
 import static java.lang.foreign.MemorySegment.NULL;
@@ -38,7 +38,7 @@ import static org.sqlite.sqlite3_h.*;
 
 public class SqliteMain {
    public static void main(String[] args) throws Exception {
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             // char** errMsgPtrPtr;
             var errMsgPtrPtr = session.allocate(C_POINTER);
 

@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.NativeArena;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,7 +46,7 @@ public class JImageFile {
            System.err.println(modPath + " not found, please check if your java.home");
            return;
         }
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             var jintResPtr = session.allocate(jint);
             var moduleFilePath = session.allocateUtf8String(javaHome + "/lib/modules");
             var jimageFile = JIMAGE_Open(moduleFilePath, jintResPtr);

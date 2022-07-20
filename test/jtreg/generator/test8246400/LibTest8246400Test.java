@@ -21,8 +21,8 @@
  * questions.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.NativeArena;
 import org.testng.annotations.Test;
 import test.jextract.test8246400.*;
 import static org.testng.Assert.assertEquals;
@@ -48,8 +48,8 @@ import static test.jextract.test8246400.test8246400_h.*;
 public class LibTest8246400Test {
     @Test
     public void testSegmentRegister() {
-        MemorySegment sum = null;
-        try (NativeArena session = NativeArena.openConfined()) {
+        MemorySegment sumSeg = null;
+        try (Arena session = Arena.openConfined()) {
             var v1 = Vector.allocate(session);
             Vector.x$set(v1, 1.0);
             Vector.y$set(v1, 0.0);
@@ -58,10 +58,10 @@ public class LibTest8246400Test {
             Vector.x$set(v2, 0.0);
             Vector.y$set(v2, 1.0);
 
-            sum = add(session, v1, v2);
+            sumSeg = add(session, v1, v2);
 
-            assertEquals(Vector.x$get(sum), 1.0, 0.1);
-            assertEquals(Vector.y$get(sum), 1.0, 0.1);
+            assertEquals(Vector.x$get(sumSeg), 1.0, 0.1);
+            assertEquals(Vector.y$get(sumSeg), 1.0, 0.1);
 
             MemorySegment callback = cosine_similarity$dot.allocate((a, b) -> {
                 return (Vector.x$get(a) * Vector.x$get(b)) +
@@ -74,6 +74,6 @@ public class LibTest8246400Test {
             value = cosine_similarity(v1, v1, callback);
             assertEquals(value, 1.0, 0.1);
         }
-        assertTrue(!sum.arena().isAlive());
+        assertTrue(!sumSeg.arena().isAlive());
     }
 }

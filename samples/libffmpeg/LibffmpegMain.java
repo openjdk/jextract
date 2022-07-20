@@ -74,7 +74,7 @@ public class LibffmpegMain {
         var pFrameRGB = NULL;
         var buffer = NULL;
 
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             // AVFormatContext *ppFormatCtx;
             var ppFormatCtx = session.allocate(C_POINTER);
             // char* fileName;

@@ -21,7 +21,7 @@
  * questions.
  */
 
-import java.lang.foreign.NativeArena;
+import java.lang.foreign.Arena;
 import org.testng.annotations.Test;
 import test.jextract.test8258605.*;
 import static java.lang.foreign.MemorySegment.NULL;
@@ -48,7 +48,7 @@ import static test.jextract.test8258605.funcParam_h.*;
 public class LibTest8258605Test {
     @Test
     public void testFunctionCallback() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
              boolean[] callbackReached = new boolean[1];
              f(CB.allocate(i -> {
                  assertTrue(i == 10);
@@ -60,7 +60,7 @@ public class LibTest8258605Test {
 
     @Test
     public void testStructFunctionPointerCallback() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
              boolean[] callbackReached = new boolean[1];
 
              // get struct Foo instance

@@ -21,9 +21,9 @@
  * questions.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
 import org.testng.annotations.Test;
 import test.jextract.test8246341.*;
@@ -51,7 +51,7 @@ public class LibTest8246341Test {
     @Test
     public void testPointerArray() {
         boolean[] callbackCalled = new boolean[1];
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             var callback = func$callback.allocate((argc, argv) -> {
                 callbackCalled[0] = true;
                 assertEquals(argc, 4);
@@ -67,7 +67,7 @@ public class LibTest8246341Test {
 
     @Test
     public void testPointerAllocate() {
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             var addr = session.allocate(C_POINTER);
             addr.set(C_POINTER, 0, MemorySegment.NULL);
             fillin(addr);

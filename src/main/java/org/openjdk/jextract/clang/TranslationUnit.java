@@ -26,9 +26,9 @@
 
 package org.openjdk.jextract.clang;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.CXToken;
 import org.openjdk.jextract.clang.libclang.Index_h;
@@ -56,7 +56,7 @@ public class TranslationUnit extends ClangDisposable {
     }
 
     public final void save(Path path) throws TranslationUnitSaveException {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             var allocator = session;
             MemorySegment pathStr = allocator.allocateUtf8String(path.toAbsolutePath().toString());
             SaveError res = SaveError.valueOf(Index_h.clang_saveTranslationUnit(ptr, pathStr, 0));
@@ -80,7 +80,7 @@ public class TranslationUnit extends ClangDisposable {
     static long LENGTH_OFFSET = CXUnsavedFile.$LAYOUT().byteOffset(MemoryLayout.PathElement.groupElement("Length"));
 
     public void reparse(Index.UnsavedFile... inMemoryFiles) {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             MemorySegment files = inMemoryFiles.length == 0 ?
                     null :
                     session.allocateArray(CXUnsavedFile.$LAYOUT(), inMemoryFiles.length);
@@ -122,7 +122,7 @@ public class TranslationUnit extends ClangDisposable {
     }
 
     public Tokens tokenize(SourceRange range) {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             MemorySegment p = session.allocate(C_POINTER);
             MemorySegment pCnt = session.allocate(C_INT);
             Index_h.clang_tokenize(ptr, range.segment, p, pCnt);

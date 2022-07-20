@@ -42,12 +42,12 @@ class LpSolveDemo {
     public static void main(String[] args) {
         int Ncol = 2; // two variables in the model
         var lp = make_lp(0, Ncol);
-        if (lp == NULL) {
+        if (lp.equals(NULL)) {
              System.err.println("make_lp returns NULL");
              return;
         }
 
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             var colno = session.allocateArray(C_INT, Ncol);
             var row = session.allocateArray(C_DOUBLE, Ncol);
 

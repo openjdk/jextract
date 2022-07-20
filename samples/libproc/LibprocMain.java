@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
 import org.unix.*;
 import static java.lang.foreign.MemorySegment.NULL;
@@ -40,7 +40,7 @@ public class LibprocMain {
     private static final int NAME_BUF_MAX = 256;
 
     public static void main(String[] args) {
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             // get the number of processes
             int numPids = proc_listallpids(NULL, 0);
             // allocate an array

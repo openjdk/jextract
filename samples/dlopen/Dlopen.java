@@ -39,8 +39,8 @@ import static org.unix.dlfcn_h.*;
 public class Dlopen {
     // implementation of Symbol lookup that loads a given shared object using dlopen
     // and looks up symbols using dlsym
-    private static Function<String, Optional<MemorySegment>> lookup(String libraryName, NativeArena session) {
-        try (NativeArena libOpenSession = NativeArena.openConfined()) {
+    private static Function<String, Optional<MemorySegment>> lookup(String libraryName, Arena session) {
+        try (Arena libOpenSession = Arena.openConfined()) {
             var handle = dlopen(libOpenSession.allocateUtf8String(libraryName), RTLD_LOCAL());
             if (handle == MemorySegment.NULL) {
                 throw new IllegalArgumentException("Cannot find library: " + libraryName);
@@ -57,7 +57,7 @@ public class Dlopen {
     public static void main(String[] args) throws Throwable {
         var arg = args.length > 0? args[0] : "Java";
         var libName = "libhello.dylib";
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             var symLookup = lookup(libName, session);
 
             var linker = Linker.nativeLinker();

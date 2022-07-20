@@ -21,7 +21,7 @@
  * questions.
  */
 
-import java.lang.foreign.NativeArena;
+import java.lang.foreign.Arena;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -43,7 +43,7 @@ import test.jextract.fp.*;
 public class LibFuncPtrTest {
     @Test
     public void test() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             var handle = func$f.allocate(x -> x * x, session);
             assertEquals(func(handle, 35), 35 * 35 + 35);
         }

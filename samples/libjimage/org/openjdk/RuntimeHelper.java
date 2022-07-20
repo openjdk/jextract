@@ -31,7 +31,7 @@ final class RuntimeHelper {
     private final static MethodHandles.Lookup MH_LOOKUP = MethodHandles.lookup();
     private final static SymbolLookup SYMBOL_LOOKUP;
 
-    final static SegmentAllocator CONSTANT_ALLOCATOR = MemorySegment::allocateNative;
+    final static SegmentAllocator CONSTANT_ALLOCATOR = SegmentAllocator.implicitAllocator();
 
     static {
         // manual change

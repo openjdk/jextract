@@ -30,7 +30,6 @@ import testlib.TestUtils;
 import org.testng.annotations.*;
 import testlib.JextractToolRunner;
 
-import java.lang.foreign.NativeArena;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
@@ -181,7 +180,7 @@ public class TestClassGeneration extends JextractToolRunner {
         Class<?> structCls = loader.loadClass("com.acme." + structName);
         Method layout_getter = checkMethod(structCls, "$LAYOUT", MemoryLayout.class);
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             MemorySegment struct = session.allocate(structLayout);
             Method vh_getter = checkMethod(structCls, memberName + "$VH", VarHandle.class);
             VarHandle vh = (VarHandle) vh_getter.invoke(null);

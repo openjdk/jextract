@@ -22,11 +22,11 @@
  */
 
 import java.lang.reflect.Method;
+import java.lang.foreign.Arena;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.NativeArena;
 import org.testng.annotations.Test;
 
 import test.jextract.unsupported.unsupported_h;
@@ -53,18 +53,18 @@ import test.jextract.unsupported.*;
 public class LibUnsupportedTest {
     @Test
     public void testAllocateFoo() {
-        try (NativeArena session = NativeArena.openConfined()) {
-            var seg = Foo.allocate(session);
-            Foo.i$set(seg, 32);
-            Foo.c$set(seg, (byte)'z');
-            assertEquals(Foo.i$get(seg), 32);
-            assertEquals(Foo.c$get(seg), (byte)'z');
+        try (Arena session = Arena.openConfined()) {
+            var foo = Foo.allocate(session);
+            foo.i$set(32);
+            foo.c$set((byte)'z');
+            assertEquals(foo.i$get(), 32);
+            assertEquals(foo.c$get(), (byte)'z');
         }
     }
 
     @Test
     public void testGetFoo() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             var seg = MemorySegment.ofAddress(getFoo().address(), Foo.sizeof(), session);
             Foo.i$set(seg, 42);
             Foo.c$set(seg, (byte)'j');

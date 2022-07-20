@@ -31,7 +31,6 @@ import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
-import java.lang.foreign.NativeArena;
 import java.util.function.Consumer;
 
 public final class Cursor extends ClangDisposable.Owned {
@@ -116,7 +115,7 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public SourceLocation getSourceLocation() {
         MemorySegment loc = Index_h.clang_getCursorLocation(owner, segment);
-        try (NativeArena arena = NativeArena.openConfined()) {
+        try (Arena arena = Arena.openConfined()) {
             if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(arena)) != 0) {
                 return null;
             }
@@ -258,7 +257,7 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public EvalResult eval() {
         MemorySegment ptr = eval0();
-        return ptr.isNull() ? EvalResult.erroneous : new EvalResult(ptr);
+        return ptr.equals(MemorySegment.NULL) ? EvalResult.erroneous : new EvalResult(ptr);
     }
 
     public PrintingPolicy getPrintingPolicy() {

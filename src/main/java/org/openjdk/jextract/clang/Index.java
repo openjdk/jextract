@@ -26,8 +26,8 @@
 
 package org.openjdk.jextract.clang;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.NativeArena;
 import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -70,7 +70,7 @@ public class Index extends ClangDisposable {
 
     public TranslationUnit parseTU(String file, Consumer<Diagnostic> dh, int options, String... args)
             throws ParsingFailedException {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             SegmentAllocator allocator = SegmentAllocator.bumpAllocator(session);
             MemorySegment src = allocator.allocateUtf8String(file);
             MemorySegment cargs = args.length == 0 ? null : allocator.allocateArray(C_POINTER, args.length);

@@ -22,9 +22,9 @@
  */
 
 import org.testng.annotations.Test;
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.NativeArena;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static test.jextract.test8253102.test8253102_h.*;
@@ -49,7 +49,7 @@ import test.jextract.test8253102.*;
 public class LibTest8253102Test {
     @Test
     public void test() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             MemorySegment addr = make(14, 99);
             assertEquals(Point.x$get(addr), 14);
             assertEquals(Point.y$get(addr), 99);

@@ -21,9 +21,9 @@
  * questions.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.NativeArena;
 import org.testng.annotations.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,7 +48,7 @@ import test.jextract.funcpointers.*;
 public class TestFuncPointerInvokers {
     @Test
     public void testStructFieldTypedef() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(session);
             Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session));
@@ -59,7 +59,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testStructFieldFITypedef() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(session);
             Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session));
@@ -70,7 +70,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalTypedef() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             f$set(Foo.allocate((i) -> val.set(i), session));
             Foo.apply(f$get(), 42);
@@ -80,7 +80,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFITypedef() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             f$set(Foo.allocate((i) -> val.set(i), session));
             Foo.apply(f$get(), 42);
@@ -90,7 +90,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testStructFieldFunctionPointer() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(session);
             Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session));
@@ -101,7 +101,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testStructFieldFIFunctionPointer() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(session);
             Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session));
@@ -112,7 +112,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFunctionPointer() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             fp$set(fp.allocate((i) -> val.set(i), session));
             fp.apply(fp$get(), 42);
@@ -122,7 +122,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFIFunctionPointer() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             fp$set(fp.allocate((i) -> val.set(i), session));
             fp.apply(fp$get(), 42);
@@ -132,7 +132,7 @@ public class TestFuncPointerInvokers {
 
     @Test
     public void testGlobalFIFunctionPointerAddress() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             fp_addr$set(fp_addr.allocate((addr) -> MemorySegment.ofAddress(addr.address() + 1), session));
             assertEquals(fp_addr.apply(fp_addr$get(), MemorySegment.ofAddress(42)).address(), MemorySegment.ofAddress(43).address());
         }

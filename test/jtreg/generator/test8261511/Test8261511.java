@@ -22,7 +22,7 @@
  */
 
 import org.testng.annotations.Test;
-import java.lang.foreign.NativeArena;
+import java.lang.foreign.Arena;
 import test.jextract.test8261511.*;
 import static org.testng.Assert.assertEquals;
 import static test.jextract.test8261511.test8261511_h.*;
@@ -46,7 +46,7 @@ import static test.jextract.test8261511.test8261511_h.*;
 public class Test8261511 {
     @Test
     public void test() {
-        try (NativeArena session = NativeArena.openConfined()) {
+        try (Arena session = Arena.openConfined()) {
             var funcPtr = Foo.sum$get(get_foo(session));
             assertEquals(Foo.sum.apply(funcPtr, 15,20), 35);
             assertEquals(sum(1.2, 4.5), 5.7, 0.001);

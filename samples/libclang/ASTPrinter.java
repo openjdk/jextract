@@ -47,7 +47,7 @@ public class ASTPrinter {
             System.exit(1);
         }
 
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
             // parse the C header/source passed from the command line
             var index = clang_createIndex(0, 0);
             var tu = clang_parseTranslationUnit(index, session.allocateUtf8String(args[0]),

@@ -23,12 +23,12 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
-import java.lang.foreign.NativeArena;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
@@ -155,9 +155,10 @@ public class TestNested extends JextractToolRunner {
             if (type == MemorySegment.class) {
                 Method slicer = cls.getMethod(fieldName + "$slice", MemorySegment.class);
                 assertEquals(slicer.getReturnType(), MemorySegment.class);
-                try (NativeArena session = NativeArena.openConfined()) {
-                    MemorySegment struct = session.allocate(layout);
-                    MemorySegment slice = (MemorySegment) slicer.invoke(null, struct);
+                try (Arena session = Arena.openConfined()) {
+                    MemorySegment structSeg = session.allocate(layout);
+                    var struct = cls.getMethod("of", MemorySegment.class).invoke(null, structSeg);
+                    MemorySegment slice = (MemorySegment) slicer.invoke(struct);
                     assertEquals(slice.byteSize(), fieldLayout.byteSize());
                 }
             } else {
@@ -167,10 +168,11 @@ public class TestNested extends JextractToolRunner {
                 assertEquals(setter.getReturnType(), void.class);
 
                 Object zero = MethodHandles.zero(type).invoke();
-                try (NativeArena session = NativeArena.openConfined()) {
-                    MemorySegment struct = session.allocate(layout);
-                    setter.invoke(null, struct, zero);
-                    Object actual = getter.invoke(null, struct);
+                try (Arena session = Arena.openConfined()) {
+                    MemorySegment structSeg = session.allocate(layout);
+                    var struct = cls.getMethod("of", MemorySegment.class).invoke(null, structSeg);
+                    setter.invoke(struct, zero);
+                    Object actual = getter.invoke(struct);
                     assertEquals(actual, zero);
                 }
             }

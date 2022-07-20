@@ -25,10 +25,10 @@
  */
 package org.openjdk.jextract.clang;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
-import java.lang.foreign.NativeArena;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -54,7 +54,7 @@ public class SourceLocation extends ClangDisposable.Owned {
 
     @SuppressWarnings("unchecked")
     private Location getLocation(LocationFactory fn) {
-        try (var session = NativeArena.openConfined()) {
+        try (var session = Arena.openConfined()) {
              MemorySegment file = session.allocate(C_POINTER);
              MemorySegment line = session.allocate(C_INT);
              MemorySegment col = session.allocate(C_INT);
@@ -62,7 +62,7 @@ public class SourceLocation extends ClangDisposable.Owned {
 
             fn.get(loc, file, line, col, offset);
             MemorySegment fname = file.get(C_POINTER, 0);
-            String str = fname.isNull()?  null : getFileName(fname);
+            String str = fname.equals(MemorySegment.NULL) ?  null : getFileName(fname);
 
             return new Location(str, line.get(C_INT, 0),
                 col.get(C_INT, 0), offset.get(C_INT, 0));

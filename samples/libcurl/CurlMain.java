@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.NativeArena;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
 import static java.lang.foreign.MemorySegment.NULL;
 import static org.jextract.curl_h.*;
@@ -41,7 +41,7 @@ public class CurlMain {
        curl_global_init(CURL_GLOBAL_DEFAULT());
        var curl = curl_easy_init();
        if(!curl.equals(NULL)) {
-           try (var session = NativeArena.openConfined()) {
+           try (var session = Arena.openConfined()) {
                var url = session.allocateUtf8String(urlStr);
                curl_easy_setopt(curl, CURLOPT_URL(), url.address());
                int res = curl_easy_perform(curl);
