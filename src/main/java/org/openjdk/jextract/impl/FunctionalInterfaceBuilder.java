@@ -138,6 +138,9 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                 }
             }
             append(mhConstant.accessExpression() + ".invokeExact((Addressable)symbol");
+            if(fiType.returnType().equals(MemorySegment.class)) {
+                append(", (SegmentAllocator)session");
+            }
             if (fiType.parameterCount() > 0) {
                 String params = IntStream.range(0, fiType.parameterCount())
                         .mapToObj(i -> {
