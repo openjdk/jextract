@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,4 +21,25 @@
  * questions.
  */
 
-typedef struct { int x; } (*CB)(void);
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+#ifdef _WIN64
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
+
+struct Bar { int a; };
+
+struct Foo {
+    struct Bar (*a)(void);
+    struct Bar (*b)(int);
+};
+
+struct Foo foo;
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus

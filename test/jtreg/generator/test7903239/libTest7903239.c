@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,21 +21,14 @@
  * questions.
  */
 
-package org.openjdk.jextract.test.toolprovider;
+#include "test7903239.h"
 
-import testlib.TestUtils;
-import org.testng.annotations.Test;
-import testlib.JextractToolRunner;
+struct Bar a() {
+    return (struct Bar) { 5 };
+};
 
-import java.nio.file.Path;
+struct Bar b(int v) {
+    return (struct Bar) { v };
+};
 
-public class Test7903239 extends JextractToolRunner {
-    @Test
-    public void testFunctionPointerReturningStruct() {
-        Path outputPath = getOutputFilePath("7903239_gen");
-        Path headerFile = getInputFilePath("test7903239.h");
-        run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
-        // nothing is generated that we can check, so we just check that jextract ran successfully
-        TestUtils.deleteDir(outputPath);
-    }
-}
+struct Foo foo = { a, b };
