@@ -32,3 +32,4 @@ struct Bar b(int v) {
 };
 
 struct Foo foo = { a, b };
+
