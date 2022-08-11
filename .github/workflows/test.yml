@@ -3,6 +3,7 @@ name: Build and test Jextract
 on:
   push:
     branches-ignore:
+      - panama
       - master
       - pr/*
   workflow_dispatch:
