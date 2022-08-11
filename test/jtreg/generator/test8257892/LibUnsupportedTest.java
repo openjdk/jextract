@@ -54,11 +54,11 @@ public class LibUnsupportedTest {
     @Test
     public void testAllocateFoo() {
         try (Arena session = Arena.openConfined()) {
-            var foo = Foo.allocate(session);
-            foo.i$set(32);
-            foo.c$set((byte)'z');
-            assertEquals(foo.i$get(), 32);
-            assertEquals(foo.c$get(), (byte)'z');
+            var fooSeg = Foo.allocate(session);
+            Foo.i$set(fooSeg, 32);
+            Foo.c$set(fooSeg, (byte)'z');
+            assertEquals(Foo.i$get(fooSeg), 32);
+            assertEquals(Foo.c$get(fooSeg), (byte)'z');
         }
     }
 

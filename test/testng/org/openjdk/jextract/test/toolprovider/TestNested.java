@@ -156,9 +156,8 @@ public class TestNested extends JextractToolRunner {
                 Method slicer = cls.getMethod(fieldName + "$slice", MemorySegment.class);
                 assertEquals(slicer.getReturnType(), MemorySegment.class);
                 try (Arena session = Arena.openConfined()) {
-                    MemorySegment structSeg = session.allocate(layout);
-                    var struct = cls.getMethod("of", MemorySegment.class).invoke(null, structSeg);
-                    MemorySegment slice = (MemorySegment) slicer.invoke(struct);
+                    MemorySegment struct = MemorySegment.allocateNative(layout);
+                    MemorySegment slice = (MemorySegment) slicer.invoke(null, struct);
                     assertEquals(slice.byteSize(), fieldLayout.byteSize());
                 }
             } else {
@@ -169,10 +168,9 @@ public class TestNested extends JextractToolRunner {
 
                 Object zero = MethodHandles.zero(type).invoke();
                 try (Arena session = Arena.openConfined()) {
-                    MemorySegment structSeg = session.allocate(layout);
-                    var struct = cls.getMethod("of", MemorySegment.class).invoke(null, structSeg);
-                    setter.invoke(struct, zero);
-                    Object actual = getter.invoke(struct);
+                    MemorySegment struct = MemorySegment.allocateNative(layout);
+                    setter.invoke(null, struct, zero);
+                    Object actual = getter.invoke(null, struct);
                     assertEquals(actual, zero);
                 }
             }
