@@ -179,22 +179,22 @@ public class LibffmpegMain {
             avpicture_fill(pFrameRGB, buffer, AV_PIX_FMT_RGB24(), width, height);
 
             // initialize SWS context for software scaling
-            int pix_fmt = AVCodecContext.pix_fmt$get(pCodecCtx);
+            int pix_fmt = AVCodecContext.pix_fmt$get(pCodec);
             var sws_ctx = sws_getContext(width, height, pix_fmt, width, height,
                 AV_PIX_FMT_RGB24(), SWS_BILINEAR(), NULL, NULL, NULL);
 
             int i = 0;
             // ACPacket packet;
-            var packet = AVPacket.allocate(session);
+            var pPacket = AVPacket.allocate(session);
             // int* pFrameFinished;
             var pFrameFinished = session.allocate(C_INT);
 
-            while (av_read_frame(pFormatCtx, packet) >= 0) {
+            while (av_read_frame(pFormatCtx, pPacket) >= 0) {
                 // Is this a packet from the video stream?
                 // packet.stream_index == videoStream
-                if (AVPacket.stream_index$get(packet) == videoStream) {
+                if (AVPacket.stream_index$get(pPacket) == videoStream) {
                     // Decode video frame
-                    avcodec_decode_video2(pCodecCtx, pFrame, pFrameFinished, packet);
+                    avcodec_decode_video2(pCodecCtx, pFrame, pFrameFinished, pPacket);
 
                     int frameFinished = pFrameFinished.get(C_INT, 0);
                     // Did we get a video frame?
@@ -217,7 +217,7 @@ public class LibffmpegMain {
                  }
 
                  // Free the packet that was allocated by av_read_frame
-                 av_free_packet(packet);
+                 av_free_packet(pPacket);
             }
 
             throw new ExitException(0, "Goodbye!");
@@ -254,7 +254,7 @@ public class LibffmpegMain {
         System.exit(exitCode);
     }
 
-    private static void saveFrame(MemorySegment frameRGB, NativeArena session,
+    private static void saveFrame(MemorySegment pFrameRGB, Arena session,
             int width, int height, int iFrame)
             throws IOException {
         var header = String.format("P6\n%d %d\n255\n", width, height);
@@ -262,11 +262,11 @@ public class LibffmpegMain {
         try (var os = Files.newOutputStream(path)) {
             System.out.println("writing " + path.toString());
             os.write(header.getBytes());
-            var data = AVFrame.data$slice(frameRGB);
+            var data = AVFrame.data$slice(pFrameRGB);
             // frameRGB.data[0]
             var pdata = data.get(C_POINTER, 0);
             // frameRGB.linespace[0]
-            var linesize = AVFrame.linesize$slice(frameRGB).get(C_INT, 0);
+            var linesize = AVFrame.linesize$slice(pFrameRGB).get(C_INT, 0);
             // Write pixel data
             for (int y = 0; y < height; y++) {
                 // frameRGB.data[0] + y*frameRGB.linesize[0] is the pointer. And 3*width size of data
