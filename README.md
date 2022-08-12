@@ -4,7 +4,7 @@
 
 ### Getting started
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable jdk build from panama-foreign repo is also required.
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable build of the [panama/foreign repository](https://github.com/openjdk/panama-foreign) is also required.
 
 > <details><summary><strong>Building older jextract versions</strong></summary>
 > 

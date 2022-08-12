@@ -31,7 +31,7 @@
 
 import java.lang.foreign.MemorySession;
 import java.lang.foreign.SegmentAllocator;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 // import jextracted tcl 'header' class
 import static org.tcl.tcl_h.*;
 import org.tcl.*;

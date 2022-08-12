@@ -134,7 +134,7 @@ public class TestFuncPointerInvokers {
     public void testGlobalFIFunctionPointerAddress() {
         try (MemorySession session = MemorySession.openConfined()) {
             fp_addr$set(fp_addr.allocate((addr) -> MemorySegment.ofAddress(addr.address() + 1), session));
-            assertEquals(fp_addr.ofAddress(fp_addr$get(), session).apply(MemorySegment.ofAddress(42)).address(), MemorySegment.ofAddress(43).address());
+            assertEquals(fp_addr.ofAddress(fp_addr$get(), session).apply(MemorySegment.ofAddress(42)), MemorySegment.ofAddress(43));
         }
     }
 }

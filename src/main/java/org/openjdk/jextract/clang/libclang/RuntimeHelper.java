@@ -59,7 +59,7 @@ final class RuntimeHelper {
     private final static SymbolLookup SYMBOL_LOOKUP;
 
     final static SegmentAllocator CONSTANT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.global());
+            (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.openImplicit());
 
     static {
         // Manual change to handle platform specific library name difference
@@ -80,7 +80,7 @@ final class RuntimeHelper {
     private final static SegmentAllocator THROWING_ALLOCATOR = (x, y) -> { throw new AssertionError("should not reach here"); };
 
     static final MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
-        return SYMBOL_LOOKUP.lookup(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), MemorySession.global())).orElse(null);
+        return SYMBOL_LOOKUP.lookup(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), symbol.session())).orElse(null);
     }
 
     static final MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {

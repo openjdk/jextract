@@ -114,9 +114,8 @@ class Utils {
             case "String", "MethodHandle",
                 "VarHandle", "ByteOrder",
                 "FunctionDescriptor", "LibraryLookup",
-                "MemoryLayout", "MemorySession",
-                "MemorySegment", "ValueLayout",
-                "RuntimeHelper" -> true;
+                "MemoryLayout", "MemorySegment",
+                "ValueLayout", "RuntimeHelper" -> true;
             default -> false;
         };
     }
