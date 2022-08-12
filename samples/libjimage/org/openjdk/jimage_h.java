@@ -27,10 +27,10 @@ public class jimage_h  {
     public static MethodHandle JIMAGE_Open$MH() {
         return RuntimeHelper.requireNonNull(constants$0.JIMAGE_Open$MH,"JIMAGE_Open");
     }
-    public static MemoryAddress JIMAGE_Open ( Addressable name,  Addressable error) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$0.JIMAGE_Open$MH, "JIMAGE_Open");
+    public static MemorySegment JIMAGE_Open ( MemorySegment name,  MemorySegment error) {
+        var mh$ = JIMAGE_Open$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(name, error);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(name, error);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -38,8 +38,8 @@ public class jimage_h  {
     public static MethodHandle JIMAGE_Close$MH() {
         return RuntimeHelper.requireNonNull(constants$0.JIMAGE_Close$MH,"JIMAGE_Close");
     }
-    public static void JIMAGE_Close ( Addressable jimage) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$0.JIMAGE_Close$MH, "JIMAGE_Close");
+    public static void JIMAGE_Close ( MemorySegment jimage) {
+        var mh$ = JIMAGE_Close$MH();
         try {
             mh$.invokeExact(jimage);
         } catch (Throwable ex$) {
@@ -49,10 +49,10 @@ public class jimage_h  {
     public static MethodHandle JIMAGE_PackageToModule$MH() {
         return RuntimeHelper.requireNonNull(constants$1.JIMAGE_PackageToModule$MH,"JIMAGE_PackageToModule");
     }
-    public static MemoryAddress JIMAGE_PackageToModule ( Addressable jimage,  Addressable package_name) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$1.JIMAGE_PackageToModule$MH, "JIMAGE_PackageToModule");
+    public static MemorySegment JIMAGE_PackageToModule ( MemorySegment jimage,  MemorySegment package_name) {
+        var mh$ = JIMAGE_PackageToModule$MH();
         try {
-            return (java.lang.foreign.MemoryAddress)mh$.invokeExact(jimage, package_name);
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(jimage, package_name);
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }
@@ -60,8 +60,8 @@ public class jimage_h  {
     public static MethodHandle JIMAGE_FindResource$MH() {
         return RuntimeHelper.requireNonNull(constants$1.JIMAGE_FindResource$MH,"JIMAGE_FindResource");
     }
-    public static long JIMAGE_FindResource ( Addressable jimage,  Addressable module_name,  Addressable version,  Addressable name,  Addressable size) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$1.JIMAGE_FindResource$MH, "JIMAGE_FindResource");
+    public static long JIMAGE_FindResource ( MemorySegment jimage,  MemorySegment module_name,  MemorySegment version,  MemorySegment name,  MemorySegment size) {
+        var mh$ = JIMAGE_FindResource$MH();
         try {
             return (long)mh$.invokeExact(jimage, module_name, version, name, size);
         } catch (Throwable ex$) {
@@ -71,8 +71,8 @@ public class jimage_h  {
     public static MethodHandle JIMAGE_GetResource$MH() {
         return RuntimeHelper.requireNonNull(constants$2.JIMAGE_GetResource$MH,"JIMAGE_GetResource");
     }
-    public static long JIMAGE_GetResource ( Addressable jimage,  long location,  Addressable buffer,  long size) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$2.JIMAGE_GetResource$MH, "JIMAGE_GetResource");
+    public static long JIMAGE_GetResource ( MemorySegment jimage,  long location,  MemorySegment buffer,  long size) {
+        var mh$ = JIMAGE_GetResource$MH();
         try {
             return (long)mh$.invokeExact(jimage, location, buffer, size);
         } catch (Throwable ex$) {
@@ -82,8 +82,8 @@ public class jimage_h  {
     public static MethodHandle JIMAGE_ResourceIterator$MH() {
         return RuntimeHelper.requireNonNull(constants$2.JIMAGE_ResourceIterator$MH,"JIMAGE_ResourceIterator");
     }
-    public static void JIMAGE_ResourceIterator ( Addressable jimage,  Addressable visitor,  Addressable arg) {
-        var mh$ = RuntimeHelper.requireNonNull(constants$2.JIMAGE_ResourceIterator$MH, "JIMAGE_ResourceIterator");
+    public static void JIMAGE_ResourceIterator ( MemorySegment jimage,  MemorySegment visitor,  MemorySegment arg) {
+        var mh$ = JIMAGE_ResourceIterator$MH();
         try {
             mh$.invokeExact(jimage, visitor, arg);
         } catch (Throwable ex$) {

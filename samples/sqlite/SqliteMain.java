@@ -29,12 +29,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
 import java.lang.foreign.SegmentAllocator;
 import org.sqlite.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import static org.sqlite.sqlite3_h.*;
 
 public class SqliteMain {
@@ -96,8 +95,8 @@ public class SqliteMain {
             var callback = sqlite3_exec$callback.allocate((a, argc, argv, columnNames) -> {
                 System.out.println("Row num: " + rowNum[0]++);
                 System.out.println("numColumns = " + argc);
-                var argv_seg = MemorySegment.ofAddress(argv, C_POINTER.byteSize() * argc, session);
-                var columnNames_seg = MemorySegment.ofAddress(columnNames, C_POINTER.byteSize() * argc, session);
+                var argv_seg = MemorySegment.ofAddress(argv.address(), C_POINTER.byteSize() * argc, session);
+                var columnNames_seg = MemorySegment.ofAddress(columnNames.address(), C_POINTER.byteSize() * argc, session);
                 for (int i = 0; i < argc; i++) {
                      String name = columnNames_seg.getAtIndex(C_POINTER, i).getUtf8String(0);
                      String value = argv_seg.getAtIndex(C_POINTER, i).getUtf8String(0);

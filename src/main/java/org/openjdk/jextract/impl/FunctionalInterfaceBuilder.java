@@ -48,8 +48,8 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, String className,
                                FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(enclosing, Kind.INTERFACE, className);
-        this.fiType = Linker.upcallType(descriptor);
-        this.downcallType = Linker.downcallType(descriptor);
+        this.fiType = Linker.methodType(descriptor);
+        this.downcallType = Linker.methodType(descriptor);
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
     }
@@ -110,11 +110,11 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                  fiDesc, false, true);
             incrAlign();
             indent();
-            append(MEMBER_MODS + " " + className() + " ofAddress(MemoryAddress addr, MemorySession session) {\n");
+            append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, MemorySession session) {\n");
             incrAlign();
             indent();
             append("MemorySegment symbol = MemorySegment.ofAddress(");
-            append("addr, 0, session);\n");
+            append("addr.address(), 0, session);\n");
             indent();
             append("return (");
             String delim = "";
@@ -137,7 +137,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                     append("(" + downcallType.returnType().getName() + ")");
                 }
             }
-            append(mhConstant.accessExpression() + ".invokeExact((Addressable)symbol");
+            append(mhConstant.accessExpression() + ".invokeExact((MemorySegment)symbol");
             if (fiType.parameterCount() > 0) {
                 String params = IntStream.range(0, fiType.parameterCount())
                         .mapToObj(i -> {

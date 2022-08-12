@@ -23,7 +23,7 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
-import java.lang.foreign.Addressable;
+import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 
@@ -51,10 +51,10 @@ public class RepeatedDeclsTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "func2", int.class));
 
             // check a method for "void func3(int*)"
-            assertNotNull(findMethod(cls, "func3", Addressable.class));
+            assertNotNull(findMethod(cls, "func3", MemorySegment.class));
 
             // check a method for "void func4(int*)"
-            assertNotNull(findMethod(cls, "func4", Addressable.class));
+            assertNotNull(findMethod(cls, "func4", MemorySegment.class));
 
             // check a method for "void func5(int)"
             assertNotNull(findMethod(cls, "func5", int.class));

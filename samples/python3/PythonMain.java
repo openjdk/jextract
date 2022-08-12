@@ -31,7 +31,7 @@
 
 import java.lang.foreign.MemorySession;
 import java.lang.foreign.SegmentAllocator;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 // import jextracted python 'header' class
 import static org.python.Python_h.*;
 import org.python.*;

@@ -25,7 +25,7 @@ package org.openjdk.jextract.test.toolprovider;
 
 import java.nio.file.Path;
 
-import java.lang.foreign.Addressable;
+import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
@@ -38,7 +38,7 @@ public class Test8249290 extends JextractToolRunner {
         run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> headerClass = loader.loadClass("test8249290_h");
-            checkMethod(headerClass, "func", void.class, Addressable.class);
+            checkMethod(headerClass, "func", void.class, MemorySegment.class);
             Class<?> fiClass = loader.loadClass("func$f");
             checkMethod(fiClass, "apply", void.class);
         } finally {

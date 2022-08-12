@@ -21,7 +21,7 @@
  * questions.
  */
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
 import java.lang.foreign.SegmentAllocator;
@@ -54,12 +54,11 @@ public class LibTest8246341Test {
         try (MemorySession session = MemorySession.openConfined()) {
             var callback = func$callback.allocate((argc, argv) -> {
                 callbackCalled[0] = true;
-                var addr = MemorySegment.ofAddress(argv, C_POINTER.byteSize() * argc, session);
                 assertEquals(argc, 4);
-                assertEquals(addr.get(C_POINTER, 0).getUtf8String(0), "java");
-                assertEquals(addr.get(C_POINTER, C_POINTER.byteSize() * 1).getUtf8String(0), "python");
-                assertEquals(addr.get(C_POINTER, C_POINTER.byteSize() * 2).getUtf8String(0), "javascript");
-                assertEquals(addr.get(C_POINTER, C_POINTER.byteSize() * 3).getUtf8String(0), "c++");
+                assertEquals(argv.get(C_POINTER, 0).getUtf8String(0), "java");
+                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 1).getUtf8String(0), "python");
+                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 2).getUtf8String(0), "javascript");
+                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 3).getUtf8String(0), "c++");
             }, session);
             func(callback);
         }
@@ -69,9 +68,8 @@ public class LibTest8246341Test {
     @Test
     public void testPointerAllocate() {
         try (var session = MemorySession.openConfined()) {
-            var allocator = SegmentAllocator.newNativeArena(C_POINTER.byteSize(), session);
-            var addr = allocator.allocate(C_POINTER);
-            addr.set(C_POINTER, 0, MemoryAddress.NULL);
+            var addr = session.allocate(C_POINTER);
+            addr.set(C_POINTER, 0, MemorySegment.NULL);
             fillin(addr);
             assertEquals(addr.get(C_POINTER, 0).getUtf8String(0), "hello world");
         }

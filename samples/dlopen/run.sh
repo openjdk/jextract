@@ -1,3 +1,3 @@
 java --enable-native-access=ALL-UNNAMED \
-   --enable-preview --source=19 \
+   --enable-preview --source=20 \
    Dlopen.java $*

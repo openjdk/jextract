@@ -26,10 +26,9 @@
 
 package org.openjdk.jextract.clang;
 
-import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentAllocator;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 import java.nio.file.Path;
@@ -39,7 +38,7 @@ import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 
 public class Index extends ClangDisposable {
 
-    Index(MemoryAddress addr) {
+    Index(MemorySegment addr) {
         super(addr, () -> Index_h.clang_disposeIndex(addr));
     }
 
@@ -82,13 +81,13 @@ public class Index extends ClangDisposable {
             ErrorCode code = ErrorCode.valueOf(Index_h.clang_parseTranslationUnit2(
                     ptr,
                     src,
-                    cargs == null ? MemoryAddress.NULL : cargs,
-                    args.length, MemoryAddress.NULL,
+                    cargs == null ? MemorySegment.NULL : cargs,
+                    args.length, MemorySegment.NULL,
                     0,
                     options,
                     outAddress));
 
-            MemoryAddress tu = outAddress.get(C_POINTER, 0);
+            MemorySegment tu = outAddress.get(C_POINTER, 0);
             TranslationUnit rv = new TranslationUnit(tu);
             // even if we failed to parse, we might still have diagnostics
             rv.processDiagnostics(dh);

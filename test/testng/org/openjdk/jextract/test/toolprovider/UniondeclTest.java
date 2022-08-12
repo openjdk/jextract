@@ -23,7 +23,7 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
-import java.lang.foreign.Addressable;
+import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import java.nio.file.Path;
@@ -42,7 +42,7 @@ public class UniondeclTest extends JextractToolRunner {
         try(TestUtils.Loader loader = TestUtils.classLoader(uniondeclOutput)) {
             Class<?> cls = loader.loadClass("uniondecl_h");
             // check a method for "void func(IntOrFloat*)"
-            assertNotNull(findMethod(cls, "func", Addressable.class));
+            assertNotNull(findMethod(cls, "func", MemorySegment.class));
             // check IntOrFloat layout
             Class<?> intOrFloatCls = loader.loadClass("IntOrFloat");
             GroupLayout intOrFloatLayout = (GroupLayout)findLayout(intOrFloatCls);

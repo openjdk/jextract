@@ -21,8 +21,6 @@
  * questions.
  */
 
-import java.lang.foreign.Addressable;
-import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
@@ -65,7 +63,7 @@ public class LibTest8246400Test {
             assertEquals(Vector.x$get(sum), 1.0, 0.1);
             assertEquals(Vector.y$get(sum), 1.0, 0.1);
 
-            Addressable callback = cosine_similarity$dot.allocate((a, b) -> {
+            MemorySegment callback = cosine_similarity$dot.allocate((a, b) -> {
                 return (Vector.x$get(a) * Vector.x$get(b)) +
                     (Vector.y$get(a) * Vector.y$get(b));
             }, session);

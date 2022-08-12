@@ -22,7 +22,7 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
-import java.lang.foreign.Addressable;
+import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
@@ -112,8 +112,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
             Class<?> cls = loader.loadClass("hello_h");
             // check a method for "void func(int)"
             assertNotNull(findMethod(cls, "func", int.class));
-            // check a method for "int printf(MemoryAddress, Object[])"
-            assertNotNull(findMethod(cls, "printf", Addressable.class, Object[].class));
+            // check a method for "int printf(MemorySegment, Object[])"
+            assertNotNull(findMethod(cls, "printf", MemorySegment.class, Object[].class));
         } finally {
             TestUtils.deleteDir(helloOutput);
         }
@@ -142,8 +142,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
             Class<?> cls = loader.loadClass("com.acme.hello_h");
             // check a method for "void func(int)"
             assertNotNull(findMethod(cls, "func", int.class));
-            // check a method for "int printf(MemoryAddress, Object[])"
-            assertNotNull(findMethod(cls, "printf", Addressable.class, Object[].class));
+            // check a method for "int printf(MemorySegment, Object[])"
+            assertNotNull(findMethod(cls, "printf", MemorySegment.class, Object[].class));
         } finally {
             TestUtils.deleteDir(helloOutput);
         }
@@ -169,8 +169,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
             Class<?> cls = loader.loadClass("com.acme.MyHello");
             // check a method for "void func(int)"
             assertNotNull(findMethod(cls, "func", int.class));
-            // check a method for "int printf(MemoryAddress, Object[])"
-            assertNotNull(findMethod(cls, "printf", Addressable.class, Object[].class));
+            // check a method for "int printf(MemorySegment, Object[])"
+            assertNotNull(findMethod(cls, "printf", MemorySegment.class, Object[].class));
         } finally {
             TestUtils.deleteDir(helloOutput);
         }

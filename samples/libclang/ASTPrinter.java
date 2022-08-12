@@ -30,7 +30,7 @@
  */
 
 import java.lang.foreign.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import static org.llvm.clang.Index_h.*;
 import org.llvm.clang.*;
 

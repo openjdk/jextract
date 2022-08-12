@@ -61,7 +61,7 @@ public class JextractToolRunner {
     public static final ValueLayout.OfLong C_LONG_LONG = ValueLayout.JAVA_LONG.withBitAlignment(64);
     public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT.withBitAlignment(32);
     public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE.withBitAlignment(64);
-    public static final ValueLayout.OfAddress C_POINTER = ValueLayout.ADDRESS.withBitAlignment(ValueLayout.ADDRESS.bitSize());
+    public static final ValueLayout.OfAddress C_POINTER = ValueLayout.ADDRESS.withBitAlignment(ValueLayout.ADDRESS.bitSize()).asUnbounded();
 
     // (private) exit codes from jextract tool. Copied from JextractTool.
     protected static final int SUCCESS       = 0;

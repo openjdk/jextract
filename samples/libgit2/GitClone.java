@@ -29,11 +29,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.MemorySession;
 import static com.github.git2_h.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import com.github.*;
 
 public class GitClone {

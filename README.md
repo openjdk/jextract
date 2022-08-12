@@ -4,7 +4,7 @@
 
 ### Getting started
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable [jdk 19 distribution](https://jdk.java.net/19/) is also required.
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable build of the [panama/foreign repository](https://github.com/openjdk/panama-foreign) is also required.
 
 > <details><summary><strong>Building older jextract versions</strong></summary>
 > 
@@ -19,7 +19,7 @@
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean verify
+$ sh ./gradlew -Pjdk20_home=<jdk20_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
 
@@ -47,7 +47,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+$ sh ./gradlew -Pjdk20_home=<jdk20_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
 
 Note however that running `jtreg` task requires `cmake` to be available on the `PATH`.

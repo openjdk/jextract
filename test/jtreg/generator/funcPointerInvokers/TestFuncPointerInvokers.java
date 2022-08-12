@@ -21,7 +21,7 @@
  * questions.
  */
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
@@ -51,7 +51,7 @@ public class TestFuncPointerInvokers {
         try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(session);
-            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session).address());
+            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session));
             Bar.foo(bar, session).apply(42);
             assertEquals(val.get(), 42);
         }
@@ -62,7 +62,7 @@ public class TestFuncPointerInvokers {
         try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(session);
-            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session).address());
+            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), session));
             Foo.ofAddress(Bar.foo$get(bar), session).apply(42);
             assertEquals(val.get(), 42);
         }
@@ -72,7 +72,7 @@ public class TestFuncPointerInvokers {
     public void testGlobalTypedef() {
         try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            f$set(Foo.allocate((i) -> val.set(i), session).address());
+            f$set(Foo.allocate((i) -> val.set(i), session));
             f().apply(42);
             assertEquals(val.get(), 42);
         }
@@ -82,7 +82,7 @@ public class TestFuncPointerInvokers {
     public void testGlobalFITypedef() {
         try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            f$set(Foo.allocate((i) -> val.set(i), session).address());
+            f$set(Foo.allocate((i) -> val.set(i), session));
             Foo.ofAddress(f$get(), session).apply(42);
             assertEquals(val.get(), 42);
         }
@@ -93,7 +93,7 @@ public class TestFuncPointerInvokers {
         try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(session);
-            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session).address());
+            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session));
             Baz.fp(baz, session).apply(42);
             assertEquals(val.get(), 42);
         }
@@ -104,7 +104,7 @@ public class TestFuncPointerInvokers {
         try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(session);
-            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session).address());
+            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), session));
             Baz.fp.ofAddress(Baz.fp$get(baz), session).apply(42);
             assertEquals(val.get(), 42);
         }
@@ -114,7 +114,7 @@ public class TestFuncPointerInvokers {
     public void testGlobalFunctionPointer() {
         try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            fp$set(fp.allocate((i) -> val.set(i), session).address());
+            fp$set(fp.allocate((i) -> val.set(i), session));
             fp().apply(42);
             assertEquals(val.get(), 42);
         }
@@ -124,7 +124,7 @@ public class TestFuncPointerInvokers {
     public void testGlobalFIFunctionPointer() {
         try (MemorySession session = MemorySession.openConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            fp$set(fp.allocate((i) -> val.set(i), session).address());
+            fp$set(fp.allocate((i) -> val.set(i), session));
             fp.ofAddress(fp$get(), session).apply(42);
             assertEquals(val.get(), 42);
         }
@@ -133,8 +133,8 @@ public class TestFuncPointerInvokers {
     @Test
     public void testGlobalFIFunctionPointerAddress() {
         try (MemorySession session = MemorySession.openConfined()) {
-            fp_addr$set(fp_addr.allocate((addr) -> MemoryAddress.ofLong(addr.toRawLongValue() + 1), session).address());
-            assertEquals(fp_addr.ofAddress(fp_addr$get(), session).apply(MemoryAddress.ofLong(42)), MemoryAddress.ofLong(43));
+            fp_addr$set(fp_addr.allocate((addr) -> MemorySegment.ofAddress(addr.address() + 1), session));
+            assertEquals(fp_addr.ofAddress(fp_addr$get(), session).apply(MemorySegment.ofAddress(42)), MemorySegment.ofAddress(43));
         }
     }
 }
