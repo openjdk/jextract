@@ -24,7 +24,7 @@
 import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 import test.jextract.test8258605.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static test.jextract.test8258605.funcParam_h.*;

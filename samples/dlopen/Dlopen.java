@@ -42,14 +42,14 @@ public class Dlopen {
     private static Function<String, Optional<MemorySegment>> lookup(String libraryName, MemorySession session) {
         try (MemorySession libOpenSession = MemorySession.openConfined()) {
             var handle = dlopen(libOpenSession.allocateUtf8String(libraryName), RTLD_LOCAL());
-            if (handle == MemoryAddress.NULL) {
+            if (handle == MemorySegment.NULL) {
                 throw new IllegalArgumentException("Cannot find library: " + libraryName);
             }
             session.addCloseAction(() -> dlclose(handle));
             return name -> {
                 var addr = dlsym(handle, session.allocateUtf8String(name));
-                return addr == MemoryAddress.NULL ?
-                            Optional.empty() : Optional.of(MemorySegment.ofAddress(addr, 0, session));
+                return addr == MemorySegment.NULL ?
+                            Optional.empty() : Optional.of(addr);
             };
         }
     }

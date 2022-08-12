@@ -39,7 +39,7 @@ import libffmpeg.AVFrame;
 import libffmpeg.AVPacket;
 import libffmpeg.AVStream;
 import static libffmpeg.Libffmpeg.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 
 /*
  * This sample is based on C sample from the ffmpeg tutorial at
@@ -104,13 +104,13 @@ public class LibffmpegMain {
             // Find the first video stream
             int videoStream = -1;
             // AVFrameContext formatCtx;
-            var formatCtx = MemorySegment.ofAddress(pFormatCtx, AVFormatContext.sizeof(), session);
+            var formatCtx = MemorySegment.ofAddress(pFormatCtx.address(), AVFormatContext.sizeof(), session);
             // formatCtx.nb_streams
             int nb_streams = AVFormatContext.nb_streams$get(formatCtx);
             System.out.println("number of streams: " + nb_streams);
             // formatCtx.streams
             var pStreams = AVFormatContext.streams$get(formatCtx);
-            var streamsArray = MemorySegment.ofAddress(pStreams, nb_streams * C_POINTER.byteSize(), session);
+            var streamsArray = MemorySegment.ofAddress(pStreams.address(), nb_streams * C_POINTER.byteSize(), session);
 
             // AVCodecContext* pVideoCodecCtx;
             var pVideoCodecCtx = NULL;
@@ -120,10 +120,10 @@ public class LibffmpegMain {
                 // AVStream* pStream;
                 var pStream = streamsArray.getAtIndex(C_POINTER, i);
                 // AVStream stream;
-                var stream = MemorySegment.ofAddress(pStream, AVStream.sizeof(), session);
+                var stream = MemorySegment.ofAddress(pStream.address(), AVStream.sizeof(), session);
                 // AVCodecContext* pCodecCtx;
                 pCodecCtx = AVStream.codec$get(stream);
-                var avcodecCtx = MemorySegment.ofAddress(pCodecCtx, AVCodecContext.sizeof(), session);
+                var avcodecCtx = MemorySegment.ofAddress(pCodecCtx.address(), AVCodecContext.sizeof(), session);
                 if (AVCodecContext.codec_type$get(avcodecCtx) == AVMEDIA_TYPE_VIDEO()) {
                     videoStream = i;
                     pVideoCodecCtx = pCodecCtx;
@@ -165,7 +165,7 @@ public class LibffmpegMain {
             pFrameRGB = av_frame_alloc();
 
             // Determine required buffer size and allocate buffer
-            var codecCtx = MemorySegment.ofAddress(pCodecCtx, AVCodecContext.sizeof(), session);
+            var codecCtx = MemorySegment.ofAddress(pCodecCtx.address(), AVCodecContext.sizeof(), session);
             int width = AVCodecContext.width$get(codecCtx);
             int height = AVCodecContext.height$get(codecCtx);
             int numBytes = avpicture_get_size(AV_PIX_FMT_RGB24(), width, height);
@@ -175,11 +175,11 @@ public class LibffmpegMain {
             if (pFrame.equals(NULL)) {
                 throw new ExitException(1, "Cannot allocate frame");
             }
-            var frame = MemorySegment.ofAddress(pFrame, AVFrame.sizeof(), session);
+            var frame = MemorySegment.ofAddress(pFrame.address(), AVFrame.sizeof(), session);
             if (pFrameRGB.equals(NULL)) {
                 throw new ExitException(1, "Cannot allocate RGB frame");
             }
-            var frameRGB = MemorySegment.ofAddress(pFrameRGB, AVFrame.sizeof(), session);
+            var frameRGB = MemorySegment.ofAddress(pFrameRGB.address(), AVFrame.sizeof(), session);
             if (buffer.equals(NULL)) {
                 throw new ExitException(1, "cannot allocate buffer");
             }
@@ -281,7 +281,7 @@ public class LibffmpegMain {
             // Write pixel data
             for (int y = 0; y < height; y++) {
                 // frameRGB.data[0] + y*frameRGB.linesize[0] is the pointer. And 3*width size of data
-                var pixelArray = MemorySegment.ofAddress(pdata.addOffset(y*linesize), 3*width, session);
+                var pixelArray = MemorySegment.ofAddress(pdata.address() + y*linesize, 3*width, session);
                 // dump the pixel byte buffer to file
                 os.write(pixelArray.toArray(C_CHAR));
             }

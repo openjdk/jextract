@@ -29,7 +29,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.MemorySession;
 import blas.*;

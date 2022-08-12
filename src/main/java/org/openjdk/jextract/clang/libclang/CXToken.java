@@ -48,16 +48,16 @@ public class CXToken {
     public static VarHandle ptr_data$VH() {
         return CXToken.ptr_data$VH;
     }
-    public static MemoryAddress ptr_data$get(MemorySegment seg) {
-        return (java.lang.foreign.MemoryAddress)CXToken.ptr_data$VH.get(seg);
+    public static MemorySegment ptr_data$get(MemorySegment seg) {
+        return (java.lang.foreign.MemorySegment)CXToken.ptr_data$VH.get(seg);
     }
-    public static void ptr_data$set( MemorySegment seg, MemoryAddress x) {
+    public static void ptr_data$set( MemorySegment seg, MemorySegment x) {
         CXToken.ptr_data$VH.set(seg, x);
     }
-    public static MemoryAddress ptr_data$get(MemorySegment seg, long index) {
-        return (java.lang.foreign.MemoryAddress)CXToken.ptr_data$VH.get(seg.asSlice(index*sizeof()));
+    public static MemorySegment ptr_data$get(MemorySegment seg, long index) {
+        return (java.lang.foreign.MemorySegment)CXToken.ptr_data$VH.get(seg.asSlice(index*sizeof()));
     }
-    public static void ptr_data$set(MemorySegment seg, long index, MemoryAddress x) {
+    public static void ptr_data$set(MemorySegment seg, long index, MemorySegment x) {
         CXToken.ptr_data$VH.set(seg.asSlice(index*sizeof()), x);
     }
     public static long sizeof() { return $LAYOUT().byteSize(); }
@@ -65,7 +65,7 @@ public class CXToken {
     public static MemorySegment allocateArray(int len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment ofAddress(MemoryAddress addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }
+    public static MemorySegment ofAddress(MemorySegment addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }
 }
 
 

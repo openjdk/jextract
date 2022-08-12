@@ -21,7 +21,7 @@
  * questions.
  */
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
 import org.testng.annotations.Test;
 import test.jextract.test8259473.*;

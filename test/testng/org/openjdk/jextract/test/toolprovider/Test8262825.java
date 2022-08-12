@@ -45,7 +45,7 @@ public class Test8262825 extends JextractToolRunner {
 
             assertNotNull(loader.loadClass("RuntimeHelper_"));
             assertNotNull(loader.loadClass("String_"));
-            assertNotNull(loader.loadClass("MemoryAddress_"));
+            assertNotNull(loader.loadClass("MemorySegment_"));
             assertNotNull(loader.loadClass("MemorySegment_"));
         } finally {
             TestUtils.deleteDir(output);

@@ -25,7 +25,7 @@
  */
 package org.openjdk.jextract.clang;
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 import static org.openjdk.jextract.clang.LibClang.STRING_ALLOCATOR;
@@ -64,7 +64,7 @@ public class Diagnostic extends ClangDisposable {
      */
     public static final int CXDiagnostic_Fatal   = Index_h.CXDiagnostic_Fatal();
 
-    Diagnostic(MemoryAddress ptr) {
+    Diagnostic(MemorySegment ptr) {
         super(ptr, () -> Index_h.clang_disposeDiagnostic(ptr));
     }
 

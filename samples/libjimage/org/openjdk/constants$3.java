@@ -15,7 +15,7 @@ class constants$3 {
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle JImageResourceIterator_t$MH = RuntimeHelper.downcallHandle(
-        constants$3.JImageResourceIterator_t$FUNC, false
+        constants$3.JImageResourceIterator_t$FUNC
     );
 }
 

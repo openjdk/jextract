@@ -30,7 +30,7 @@
  */
 
 import java.lang.foreign.*;
-import static java.lang.foreign.MemoryAddress.*;
+import static java.lang.foreign.MemorySegment.*;
 import static org.tensorflow.c_api_h.*;
 import org.tensorflow.*;
 

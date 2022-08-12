@@ -15,27 +15,27 @@ class constants$0 {
     );
     static final MethodHandle JIMAGE_Open$MH = RuntimeHelper.downcallHandle(
         "JIMAGE_Open",
-        constants$0.JIMAGE_Open$FUNC, false
+        constants$0.JIMAGE_Open$FUNC
     );
     static final FunctionDescriptor JImageOpen_t$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle JImageOpen_t$MH = RuntimeHelper.downcallHandle(
-        constants$0.JImageOpen_t$FUNC, false
+        constants$0.JImageOpen_t$FUNC
     );
     static final FunctionDescriptor JIMAGE_Close$FUNC = FunctionDescriptor.ofVoid(
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle JIMAGE_Close$MH = RuntimeHelper.downcallHandle(
         "JIMAGE_Close",
-        constants$0.JIMAGE_Close$FUNC, false
+        constants$0.JIMAGE_Close$FUNC
     );
     static final FunctionDescriptor JImageClose_t$FUNC = FunctionDescriptor.ofVoid(
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle JImageClose_t$MH = RuntimeHelper.downcallHandle(
-        constants$0.JImageClose_t$FUNC, false
+        constants$0.JImageClose_t$FUNC
     );
 }
 

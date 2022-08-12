@@ -258,7 +258,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS);
-        append(" MemorySegment ofAddress(MemoryAddress addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }\n");
+        append(" MemorySegment ofAddress(MemorySegment addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }\n");
         decrAlign();
     }
 
