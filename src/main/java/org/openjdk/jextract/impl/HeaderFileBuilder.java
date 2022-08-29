@@ -200,7 +200,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
             incrAlign();
             indent();
             append(MEMBER_MODS);
-            append(" " + primType.kind().layout().orElseThrow().getClass().getSimpleName());
+            append(" " + Utils.layoutClassNameInDeclaration(primType.kind().layout().orElseThrow()));
             append(" " + uniqueNestedClassName(name));
             append(" = ");
             append(toplevel().rootConstants().resolvePrimitiveLayout((ValueLayout)kind.layout().get()).accessExpression());

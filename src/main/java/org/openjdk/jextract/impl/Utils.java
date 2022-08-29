@@ -36,6 +36,7 @@ import javax.lang.model.SourceVersion;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import java.io.IOException;
+import java.lang.foreign.MemoryLayout;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -316,6 +317,17 @@ class Utils {
                 ? String.valueOf(ch)
                 : String.format("\\u%04x", (int) ch);
         }
+    }
+
+    static String layoutClassNameInDeclaration(MemoryLayout layout) {
+        if (layout.getClass().getName().contains(".internal")) {
+            Class<?> ifs[] = layout.getClass().getInterfaces();
+            if (ifs.length != 1) {
+                throw new IllegalStateException("The class" + layout.getClass() + " does not implement exactly one interface");
+            }
+            return ifs[0].getSimpleName();
+        }
+        return layout.getClass().getSimpleName();
     }
 
     static boolean isPointerType(org.openjdk.jextract.Type type) {
