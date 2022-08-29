@@ -320,14 +320,14 @@ class Utils {
     }
 
     /**
-     * Returns the unqualified type name that should be used in declarations of various
+     * Returns the type that should be used in declarations of various
      * memory layout implementations.
      * <p>
      * For example, the concrete layout implementation class {@code OfLongImpl} should be
      * declared as {@code OfLong} and not {@code OfLongImpl}.
      *
      * @param layout to generate a declaring type string for.
-     * @return the unqualified type name
+     * @return the unqualified type
      */
     static Class<?> layoutDeclarationType(MemoryLayout layout) {
         if (!layout.getClass().isInterface()) {
