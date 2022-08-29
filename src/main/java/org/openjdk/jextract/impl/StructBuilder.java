@@ -29,6 +29,7 @@ import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.UnionLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
@@ -321,7 +322,7 @@ class StructBuilder extends ConstantBuilder {
     }
 
     private String layoutField() {
-        String suffix = structLayout.isUnion() ? "union" : "struct";
+        String suffix = (structLayout instanceof UnionLayout) ? "union" : "struct";
         return qualifiedName(this) + "$" + suffix;
     }
 }

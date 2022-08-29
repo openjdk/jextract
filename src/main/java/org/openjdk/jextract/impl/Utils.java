@@ -36,6 +36,7 @@ import javax.lang.model.SourceVersion;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import java.io.IOException;
+import java.lang.foreign.MemoryLayout;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -316,6 +317,27 @@ class Utils {
                 ? String.valueOf(ch)
                 : String.format("\\u%04x", (int) ch);
         }
+    }
+
+    /**
+     * Returns the type that should be used in declarations of various
+     * memory layout implementations.
+     * <p>
+     * For example, the concrete layout implementation class {@code OfLongImpl} should be
+     * declared as {@code OfLong} and not {@code OfLongImpl}.
+     *
+     * @param layout to generate a declaring type string for.
+     * @return the unqualified type
+     */
+    static Class<?> layoutDeclarationType(MemoryLayout layout) {
+        if (!layout.getClass().isInterface()) {
+            Class<?> ifs[] = layout.getClass().getInterfaces();
+            if (ifs.length != 1) {
+                throw new IllegalStateException("The class" + layout.getClass() + " does not implement exactly one interface");
+            }
+            return ifs[0];
+        }
+        return layout.getClass();
     }
 
     static boolean isPointerType(org.openjdk.jextract.Type type) {

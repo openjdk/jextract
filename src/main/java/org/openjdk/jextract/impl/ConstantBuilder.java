@@ -31,6 +31,7 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.StructLayout;
 import java.lang.foreign.ValueLayout;
 
 import java.lang.invoke.MethodHandle;
@@ -254,7 +255,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         String fieldName = Constant.Kind.LAYOUT.fieldName(javaName);
         incrAlign();
         indent();
-        String layoutClassName = layout.getClass().getSimpleName();
+        String layoutClassName = Utils.layoutDeclarationType(layout).getSimpleName();
         append(memberMods() + " " + layoutClassName + " " + fieldName + " = ");
         emitLayoutString(layout);
         append(";\n");
@@ -275,7 +276,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
             emitLayoutString(seq.elementLayout());
             append(")");
         } else if (l instanceof GroupLayout group) {
-            if (group.isStruct()) {
+            if (group instanceof StructLayout) {
                 append("MemoryLayout.structLayout(\n");
             } else {
                 append("MemoryLayout.unionLayout(\n");
