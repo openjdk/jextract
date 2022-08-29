@@ -255,7 +255,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         String fieldName = Constant.Kind.LAYOUT.fieldName(javaName);
         incrAlign();
         indent();
-        String layoutClassName = Utils.layoutClassNameInDeclaration(layout);
+        String layoutClassName = Utils.layoutDeclarationType(layout).getSimpleName();
         append(memberMods() + " " + layoutClassName + " " + fieldName + " = ");
         emitLayoutString(layout);
         append(";\n");

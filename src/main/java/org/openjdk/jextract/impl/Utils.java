@@ -319,15 +319,25 @@ class Utils {
         }
     }
 
-    static String layoutClassNameInDeclaration(MemoryLayout layout) {
-        if (layout.getClass().getName().contains(".internal")) {
+    /**
+     * Returns the unqualified type name that should be used in declarations of various
+     * memory layout implementations.
+     * <p>
+     * For example, the concrete layout implementation class {@code OfLongImpl} should be
+     * declared as {@code OfLong} and not {@code OfLongImpl}.
+     *
+     * @param layout to generate a declaring type string for.
+     * @return the unqualified type name
+     */
+    static Class<?> layoutDeclarationType(MemoryLayout layout) {
+        if (!layout.getClass().isInterface()) {
             Class<?> ifs[] = layout.getClass().getInterfaces();
             if (ifs.length != 1) {
                 throw new IllegalStateException("The class" + layout.getClass() + " does not implement exactly one interface");
             }
-            return ifs[0].getSimpleName();
+            return ifs[0];
         }
-        return layout.getClass().getSimpleName();
+        return layout.getClass();
     }
 
     static boolean isPointerType(org.openjdk.jextract.Type type) {
