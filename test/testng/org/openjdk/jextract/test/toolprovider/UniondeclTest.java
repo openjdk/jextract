@@ -28,6 +28,7 @@ import testlib.TestUtils;
 import org.testng.annotations.Test;
 import java.nio.file.Path;
 import java.lang.foreign.GroupLayout;
+import java.lang.foreign.UnionLayout;
 import testlib.JextractToolRunner;
 
 import static org.testng.Assert.assertNotNull;
@@ -47,7 +48,7 @@ public class UniondeclTest extends JextractToolRunner {
             Class<?> intOrFloatCls = loader.loadClass("IntOrFloat");
             GroupLayout intOrFloatLayout = (GroupLayout)findLayout(intOrFloatCls);
             assertNotNull(intOrFloatLayout);
-            assertTrue(intOrFloatLayout.isUnion());
+            assertTrue(intOrFloatLayout instanceof UnionLayout);
             checkField(intOrFloatLayout, "i",  C_INT);
             checkField(intOrFloatLayout, "f", C_FLOAT);
         } finally {

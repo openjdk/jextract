@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.StructLayout;
 import testlib.JextractToolRunner;
 
 import static org.testng.Assert.assertNotNull;
@@ -100,7 +101,7 @@ public class RepeatedDeclsTest extends JextractToolRunner {
     private void checkPoint(Class<?> pointCls) {
         MemoryLayout pointLayout = findLayout(pointCls);
         assertNotNull(pointLayout);
-        assertTrue(((GroupLayout)pointLayout).isStruct());
+        assertTrue(pointLayout instanceof StructLayout);
         checkField(pointLayout, "i", C_INT);
         checkField(pointLayout, "j", C_INT);
     }
@@ -108,7 +109,7 @@ public class RepeatedDeclsTest extends JextractToolRunner {
     private void checkPoint3D(Class<?> point3DCls) {
         MemoryLayout point3DLayout = findLayout(point3DCls);
         assertNotNull(point3DLayout);
-        assertTrue(((GroupLayout)point3DLayout).isStruct());
+        assertTrue(point3DLayout instanceof StructLayout);
         checkField(point3DLayout, "i", C_INT);
         checkField(point3DLayout, "j", C_INT);
         checkField(point3DLayout, "k", C_INT);
