@@ -75,3 +75,7 @@ echo "compiling time"
 cd time
 sh ./compilesource.sh
 cd ..
+echo "compiling libzstd"
+cd libzstd
+sh ./compilesource.sh
+cd ..
