@@ -235,6 +235,11 @@ class ToplevelBuilder extends JavaSourceBuilder {
         }
 
         @Override
+        String mods() {
+            return "final "; // Constants$root package-private!
+        }
+
+        @Override
         protected String primitiveLayoutString(ValueLayout vl) {
             if (vl.carrier() == boolean.class) {
                 return "JAVA_BOOLEAN";
