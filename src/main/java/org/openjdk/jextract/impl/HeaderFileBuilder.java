@@ -93,7 +93,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     public void addFunction(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, List<String> parameterNames) {
         emitWithConstantClass(constantBuilder -> {
             Constant mhConstant = constantBuilder.addMethodHandle(javaName, nativeName, descriptor, isVarargs, false)
-                    .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
+                    .emitGetter(this, "private static", Constant.QUALIFIED_NAME, nativeName);
             MethodType downcallType = Linker.methodType(descriptor);
             boolean needsAllocator = descriptor.returnLayout().isPresent() &&
                     descriptor.returnLayout().get() instanceof GroupLayout;
@@ -157,7 +157,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     private List<String> emitFunctionWrapperDecl(String javaName, MethodType methodType, boolean isVarargs, List<String> paramNames) {
-        append(methodType.returnType().getSimpleName() + " " + javaName + " (");
+        append(methodType.returnType().getSimpleName() + " " + javaName + "(");
         String delim = "";
         List<String> pExprs = new ArrayList<>();
         final int numParams = paramNames.size();
@@ -168,7 +168,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
             }
             pExprs.add(pName);
             Class<?> pType = methodType.parameterType(i);
-            append(delim + " " + pType.getSimpleName() + " " + pName);
+            append(delim + pType.getSimpleName() + " " + pName);
             delim = ", ";
         }
         if (isVarargs) {
