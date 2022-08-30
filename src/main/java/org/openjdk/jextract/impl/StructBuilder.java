@@ -81,7 +81,7 @@ class StructBuilder extends ConstantBuilder {
     void classBegin() {
         if (!inAnonymousNested()) {
             super.classBegin();
-            addLayout(layoutField(), ((Type.Declared) structType).tree().layout().get())
+            addLayout(layoutField(), ((Type.Declared) structType).tree().layout().orElseThrow())
                     .emitGetter(this, MEMBER_MODS, Constant.SUFFIX_ONLY);
         }
     }

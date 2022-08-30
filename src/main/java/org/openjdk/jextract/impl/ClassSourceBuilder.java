@@ -28,6 +28,8 @@ import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Superclass for .java source generator classes.
@@ -86,11 +88,21 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
     }
 
     String mods() {
-        return (!isNested() || kind == Kind.INTERFACE) ?
-                    "public " : "public static ";
+        if (kind == Kind.INTERFACE) {
+            return "public ";
+        }
+        return (isNested() ? "public static " : "public ") +
+                (isClassFinal() ? "final " : "");
+    }
+
+    boolean isClassFinal() {
+        return true;
     }
 
     void classBegin() {
+        RuntimeException e = new RuntimeException();
+
+        System.out.println(getClass().getName() + " " + className()+"\n"+ Stream.of(e.getStackTrace()).limit(7).map(Object::toString).collect(Collectors.joining("\n")));
         if (isNested()) {
             incrAlign();
         }
@@ -105,6 +117,21 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
             append(superClass());
         }
         append(" {\n\n");
+        if (kind != Kind.INTERFACE) {
+            emitConstructor();
+        }
+    }
+
+    void emitConstructor() {
+        incrAlign();
+        indent();
+        append("// Suppresses default constructor, ensuring non-instantiability.\n");
+        indent();
+        append("private ");
+        append(className());
+        append("() {}");
+        append('\n');
+        decrAlign();
     }
 
     JavaSourceBuilder classEnd() {

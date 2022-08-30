@@ -108,7 +108,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         }
     }
 
-    static class Constant {
+    static final class Constant {
 
         enum Kind {
             LAYOUT(MemoryLayout.class, "$LAYOUT"),
@@ -256,7 +256,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         incrAlign();
         indent();
         String layoutClassName = Utils.layoutDeclarationType(layout).getSimpleName();
-        append(memberMods() + " " + layoutClassName + " " + fieldName + " = ");
+        append(memberMods() + layoutClassName + " " + fieldName + " = ");
         emitLayoutString(layout);
         append(";\n");
         decrAlign();
