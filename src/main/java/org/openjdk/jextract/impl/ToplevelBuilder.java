@@ -303,7 +303,12 @@ class ToplevelBuilder extends JavaSourceBuilder {
                 constantBuilder.classEnd();
             }
             constant_counter = 0;
-            constantBuilder = new ConstantBuilder(this, "constants$" + constant_class_index++);
+            constantBuilder = new ConstantBuilder(this, "constants$" + constant_class_index++) {
+                @Override
+                String mods() {
+                    return "final "; // constants package-private!
+                }
+            };
             constantBuilders.add(constantBuilder);
             constantBuilder.classBegin();
         }
