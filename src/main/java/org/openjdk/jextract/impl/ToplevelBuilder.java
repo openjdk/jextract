@@ -308,16 +308,24 @@ class ToplevelBuilder extends JavaSourceBuilder {
                 constantBuilder.classEnd();
             }
             constant_counter = 0;
-            constantBuilder = new ConstantBuilder(this, "constants$" + constant_class_index++) {
-                @Override
-                String mods() {
-                    return "final "; // constants package-private!
-                }
-            };
+            constantBuilder = new ConstantsSequelBuilder(this, "constants$" + constant_class_index++);
             constantBuilders.add(constantBuilder);
             constantBuilder.classBegin();
         }
         constantConsumer.accept(constantBuilder);
         constant_counter++;
     }
+
+    static final class ConstantsSequelBuilder extends ConstantBuilder {
+
+        ConstantsSequelBuilder(JavaSourceBuilder enclosing, String className) {
+            super(enclosing, className);
+        }
+
+        @Override
+        String mods() {
+            return "final "; // constants package-private!
+        }
+    }
+
 }
