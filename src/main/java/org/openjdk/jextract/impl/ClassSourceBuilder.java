@@ -100,9 +100,6 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
     }
 
     void classBegin() {
-        RuntimeException e = new RuntimeException();
-
-        System.out.println(getClass().getName() + " " + className()+"\n"+ Stream.of(e.getStackTrace()).limit(7).map(Object::toString).collect(Collectors.joining("\n")));
         if (isNested()) {
             incrAlign();
         }
