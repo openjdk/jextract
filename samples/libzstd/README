@@ -1,6 +1,7 @@
-* Install libffmpeg on Mac using homebrew
+* Install zstd on
 
-    brew install zstd
+    Mac: using homebrew "brew install zstd"
+    Linux: use the relevant package manager (e.g. "sudo apt install libzstd-dev"). The -dev variant includes the necessary headers.
 
 * run ./compile.sh or ./compilesource.sh to jextract zstd headers
 
@@ -8,4 +9,5 @@
 
     sh ./run.sh
 
-
+NOTE: For Linux, the path $(brew --prefix zstd) needs to be replaced with
+      relevant code (e.g. $(pkg-config --variable=prefix libzstd) )
