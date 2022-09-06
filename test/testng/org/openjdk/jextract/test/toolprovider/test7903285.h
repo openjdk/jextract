@@ -21,8 +21,14 @@
  * questions.
  */
 
+#ifdef _WIN64
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
+
 static void func(int);
-void func2(int);
+EXPORT void func2(int);
 
 static inline int mul(int x, int y) { return x*y; }
 inline int mul2(int x, int y) { return x*y; }
