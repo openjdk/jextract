@@ -34,6 +34,17 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$10 {
 
+    static final FunctionDescriptor clang_isVolatileQualifiedType$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            MemoryLayout.paddingLayout(32),
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_isVolatileQualifiedType$MH = RuntimeHelper.downcallHandle(
+        "clang_isVolatileQualifiedType",
+        constants$10.clang_isVolatileQualifiedType$FUNC
+    );
     static final FunctionDescriptor clang_getTypedefName$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
@@ -100,21 +111,6 @@ class constants$10 {
     static final MethodHandle clang_getFunctionTypeCallingConv$MH = RuntimeHelper.downcallHandle(
         "clang_getFunctionTypeCallingConv",
         constants$10.clang_getFunctionTypeCallingConv$FUNC
-    );
-    static final FunctionDescriptor clang_getResultType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
-        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
-    ),
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
-        )
-    );
-    static final MethodHandle clang_getResultType$MH = RuntimeHelper.downcallHandle(
-        "clang_getResultType",
-        constants$10.clang_getResultType$FUNC
     );
 }
 

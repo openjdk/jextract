@@ -41,7 +41,8 @@ public class Test7903285 extends JextractToolRunner {
             Class<?> cls = loader.loadClass("test7903285_h");
             assertNull(findMethod(cls, "func", int.class));
             assertNotNull(findMethod(cls, "func2", int.class));
-            assertNull(findMethod(cls, "mul"));
+            assertNull(findMethod(cls, "mul", int.class, int.class));
+            assertNull(findMethod(cls, "mul2", int.class, int.class));
         } finally {
             TestUtils.deleteDir(test7903285Output);
         }

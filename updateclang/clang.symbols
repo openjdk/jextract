@@ -526,6 +526,7 @@
 --include-function clang_Cursor_isAnonymous
 --include-function clang_Cursor_isAnonymousRecordDecl
 --include-function clang_Cursor_isBitField
+--include-function clang_Cursor_isFunctionInlined
 --include-function clang_Cursor_isMacroFunctionLike
 --include-function clang_Cursor_isNull
 --include-function clang_Cursor_isVariadic

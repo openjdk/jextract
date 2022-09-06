@@ -2059,8 +2059,19 @@ public class Index_h  {
             throw new AssertionError("should not reach here", ex$);
         }
     }
+    public static MethodHandle clang_Cursor_isFunctionInlined$MH() {
+        return RuntimeHelper.requireNonNull(constants$9.clang_Cursor_isFunctionInlined$MH,"clang_Cursor_isFunctionInlined");
+    }
+    public static int clang_Cursor_isFunctionInlined ( MemorySegment C) {
+        var mh$ = clang_Cursor_isFunctionInlined$MH();
+        try {
+            return (int)mh$.invokeExact(C);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
+    }
     public static MethodHandle clang_isVolatileQualifiedType$MH() {
-        return RuntimeHelper.requireNonNull(constants$9.clang_isVolatileQualifiedType$MH,"clang_isVolatileQualifiedType");
+        return RuntimeHelper.requireNonNull(constants$10.clang_isVolatileQualifiedType$MH,"clang_isVolatileQualifiedType");
     }
     public static int clang_isVolatileQualifiedType ( MemorySegment T) {
         var mh$ = clang_isVolatileQualifiedType$MH();
@@ -2126,7 +2137,7 @@ public class Index_h  {
         }
     }
     public static MethodHandle clang_getResultType$MH() {
-        return RuntimeHelper.requireNonNull(constants$10.clang_getResultType$MH,"clang_getResultType");
+        return RuntimeHelper.requireNonNull(constants$11.clang_getResultType$MH,"clang_getResultType");
     }
     public static MemorySegment clang_getResultType ( SegmentAllocator allocator,  MemorySegment T) {
         var mh$ = clang_getResultType$MH();
@@ -2192,7 +2203,7 @@ public class Index_h  {
         }
     }
     public static MethodHandle clang_getNumElements$MH() {
-        return RuntimeHelper.requireNonNull(constants$11.clang_getNumElements$MH,"clang_getNumElements");
+        return RuntimeHelper.requireNonNull(constants$12.clang_getNumElements$MH,"clang_getNumElements");
     }
     public static long clang_getNumElements ( MemorySegment T) {
         var mh$ = clang_getNumElements$MH();
@@ -2288,7 +2299,7 @@ public class Index_h  {
         }
     }
     public static MethodHandle clang_Cursor_isAnonymousRecordDecl$MH() {
-        return RuntimeHelper.requireNonNull(constants$12.clang_Cursor_isAnonymousRecordDecl$MH,"clang_Cursor_isAnonymousRecordDecl");
+        return RuntimeHelper.requireNonNull(constants$13.clang_Cursor_isAnonymousRecordDecl$MH,"clang_Cursor_isAnonymousRecordDecl");
     }
     public static int clang_Cursor_isAnonymousRecordDecl ( MemorySegment C) {
         var mh$ = clang_Cursor_isAnonymousRecordDecl$MH();
@@ -2341,7 +2352,7 @@ public class Index_h  {
         }
     }
     public static MethodHandle clang_getCursorSpelling$MH() {
-        return RuntimeHelper.requireNonNull(constants$13.clang_getCursorSpelling$MH,"clang_getCursorSpelling");
+        return RuntimeHelper.requireNonNull(constants$14.clang_getCursorSpelling$MH,"clang_getCursorSpelling");
     }
     public static MemorySegment clang_getCursorSpelling ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = clang_getCursorSpelling$MH();
@@ -2488,7 +2499,7 @@ public class Index_h  {
         }
     }
     public static MethodHandle clang_getCursorDisplayName$MH() {
-        return RuntimeHelper.requireNonNull(constants$14.clang_getCursorDisplayName$MH,"clang_getCursorDisplayName");
+        return RuntimeHelper.requireNonNull(constants$15.clang_getCursorDisplayName$MH,"clang_getCursorDisplayName");
     }
     public static MemorySegment clang_getCursorDisplayName ( SegmentAllocator allocator,  MemorySegment x1) {
         var mh$ = clang_getCursorDisplayName$MH();
@@ -2569,7 +2580,7 @@ public class Index_h  {
         return (int)4L;
     }
     public static MethodHandle clang_getTokenKind$MH() {
-        return RuntimeHelper.requireNonNull(constants$15.clang_getTokenKind$MH,"clang_getTokenKind");
+        return RuntimeHelper.requireNonNull(constants$16.clang_getTokenKind$MH,"clang_getTokenKind");
     }
     public static int clang_getTokenKind ( MemorySegment x0) {
         var mh$ = clang_getTokenKind$MH();
@@ -2635,7 +2646,7 @@ public class Index_h  {
         }
     }
     public static MethodHandle clang_getCursorKindSpelling$MH() {
-        return RuntimeHelper.requireNonNull(constants$16.clang_getCursorKindSpelling$MH,"clang_getCursorKindSpelling");
+        return RuntimeHelper.requireNonNull(constants$17.clang_getCursorKindSpelling$MH,"clang_getCursorKindSpelling");
     }
     public static MemorySegment clang_getCursorKindSpelling ( SegmentAllocator allocator,  int Kind) {
         var mh$ = clang_getCursorKindSpelling$MH();
@@ -2701,7 +2712,7 @@ public class Index_h  {
         }
     }
     public static MethodHandle clang_EvalResult_getAsLongLong$MH() {
-        return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getAsLongLong$MH,"clang_EvalResult_getAsLongLong");
+        return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsLongLong$MH,"clang_EvalResult_getAsLongLong");
     }
     public static long clang_EvalResult_getAsLongLong ( MemorySegment E) {
         var mh$ = clang_EvalResult_getAsLongLong$MH();

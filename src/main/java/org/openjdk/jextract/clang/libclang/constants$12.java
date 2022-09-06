@@ -34,6 +34,17 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$12 {
 
+    static final FunctionDescriptor clang_getNumElements$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            MemoryLayout.paddingLayout(32),
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_getNumElements$MH = RuntimeHelper.downcallHandle(
+        "clang_getNumElements",
+        constants$12.clang_getNumElements$FUNC
+    );
     static final FunctionDescriptor clang_getArrayElementType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),
@@ -93,17 +104,6 @@ class constants$12 {
     static final MethodHandle clang_Cursor_isAnonymous$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_isAnonymous",
         constants$12.clang_Cursor_isAnonymous$FUNC
-    );
-    static final FunctionDescriptor clang_Cursor_isAnonymousRecordDecl$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            Constants$root.C_INT$LAYOUT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
-        )
-    );
-    static final MethodHandle clang_Cursor_isAnonymousRecordDecl$MH = RuntimeHelper.downcallHandle(
-        "clang_Cursor_isAnonymousRecordDecl",
-        constants$12.clang_Cursor_isAnonymousRecordDecl$FUNC
     );
 }
 

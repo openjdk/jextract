@@ -25,3 +25,4 @@ static void func(int);
 void func2(int);
 
 static inline int mul(int x, int y) { return x*y; }
+inline int mul2(int x, int y) { return x*y; }

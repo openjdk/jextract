@@ -34,6 +34,21 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$15 {
 
+    static final FunctionDescriptor clang_getCursorDisplayName$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
+        MemoryLayout.paddingLayout(32)
+    ),
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_getCursorDisplayName$MH = RuntimeHelper.downcallHandle(
+        "clang_getCursorDisplayName",
+        constants$15.clang_getCursorDisplayName$FUNC
+    );
     static final FunctionDescriptor clang_getCursorReferenced$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
         Constants$root.C_INT$LAYOUT.withName("xdata"),
@@ -100,16 +115,6 @@ class constants$15 {
     static final MethodHandle clang_Cursor_getMangling$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_getMangling",
         constants$15.clang_Cursor_getMangling$FUNC
-    );
-    static final FunctionDescriptor clang_getTokenKind$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
-        MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(4, Constants$root.C_INT$LAYOUT).withName("int_data"),
-            Constants$root.C_POINTER$LAYOUT.withName("ptr_data")
-        )
-    );
-    static final MethodHandle clang_getTokenKind$MH = RuntimeHelper.downcallHandle(
-        "clang_getTokenKind",
-        constants$15.clang_getTokenKind$FUNC
     );
 }
 

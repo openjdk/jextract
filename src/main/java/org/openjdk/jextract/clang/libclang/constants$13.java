@@ -34,6 +34,17 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$13 {
 
+    static final FunctionDescriptor clang_Cursor_isAnonymousRecordDecl$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_Cursor_isAnonymousRecordDecl$MH = RuntimeHelper.downcallHandle(
+        "clang_Cursor_isAnonymousRecordDecl",
+        constants$13.clang_Cursor_isAnonymousRecordDecl$FUNC
+    );
     static final FunctionDescriptor clang_Cursor_isBitField$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -88,21 +99,6 @@ class constants$13 {
     static final MethodHandle clang_getCursorUSR$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorUSR",
         constants$13.clang_getCursorUSR$FUNC
-    );
-    static final FunctionDescriptor clang_getCursorSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_POINTER$LAYOUT.withName("data"),
-        Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
-    ),
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            Constants$root.C_INT$LAYOUT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
-        )
-    );
-    static final MethodHandle clang_getCursorSpelling$MH = RuntimeHelper.downcallHandle(
-        "clang_getCursorSpelling",
-        constants$13.clang_getCursorSpelling$FUNC
     );
 }
 

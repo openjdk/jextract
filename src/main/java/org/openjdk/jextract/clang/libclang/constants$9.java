@@ -103,16 +103,16 @@ class constants$9 {
         "clang_Cursor_isMacroFunctionLike",
         constants$9.clang_Cursor_isMacroFunctionLike$FUNC
     );
-    static final FunctionDescriptor clang_isVolatileQualifiedType$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+    static final FunctionDescriptor clang_Cursor_isFunctionInlined$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
-    static final MethodHandle clang_isVolatileQualifiedType$MH = RuntimeHelper.downcallHandle(
-        "clang_isVolatileQualifiedType",
-        constants$9.clang_isVolatileQualifiedType$FUNC
+    static final MethodHandle clang_Cursor_isFunctionInlined$MH = RuntimeHelper.downcallHandle(
+        "clang_Cursor_isFunctionInlined",
+        constants$9.clang_Cursor_isFunctionInlined$FUNC
     );
 }
 

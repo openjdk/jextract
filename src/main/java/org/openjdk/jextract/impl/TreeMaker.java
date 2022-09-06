@@ -85,6 +85,11 @@ class TreeMaker {
         if (linkage == LinkageKind.Internal) {
             return null;
         }
+
+        // filter inline functions
+        if (c.isFunctionInlined()) {
+            return null;
+        }
         var rv = (DeclarationImpl) createTreeInternal(c);
         return (rv == null) ? null : rv.withAttributes(collectAttributes(c));
     }
