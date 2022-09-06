@@ -21,5 +21,7 @@
  * questions.
  */
 
-void func(int);
-inline int mul(int x, int y) { return x*y; }
+static void func(int);
+void func2(int);
+
+static inline int mul(int x, int y) { return x*y; }

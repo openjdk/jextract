@@ -29,6 +29,7 @@ import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertNotNull;
 
 public class Test7903285 extends JextractToolRunner {
     @Test
@@ -38,7 +39,8 @@ public class Test7903285 extends JextractToolRunner {
         run("--output", test7903285Output.toString(), test7903285H.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(test7903285Output)) {
             Class<?> cls = loader.loadClass("test7903285_h");
-            assertNull(findMethod(cls, "func"));
+            assertNull(findMethod(cls, "func", int.class));
+            assertNotNull(findMethod(cls, "func2", int.class));
             assertNull(findMethod(cls, "mul"));
         } finally {
             TestUtils.deleteDir(test7903285Output);
