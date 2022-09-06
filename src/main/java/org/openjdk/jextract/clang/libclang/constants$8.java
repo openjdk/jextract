@@ -34,6 +34,21 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$8 {
 
+    static final FunctionDescriptor clang_getTypedefDeclUnderlyingType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
+        Constants$root.C_INT$LAYOUT.withName("kind"),
+        MemoryLayout.paddingLayout(32),
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
+    ),
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_getTypedefDeclUnderlyingType$MH = RuntimeHelper.downcallHandle(
+        "clang_getTypedefDeclUnderlyingType",
+        constants$8.clang_getTypedefDeclUnderlyingType$FUNC
+    );
     static final FunctionDescriptor clang_getEnumDeclIntegerType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),
@@ -92,22 +107,6 @@ class constants$8 {
     static final MethodHandle clang_Cursor_getNumArguments$MH = RuntimeHelper.downcallHandle(
         "clang_Cursor_getNumArguments",
         constants$8.clang_Cursor_getNumArguments$FUNC
-    );
-    static final FunctionDescriptor clang_Cursor_getArgument$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_INT$LAYOUT.withName("kind"),
-        Constants$root.C_INT$LAYOUT.withName("xdata"),
-        MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
-    ),
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            Constants$root.C_INT$LAYOUT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
-        ),
-        Constants$root.C_INT$LAYOUT
-    );
-    static final MethodHandle clang_Cursor_getArgument$MH = RuntimeHelper.downcallHandle(
-        "clang_Cursor_getArgument",
-        constants$8.clang_Cursor_getArgument$FUNC
     );
 }
 

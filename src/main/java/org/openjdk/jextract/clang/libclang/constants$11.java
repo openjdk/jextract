@@ -34,6 +34,32 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$11 {
 
+    static final FunctionDescriptor clang_getResultType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
+        Constants$root.C_INT$LAYOUT.withName("kind"),
+        MemoryLayout.paddingLayout(32),
+        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
+    ),
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            MemoryLayout.paddingLayout(32),
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_getResultType$MH = RuntimeHelper.downcallHandle(
+        "clang_getResultType",
+        constants$11.clang_getResultType$FUNC
+    );
+    static final FunctionDescriptor clang_getNumArgTypes$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            MemoryLayout.paddingLayout(32),
+            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_getNumArgTypes$MH = RuntimeHelper.downcallHandle(
+        "clang_getNumArgTypes",
+        constants$11.clang_getNumArgTypes$FUNC
+    );
     static final FunctionDescriptor clang_getArgType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),
@@ -90,32 +116,6 @@ class constants$11 {
     static final MethodHandle clang_getElementType$MH = RuntimeHelper.downcallHandle(
         "clang_getElementType",
         constants$11.clang_getElementType$FUNC
-    );
-    static final FunctionDescriptor clang_getNumElements$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
-        )
-    );
-    static final MethodHandle clang_getNumElements$MH = RuntimeHelper.downcallHandle(
-        "clang_getNumElements",
-        constants$11.clang_getNumElements$FUNC
-    );
-    static final FunctionDescriptor clang_getArrayElementType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
-        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
-    ),
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
-        )
-    );
-    static final MethodHandle clang_getArrayElementType$MH = RuntimeHelper.downcallHandle(
-        "clang_getArrayElementType",
-        constants$11.clang_getArrayElementType$FUNC
     );
 }
 

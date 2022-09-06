@@ -34,6 +34,29 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$14 {
 
+    static final FunctionDescriptor clang_getCursorSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
+        MemoryLayout.paddingLayout(32)
+    ),
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_getCursorSpelling$MH = RuntimeHelper.downcallHandle(
+        "clang_getCursorSpelling",
+        constants$14.clang_getCursorSpelling$FUNC
+    );
+    static final FunctionDescriptor clang_PrintingPolicy_getProperty$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        Constants$root.C_POINTER$LAYOUT,
+        Constants$root.C_INT$LAYOUT
+    );
+    static final MethodHandle clang_PrintingPolicy_getProperty$MH = RuntimeHelper.downcallHandle(
+        "clang_PrintingPolicy_getProperty",
+        constants$14.clang_PrintingPolicy_getProperty$FUNC
+    );
     static final FunctionDescriptor clang_PrintingPolicy_setProperty$FUNC = FunctionDescriptor.ofVoid(
         Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_INT$LAYOUT,
@@ -76,36 +99,6 @@ class constants$14 {
     static final MethodHandle clang_getCursorPrettyPrinted$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorPrettyPrinted",
         constants$14.clang_getCursorPrettyPrinted$FUNC
-    );
-    static final FunctionDescriptor clang_getCursorDisplayName$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_POINTER$LAYOUT.withName("data"),
-        Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
-    ),
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            Constants$root.C_INT$LAYOUT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
-        )
-    );
-    static final MethodHandle clang_getCursorDisplayName$MH = RuntimeHelper.downcallHandle(
-        "clang_getCursorDisplayName",
-        constants$14.clang_getCursorDisplayName$FUNC
-    );
-    static final FunctionDescriptor clang_getCursorReferenced$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_INT$LAYOUT.withName("kind"),
-        Constants$root.C_INT$LAYOUT.withName("xdata"),
-        MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
-    ),
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            Constants$root.C_INT$LAYOUT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
-        )
-    );
-    static final MethodHandle clang_getCursorReferenced$MH = RuntimeHelper.downcallHandle(
-        "clang_getCursorReferenced",
-        constants$14.clang_getCursorReferenced$FUNC
     );
 }
 

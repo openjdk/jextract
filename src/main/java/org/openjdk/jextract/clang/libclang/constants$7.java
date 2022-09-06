@@ -34,6 +34,17 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$7 {
 
+    static final FunctionDescriptor clang_getCursorLanguage$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_getCursorLanguage$MH = RuntimeHelper.downcallHandle(
+        "clang_getCursorLanguage",
+        constants$7.clang_getCursorLanguage$FUNC
+    );
     static final FunctionDescriptor clang_Cursor_getTranslationUnit$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -104,21 +115,6 @@ class constants$7 {
     static final MethodHandle clang_getTypeSpelling$MH = RuntimeHelper.downcallHandle(
         "clang_getTypeSpelling",
         constants$7.clang_getTypeSpelling$FUNC
-    );
-    static final FunctionDescriptor clang_getTypedefDeclUnderlyingType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
-        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
-    ),
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            Constants$root.C_INT$LAYOUT.withName("xdata"),
-            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
-        )
-    );
-    static final MethodHandle clang_getTypedefDeclUnderlyingType$MH = RuntimeHelper.downcallHandle(
-        "clang_getTypedefDeclUnderlyingType",
-        constants$7.clang_getTypedefDeclUnderlyingType$FUNC
     );
 }
 

@@ -34,7 +34,7 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 public class CXString {
 
-    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+    static final  StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
         MemoryLayout.paddingLayout(32)
