@@ -166,6 +166,10 @@ public final class Cursor extends ClangDisposable.Owned {
         return CursorLanguage.valueOf(Index_h.clang_getCursorLanguage(segment));
     }
 
+    public LinkageKind linkage() {
+        return LinkageKind.valueOf(Index_h.clang_getCursorLinkage(segment));
+    }
+
     public int kind0() {
         return kind;
     }

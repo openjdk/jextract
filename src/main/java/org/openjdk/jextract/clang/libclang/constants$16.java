@@ -34,6 +34,21 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$16 {
 
+    static final FunctionDescriptor clang_getTokenSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
+        MemoryLayout.paddingLayout(32)
+    ),
+        Constants$root.C_POINTER$LAYOUT,
+        MemoryLayout.structLayout(
+            MemoryLayout.sequenceLayout(4, Constants$root.C_INT$LAYOUT).withName("int_data"),
+            Constants$root.C_POINTER$LAYOUT.withName("ptr_data")
+        )
+    );
+    static final MethodHandle clang_getTokenSpelling$MH = RuntimeHelper.downcallHandle(
+        "clang_getTokenSpelling",
+        constants$16.clang_getTokenSpelling$FUNC
+    );
     static final FunctionDescriptor clang_getTokenLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
         Constants$root.C_INT$LAYOUT.withName("int_data"),
@@ -97,15 +112,6 @@ class constants$16 {
     static final MethodHandle clang_getCursorKindSpelling$MH = RuntimeHelper.downcallHandle(
         "clang_getCursorKindSpelling",
         constants$16.clang_getCursorKindSpelling$FUNC
-    );
-    static final FunctionDescriptor clang_getClangVersion$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_POINTER$LAYOUT.withName("data"),
-        Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
-    ));
-    static final MethodHandle clang_getClangVersion$MH = RuntimeHelper.downcallHandle(
-        "clang_getClangVersion",
-        constants$16.clang_getClangVersion$FUNC
     );
 }
 

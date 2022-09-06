@@ -34,6 +34,15 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$17 {
 
+    static final FunctionDescriptor clang_getClangVersion$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
+        Constants$root.C_POINTER$LAYOUT.withName("data"),
+        Constants$root.C_INT$LAYOUT.withName("private_flags"),
+        MemoryLayout.paddingLayout(32)
+    ));
+    static final MethodHandle clang_getClangVersion$MH = RuntimeHelper.downcallHandle(
+        "clang_getClangVersion",
+        constants$17.clang_getClangVersion$FUNC
+    );
     static final FunctionDescriptor clang_toggleCrashRecovery$FUNC = FunctionDescriptor.ofVoid(
         Constants$root.C_INT$LAYOUT
     );
@@ -72,13 +81,6 @@ class constants$17 {
     static final MethodHandle clang_EvalResult_getAsLongLong$MH = RuntimeHelper.downcallHandle(
         "clang_EvalResult_getAsLongLong",
         constants$17.clang_EvalResult_getAsLongLong$FUNC
-    );
-    static final FunctionDescriptor clang_EvalResult_isUnsignedInt$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
-    );
-    static final MethodHandle clang_EvalResult_isUnsignedInt$MH = RuntimeHelper.downcallHandle(
-        "clang_EvalResult_isUnsignedInt",
-        constants$17.clang_EvalResult_isUnsignedInt$FUNC
     );
 }
 

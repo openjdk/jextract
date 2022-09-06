@@ -34,6 +34,21 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 class constants$15 {
 
+    static final FunctionDescriptor clang_getCursorReferenced$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
+        Constants$root.C_INT$LAYOUT.withName("kind"),
+        Constants$root.C_INT$LAYOUT.withName("xdata"),
+        MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
+    ),
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
+        )
+    );
+    static final MethodHandle clang_getCursorReferenced$MH = RuntimeHelper.downcallHandle(
+        "clang_getCursorReferenced",
+        constants$15.clang_getCursorReferenced$FUNC
+    );
     static final FunctionDescriptor clang_getCursorDefinition$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
         Constants$root.C_INT$LAYOUT.withName("xdata"),
@@ -95,21 +110,6 @@ class constants$15 {
     static final MethodHandle clang_getTokenKind$MH = RuntimeHelper.downcallHandle(
         "clang_getTokenKind",
         constants$15.clang_getTokenKind$FUNC
-    );
-    static final FunctionDescriptor clang_getTokenSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_POINTER$LAYOUT.withName("data"),
-        Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
-    ),
-        Constants$root.C_POINTER$LAYOUT,
-        MemoryLayout.structLayout(
-            MemoryLayout.sequenceLayout(4, Constants$root.C_INT$LAYOUT).withName("int_data"),
-            Constants$root.C_POINTER$LAYOUT.withName("ptr_data")
-        )
-    );
-    static final MethodHandle clang_getTokenSpelling$MH = RuntimeHelper.downcallHandle(
-        "clang_getTokenSpelling",
-        constants$15.clang_getTokenSpelling$FUNC
     );
 }
 

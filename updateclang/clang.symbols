@@ -327,6 +327,11 @@
 --include-macro CXLanguage_CPlusPlus
 --include-macro CXLanguage_Invalid
 --include-macro CXLanguage_ObjC
+--include-macro CXLinkage_External
+--include-macro CXLinkage_Internal
+--include-macro CXLinkage_Invalid
+--include-macro CXLinkage_NoLinkage
+--include-macro CXLinkage_UniqueExternal
 --include-macro CXPrintingPolicy_Alignof
 --include-macro CXPrintingPolicy_AnonymousTagLocations
 --include-macro CXPrintingPolicy_Bool
@@ -563,6 +568,7 @@
 --include-function clang_getCursorKind
 --include-function clang_getCursorKindSpelling
 --include-function clang_getCursorLanguage
+--include-function clang_getCursorLinkage
 --include-function clang_getCursorLocation
 --include-function clang_getCursorPrettyPrinted
 --include-function clang_getCursorPrintingPolicy

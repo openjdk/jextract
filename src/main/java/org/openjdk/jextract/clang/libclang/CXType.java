@@ -34,7 +34,7 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 public class CXType {
 
-    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+    static final  StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
