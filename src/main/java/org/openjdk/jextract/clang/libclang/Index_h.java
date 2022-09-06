@@ -878,7 +878,7 @@ public class Index_h  {
         return (int)149L;
     }
     public static int CXCursor_LastExpr() {
-        return (int)149L;
+        return (int)152L;
     }
     public static int CXCursor_FirstStmt() {
         return (int)200L;
@@ -1142,7 +1142,7 @@ public class Index_h  {
         return (int)284L;
     }
     public static int CXCursor_LastStmt() {
-        return (int)285L;
+        return (int)293L;
     }
     public static int CXCursor_TranslationUnit() {
         return (int)300L;
@@ -1623,7 +1623,7 @@ public class Index_h  {
         return (int)2L;
     }
     public static int CXType_LastBuiltin() {
-        return (int)38L;
+        return (int)39L;
     }
     public static int CXType_Complex() {
         return (int)100L;
