@@ -36,7 +36,7 @@ final class RuntimeHelper {
     static {
         #LOAD_LIBRARIES#
         SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
-        SYMBOL_LOOKUP = name -> loaderLookup.lookup(name).or(() -> LINKER.defaultLookup().lookup(name));
+        SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> LINKER.defaultLookup().find(name));
     }
 
     static <T> T requireNonNull(T obj, String symbolName) {
@@ -49,11 +49,11 @@ final class RuntimeHelper {
     private final static SegmentAllocator THROWING_ALLOCATOR = (x, y) -> { throw new AssertionError("should not reach here"); };
 
     static final MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
-        return SYMBOL_LOOKUP.lookup(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), symbol.session())).orElse(null);
+        return SYMBOL_LOOKUP.find(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), symbol.session())).orElse(null);
     }
 
     static final MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {
-        return SYMBOL_LOOKUP.lookup(name).
+        return SYMBOL_LOOKUP.find(name).
                 map(addr -> LINKER.downcallHandle(addr, fdesc)).
                 orElse(null);
     }
@@ -63,7 +63,7 @@ final class RuntimeHelper {
     }
 
     static final MethodHandle downcallHandleVariadic(String name, FunctionDescriptor fdesc) {
-        return SYMBOL_LOOKUP.lookup(name).
+        return SYMBOL_LOOKUP.find(name).
                 map(addr -> VarargsInvoker.make(addr, fdesc)).
                 orElse(null);
     }
