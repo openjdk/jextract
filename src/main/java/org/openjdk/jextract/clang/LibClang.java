@@ -56,7 +56,7 @@ public class LibClang {
             try {
                 Linker linker = Linker.nativeLinker();
                 String putenv = IS_WINDOWS ? "_putenv" : "putenv";
-                MethodHandle PUT_ENV = linker.downcallHandle(linker.defaultLookup().lookup(putenv).get(),
+                MethodHandle PUT_ENV = linker.downcallHandle(linker.defaultLookup().find(putenv).get(),
                                 FunctionDescriptor.of(C_INT, C_POINTER));
                 int res = (int) PUT_ENV.invokeExact((MemorySegment)disableCrashRecovery);
             } catch (Throwable ex) {
