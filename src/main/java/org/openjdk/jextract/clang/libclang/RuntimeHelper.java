@@ -57,7 +57,7 @@ final class RuntimeHelper {
     private final static SymbolLookup SYMBOL_LOOKUP;
 
     final static SegmentAllocator CONSTANT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.openImplicit());
+            (size, align) -> MemorySegment.allocateNative(size, align);
 
     static {
         // Manual change to handle platform specific library name difference
@@ -99,7 +99,7 @@ final class RuntimeHelper {
 
     static final <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, MemorySession session) {
         try {
-            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", Linker.methodType(fdesc));
+            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", fdesc.toMethodType());
             handle = handle.bindTo(z);
             return LINKER.upcallStub(handle, fdesc, session);
         } catch (Throwable ex) {

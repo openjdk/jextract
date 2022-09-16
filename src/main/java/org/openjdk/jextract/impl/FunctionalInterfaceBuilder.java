@@ -48,8 +48,8 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, String className,
                                FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(enclosing, Kind.INTERFACE, className);
-        this.fiType = Linker.methodType(descriptor);
-        this.downcallType = Linker.methodType(descriptor);
+        this.fiType = descriptor.toMethodType();
+        this.downcallType = descriptor.toMethodType();
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
     }
