@@ -76,7 +76,7 @@ public class LibffmpegMain {
 
         try (var session = MemorySession.openConfined()) {
             // AVFormatContext *ppFormatCtx;
-            var ppFormatCtx = MemorySegment.allocateNative(C_POINTER, session);
+            var ppFormatCtx = session.allocate(C_POINTER);
             // char* fileName;
             var fileName = session.allocateUtf8String(args[0]);
 
@@ -190,7 +190,7 @@ public class LibffmpegMain {
             // ACPacket packet;
             var packet = AVPacket.allocate(session);
             // int* pFrameFinished;
-            var pFrameFinished = MemorySegment.allocateNative(C_INT, session);
+            var pFrameFinished = session.allocate(C_INT);
 
             while (av_read_frame(pFormatCtx, packet) >= 0) {
                 // Is this a packet from the video stream?
