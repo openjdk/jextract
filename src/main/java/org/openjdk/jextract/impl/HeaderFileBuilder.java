@@ -94,7 +94,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         emitWithConstantClass(constantBuilder -> {
             Constant mhConstant = constantBuilder.addMethodHandle(javaName, nativeName, descriptor, isVarargs, false)
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
-            MethodType downcallType = Linker.methodType(descriptor);
+            MethodType downcallType = descriptor.toMethodType();
             boolean needsAllocator = descriptor.returnLayout().isPresent() &&
                     descriptor.returnLayout().get() instanceof GroupLayout;
             emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, needsAllocator, isVarargs, parameterNames);
