@@ -45,7 +45,7 @@ final class RuntimeHelper {
         } else {
             libPath = "/lib/libjimage.so"; // some Unix
         }
-        SymbolLookup loaderLookup = SymbolLookup.libraryLookup(libPath, MemorySession.global()); 
+        SymbolLookup loaderLookup = SymbolLookup.libraryLookup(libPath, MemorySession.global());
         SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> LINKER.defaultLookup().find(name));
     }
 
