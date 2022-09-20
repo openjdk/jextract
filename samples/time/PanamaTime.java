@@ -40,7 +40,7 @@ public class PanamaTime {
             var now = session.allocate(C_LONG, System.currentTimeMillis() / 1000);
             MemorySegment time = tm.allocate(session);
             localtime_r(now, time);
-            System.err.printf("Time = %d:%d\n", tm.tm_hour$get(time), tm.tm_min$get(time));
+            System.err.printf("Time = %d:%02d\n", tm.tm_hour$get(time), tm.tm_min$get(time));
         }
     }
 }
