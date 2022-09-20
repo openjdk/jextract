@@ -196,10 +196,11 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
 
     void emitPrimitiveTypedef(Type.Primitive primType, String name) {
         Type.Primitive.Kind kind = primType.kind();
-        if (primitiveKindSupported(kind) && !kind.layout().isEmpty()) {
+        if (primitiveKindSupported(kind) && kind.layout().isPresent()) {
             incrAlign();
             indent();
             append(MEMBER_MODS);
+            append(" final");
             append(" " + Utils.layoutDeclarationType(primType.kind().layout().orElseThrow()).getSimpleName());
             append(" " + uniqueNestedClassName(name));
             append(" = ");
@@ -213,6 +214,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS);
+        append(" final");
         append(" OfAddress ");
         append(uniqueNestedClassName(name));
         append(" = ");
