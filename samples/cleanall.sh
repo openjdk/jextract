@@ -59,3 +59,6 @@ cd ..
 cd time
 rm -rf org
 cd ..
+cd libzstd
+rm -rf libzstd
+cd ..
