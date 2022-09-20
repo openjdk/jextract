@@ -157,7 +157,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     private List<String> emitFunctionWrapperDecl(String javaName, MethodType methodType, boolean isVarargs, List<String> paramNames) {
-        append(methodType.returnType().getSimpleName() + " " + javaName + " (");
+        append(methodType.returnType().getSimpleName() + " " + javaName + "(");
         String delim = "";
         List<String> pExprs = new ArrayList<>();
         final int numParams = paramNames.size();
@@ -168,7 +168,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
             }
             pExprs.add(pName);
             Class<?> pType = methodType.parameterType(i);
-            append(delim + " " + pType.getSimpleName() + " " + pName);
+            append(delim + pType.getSimpleName() + " " + pName);
             delim = ", ";
         }
         if (isVarargs) {
