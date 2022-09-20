@@ -34,7 +34,7 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 public class CXToken {
 
-    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+    static final  StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(4, Constants$root.C_INT$LAYOUT).withName("int_data"),
         Constants$root.C_POINTER$LAYOUT.withName("ptr_data")
     );

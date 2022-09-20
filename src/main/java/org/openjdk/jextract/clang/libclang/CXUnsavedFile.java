@@ -34,7 +34,7 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 public class CXUnsavedFile {
 
-    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+    static final  StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("Filename"),
         Constants$root.C_POINTER$LAYOUT.withName("Contents"),
         Constants$root.C_LONG_LONG$LAYOUT.withName("Length")

@@ -32,7 +32,7 @@ final class RuntimeHelper {
     private final static SymbolLookup SYMBOL_LOOKUP;
 
     final static SegmentAllocator CONSTANT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.openImplicit());
+            (size, align) -> MemorySegment.allocateNative(size, align);
 
     static {
         // manual change
@@ -46,7 +46,7 @@ final class RuntimeHelper {
             libPath = "/lib/libjimage.so"; // some Unix
         }
         SymbolLookup loaderLookup = SymbolLookup.libraryLookup(libPath, MemorySession.global());
-        SYMBOL_LOOKUP = name -> loaderLookup.lookup(name).or(() -> LINKER.defaultLookup().lookup(name));
+        SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> LINKER.defaultLookup().find(name));
     }
 
     static <T> T requireNonNull(T obj, String symbolName) {
@@ -59,11 +59,11 @@ final class RuntimeHelper {
     private final static SegmentAllocator THROWING_ALLOCATOR = (x, y) -> { throw new AssertionError("should not reach here"); };
 
     static final MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
-        return SYMBOL_LOOKUP.lookup(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), symbol.session())).orElse(null);
+        return SYMBOL_LOOKUP.find(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), symbol.session())).orElse(null);
     }
 
     static final MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {
-        return SYMBOL_LOOKUP.lookup(name).
+        return SYMBOL_LOOKUP.find(name).
                 map(addr -> LINKER.downcallHandle(addr, fdesc)).
                 orElse(null);
     }
@@ -73,14 +73,14 @@ final class RuntimeHelper {
     }
 
     static final MethodHandle downcallHandleVariadic(String name, FunctionDescriptor fdesc) {
-        return SYMBOL_LOOKUP.lookup(name).
+        return SYMBOL_LOOKUP.find(name).
                 map(addr -> VarargsInvoker.make(addr, fdesc)).
                 orElse(null);
     }
 
     static final <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, MemorySession session) {
         try {
-            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", Linker.methodType(fdesc));
+            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", fdesc.toMethodType());
             handle = handle.bindTo(z);
             return LINKER.upcallStub(handle, fdesc, session);
         } catch (Throwable ex) {

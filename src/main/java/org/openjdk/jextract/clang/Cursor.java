@@ -113,6 +113,10 @@ public final class Cursor extends ClangDisposable.Owned {
         return new Cursor(cursorDef, owner);
     }
 
+    public boolean isFunctionInlined() {
+        return Index_h.clang_Cursor_isFunctionInlined(segment) != 0;
+    }
+
     public SourceLocation getSourceLocation() {
         MemorySegment loc = Index_h.clang_getCursorLocation(owner, segment);
         try (MemorySession session = MemorySession.openConfined()) {
@@ -164,6 +168,10 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public CursorLanguage language() {
         return CursorLanguage.valueOf(Index_h.clang_getCursorLanguage(segment));
+    }
+
+    public LinkageKind linkage() {
+        return LinkageKind.valueOf(Index_h.clang_getCursorLinkage(segment));
     }
 
     public int kind0() {

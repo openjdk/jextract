@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.spi.ToolProvider;
 import java.util.stream.Collectors;
@@ -69,6 +70,7 @@ public final class JextractTool {
     }
 
     public static final boolean DEBUG = Boolean.getBoolean("jextract.debug");
+    public static final Optional<Path> PLATFORM_INCLUDE_PATH = inferPlatformIncludePath();
 
     // error codes
     private static final int SUCCESS       = 0;
@@ -397,6 +399,11 @@ public final class JextractTool {
         if (Files.isDirectory(builtinInc)) {
             builder.addClangArg("-I" + builtinInc);
         }
+
+        PLATFORM_INCLUDE_PATH.ifPresent(platformPath -> {
+            builder.addClangArg("-I" + platformPath);
+        });
+
         String jextractHeaderPath = System.getProperty("jextract.header.path");
         if (jextractHeaderPath != null) {
             builtinInc = Paths.get(jextractHeaderPath);
@@ -523,5 +530,27 @@ public final class JextractTool {
             JextractTool instance = new JextractTool(out, err);
             return instance.run(args);
         }
+    }
+
+    private static Optional<Path> inferPlatformIncludePath() {
+        String os = System.getProperty("os.name");
+        if (os.equals("Mac OS X")) {
+            try {
+                ProcessBuilder pb = new ProcessBuilder().
+                    command("/usr/bin/xcrun", "--show-sdk-path");
+                Process proc = pb.start();
+                String str = new String(proc.getInputStream().readAllBytes());
+                Path dir = Paths.get(str.trim(), "usr", "include");
+                if (Files.isDirectory(dir)) {
+                    return Optional.of(dir);
+                }
+            } catch (IOException ioExp) {
+                if (JextractTool.DEBUG) {
+                    ioExp.printStackTrace(System.err);
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 }
