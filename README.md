@@ -22,6 +22,24 @@
 $ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
+`jextract` can also be built using the `Dockerfile` located in this directory, by running:
+```sh
+$ docker build -t jextract:latest -f Dockerfile .
+```
+
+It can then be used through the Docker CLI:
+```sh
+$ echo "struct Foo { int a; long b; }; int use_foo(struct Foo foo);" >> sample.h
+
+$ docker run --rm -it -v ${PWD}:/tmp/jextract \
+    jextract:latest \
+    -I /tmp/jextract \
+    --source \
+    -l libfoo \
+    --output /tmp/jextract/generated \
+    --target-package com.example \
+    /tmp/jextract/sample.h
+```
 
 > <details><summary><strong>Using a local installation of LLVM</strong></summary>
 > 
