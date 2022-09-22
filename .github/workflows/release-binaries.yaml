@@ -1,0 +1,108 @@
+name: Release Jextract to GH releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-version:
+        description: 'Version being released'
+        required: true
+
+env:
+  CLANG_LLVM_BASE_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64"
+  ARCHIVE_EXT: "tar.xz"
+
+jobs:
+
+  build-binaries:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        os: [macos-11, ubuntu-20.04]
+        include:
+          - os: ubuntu-20.04
+            TARGET: linux-gnu-ubuntu-20.04
+            JAVA19_HOME: /tmp/deps/jdk-19
+          - os: macos-11
+            TARGET: apple-darwin
+            JAVA19_HOME: /tmp/deps/jdk-19/jdk-19.jdk/Contents/Home
+
+    steps:
+    - name: 'Check out repository'
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+        
+    - name: 'Prepare'
+      shell: sh
+      run: mkdir -p /tmp/deps
+
+    - name: 'Download JDK 19'
+      id: download_jdk_19
+      uses: oracle-actions/setup-java@v1.1.1
+      with:
+        website: jdk.java.net
+        release: 19
+        install: false
+        
+    - name: 'Extract JDK 19'
+      shell: sh
+      run: |
+        mkdir -p /tmp/deps/jdk-19
+        tar --strip-components=1 -xvf ${{ steps.download_jdk_19.outputs.archive }} -C /tmp/deps/jdk-19
+        ls -lah /tmp/deps/jdk-19
+
+    - name: 'Check Java 19 version'
+      shell: sh
+      run: |
+        ${{ matrix.JAVA19_HOME }}/bin/java --version
+
+    - name: 'Setup Java 18'
+      uses: oracle-actions/setup-java@v1.1.1
+      with:
+        release: 18
+
+    - name: 'Check default Java version'
+      shell: sh
+      run: |
+        java --version
+        echo JAVA_HOME=$JAVA_HOME
+
+    - name: 'Setup LLVM'
+      shell: sh
+      run: |
+        mkdir -p /tmp/deps/clang_llvm
+        wget -O /tmp/deps/LLVM.tar.gz ${{ env.CLANG_LLVM_BASE_URL }}-${{ matrix.TARGET }}.${{ env.ARCHIVE_EXT }}
+        tar --strip-components=1 -xvf /tmp/deps/LLVM.tar.gz -C /tmp/deps/clang_llvm
+        ls -lah /tmp/deps/clang_llvm
+
+    - name: 'Build Jextract'
+      shell: sh
+      run: |
+        sh ./gradlew -Pjdk19_home=${{ matrix.JAVA19_HOME }} -Pllvm_home=/tmp/deps/clang_llvm clean assemble
+
+    - name: Upload binary
+      uses: actions/upload-artifact@v3
+      with:
+        name: jextract-${{ matrix.os }}
+        path: ./build/jextract
+        if-no-files-found: error
+
+  release-binaries:
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+      - name: Prepare files to release
+        run: |
+          zip -r jextract-macos.zip ./jextract-macos-11
+          zip -r jextract-linux.zip ./jextract-ubuntu-20.04
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.release-version }}
+          files: |
+            jextract-macos.zip
+            jextract-linux.zip
