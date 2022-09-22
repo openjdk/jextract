@@ -19,7 +19,7 @@
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
 
 (**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
-support JDK 18. Please checkout the Gradle release notes page for the appropate JDK version needed for
+supports JDK 18. Please checkout the Gradle release notes page for the appropate JDK version needed for
 builds)
 
 
