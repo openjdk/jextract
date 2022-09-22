@@ -16,7 +16,13 @@
 > Over time, new branches will be added, each targeting a specific JDK version.
 > </details>
 
-`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead):
+`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
+
+(**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
+support JDK 18. Please checkout the Gradle release notes page for the appropate JDK version needed for
+builds)
+
+
 
 ```sh
 $ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean verify
