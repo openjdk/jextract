@@ -174,8 +174,13 @@ class ToplevelBuilder extends JavaSourceBuilder {
         }
 
         @Override
-        String mods() {
-            return "final ";
+        boolean isClassFinal() {
+            return false;
+        }
+
+        @Override
+        void emitConstructor() {
+            // None...
         }
     }
 
@@ -183,11 +188,6 @@ class ToplevelBuilder extends JavaSourceBuilder {
 
         FirstHeader(String name) {
             super(name, "#{SUPER}");
-        }
-
-        @Override
-        String mods() {
-            return "public final ";
         }
 
         @Override
