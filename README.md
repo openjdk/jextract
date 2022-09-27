@@ -153,7 +153,7 @@ Users can specify additional clang compiler options, by creating a file named
 To allow for symbol filtering, `jextract` can generate a *dump* of all the symbols encountered in an header file; this dump can be manipulated, and then used as an argument file (using the `@argfile` syntax also available in other JDK tools) to e.g. generate bindings only for a *subset* of symbols seen by `jextract`. For instance, if we run `jextract` with as follows:
 
 ```
-jextract --dump-includes=includes.txt point.h
+jextract --dump-includes includes.txt point.h
 ```
 
 We obtain the following file (`includes.txt`):
