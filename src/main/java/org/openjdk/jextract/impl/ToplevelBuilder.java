@@ -94,30 +94,33 @@ class ToplevelBuilder extends JavaSourceBuilder {
     }
 
     @Override
-    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
-        nextHeader().addVar(javaName, nativeName, layout, fiName);
+    public void addVar(Declaration.Variable varTree, String javaName,
+        MemoryLayout layout, Optional<String> fiName) {
+        nextHeader().addVar(varTree, javaName, layout, fiName);
     }
 
     @Override
-    public void addFunction(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, List<String> parameterNames) {
-        nextHeader().addFunction(javaName, nativeName, descriptor, isVarargs, parameterNames);
+    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
+            String javaName, List<String> parameterNames) {
+        nextHeader().addFunction(funcTree, descriptor, javaName, parameterNames);
     }
 
     @Override
-    public void addConstant(String javaName, Class<?> type, Object value) {
-        nextHeader().addConstant(javaName, type, value);
+    public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
+        nextHeader().addConstant(constantTree, javaName, javaType);
     }
 
     @Override
-    public void addTypedef(String name, String superClass, Type type) {
+    public void addTypedef(Declaration.Typedef typedefTree, String javaName,
+        String superClass, Type type) {
         if (type instanceof Type.Primitive primitive) {
             // primitive
-            nextHeader().emitPrimitiveTypedef(primitive, name);
+            nextHeader().emitPrimitiveTypedef(primitive, javaName);
         } else if (((TypeImpl)type).isPointer()) {
             // pointer typedef
-            nextHeader().emitPointerTypedef(name);
+            nextHeader().emitPointerTypedef(javaName);
         } else {
-            TypedefBuilder builder = new TypedefBuilder(this, name, superClass);
+            TypedefBuilder builder = new TypedefBuilder(this, javaName, superClass);
             builders.add(builder);
             builder.classBegin();
             builder.classEnd();
@@ -125,9 +128,9 @@ class ToplevelBuilder extends JavaSourceBuilder {
     }
 
     @Override
-    public StructBuilder addStruct(String name, Declaration parent, GroupLayout layout, Type type) {
-        String structName = name.isEmpty() ? parent.name() : name;
-        StructBuilder structBuilder = new StructBuilder(this, structName, layout, type) {
+    public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
+        String javaName, GroupLayout layout) {
+        StructBuilder structBuilder = new StructBuilder(this, tree, javaName, layout) {
             @Override
             boolean isClassFinal() {
                 return false;
@@ -143,12 +146,12 @@ class ToplevelBuilder extends JavaSourceBuilder {
     }
 
     @Override
-    public String addFunctionalInterface(String name, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, name, descriptor, parameterNames);
+    public void addFunctionalInterface(Type.Function funcType, String javaName,
+        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, funcType, javaName, descriptor, parameterNames);
         builders.add(builder);
         builder.classBegin();
         builder.classEnd();
-        return builder.className();
     }
 
     private SplitHeader nextHeader() {
