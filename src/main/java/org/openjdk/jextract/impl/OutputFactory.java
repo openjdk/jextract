@@ -310,6 +310,18 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
     }
 
+    Type.Primitive getAsSignedOrUnsigned(Type type) {
+        if (type instanceof Type.Delegated delegated &&
+            delegated.type() instanceof Type.Primitive primitive) {
+            var kind = delegated.kind();
+            if (kind == Type.Delegated.Kind.SIGNED ||
+                kind == Type.Delegated.Kind.UNSIGNED) {
+                return primitive;
+            }
+        }
+        return null;
+    }
+
     @Override
     public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
         if (!includeHelper.isIncluded(tree)) {
@@ -350,7 +362,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                 }
             }
         } else if (type instanceof Type.Primitive) {
-             toplevelBuilder.addTypedef(tree.name(), null, type);
+            toplevelBuilder.addTypedef(tree.name(), null, type);
         } else {
             Type.Function func = getAsFunctionPointer(type);
             if (func != null) {
@@ -360,6 +372,11 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                 }
             } else if (((TypeImpl)type).isPointer()) {
                 toplevelBuilder.addTypedef(tree.name(), null, type);
+            } else {
+                Type.Primitive primitive = getAsSignedOrUnsigned(type);
+                if (primitive != null) {
+                    toplevelBuilder.addTypedef(tree.name(), null, primitive);
+                }
             }
         }
         return null;
