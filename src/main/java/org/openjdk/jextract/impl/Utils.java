@@ -152,6 +152,18 @@ class Utils {
         }
     }
 
+    static Type.Primitive getAsSignedOrUnsigned(Type type) {
+        if (type instanceof Type.Delegated delegated &&
+            delegated.type() instanceof Type.Primitive primitive) {
+            var kind = delegated.kind();
+            if (kind == Type.Delegated.Kind.SIGNED ||
+                kind == Type.Delegated.Kind.UNSIGNED) {
+                return primitive;
+            }
+        }
+        return null;
+    }
+
     /**
      * Is a character printable ASCII?
      */

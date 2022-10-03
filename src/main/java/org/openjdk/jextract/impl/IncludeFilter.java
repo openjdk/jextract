@@ -72,10 +72,7 @@ final class IncludeFilter implements TreeTransformer, Declaration.Visitor<Void, 
 
     @Override
     public Void visitScoped(Declaration.Scoped d, Declaration parent) {
-        boolean isStructKind = switch (d.kind()) {
-            case STRUCT, UNION -> true;
-            default -> false;
-        };
+        boolean isStructKind = Utils.isStructOrUnion(d);
         if (isStructKind) {
             String name = d.name();
             if (!name.isEmpty() && !includeHelper.isIncluded(d)) {

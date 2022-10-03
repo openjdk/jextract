@@ -277,18 +277,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
     }
 
-    Type.Primitive getAsSignedOrUnsigned(Type type) {
-        if (type instanceof Type.Delegated delegated &&
-            delegated.type() instanceof Type.Primitive primitive) {
-            var kind = delegated.kind();
-            if (kind == Type.Delegated.Kind.SIGNED ||
-                kind == Type.Delegated.Kind.UNSIGNED) {
-                return primitive;
-            }
-        }
-        return null;
-    }
-
     @Override
     public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
         Type type = tree.type();
@@ -339,7 +327,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             } else if (((TypeImpl)type).isPointer()) {
                 toplevelBuilder.addTypedef(tree, nameMangler.getJavaName(parent, tree), null);
             } else {
-                Type.Primitive primitive = getAsSignedOrUnsigned(type);
+                Type.Primitive primitive = Utils.getAsSignedOrUnsigned(type);
                 if (primitive != null) {
                     toplevelBuilder.addTypedef(tree, nameMangler.getJavaName(parent, tree), null, primitive);
                 }
