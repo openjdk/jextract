@@ -40,7 +40,7 @@ public final class CodeGenerator {
             map(new IncludeFilter(includeHelper)::transform).
             map(new EnumConstantLifter()::transform).
             map(new DuplicateFilter()::transform).
-            map(nameMangler::transform).
+            map(nameMangler::scan).
             findFirst().get();
         return OutputFactory.generateWrapped(transformedDecl, targetPkg, libNames, nameMangler);
     }

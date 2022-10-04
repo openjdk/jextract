@@ -40,11 +40,11 @@ import javax.lang.model.SourceVersion;
  * stores java safe names in maps. Subsequent code generation steps can check for
  * java safe names via lookup methods.
  *
- * NOTE: Unlike other transforming tree visitors, this one is just identify
- * transformer. This visitor collects name mappings as it visits tree nodes.
- * Subsequent code generation steps can check the collected names using getters.
+ * NOTE: Unlike other transforming tree visitors, this visitor collects name
+ * mappings as it visits tree nodes. Subsequent code generation steps can check
+ * the collected names using getters.
  */
-final class NameMangler implements TreeTransformer, Declaration.Visitor<Void, Declaration> {
+final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     private final String headerName;
 
     private static class Scope {
@@ -180,8 +180,8 @@ final class NameMangler implements TreeTransformer, Declaration.Visitor<Void, De
         declFiNames.put(new NameAndDecl(name, decl), javaName);
     }
 
-    @Override
-    public Declaration.Scoped transform(Declaration.Scoped header) {
+    // entry point for this visitor
+    Declaration.Scoped scan(Declaration.Scoped header) {
         String javaName = javaSafeIdentifier(headerName.replace(".h", "_h"), true);
         curScope = Scope.newHeader(javaName);
         putJavaName(header, javaName);
