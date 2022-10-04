@@ -52,10 +52,11 @@ class StructBuilder extends ConstantBuilder {
     private final Type structType;
     private final Deque<String> prefixElementNames;
 
-    StructBuilder(JavaSourceBuilder enclosing, String name, GroupLayout structLayout, Type structType) {
+    StructBuilder(JavaSourceBuilder enclosing, Declaration.Scoped tree,
+        String name, GroupLayout structLayout) {
         super(enclosing, name);
         this.structLayout = structLayout;
-        this.structType = structType;
+        this.structType = Type.declared(tree);
         prefixElementNames = new ArrayDeque<>();
     }
 
@@ -106,27 +107,30 @@ class StructBuilder extends ConstantBuilder {
     }
 
     @Override
-    public StructBuilder addStruct(String name, Declaration parent, GroupLayout layout, Type type) {
-        if (name.isEmpty() && (parent instanceof Declaration.Scoped)) {
+    public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
+        String name, GroupLayout layout) {
+        if (isNestedAnonStruct) {
             //nested anon struct - merge into this builder!
             String anonName = layout.name().orElseThrow();
             pushPrefixElement(anonName);
             return this;
         } else {
-            return new StructBuilder(this, name.isEmpty() ? parent.name() : name, layout, type);
+            return new StructBuilder(this, tree, name, layout);
         }
     }
 
     @Override
-    public String addFunctionalInterface(String name, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, name, descriptor, parameterNames);
+    public void addFunctionalInterface(Type.Function funcType, String javaName,
+        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, funcType, javaName, descriptor, parameterNames);
         builder.classBegin();
         builder.classEnd();
-        return builder.className();
     }
 
     @Override
-    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
+    public void addVar(Declaration.Variable varTree, String javaName,
+        MemoryLayout layout, Optional<String> fiName) {
+        String nativeName = varTree.name();
         try {
             structLayout.byteOffset(elementPaths(nativeName));
         } catch (UnsupportedOperationException uoe) {

@@ -29,7 +29,7 @@ import org.openjdk.jextract.clang.LibClang;
 import org.openjdk.jextract.impl.ClangException;
 import org.openjdk.jextract.impl.CommandLine;
 import org.openjdk.jextract.impl.IncludeHelper;
-import org.openjdk.jextract.impl.OutputFactory;
+import org.openjdk.jextract.impl.CodeGenerator;
 import org.openjdk.jextract.impl.Parser;
 import org.openjdk.jextract.impl.Options;
 import org.openjdk.jextract.impl.Writer;
@@ -118,12 +118,12 @@ public final class JextractTool {
 
     public static List<JavaFileObject> generate(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, List<String> libNames) {
-        return List.of(OutputFactory.generateWrapped(decl, headerName, targetPkg, new IncludeHelper(), libNames));
+        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, new IncludeHelper(), libNames));
     }
 
     private static List<JavaFileObject> generateInternal(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, IncludeHelper includeHelper, List<String> libNames) {
-        return List.of(OutputFactory.generateWrapped(decl, headerName, targetPkg, includeHelper, libNames));
+        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, includeHelper, libNames));
     }
 
     /**

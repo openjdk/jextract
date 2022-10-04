@@ -61,7 +61,7 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         this.align = (enclosing instanceof ClassSourceBuilder classSourceBuilder)
                 ? classSourceBuilder.align : 0;
         this.kind = kind;
-        this.desc = ClassDesc.of(enclosing.packageName(), enclosing.uniqueNestedClassName(name));
+        this.desc = ClassDesc.of(enclosing.packageName(), name);
     }
 
     boolean isNested() {

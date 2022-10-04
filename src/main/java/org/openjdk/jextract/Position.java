@@ -27,6 +27,7 @@
 package org.openjdk.jextract;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * Instances of this class model are used to model source code positions.
@@ -69,6 +70,27 @@ public interface Position {
         @Override
         public int col() {
             return 0;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj instanceof Position pos) {
+                return Objects.equals(path(), pos.path()) &&
+                    Objects.equals(line(), pos.line()) &&
+                    Objects.equals(col(), pos.col());
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        @Override
+        public String toString() {
+            return "NO_POSITION";
         }
     };
 }

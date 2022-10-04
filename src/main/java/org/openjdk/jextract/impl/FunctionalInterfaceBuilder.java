@@ -28,6 +28,7 @@ package org.openjdk.jextract.impl;
 import java.lang.foreign.*;
 
 import org.openjdk.jextract.impl.ConstantBuilder.Constant;
+import org.openjdk.jextract.Type;
 
 import java.lang.invoke.MethodType;
 import java.util.List;
@@ -45,7 +46,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
 
-    FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, String className,
+    FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, Type.Function funcType, String className,
                                FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(enclosing, Kind.INTERFACE, className);
         this.fiType = descriptor.toMethodType();
@@ -69,7 +70,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         if (parameterNames.isPresent()) {
             name = parameterNames.get().get(i);
         }
-        return name.isEmpty()? "_x" + i : Utils.javaSafeIdentifier(name);
+        return name.isEmpty()? "_x" + i : name;
     }
 
     private void emitFunctionalInterfaceMethod() {

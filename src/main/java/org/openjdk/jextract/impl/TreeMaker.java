@@ -158,6 +158,22 @@ class TreeMaker {
         }
 
         @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj instanceof Position pos) {
+                return Objects.equals(path, pos.path()) &&
+                    Objects.equals(line, pos.line()) &&
+                    Objects.equals(column, pos.col());
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path, line, column);
+        }
+
+        @Override
         public String toString() {
             return PrettyPrinter.position(this);
         }
