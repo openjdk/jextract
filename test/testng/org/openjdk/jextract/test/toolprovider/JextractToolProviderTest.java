@@ -175,4 +175,34 @@ public class JextractToolProviderTest extends JextractToolRunner {
             TestUtils.deleteDir(helloOutput);
         }
     }
+
+    @Test
+    public void tesIncludeDirOption() {
+        Path includerOutput = getOutputFilePath("includergen");
+        Path includerH = getInputFilePath("includer.h");
+        run("-I", includerH.getParent().resolve("inc").toString(),
+            "--output", includerOutput.toString(), includerH.toString()).checkSuccess();
+        try(TestUtils.Loader loader = TestUtils.classLoader(includerOutput)) {
+            Class<?> cls = loader.loadClass("includer_h");
+            // check a method for "void included_func(int)"
+            assertNotNull(findMethod(cls, "included_func", int.class));
+        } finally {
+            TestUtils.deleteDir(includerOutput);
+        }
+    }
+
+    @Test
+    public void tesIncludeDirOption2() {
+        Path includerOutput = getOutputFilePath("includergen2");
+        Path includerH = getInputFilePath("includer.h");
+        run("--include-dir", includerH.getParent().resolve("inc").toString(),
+            "--output", includerOutput.toString(), includerH.toString()).checkSuccess();
+        try(TestUtils.Loader loader = TestUtils.classLoader(includerOutput)) {
+            Class<?> cls = loader.loadClass("includer_h");
+            // check a method for "void included_func(int)"
+            assertNotNull(findMethod(cls, "included_func", int.class));
+        } finally {
+            TestUtils.deleteDir(includerOutput);
+        }
+    }
 }

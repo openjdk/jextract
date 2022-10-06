@@ -127,15 +127,19 @@ In other words, the `jextract` tool has generated all the required supporting co
 
 #### Command line options
 
-The `jextract` tool includes several customization options. Users can select in which package the generated code should be emitted, and what the name of the main extracted class should be. A complete list of all the supported options is given below:
+The `jextract` tool includes several customization options. Users can select in which package the generated code should be emitted, and what the name of the main extracted class should be. If no package is specified, classes are generated in unnamed package. If no name is specified for the main header class, then header class name is
+derived from the header file name. For example, if jextract is run on foo.h, then foo_h will be the name of the main header class.
+
+A complete list of all the supported options is given below:
 
 | Option                                                       | Meaning                                                      |
 | :----------------------------------------------------------- | ------------------------------------------------------------ |
-| `-D <macro>`                                                 | define a C preprocessor macro                                |
+| `-D --define-macro <macro>=<value>`                          |  define <macro> to <value> (or 1 if <value> omitted)         |
 | `--header-class-name <name>`                                 | specify the name of the main header class                    |
 | `-t, --target-package <package>`                             | specify target package for the generated bindings            |
-| `-I <path>`                                                  | specify include files path for the clang parser              |
-| `-l <library>`                                               | specify a library that will be loaded by the generated bindings |
+| `-I, --include-dir <dir>`                                    | add directory to the end of the list of include search paths |
+| `-I <dir>`                                                   | add directory to the end of the list of include search paths |
+| `-l, --library <library>`                                    | specify a library that will be loaded by the generated bindings |
 | `--output <path>`                                            | specify where to place generated files                       |
 | `--source`                                                   | generate java sources instead of classfiles                  |
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
