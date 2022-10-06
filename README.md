@@ -134,12 +134,11 @@ A complete list of all the supported options is given below:
 
 | Option                                                       | Meaning                                                      |
 | :----------------------------------------------------------- | ------------------------------------------------------------ |
-| `-D --define-macro <macro>=<value>`                          |  define <macro> to <value> (or 1 if <value> omitted)         |
-| `--header-class-name <name>`                                 | specify the name of the main header class                    |
-| `-t, --target-package <package>`                             | specify target package for the generated bindings            |
+| `-D --define-macro <macro>=<value>`                          | define <macro> to <value> (or 1 if <value> omitted)          |
+| `--header-class-name <name>`                                 | name of the generated header class. If this option is not specified, then header class name is derived from the header file name. For example, class 'foo_h' for header 'foo.h'. |
+| `-t, --target-package <package>`                             | target package name for the generated classes. If this option is not specified, then unnamed package is used.  |
 | `-I, --include-dir <dir>`                                    | add directory to the end of the list of include search paths |
-| `-I <dir>`                                                   | add directory to the end of the list of include search paths |
-| `-l, --library <library>`                                    | specify a library that will be loaded by the generated bindings |
+| `-l, --library <name \| path>`                               | specify a library by name or absolute path that will be loaded by the generated class. |
 | `--output <path>`                                            | specify where to place generated files                       |
 | `--source`                                                   | generate java sources instead of classfiles                  |
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
