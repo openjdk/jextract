@@ -159,7 +159,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + " (MemorySegment segment, MemorySession session) {\n");
+        append(fiName + " " + javaName + "(MemorySegment segment, MemorySession session) {\n");
         incrAlign();
         indent();
         append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), session);\n");
@@ -190,7 +190,7 @@ class StructBuilder extends ConstantBuilder {
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
         String param = MemorySegment.class.getSimpleName() + " " + seg;
-        append(MEMBER_MODS + " void " + javaName + "$set( " + param + ", " + type.getSimpleName() + " " + x + ") {\n");
+        append(MEMBER_MODS + " void " + javaName + "$set(" + param + ", " + type.getSimpleName() + " " + x + ") {\n");
         incrAlign();
         indent();
         append(vhConstant.accessExpression() + ".set(" + seg + ", " + x + ");\n");

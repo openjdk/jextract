@@ -295,7 +295,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     private void emitGlobalSetter(Constant segmentConstant, Constant vhConstant, String javaName, String nativeName, Class<?> type) {
         incrAlign();
         indent();
-        append(MEMBER_MODS + " void " + javaName + "$set(" + " " + type.getSimpleName() + " x) {\n");
+        append(MEMBER_MODS + " void " + javaName + "$set(" + type.getSimpleName() + " x) {\n");
         incrAlign();
         indent();
         append(vhConstant.accessExpression());
