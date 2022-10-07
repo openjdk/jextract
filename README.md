@@ -2,60 +2,13 @@
 
 `jextract` is a tool which mechanically generates Java bindings from a native library headers. This tools leverages the [clang C API](https://clang.llvm.org/doxygen/group__CINDEX.html) in order to parse the headers associated with a given native library, and the generated Java bindings build upon the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424). The `jextract` tool was originally developed in the context of [Project Panama](https://openjdk.java.net/projects/panama/) (and then made available in the Project Panama [Early Access binaries](https://jdk.java.net/panama/)).
 
-### Getting started
+### Getting jextract
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable [jdk 19 distribution](https://jdk.java.net/19/) is also required.
+Pre-built binaries for jextract are peridodically released here: https://jdk.java.net/jextract/. These binaries are built from the `master` branch of this repo, and generally target the foreign memory access and function API in the latest mainline JDK (for which binaries can also be found on [jdk.java.net](https://jdk.java.net)).
 
-> <details><summary><strong>Building older jextract versions</strong></summary>
-> 
-> The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by chercking out the appropriate branch.
-> For example, to build a jextract tool which works against JDK 18:
-> 
-> `git checkout jdk18`
-> 
-> Over time, new branches will be added, each targeting a specific JDK version.
-> </details>
+For getting a jextract version with all the latest updates and fixes, see the section on [building](#building--testing).
 
-`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
-
-(**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
-supports JDK 18. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
-
-
-
-```sh
-$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean verify
-```
-
-
-> <details><summary><strong>Using a local installation of LLVM</strong></summary>
-> 
-> While the recommended way is to use a [release from the LLVM project](https://releases.llvm.org/download.html),
-> extract it then make `llvm_home` point to this directory, it may be possible to use a local installation instead.
->
-> E.g. on macOs the `llvm_home` can also be set as one of these locations :
-> 
-> * `/Library/Developer/CommandLineTools/usr/` if using Command Line Tools
-> * `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/` if using XCode
-> * `$(brew --prefix llvm)` if using the [LLVM install from Homebrew](https://formulae.brew.sh/formula/llvm#default)
-> 
-> </details>
-
-After building, there should be a new `jextract` folder under `build`.
-To run the `jextract` tool, simply run the `jextract` command in the `bin` folder:
-
-```sh
-$ build/jextract/bin/jextract
-Expected a header file
-```
-
-The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
-
-```sh
-$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
-```
-
-Note however that running `jtreg` task requires `cmake` to be available on the `PATH`.
+---
 
 ### Using jextract
 
@@ -173,3 +126,61 @@ jextract -t org.jextract --source @includes.txt point.h
 
 It is easy to see how this mechanism allows developers to look into the set of symbols seen by `jextract` while parsing, and then process the generated include file, so as to prevent code generation for otherwise unused symbols.
 
+---
+
+### Building & Testing
+
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable [jdk 19 distribution](https://jdk.java.net/19/) is also required.
+
+> <details><summary><strong>Building older jextract versions</strong></summary>
+> 
+> The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by chercking out the appropriate branch.
+> For example, to build a jextract tool which works against JDK 18:
+> 
+> `git checkout jdk18`
+> 
+> Over time, new branches will be added, each targeting a specific JDK version.
+> </details>
+
+`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
+
+(**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
+supports JDK 18. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
+
+
+
+```sh
+$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean verify
+```
+
+
+> <details><summary><strong>Using a local installation of LLVM</strong></summary>
+> 
+> While the recommended way is to use a [release from the LLVM project](https://releases.llvm.org/download.html),
+> extract it then make `llvm_home` point to this directory, it may be possible to use a local installation instead.
+>
+> E.g. on macOs the `llvm_home` can also be set as one of these locations :
+> 
+> * `/Library/Developer/CommandLineTools/usr/` if using Command Line Tools
+> * `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/` if using XCode
+> * `$(brew --prefix llvm)` if using the [LLVM install from Homebrew](https://formulae.brew.sh/formula/llvm#default)
+> 
+> </details>
+
+After building, there should be a new `jextract` folder under `build`.
+To run the `jextract` tool, simply run the `jextract` command in the `bin` folder:
+
+```sh
+$ build/jextract/bin/jextract
+Expected a header file
+```
+
+#### Testing
+
+The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
+
+```sh
+$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+```
+
+Note however that running `jtreg` task requires `cmake` to be available on the `PATH`.
