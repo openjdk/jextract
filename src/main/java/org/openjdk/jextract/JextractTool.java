@@ -333,15 +333,15 @@ public final class JextractTool {
         }
 
         OptionParser parser = new OptionParser();
-        parser.accepts("-D", format("help.D"), true);
+        parser.accepts("-D", List.of("--define-macro"), format("help.D"), true);
         parser.accepts("--dump-includes", format("help.dump-includes"), true);
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
             parser.accepts("--" + includeKind.optionName(), format("help." + includeKind.optionName()), true);
         }
         parser.accepts("-h", List.of("-?", "--help"), format("help.h"), false);
         parser.accepts("--header-class-name", format("help.header-class-name"), true);
-        parser.accepts("-I", format("help.I"), true);
-        parser.accepts("-l", format("help.l"), true);
+        parser.accepts("-I", List.of("--include-dir"), format("help.I"), true);
+        parser.accepts("-l", List.of("--library"), format("help.l"), true);
         parser.accepts("--output", format("help.output"), true);
         parser.accepts("--source", format("help.source"), false);
         parser.accepts("-t", List.of("--target-package"), format("help.t"), true);
