@@ -138,7 +138,7 @@ A complete list of all the supported options is given below:
 | `--header-class-name <name>`                                 | name of the generated header class. If this option is not specified, then header class name is derived from the header file name. For example, class 'foo_h' for header 'foo.h'. |
 | `-t, --target-package <package>`                             | target package name for the generated classes. If this option is not specified, then unnamed package is used.  |
 | `-I, --include-dir <dir>`                                    | add directory to the end of the list of include search paths |
-| `-l, --library <name \| path>`                               | specify a library by name or absolute path that will be loaded by the generated class. |
+| `-l, --library <name \| path>`                               | specify a library by platform-independent name (e.g. "GL") or by absolute path ("/usr/lib/libGL.so") that will be loaded by the generated class. |
 | `--output <path>`                                            | specify where to place generated files                       |
 | `--source`                                                   | generate java sources instead of classfiles                  |
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
