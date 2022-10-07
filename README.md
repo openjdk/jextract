@@ -4,7 +4,7 @@
 
 ### Getting jextract
 
-Pre-built binaries for jextract are peridodically released here: https://jdk.java.net/jextract/. These binaries are built from the `master` branch of this repo, and generally target the foreign memory access and function API in the latest mainline JDK (for which binaries can also be found on [jdk.java.net](https://jdk.java.net)).
+Pre-built binaries for jextract are peridodically released here: [https://jdk.java.net/jextract](https://jdk.java.net/jextract). These binaries are built from the `master` branch of this repo, and generally target the foreign memory access and function API in the latest mainline JDK (for which binaries can also be found on [jdk.java.net](https://jdk.java.net)).
 
 For getting a jextract version with all the latest updates and fixes, see the section on [building](#building--testing).
 
