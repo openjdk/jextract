@@ -127,7 +127,7 @@ In other words, the `jextract` tool has generated all the required supporting co
 
 #### Command line options
 
-The `jextract` tool includes several customization options. Users can select in which package the generated code should be emitted, and what the name of the main extracted class should be. If no package is specified, classes are generated in unnamed package. If no name is specified for the main header class, then header class name is
+The `jextract` tool includes several customization options. Users can select in which package the generated code should be emitted, and what the name of the main extracted class should be. If no package is specified, classes are generated in the unnamed package. If no name is specified for the main header class, then the header class name is
 derived from the header file name. For example, if jextract is run on foo.h, then foo_h will be the name of the main header class.
 
 A complete list of all the supported options is given below:
