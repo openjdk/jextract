@@ -4,9 +4,9 @@
 
 ### Getting jextract
 
-Pre-built binaries for jextract are periodically released here: [https://jdk.java.net/jextract](https://jdk.java.net/jextract). These binaries are built from the `master` branch of this repo, and generally target the foreign memory access and function API in the latest mainline JDK (for which binaries can also be found on [jdk.java.net](https://jdk.java.net)).
+Pre-built binaries for jextract are periodically released [here](https://jdk.java.net/jextract). These binaries are built from the `master` branch of this repo, and target the foreign memory access and function API in the latest mainline JDK (for which binaries can be found [here](https://jdk.java.net)).
 
-For getting a jextract version with all the latest updates and fixes, see the section on [building](#building--testing).
+Alternatively, to build jextract from the latest sources (which include all the latest updates and fixes) please refer to the [building](#building--testing) section below.
 
 ---
 
@@ -183,4 +183,4 @@ The repository also contains a comprehensive set of tests, written using the [jt
 $ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
 
-Note however that running `jtreg` task requires `cmake` to be available on the `PATH`.
+Note: running `jtreg` task requires `cmake` to be available on the `PATH`.
