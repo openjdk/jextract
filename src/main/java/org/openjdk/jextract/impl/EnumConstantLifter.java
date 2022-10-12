@@ -28,13 +28,20 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /*
  * This visitor lifts enum constants to the top level and removes enum Trees.
  */
 final class EnumConstantLifter implements TreeTransformer, Declaration.Visitor<Void, Void> {
+    private static final String ENUM_NAME = "enum-name";
+
     private final List<Declaration> decls = new ArrayList<>();
     EnumConstantLifter() {
+    }
+
+    static Optional<String> enumName(Declaration.Constant constant) {
+        return constant.getAttribute(ENUM_NAME).map(attrs -> attrs.get(0).toString());
     }
 
     @Override
@@ -76,7 +83,10 @@ final class EnumConstantLifter implements TreeTransformer, Declaration.Visitor<V
     private boolean liftEnumConstants(Declaration.Scoped scoped) {
         boolean isEnum = scoped.kind() == Declaration.Scoped.Kind.ENUM;
         if (isEnum) {
-            scoped.members().forEach(fieldTree -> fieldTree.accept(this, null));
+            // add the name of the enum as an attribute.
+            scoped.members().forEach(fieldTree -> fieldTree
+                .withAttribute(ENUM_NAME, scoped.name())
+                .accept(this, null));
         }
         return isEnum;
     }

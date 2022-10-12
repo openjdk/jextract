@@ -29,6 +29,7 @@ package org.openjdk.jextract.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
@@ -102,7 +103,7 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
         indent();
         var ftype = d.type();
         var rtype = ftype.returnType();
-        builder.append(nameAndType(rtype, ""));
+        builder.append(typeStr(rtype));
         builder.append(" ");
         builder.append(d.name());
         builder.append("(");
@@ -130,15 +131,24 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
     @Override
     public Void visitConstant(Declaration.Constant d, Void ignored) {
         indent();
-        builder.append(nameAndType(d.type(), d.name()));
-        builder.append(" = ");
-        Object value = d.value();
-        if (value instanceof String str) {
-            builder.append("\"" + Utils.quote(str) + "\"");
+        Optional<String> enumName = EnumConstantLifter.enumName(d);
+        if (enumName.isPresent()) {
+            builder.append("enum " + enumName.get() + "." + d.name());
+            builder.append(" = ");
+            builder.append(d.value());
+            builder.append(";\n");
         } else {
-            builder.append(value);
+            builder.append("#define ");
+            builder.append(d.name());
+            Object value = d.value();
+            builder.append(" ");
+            if (value instanceof String str) {
+                builder.append("\"" + Utils.quote(str) + "\"");
+            } else {
+                builder.append(value);
+            }
+            builder.append("\n");
         }
-        builder.append(";\n");
         return null;
     }
 
@@ -166,10 +176,19 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
             typeStr : (typeStr + " " + name);
     }
 
+    private static String typeStr(Type type) {
+        var result = type.accept(typeVisitor, "");
+        assert !result.nameIncluded();
+        return result.typeStr();
+    }
+
     // result type for Type.Visitor
     private record TypeVisitorResult(boolean nameIncluded, String typeStr) {}
 
     private static Type.Visitor<TypeVisitorResult, String> typeVisitor = new Type.Visitor<>() {
+        // context argument in this visitor starts with a name. But it may pick up
+        // "*" prefixes for pointer type.
+
         @Override
         public TypeVisitorResult visitPrimitive(Type.Primitive t, String context) {
             return new TypeVisitorResult(false, t.kind().typeName());

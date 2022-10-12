@@ -47,20 +47,20 @@ public class TestDocComments extends JextractToolRunner {
     public void testMacros() throws IOException {
         var comments = getDocComments("macros.h", "macros_h.java");
         assertEquals(comments, Set.of(
-            "int FOO = 42;", "char* MSG = \"Hello\";"));
+            "#define FOO 42", "#define MSG \"Hello\""));
     }
 
     @Test
     public void testEnumConstants() throws IOException {
         var comments = getDocComments("enums.h", "enums_h.java");
         assertEquals(comments, Set.of(
-            "int RED = 0;",
-            "int GREEN = 1;",
-            "int BLUE = 2;",
-            "int club = 1;",
-            "int diamonds = 2;",
-            "int hearts = 3;",
-            "int spades = 4;"));
+            "enum Color.RED = 0;",
+            "enum Color.GREEN = 1;",
+            "enum Color.BLUE = 2;",
+            "enum Suit.club = 1;",
+            "enum Suit.diamonds = 2;",
+            "enum Suit.hearts = 3;",
+            "enum Suit.spades = 4;"));
     }
 
     @Test
