@@ -200,7 +200,9 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
                 case COMPLEX:
                     return prefixedType("complex", t);
                 case default:
-                    return new TypeVisitorResult(false, t.name().get());
+                    // defensive. If no name is present, we don't want to crash
+                    return new TypeVisitorResult(false,
+                        t.name().isPresent()? t.name().get() : t.toString());
             }
         }
 
