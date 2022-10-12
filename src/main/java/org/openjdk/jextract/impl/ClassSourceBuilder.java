@@ -207,7 +207,11 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
             append(header);
             append("\n");
         }
+        indent();
+        append(" * {@snippet :\n");
         append(CDeclarationPrinter.declaration(decl, " ".repeat(align*4) + " * "));
+        indent();
+        append(" * }\n");
         indent();
         append(" */\n");
     }
@@ -216,9 +220,12 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         indent();
         append("/**\n");
         indent();
+        append(" * {@snippet :\n");
         append(" * ");
         append(CDeclarationPrinter.declaration(funcType, name));
         append(";\n");
+        indent();
+        append(" * }\n");
         indent();
         append(" */\n");
     }

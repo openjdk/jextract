@@ -157,10 +157,15 @@ public class TestDocComments extends JextractToolRunner {
                 // remove \n followed by whitespaces and then *
                 .replaceAll("\n\\s+\\*", "")
 
+                // get rid of "{@snippet :" prefix
+                .replaceAll("\\{@snippet :", "")
+
                 // replace one or more whitespaces as single whitespace
                 .replaceAll("\\s+", " ")
 
-                // remove trailing and leading whitespaces
+                // get rid of last "}" suffix closing the snippet
+                .replaceAll("\\s+}\\s+$", "")
+
                 .trim());
         }
         return strings;
