@@ -197,6 +197,8 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
                     return prefixedType("signed", t);
                 case VOLATILE:
                     return prefixedType("volatile", t);
+                case COMPLEX:
+                    return prefixedType("complex", t);
                 case default:
                     return new TypeVisitorResult(false, t.name().get());
             }
