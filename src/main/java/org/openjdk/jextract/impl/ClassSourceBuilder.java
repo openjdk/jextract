@@ -28,6 +28,8 @@ import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
 import java.util.List;
 import java.util.function.Consumer;
+import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Type;
 
 /**
  * Superclass for .java source generator classes.
@@ -106,6 +108,7 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         emitPackagePrefix();
         emitImportSection();
 
+        classDeclBegin();
         indent();
         append(mods());
         append(kind.kindName + " " + className());
@@ -118,6 +121,8 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
             emitConstructor();
         }
     }
+
+    void classDeclBegin() {}
 
     void emitConstructor() {
         incrAlign();
@@ -187,6 +192,35 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
     String build() {
         String s = sb.toString();
         return s;
+    }
+
+    void emitDocComment(Declaration decl) {
+        emitDocComment(decl, "");
+    }
+
+    void emitDocComment(Declaration decl, String header) {
+        indent();
+        append("/**\n");
+        if (!header.isEmpty()) {
+            indent();
+            append(" * ");
+            append(header);
+            append("\n");
+        }
+        append(CDeclarationPrinter.declaration(decl, " ".repeat(align*4) + " * "));
+        indent();
+        append(" */\n");
+    }
+
+    void emitDocComment(Type.Function funcType, String name) {
+        indent();
+        append("/**\n");
+        indent();
+        append(" * ");
+        append(CDeclarationPrinter.declaration(funcType, name));
+        append(";\n");
+        indent();
+        append(" */\n");
     }
 
     // is the name enclosed enclosed by a class of the same name?

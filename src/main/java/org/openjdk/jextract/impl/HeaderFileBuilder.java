@@ -64,12 +64,20 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     @Override
+    void emitDocComment(Declaration decl, String header) {
+        incrAlign();
+        super.emitDocComment(decl, header);
+        decrAlign();
+    }
+
+    @Override
     public void addVar(Declaration.Variable varTree, String javaName,
         MemoryLayout layout, Optional<String> fiName) {
         String nativeName = varTree.name();
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             emitWithConstantClass(constantBuilder -> {
                 if (layout.byteSize() > 0) {
+                    emitDocComment(varTree);
                     constantBuilder.addSegment(javaName, nativeName, layout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
                 }
@@ -82,7 +90,9 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
                 Constant segmentConstant = constantBuilder.addSegment(javaName, nativeName, valueLayout)
                         .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
+                emitDocComment(varTree, "Getter for variable:");
                 emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
+                emitDocComment(varTree, "Setter for variable:");
                 emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
 
                 if (fiName.isPresent()) {
@@ -104,6 +114,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
             MethodType downcallType = descriptor.toMethodType();
             boolean needsAllocator = descriptor.returnLayout().isPresent() &&
                     descriptor.returnLayout().get() instanceof GroupLayout;
+            emitDocComment(funcTree);
             emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, needsAllocator, isVarargs, parameterNames);
         });
     }
@@ -111,6 +122,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     @Override
     public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
         Object value = constantTree.value();
+        emitDocComment(constantTree);
         if (javaType.equals(MemorySegment.class)) {
             emitWithConstantClass(constantBuilder -> {
                 constantBuilder.addConstantDesc(javaName, javaType, value)
@@ -203,8 +215,15 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitPrimitiveTypedef(Type.Primitive primType, String name) {
+        emitPrimitiveTypedef(null, primType, name);
+    }
+
+    void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
         Type.Primitive.Kind kind = primType.kind();
         if (primitiveKindSupported(kind) && kind.layout().isPresent()) {
+            if (typedefTree != null) {
+                emitDocComment(typedefTree);
+            }
             incrAlign();
             indent();
             append(MEMBER_MODS);
@@ -219,6 +238,13 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitPointerTypedef(String name) {
+        emitPointerTypedef(null, name);
+    }
+
+    void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
+        if (typedefTree != null) {
+            emitDocComment(typedefTree);
+        }
         incrAlign();
         indent();
         append(MEMBER_MODS);
