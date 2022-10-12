@@ -29,8 +29,8 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import static org.testng.Assert.assertEquals;
 
@@ -46,14 +46,14 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testMacros() throws IOException {
         var comments = getDocComments("macros.h", "macros_h.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "#define FOO 42", "#define MSG \"Hello\""));
     }
 
     @Test
     public void testEnumConstants() throws IOException {
         var comments = getDocComments("enums.h", "enums_h.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "enum Color.RED = 0;",
             "enum Color.GREEN = 1;",
             "enum Color.BLUE = 2;",
@@ -66,7 +66,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testTypedefs() throws IOException {
         var comments = getDocComments("typedefs.h", "typedefs_h.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "typedef unsigned long size_t;",
             "typedef int INT_32;",
             "typedef int* INT_PTR;",
@@ -76,7 +76,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testArrays() throws IOException {
         var comments = getDocComments("arrays.h", "arrays_h.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "int abc[10];",
             "float numbers[3];",
             "char* msg[5];"));
@@ -85,7 +85,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testFunctions() throws IOException {
         var comments = getDocComments("functions.h", "functions_h.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "int func(int* fp);",
             "double distance(struct Point p);",
             "int printf(char* fmt,...);"));
@@ -94,7 +94,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testFunctionPointer() throws IOException {
         var comments = getDocComments("funcptrs.h", "funcptr.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "void (*funcptr)(int*,int);"
         ));
     }
@@ -102,7 +102,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testVariables() throws IOException {
         var comments = getDocComments("variables.h", "variables_h.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "Getter for variable: int abc;",
             "Setter for variable: int abc;",
             "Getter for variable: char* msg;",
@@ -113,25 +113,25 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testStruct() throws IOException {
         var comments = getDocComments("structs.h", "Point.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "struct Point { int x; int y; };"));
     }
 
     @Test
     public void testStruct2() throws IOException {
         var comments = getDocComments("structs.h", "Point3D.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "struct Point3D { int x; int y; int z; };"));
     }
 
     @Test
     public void testStructTypdef() throws IOException {
         var comments = getDocComments("structs.h", "Point_t.java");
-        assertEquals(comments, Set.of(
+        assertEquals(comments, List.of(
             "typedef struct Point Point_t;"));
     }
 
-    private Set<String> getDocComments(String header, String outputFile)
+    private List<String> getDocComments(String header, String outputFile)
             throws IOException {
         var output = getOutputFilePath("7903257-parse-" + header);
         var outputH = getInputFilePath(header);
@@ -145,9 +145,9 @@ public class TestDocComments extends JextractToolRunner {
     }
 
     // get doc comments from the given the source content
-    private static Set<String> findDocComments(String content) {
+    private static List<String> findDocComments(String content) {
         var matcher = JAVADOC_COMMENT.matcher(content);
-        var strings = new HashSet<String>();
+        var strings = new ArrayList<String>();
         while (matcher.find()) {
             // doc comment text is matched in group 1
             String rawComment = matcher.group(1);
