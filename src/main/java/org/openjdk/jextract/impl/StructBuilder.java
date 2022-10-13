@@ -154,7 +154,9 @@ class StructBuilder extends ConstantBuilder {
         } else if (layout instanceof ValueLayout valueLayout) {
             Constant vhConstant = addFieldVarHandle(javaName, nativeName, valueLayout, layoutField(), prefixNamesList())
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
+            emitFieldDocComment(varTree, "Getter for field:");
             emitFieldGetter(vhConstant, javaName, valueLayout.carrier());
+            emitFieldDocComment(varTree, "Setter for field:");
             emitFieldSetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldGetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldSetter(vhConstant, javaName, valueLayout.carrier());
@@ -162,6 +164,12 @@ class StructBuilder extends ConstantBuilder {
                 emitFunctionalInterfaceGetter(fiName.get(), javaName);
             }
         }
+    }
+
+    private void emitFieldDocComment(Declaration.Variable varTree, String header) {
+        incrAlign();
+        emitDocComment(varTree, header);
+        decrAlign();
     }
 
     private void emitFunctionalInterfaceGetter(String fiName, String javaName) {

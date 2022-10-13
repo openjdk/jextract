@@ -114,14 +114,24 @@ public class TestDocComments extends JextractToolRunner {
     public void testStruct() throws IOException {
         var comments = getDocComments("structs.h", "Point.java");
         assertEquals(comments, List.of(
-            "struct Point { int x; int y; };"));
+            "struct Point { int x; int y; };",
+            "Getter for field: int x;",
+            "Setter for field: int x;",
+            "Getter for field: int y;",
+            "Setter for field: int y;"));
     }
 
     @Test
     public void testStruct2() throws IOException {
         var comments = getDocComments("structs.h", "Point3D.java");
         assertEquals(comments, List.of(
-            "struct Point3D { int x; int y; int z; };"));
+            "struct Point3D { int x; int y; int z; };",
+            "Getter for field: int x;",
+            "Setter for field: int x;",
+            "Getter for field: int y;",
+            "Setter for field: int y;",
+            "Getter for field: int z;",
+            "Setter for field: int z;"));
     }
 
     @Test
