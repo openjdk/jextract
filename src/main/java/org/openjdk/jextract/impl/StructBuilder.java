@@ -48,15 +48,17 @@ class StructBuilder extends ConstantBuilder {
 
     private static final String MEMBER_MODS = "public static";
 
+    private final Declaration.Scoped structTree;
     private final GroupLayout structLayout;
     private final Type structType;
     private final Deque<String> prefixElementNames;
 
-    StructBuilder(JavaSourceBuilder enclosing, Declaration.Scoped tree,
+    StructBuilder(JavaSourceBuilder enclosing, Declaration.Scoped structTree,
         String name, GroupLayout structLayout) {
         super(enclosing, name);
+        this.structTree = structTree;
         this.structLayout = structLayout;
-        this.structType = Type.declared(tree);
+        this.structType = Type.declared(structTree);
         prefixElementNames = new ArrayDeque<>();
     }
 
@@ -84,6 +86,13 @@ class StructBuilder extends ConstantBuilder {
             super.classBegin();
             addLayout(layoutField(), ((Type.Declared) structType).tree().layout().orElseThrow())
                     .emitGetter(this, MEMBER_MODS, Constant.SUFFIX_ONLY);
+        }
+    }
+
+    @Override
+    void classDeclBegin() {
+        if (!inAnonymousNested()) {
+            emitDocComment(structTree);
         }
     }
 
@@ -145,7 +154,9 @@ class StructBuilder extends ConstantBuilder {
         } else if (layout instanceof ValueLayout valueLayout) {
             Constant vhConstant = addFieldVarHandle(javaName, nativeName, valueLayout, layoutField(), prefixNamesList())
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
+            emitFieldDocComment(varTree, "Getter for field:");
             emitFieldGetter(vhConstant, javaName, valueLayout.carrier());
+            emitFieldDocComment(varTree, "Setter for field:");
             emitFieldSetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldGetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldSetter(vhConstant, javaName, valueLayout.carrier());
@@ -153,6 +164,12 @@ class StructBuilder extends ConstantBuilder {
                 emitFunctionalInterfaceGetter(fiName.get(), javaName);
             }
         }
+    }
+
+    private void emitFieldDocComment(Declaration.Variable varTree, String header) {
+        incrAlign();
+        emitDocComment(varTree, header);
+        decrAlign();
     }
 
     private void emitFunctionalInterfaceGetter(String fiName, String javaName) {

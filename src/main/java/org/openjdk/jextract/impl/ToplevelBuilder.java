@@ -115,12 +115,12 @@ class ToplevelBuilder extends JavaSourceBuilder {
         String superClass, Type type) {
         if (type instanceof Type.Primitive primitive) {
             // primitive
-            nextHeader().emitPrimitiveTypedef(primitive, javaName);
+            nextHeader().emitPrimitiveTypedef(typedefTree, primitive, javaName);
         } else if (((TypeImpl)type).isPointer()) {
             // pointer typedef
-            nextHeader().emitPointerTypedef(javaName);
+            nextHeader().emitPointerTypedef(typedefTree, javaName);
         } else {
-            TypedefBuilder builder = new TypedefBuilder(this, javaName, superClass);
+            TypedefBuilder builder = new TypedefBuilder(this, typedefTree, javaName, superClass);
             builders.add(builder);
             builder.classBegin();
             builder.classEnd();

@@ -41,6 +41,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private static final String MEMBER_MODS = "static";
 
+    private final Type.Function funcType;
     private final MethodType fiType;
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
@@ -49,10 +50,16 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, Type.Function funcType, String className,
                                FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(enclosing, Kind.INTERFACE, className);
+        this.funcType = funcType;
         this.fiType = descriptor.toMethodType();
         this.downcallType = descriptor.toMethodType();
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
+    }
+
+    @Override
+    void classDeclBegin() {
+        emitDocComment(funcType, className());
     }
 
     @Override
@@ -64,7 +71,6 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     // private generation
-
     private String parameterName(int i) {
         String name = "";
         if (parameterNames.isPresent()) {
