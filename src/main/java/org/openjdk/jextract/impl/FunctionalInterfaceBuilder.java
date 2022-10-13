@@ -144,7 +144,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                     append("(" + downcallType.returnType().getName() + ")");
                 }
             }
-            append(mhConstant.accessExpression() + ".invokeExact((MemorySegment)symbol");
+            append(mhConstant.accessExpression() + ".invokeExact(symbol");
             if (fiType.parameterCount() > 0) {
                 String params = IntStream.range(0, fiType.parameterCount())
                         .mapToObj(i -> {
