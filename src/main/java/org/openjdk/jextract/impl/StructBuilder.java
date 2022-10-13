@@ -266,7 +266,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS);
-        append(" MemorySegment allocateArray(int len, SegmentAllocator allocator) {\n");
+        append(" MemorySegment allocateArray(long len, SegmentAllocator allocator) {\n");
         incrAlign();
         indent();
         append("return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));\n");

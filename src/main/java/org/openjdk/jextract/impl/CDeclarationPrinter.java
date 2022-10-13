@@ -220,8 +220,7 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
                     return prefixedType("complex", t);
                 case default:
                     // defensive. If no name is present, we don't want to crash
-                    return new TypeVisitorResult(false,
-                        t.name().isPresent()? t.name().get() : t.toString());
+                    return new TypeVisitorResult(false, t.name().orElse(defaultName(t)));
             }
         }
 
@@ -265,7 +264,11 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
 
         @Override
         public TypeVisitorResult visitType(Type t, String context) {
-            return new TypeVisitorResult(false, t.getClass().getName());
+            return new TypeVisitorResult(false, defaultName(t));
+        }
+
+        private String defaultName(Type t) {
+            return t.toString();
         }
     };
 
