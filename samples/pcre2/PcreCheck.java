@@ -60,7 +60,6 @@ class PcreCheck {
             buffer, 127);
         System.err.printf("regex compilation failed: %s\n",
             buffer.getUtf8String(0));
-        pcre2_code_free_8(re);
         System.exit(2);
       }
 
