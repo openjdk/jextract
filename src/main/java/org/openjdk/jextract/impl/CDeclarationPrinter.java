@@ -259,7 +259,12 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
         public TypeVisitorResult visitArray(Type.Array t, String context) {
             String brackets = String.format(" %s[%s]", context,
                 t.elementCount().isPresent() ? t.elementCount().getAsLong() : "");
-            return new TypeVisitorResult(true, t.elementType().accept(this, "").typeStr() + brackets);
+            var result = t.elementType().accept(this, brackets);
+            if (result.nameIncluded()) {
+                return new TypeVisitorResult(true, result.typeStr());
+            } else {
+                return new TypeVisitorResult(true, result.typeStr() + brackets);
+            }
         }
 
         @Override
