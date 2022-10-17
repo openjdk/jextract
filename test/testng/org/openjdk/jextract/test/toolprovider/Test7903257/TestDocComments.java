@@ -79,7 +79,9 @@ public class TestDocComments extends JextractToolRunner {
         assertEquals(comments, List.of(
             "int abc[10];",
             "float numbers[3];",
-            "char* msg[5];"));
+            "char* msg[5];",
+            "int pixels[200][100];",
+            "int points[10][20][30];"));
     }
 
     @Test
