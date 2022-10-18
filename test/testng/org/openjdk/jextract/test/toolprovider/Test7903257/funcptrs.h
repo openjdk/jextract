@@ -22,3 +22,4 @@
  */
 
 void (*funcptr)(int x[], int numelements);
+void (*signal(int sig, void (*func)(int)))(int);
