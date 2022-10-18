@@ -101,22 +101,30 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
     @Override
     public Void visitFunction(Declaration.Function d, Void ignored) {
         indent();
-        var ftype = d.type();
-        var rtype = ftype.returnType();
-        builder.append(typeStr(rtype));
-        builder.append(" ");
-        builder.append(d.name());
-        builder.append("(");
-        builder.append(
+
+        // name and args part of the function
+        StringBuilder buf = new StringBuilder();
+        buf.append(d.name());
+        buf.append('(');
+        buf.append(
             d.parameters().
                 stream().
                 map(p -> nameAndType(p.type(), p.name())).
                 collect(Collectors.joining(", "))
         );
         if (d.type().varargs()) {
-            builder.append(",...");
+            buf.append(",...");
         }
-        builder.append(");\n");
+        buf.append(')');
+
+        // The return type is handled later to take care of
+        // pointer to function return type like signal from signal.h
+        // void (*signal(int sig, void (*func)(int)))(int)
+
+        String funcNameAndArgs = buf.toString();
+        Type returnType = d.type().returnType();
+        builder.append(nameAndType(returnType, funcNameAndArgs));
+        builder.append(";\n");
         return null;
     }
 
@@ -176,18 +184,13 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
             typeStr : (typeStr + " " + name);
     }
 
-    private static String typeStr(Type type) {
-        var result = type.accept(typeVisitor, "");
-        assert !result.nameIncluded();
-        return result.typeStr();
-    }
-
     // result type for Type.Visitor
     private record TypeVisitorResult(boolean nameIncluded, String typeStr) {}
 
     private static Type.Visitor<TypeVisitorResult, String> typeVisitor = new Type.Visitor<>() {
-        // context argument in this visitor starts with a name. But it may pick up
-        // "*" prefixes for pointer type.
+        // context argument in this visitor usually starts with a name. But it may pick up
+        // "*" prefixes for pointer type. [] suffix for array types. For pointer to function
+        // return type, the context is name of the function + argument types as in declaration.
 
         @Override
         public TypeVisitorResult visitPrimitive(Type.Primitive t, String context) {

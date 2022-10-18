@@ -130,6 +130,11 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         return Objects.requireNonNull(declFiNames.get(nameAndDecl));
     }
 
+    String getReturnFiName(Declaration.Function func) {
+        Objects.requireNonNull(func);
+        return funcReturnID(func);
+    }
+
     String getFiName(Declaration parent, Declaration decl) {
         Objects.requireNonNull(decl);
         if (declFiNames.containsKey(decl)) {
@@ -142,6 +147,10 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     }
 
     // Internals below this point
+
+    private static String funcReturnID(Declaration.Function func) {
+        return func.name() + "$return";
+    }
 
     private static String funcParamID(Declaration.Function func, int paramNum) {
         return func.name() + "$" + paramNum;
@@ -209,6 +218,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
             }
             putJavaName(param, makeJavaName(param));
         }
+
         return null;
     }
 

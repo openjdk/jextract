@@ -102,6 +102,32 @@ public class TestDocComments extends JextractToolRunner {
     }
 
     @Test
+    public void testFunctionPointer2() throws IOException {
+        var comments = getDocComments("funcptrs.h", "signal$func.java");
+        assertEquals(comments, List.of(
+            "void (*signal$func)(int);"
+        ));
+    }
+
+    @Test
+    public void testFunctionPointer3() throws IOException {
+        var comments = getDocComments("funcptrs.h", "signal$return.java");
+        assertEquals(comments, List.of(
+            "void (*signal$return)(int);"
+        ));
+    }
+
+    @Test
+    public void testFunctionPointer4() throws IOException {
+        var comments = getDocComments("funcptrs.h", "funcptrs_h.java");
+        assertEquals(comments, List.of(
+            "Getter for variable: void (*funcptr)(int*,int);",
+            "Setter for variable: void (*funcptr)(int*,int);",
+            "void (*signal(int sig, void (*func)(int)))(int);"
+        ));
+    }
+
+    @Test
     public void testVariables() throws IOException {
         var comments = getDocComments("variables.h", "variables_h.java");
         assertEquals(comments, List.of(

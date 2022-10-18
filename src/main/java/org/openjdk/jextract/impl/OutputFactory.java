@@ -246,6 +246,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
 
+        // check for function pointer type arguments
         int i = 0;
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
@@ -256,6 +257,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                 }
                 i++;
             }
+        }
+
+        // return type could be a function pointer type
+        Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
+        if (returnFunc != null) {
+             if (! generateFunctionalInterface(returnFunc, nameMangler.getReturnFiName(funcTree))) {
+                 return null;
+             }
         }
 
         toplevelBuilder.addFunction(funcTree, descriptor, nameMangler.getJavaName(parent, funcTree),
