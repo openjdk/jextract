@@ -26,17 +26,17 @@
 
 package org.openjdk.jextract.clang;
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 public final class PrintingPolicy implements AutoCloseable {
-    private MemoryAddress policy;
+    private MemorySegment policy;
 
-    PrintingPolicy(MemoryAddress policy) {
+    PrintingPolicy(MemorySegment policy) {
         this.policy = policy;
     }
 
-    MemoryAddress ptr() {
+    MemorySegment ptr() {
         return policy;
     }
 
@@ -46,9 +46,9 @@ public final class PrintingPolicy implements AutoCloseable {
     }
 
     public void dispose() {
-        if (policy != MemoryAddress.NULL) {
+        if (policy != MemorySegment.NULL) {
             Index_h.clang_PrintingPolicy_dispose(policy);
-            policy = MemoryAddress.NULL;
+            policy = MemorySegment.NULL;
         }
     }
 

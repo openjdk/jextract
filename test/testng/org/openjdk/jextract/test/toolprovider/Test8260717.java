@@ -24,7 +24,7 @@
 package org.openjdk.jextract.test.toolprovider;
 
 import java.nio.file.Path;
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
@@ -43,10 +43,10 @@ public class Test8260717 extends JextractToolRunner {
             checkMethod(FooClass, "s$set", void.class, MemorySegment.class, short.class);
             checkMethod(FooClass, "s$set", void.class, MemorySegment.class, long.class, short.class);
 
-            checkMethod(FooClass, "ptr$get", MemoryAddress.class, MemorySegment.class);
-            checkMethod(FooClass, "ptr$get", MemoryAddress.class, MemorySegment.class, long.class);
-            checkMethod(FooClass, "ptr$set", void.class, MemorySegment.class, MemoryAddress.class);
-            checkMethod(FooClass, "ptr$set", void.class, MemorySegment.class, long.class, MemoryAddress.class);
+            checkMethod(FooClass, "ptr$get", MemorySegment.class, MemorySegment.class);
+            checkMethod(FooClass, "ptr$get", MemorySegment.class, MemorySegment.class, long.class);
+            checkMethod(FooClass, "ptr$set", void.class, MemorySegment.class, MemorySegment.class);
+            checkMethod(FooClass, "ptr$set", void.class, MemorySegment.class, long.class, MemorySegment.class);
 
         } finally {
             TestUtils.deleteDir(outputPath);

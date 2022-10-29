@@ -22,7 +22,7 @@ if (clang_versions.length == 0) {
 }
 def clang_version = clang_versions[0]
 
-def jextract_version = "19"
+def jextract_version = "20"
 def jmods_dir = "$buildDir/jmods"
 def jextract_jmod_file = "$jmods_dir/org.openjdk.jextract.jmod"
 def jextract_jmod_libs_dir = "$buildDir/jextract_jmod_libs"
@@ -40,10 +40,10 @@ repositories {
 }
 
 compileJava {
-    options.release = 19
+    options.release = 20
     options.compilerArgs << "--enable-preview"
     options.fork = true
-    options.forkOptions.executable = "${jdk19_home}/bin/javac"
+    options.forkOptions.executable = "${jdk20_home}/bin/javac"
 }
 
 jar {
@@ -83,7 +83,7 @@ task createJextractJmod(type: Exec) {
         delete(jextract_jmod_file)
     }
 
-    executable = "${jdk19_home}/bin/jmod"
+    executable = "${jdk20_home}/bin/jmod"
     args = [
           "create",
           "--module-version=$jextract_version",
@@ -109,7 +109,7 @@ task createJextractImage(type: Exec) {
         delete(jextract_app_dir)
     }
 
-    executable = "${jdk19_home}/bin/jlink"
+    executable = "${jdk20_home}/bin/jlink"
     args = [
          "--module-path=$jmods_dir",
          "--add-modules=org.openjdk.jextract,jdk.compiler,jdk.zipfs",
@@ -145,9 +145,9 @@ task createRuntimeImageForTest(type: Exec) {
         delete(out_dir)
     }
 
-    executable = "${jdk19_home}/bin/jlink"
+    executable = "${jdk20_home}/bin/jlink"
     args = [
-         "--module-path=$jmods_dir" + File.pathSeparator + "$jdk19_home/jmods",
+         "--module-path=$jmods_dir" + File.pathSeparator + "$jdk20_home/jmods",
          "--add-modules=ALL-MODULE-PATH",
          "--output=$out_dir",
     ]

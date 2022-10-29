@@ -31,7 +31,7 @@
 
 import java.lang.foreign.*;
 import static net.sourceforge.lpsolve.lp_lib_h.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 
 // This is port of C example from http://web.mit.edu/lpsolve/doc/
 

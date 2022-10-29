@@ -27,6 +27,8 @@ import java.nio.file.Path;
 
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.StructLayout;
+import java.lang.foreign.UnionLayout;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
@@ -48,7 +50,7 @@ public class Test8240811 extends JextractToolRunner {
             Class<?> fooCls = loader.loadClass("foo");
             MemoryLayout fooLayout = findLayout(fooCls);
             assertNotNull(fooLayout);
-            assertTrue(((GroupLayout)fooLayout).isStruct());
+            assertTrue(fooLayout instanceof StructLayout);
             checkField(fooLayout, "x",  C_INT);
             checkField(fooLayout, "y",  C_INT);
             checkField(fooLayout, "z",  C_INT);
@@ -60,7 +62,7 @@ public class Test8240811 extends JextractToolRunner {
             Class<?> foo2Cls = loader.loadClass("foo2");
             MemoryLayout foo2Layout = findLayout(foo2Cls);
             assertNotNull(foo2Layout);
-            assertTrue(((GroupLayout)foo2Layout).isUnion());
+            assertTrue(foo2Layout instanceof UnionLayout);
             checkField(foo2Layout, "i", C_INT);
             checkField(foo2Layout, "l", C_LONG);
 
@@ -74,7 +76,7 @@ public class Test8240811 extends JextractToolRunner {
             Class<?> barCls = loader.loadClass("bar");
             MemoryLayout barLayout = findLayout(barCls);
             assertNotNull(barLayout);
-            assertTrue(((GroupLayout)barLayout).isStruct());
+            assertTrue(barLayout instanceof StructLayout);
             checkField(barLayout, "f1", C_FLOAT);
             checkField(barLayout, "f2", C_FLOAT);
 
@@ -85,7 +87,7 @@ public class Test8240811 extends JextractToolRunner {
             Class<?> bar2Cls = loader.loadClass("bar2");
             MemoryLayout bar2Layout = findLayout(bar2Cls);
             assertNotNull(bar2Layout);
-            assertTrue(((GroupLayout)bar2Layout).isUnion());
+            assertTrue(bar2Layout instanceof UnionLayout);
             checkField(bar2Layout, "f", C_FLOAT);
             checkField(bar2Layout, "d", C_DOUBLE);
         } finally {

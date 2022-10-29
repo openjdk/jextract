@@ -9,15 +9,15 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 public interface JImageOpen_t {
 
-    java.lang.foreign.Addressable apply(java.lang.foreign.MemoryAddress name, java.lang.foreign.MemoryAddress error);
+    java.lang.foreign.MemorySegment apply(java.lang.foreign.MemorySegment name, java.lang.foreign.MemorySegment error);
     static MemorySegment allocate(JImageOpen_t fi, MemorySession session) {
-        return RuntimeHelper.upcallStub(JImageOpen_t.class, fi, constants$0.JImageOpen_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;)Ljava/lang/foreign/Addressable;", session);
+        return RuntimeHelper.upcallStub(JImageOpen_t.class, fi, constants$0.JImageOpen_t$FUNC, session);
     }
-    static JImageOpen_t ofAddress(MemoryAddress addr, MemorySession session) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
-        return (java.lang.foreign.MemoryAddress _name, java.lang.foreign.MemoryAddress _error) -> {
+    static JImageOpen_t ofAddress(MemorySegment addr, MemorySession session) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, session);
+        return (java.lang.foreign.MemorySegment _name, java.lang.foreign.MemorySegment _error) -> {
             try {
-                return (java.lang.foreign.Addressable)(java.lang.foreign.MemoryAddress)constants$0.JImageOpen_t$MH.invokeExact((Addressable)symbol, (java.lang.foreign.Addressable)_name, (java.lang.foreign.Addressable)_error);
+                return (java.lang.foreign.MemorySegment)constants$0.JImageOpen_t$MH.invokeExact((MemorySegment)symbol, _name, _error);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

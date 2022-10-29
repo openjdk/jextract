@@ -4,7 +4,7 @@
 
 ### Getting started
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable [jdk 19 distribution](https://jdk.java.net/19/) is also required.
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable build of the [panama/foreign repository](https://github.com/openjdk/panama-foreign) is also required.
 
 > <details><summary><strong>Building older jextract versions</strong></summary>
 > 
@@ -16,10 +16,15 @@
 > Over time, new branches will be added, each targeting a specific JDK version.
 > </details>
 
-`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead):
+`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
+
+(**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
+supports JDK 18. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
+
+
 
 ```sh
-$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean verify
+$ sh ./gradlew -Pjdk20_home=<jdk20_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
 
@@ -47,7 +52,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+$ sh ./gradlew -Pjdk20_home=<jdk20_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
 
 Note however that running `jtreg` task requires `cmake` to be available on the `PATH`.
@@ -122,19 +127,22 @@ In other words, the `jextract` tool has generated all the required supporting co
 
 #### Command line options
 
-The `jextract` tool includes several customization options. Users can select in which package the generated code should be emitted, and what the name of the main extracted class should be. A complete list of all the supported options is given below:
+The `jextract` tool includes several customization options. Users can select in which package the generated code should be emitted, and what the name of the main extracted class should be. If no package is specified, classes are generated in the unnamed package. If no name is specified for the main header class, then the header class name is
+derived from the header file name. For example, if jextract is run on foo.h, then foo_h will be the name of the main header class.
+
+A complete list of all the supported options is given below:
 
 | Option                                                       | Meaning                                                      |
 | :----------------------------------------------------------- | ------------------------------------------------------------ |
-| `-D <macro>`                                                 | define a C preprocessor macro                                |
-| `--header-class-name <name>`                                 | specify the name of the main header class                    |
-| `-t, --target-package <package>`                             | specify target package for the generated bindings            |
-| `-I <path>`                                                  | specify include files path for the clang parser              |
-| `-l <library>`                                               | specify a library that will be loaded by the generated bindings |
+| `-D --define-macro <macro>=<value>`                          | define <macro> to <value> (or 1 if <value> omitted)          |
+| `--header-class-name <name>`                                 | name of the generated header class. If this option is not specified, then header class name is derived from the header file name. For example, class "foo_h" for header "foo.h". |
+| `-t, --target-package <package>`                             | target package name for the generated classes. If this option is not specified, then unnamed package is used.  |
+| `-I, --include-dir <dir>`                                    | append directory to the include search paths. Include search paths are searched in order. For example, if `-I foo -I bar` is specified, header files will be searched in "foo" first, then (if nothing is found) in "bar".|
+| `-l, --library <name \| path>`                               | specify a library by platform-independent name (e.g. "GL") or by absolute path ("/usr/lib/libGL.so") that will be loaded by the generated class. |
 | `--output <path>`                                            | specify where to place generated files                       |
 | `--source`                                                   | generate java sources instead of classfiles                  |
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
-| `--include-[function,macro,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings (see below). When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
+| `--include-[function,constant,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings (see below). When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 | `--version`                                                  | print version information and exit                           |
 
 
@@ -148,7 +156,7 @@ Users can specify additional clang compiler options, by creating a file named
 To allow for symbol filtering, `jextract` can generate a *dump* of all the symbols encountered in an header file; this dump can be manipulated, and then used as an argument file (using the `@argfile` syntax also available in other JDK tools) to e.g. generate bindings only for a *subset* of symbols seen by `jextract`. For instance, if we run `jextract` with as follows:
 
 ```
-jextract --dump-includes=includes.txt point.h
+jextract --dump-includes includes.txt point.h
 ```
 
 We obtain the following file (`includes.txt`):

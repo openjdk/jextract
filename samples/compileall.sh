@@ -51,6 +51,10 @@ echo "compiling opengl"
 cd opengl
 sh ./compile.sh
 cd ..
+echo "compiling pcre2"
+cd pcre2
+sh ./compile.sh
+cd ..
 echo "compiling python3"
 cd python3
 sh ./compile.sh
@@ -73,5 +77,9 @@ sh ./compile.sh
 cd ..
 echo "compiling time"
 cd time
+sh ./compile.sh
+cd ..
+echo "compiling libzstd"
+cd libzstd
 sh ./compile.sh
 cd ..

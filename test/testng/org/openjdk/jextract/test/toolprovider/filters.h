@@ -43,6 +43,10 @@ struct _struct { int x; };
 
 union _union { int y; };
 
+enum Color {
+    RED, GREEN, BLUE
+};
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

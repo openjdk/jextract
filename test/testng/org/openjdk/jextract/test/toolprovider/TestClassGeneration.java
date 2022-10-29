@@ -22,7 +22,7 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
@@ -30,6 +30,7 @@ import testlib.TestUtils;
 import org.testng.annotations.*;
 import testlib.JextractToolRunner;
 
+import java.lang.foreign.MemorySession;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
@@ -44,7 +45,7 @@ import static org.testng.Assert.assertNotNull;
 
 public class TestClassGeneration extends JextractToolRunner {
 
-    private static final VarHandle VH_bytes = MemoryLayout.sequenceLayout(-1, C_CHAR).varHandle(sequenceElement());
+    private static final VarHandle VH_bytes = MemoryLayout.sequenceLayout(C_CHAR).varHandle(sequenceElement());
 
     private Path outputDir;
     private TestUtils.Loader loader;
@@ -59,8 +60,8 @@ public class TestClassGeneration extends JextractToolRunner {
             { "macro_long",         long.class,          1L                        },
             { "macro_float",        float.class,         1.0F                      },
             { "macro_double",       double.class,        1.0D                      },
-            { "macro_address_NULL", MemoryAddress.class, MemoryAddress.NULL        },
-            { "macro_address_123",  MemoryAddress.class, MemoryAddress.ofLong(123) },
+            { "macro_address_NULL", MemorySegment.class, MemorySegment.NULL        },
+            { "macro_address_123",  MemorySegment.class, MemorySegment.ofAddress(123) },
             { "enum_0",             int.class,           0                         },
             { "enum_1",             int.class,           1                         },
             { "enum_2",             int.class,           2                         },
@@ -128,7 +129,11 @@ public class TestClassGeneration extends JextractToolRunner {
     @Test(dataProvider = "simpleConstants")
     public void testConstant(String name, Class<?> expectedType, Object expectedValue) throws Throwable {
         Method getter = checkMethod(cls, name, expectedType);
-        assertEquals(getter.invoke(null), expectedValue);
+        if (expectedType == MemorySegment.class) {
+            assertEquals(((MemorySegment)getter.invoke(null)).address(), ((MemorySegment)expectedValue).address());
+        } else {
+            assertEquals(getter.invoke(null), expectedValue);
+        }
     }
 
     @Test(dataProvider = "stringConstants")
@@ -181,7 +186,7 @@ public class TestClassGeneration extends JextractToolRunner {
         Method layout_getter = checkMethod(structCls, "$LAYOUT", MemoryLayout.class);
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
         try (MemorySession session = MemorySession.openConfined()) {
-            MemorySegment struct = MemorySegment.allocateNative(structLayout, session);
+            MemorySegment struct = session.allocate(structLayout);
             Method vh_getter = checkMethod(structCls, memberName + "$VH", VarHandle.class);
             VarHandle vh = (VarHandle) vh_getter.invoke(null);
             assertEquals(vh.varType(), expectedType);

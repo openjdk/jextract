@@ -23,11 +23,12 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
-import java.lang.foreign.Addressable;
+import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import java.nio.file.Path;
 import java.lang.foreign.GroupLayout;
+import java.lang.foreign.UnionLayout;
 import testlib.JextractToolRunner;
 
 import static org.testng.Assert.assertNotNull;
@@ -42,12 +43,12 @@ public class UniondeclTest extends JextractToolRunner {
         try(TestUtils.Loader loader = TestUtils.classLoader(uniondeclOutput)) {
             Class<?> cls = loader.loadClass("uniondecl_h");
             // check a method for "void func(IntOrFloat*)"
-            assertNotNull(findMethod(cls, "func", Addressable.class));
+            assertNotNull(findMethod(cls, "func", MemorySegment.class));
             // check IntOrFloat layout
             Class<?> intOrFloatCls = loader.loadClass("IntOrFloat");
             GroupLayout intOrFloatLayout = (GroupLayout)findLayout(intOrFloatCls);
             assertNotNull(intOrFloatLayout);
-            assertTrue(intOrFloatLayout.isUnion());
+            assertTrue(intOrFloatLayout instanceof UnionLayout);
             checkField(intOrFloatLayout, "i",  C_INT);
             checkField(intOrFloatLayout, "f", C_FLOAT);
         } finally {

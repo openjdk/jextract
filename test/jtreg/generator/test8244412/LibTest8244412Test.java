@@ -22,7 +22,7 @@
  */
 
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
 
 import org.testng.annotations.Test;

@@ -73,16 +73,16 @@ class constants$6 {
         "clang_isPreprocessing",
         constants$6.clang_isPreprocessing$FUNC
     );
-    static final FunctionDescriptor clang_getCursorLanguage$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+    static final FunctionDescriptor clang_getCursorLinkage$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
             Constants$root.C_INT$LAYOUT.withName("xdata"),
             MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
-    static final MethodHandle clang_getCursorLanguage$MH = RuntimeHelper.downcallHandle(
-        "clang_getCursorLanguage",
-        constants$6.clang_getCursorLanguage$FUNC
+    static final MethodHandle clang_getCursorLinkage$MH = RuntimeHelper.downcallHandle(
+        "clang_getCursorLinkage",
+        constants$6.clang_getCursorLinkage$FUNC
     );
 }
 

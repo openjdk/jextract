@@ -26,14 +26,14 @@
 
 package org.openjdk.jextract.clang;
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 public class EvalResult implements AutoCloseable {
-    private MemoryAddress ptr;
+    private MemorySegment ptr;
 
-    public EvalResult(MemoryAddress ptr) {
+    public EvalResult(MemorySegment ptr) {
         this.ptr = ptr;
     }
 
@@ -90,7 +90,7 @@ public class EvalResult implements AutoCloseable {
     }
 
     private String getAsString0() {
-        MemoryAddress value = Index_h.clang_EvalResult_getAsStr(ptr);
+        MemorySegment value = Index_h.clang_EvalResult_getAsStr(ptr);
         return value.getUtf8String(0);
     }
 
@@ -106,13 +106,13 @@ public class EvalResult implements AutoCloseable {
 
     @Override
     public void close() {
-        if (ptr != MemoryAddress.NULL) {
+        if (ptr != MemorySegment.NULL) {
             Index_h.clang_EvalResult_dispose(ptr);
-            ptr = MemoryAddress.NULL;
+            ptr = MemorySegment.NULL;
         }
     }
 
-    final static EvalResult erroneous = new EvalResult(MemoryAddress.NULL) {
+    final static EvalResult erroneous = new EvalResult(MemorySegment.NULL) {
         @Override
         public Kind getKind() {
             return Kind.Erroneous;

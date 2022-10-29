@@ -41,6 +41,7 @@ import org.openjdk.jextract.Type;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.CursorLanguage;
+import org.openjdk.jextract.clang.LinkageKind;
 import org.openjdk.jextract.clang.SourceLocation;
 
 class TreeMaker {
@@ -66,6 +67,8 @@ class TreeMaker {
     public Declaration createTree(Cursor c) {
         Objects.requireNonNull(c);
         CursorLanguage lang = c.language();
+        LinkageKind linkage = c.linkage();
+
         /*
          * We detect non-C constructs to early exit with error for
          * unsupported features. But libclang maps both C11's _Static_assert
@@ -76,6 +79,16 @@ class TreeMaker {
         if (lang != CursorLanguage.C && lang != CursorLanguage.Invalid &&
                 c.kind() != CursorKind.StaticAssert) {
             throw new RuntimeException("Unsupported language: " + c.language());
+        }
+
+        // If we can clearly determine internal linkage, then filter it.
+        if (linkage == LinkageKind.Internal) {
+            return null;
+        }
+
+        // filter inline functions
+        if (c.isFunctionInlined()) {
+            return null;
         }
         var rv = (DeclarationImpl) createTreeInternal(c);
         return (rv == null) ? null : rv.withAttributes(collectAttributes(c));
@@ -142,6 +155,22 @@ class TreeMaker {
 
         public Cursor cursor() {
             return cursor;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj instanceof Position pos) {
+                return Objects.equals(path, pos.path()) &&
+                    Objects.equals(line, pos.line()) &&
+                    Objects.equals(column, pos.col());
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path, line, column);
         }
 
         @Override
