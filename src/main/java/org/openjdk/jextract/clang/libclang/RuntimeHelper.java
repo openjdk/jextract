@@ -54,8 +54,9 @@ final class RuntimeHelper {
     private final static ClassLoader LOADER = RuntimeHelper.class.getClassLoader();
     private final static MethodHandles.Lookup MH_LOOKUP = MethodHandles.lookup();
     private final static SymbolLookup SYMBOL_LOOKUP;
+
     final static SegmentAllocator CONSTANT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align);
+            (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.implicit());
 
     static {
         // Manual change to handle platform specific library name difference

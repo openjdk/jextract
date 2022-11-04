@@ -22,6 +22,7 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
@@ -185,8 +186,8 @@ public class TestClassGeneration extends JextractToolRunner {
         Class<?> structCls = loader.loadClass("com.acme." + structName);
         Method layout_getter = checkMethod(structCls, "$LAYOUT", MemoryLayout.class);
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
-        try (MemorySession session = MemorySession.openConfined()) {
-            MemorySegment struct = session.allocate(structLayout);
+        try (Arena arena = Arena.openConfined()) {
+            MemorySegment struct = arena.allocate(structLayout);
             Method vh_getter = checkMethod(structCls, memberName + "$VH", VarHandle.class);
             VarHandle vh = (VarHandle) vh_getter.invoke(null);
             assertEquals(vh.varType(), expectedType);

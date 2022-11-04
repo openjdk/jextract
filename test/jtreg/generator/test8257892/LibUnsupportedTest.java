@@ -21,6 +21,7 @@
  * questions.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.reflect.Method;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
@@ -53,8 +54,8 @@ import test.jextract.unsupported.*;
 public class LibUnsupportedTest {
     @Test
     public void testAllocateFoo() {
-        try (MemorySession session = MemorySession.openConfined()) {
-            var seg = Foo.allocate(session);
+        try (Arena arena = Arena.openConfined()) {
+            var seg = Foo.allocate(arena);
             Foo.i$set(seg, 32);
             Foo.c$set(seg, (byte)'z');
             assertEquals(Foo.i$get(seg), 32);
@@ -64,8 +65,8 @@ public class LibUnsupportedTest {
 
     @Test
     public void testGetFoo() {
-        try (MemorySession session = MemorySession.openConfined()) {
-            var seg = MemorySegment.ofAddress(getFoo().address(), Foo.sizeof(), session);
+        try (Arena arena = Arena.openConfined()) {
+            var seg = MemorySegment.ofAddress(getFoo().address(), Foo.sizeof(), arena.session());
             Foo.i$set(seg, 42);
             Foo.c$set(seg, (byte)'j');
             assertEquals(Foo.i$get(seg), 42);

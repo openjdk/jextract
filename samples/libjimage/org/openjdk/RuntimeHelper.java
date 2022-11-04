@@ -32,7 +32,7 @@ final class RuntimeHelper {
     private final static SymbolLookup SYMBOL_LOOKUP;
 
     final static SegmentAllocator CONSTANT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align);
+            (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.implicit());
 
     static {
         // manual change

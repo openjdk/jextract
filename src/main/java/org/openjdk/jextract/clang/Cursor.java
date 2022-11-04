@@ -26,6 +26,7 @@
 
 package org.openjdk.jextract.clang;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
@@ -119,8 +120,8 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public SourceLocation getSourceLocation() {
         MemorySegment loc = Index_h.clang_getCursorLocation(owner, segment);
-        try (MemorySession session = MemorySession.openConfined()) {
-            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(session)) != 0) {
+        try (Arena arena = Arena.openConfined()) {
+            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(arena)) != 0) {
                 return null;
             }
         }

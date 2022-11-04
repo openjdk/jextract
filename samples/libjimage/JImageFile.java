@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,9 +46,9 @@ public class JImageFile {
            System.err.println(modPath + " not found, please check if your java.home");
            return;
         }
-        try (var session = MemorySession.openConfined()) {
-            var jintResPtr = session.allocate(jint);
-            var moduleFilePath = session.allocateUtf8String(javaHome + "/lib/modules");
+        try (var arena = Arena.openConfined()) {
+            var jintResPtr = arena.allocate(jint);
+            var moduleFilePath = arena.allocateUtf8String(javaHome + "/lib/modules");
             var jimageFile = JIMAGE_Open(moduleFilePath, jintResPtr);
 
             if (jimageFile == NULL) {
@@ -56,7 +56,7 @@ public class JImageFile {
                 return;
             }
             var mod = JIMAGE_PackageToModule(jimageFile,
-                session.allocateUtf8String("java/util"));
+                arena.allocateUtf8String("java/util"));
             System.out.println(mod);
 
             // const char* module_name, const char* version, const char* package,
@@ -68,7 +68,7 @@ public class JImageFile {
                    System.out.println("package " + package_name.getUtf8String(0));
                    System.out.println("name " + name.getUtf8String(0));
                    return 1;
-                }, session);
+                }, arena.session());
 
             JIMAGE_ResourceIterator(jimageFile, visitor, NULL);
 
