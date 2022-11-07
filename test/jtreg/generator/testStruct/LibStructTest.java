@@ -21,6 +21,7 @@
  * questions.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
@@ -49,8 +50,8 @@ import test.jextract.struct.*;
 public class LibStructTest {
     @Test
     public void testMakePoint() {
-        try (MemorySession session = MemorySession.openConfined()) {
-            var seg = makePoint(session, 42, -39);
+        try (Arena arena = Arena.openConfined()) {
+            var seg = makePoint(arena, 42, -39);
             assertEquals(Point.x$get(seg), 42);
             assertEquals(Point.y$get(seg), -39);
         }
@@ -58,8 +59,8 @@ public class LibStructTest {
 
     @Test
     public void testAllocate() {
-        try (MemorySession session = MemorySession.openConfined()) {
-            var seg = Point.allocate(session);
+        try (Arena arena = Arena.openConfined()) {
+            var seg = Point.allocate(arena);
             Point.x$set(seg, 56);
             Point.y$set(seg, 65);
             assertEquals(Point.x$get(seg), 56);
@@ -69,8 +70,8 @@ public class LibStructTest {
 
     @Test
     public void testAllocateArray() {
-        try (MemorySession session = MemorySession.openConfined()) {
-            var seg = Point.allocateArray(3, session);
+        try (Arena arena = Arena.openConfined()) {
+            var seg = Point.allocateArray(3, arena);
             for (int i = 0; i < 3; i++) {
                 Point.x$set(seg, i, 56 + i);
                 Point.y$set(seg, i, 65 + i);

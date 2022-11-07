@@ -31,7 +31,7 @@ final class RuntimeHelper {
     private static final SegmentAllocator THROWING_ALLOCATOR = (x, y) -> { throw new AssertionError("should not reach here"); };
 
     final static SegmentAllocator CONSTANT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align);
+            (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.implicit());
 
     static {
         #LOAD_LIBRARIES#

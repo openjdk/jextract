@@ -40,16 +40,19 @@ public class Dlopen {
     // implementation of Symbol lookup that loads a given shared object using dlopen
     // and looks up symbols using dlsym
     private static Function<String, Optional<MemorySegment>> lookup(String libraryName, MemorySession session) {
-        try (MemorySession libOpenSession = MemorySession.openConfined()) {
-            var handle = dlopen(libOpenSession.allocateUtf8String(libraryName), RTLD_LOCAL());
-            if (handle == MemorySegment.NULL) {
+        try (Arena libArena = Arena.openConfined()) {
+            var handleAddr = dlopen(libArena.allocateUtf8String(libraryName), RTLD_LOCAL());
+            if (handleAddr.equals(MemorySegment.NULL)) {
                 throw new IllegalArgumentException("Cannot find library: " + libraryName);
             }
-            session.addCloseAction(() -> dlclose(handle));
+            var handle = MemorySegment.ofAddress(handleAddr.address(), 0, session,
+                () -> dlclose(handleAddr));
             return name -> {
-                var addr = dlsym(handle, session.allocateUtf8String(name));
-                return addr == MemorySegment.NULL ?
-                            Optional.empty() : Optional.of(addr);
+                try (var arena = Arena.openConfined()) {
+                    var addr = dlsym(handle, arena.allocateUtf8String(name));
+                    return addr.equals(MemorySegment.NULL) ?
+                        Optional.empty() : Optional.of(addr);
+                }
             };
         }
     }
@@ -57,8 +60,8 @@ public class Dlopen {
     public static void main(String[] args) throws Throwable {
         var arg = args.length > 0? args[0] : "Java";
         var libName = "libhello.dylib";
-        try (var session = MemorySession.openConfined()) {
-            var symLookup = lookup(libName, session);
+        try (var arena = Arena.openConfined()) {
+            var symLookup = lookup(libName, arena.session());
 
             var linker = Linker.nativeLinker();
             // get method handle for a function from helloLIb
@@ -67,7 +70,7 @@ public class Dlopen {
                 FunctionDescriptor.ofVoid(ValueLayout.ADDRESS));
 
             // invoke a function from helloLib
-            greetingMH.invoke(session.allocateUtf8String(arg));
+            greetingMH.invoke(arena.allocateUtf8String(arg));
         }
     }
 }

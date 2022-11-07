@@ -22,6 +22,8 @@
  */
 
 import org.testng.annotations.Test;
+
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySession;
 import static org.testng.Assert.assertEquals;
 import static test.jextract.test8244938.test8244938_h.*;
@@ -47,8 +49,8 @@ import test.jextract.test8244938.*;
 public class Test8244938 {
     @Test
     public void testNestedStructReturn() {
-         try (MemorySession session = MemorySession.openConfined()) {
-             var seg = func(session);
+         try (Arena arena = Arena.openConfined()) {
+             var seg = func(arena);
              assertEquals(seg.byteSize(), Point.sizeof());
              assertEquals(Point.k$get(seg), 44);
              var point2dSeg = Point.point2d$slice(seg);

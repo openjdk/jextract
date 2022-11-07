@@ -25,6 +25,7 @@
  */
 package org.openjdk.jextract.clang;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -54,11 +55,11 @@ public class SourceLocation extends ClangDisposable.Owned {
 
     @SuppressWarnings("unchecked")
     private Location getLocation(LocationFactory fn) {
-        try (var session = MemorySession.openConfined()) {
-             MemorySegment file = session.allocate(C_POINTER);
-             MemorySegment line = session.allocate(C_INT);
-             MemorySegment col = session.allocate(C_INT);
-             MemorySegment offset = session.allocate(C_INT);
+        try (var arena = Arena.openConfined()) {
+             MemorySegment file = arena.allocate(C_POINTER);
+             MemorySegment line = arena.allocate(C_INT);
+             MemorySegment col = arena.allocate(C_INT);
+             MemorySegment offset = arena.allocate(C_INT);
 
             fn.get(loc, file, line, col, offset);
             MemorySegment fname = file.get(C_POINTER, 0);

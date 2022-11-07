@@ -21,6 +21,7 @@
  * questions.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySession;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.VaList;
@@ -50,15 +51,15 @@ import static test.jextract.vsprintf.vsprintf_h.*;
 public class Test8252016 {
     @Test
     public void testsVsprintf() {
-        try (MemorySession session = MemorySession.openConfined()) {
-            MemorySegment s = session.allocate(1024);
+        try (Arena arena = Arena.openConfined()) {
+            MemorySegment s = arena.allocate(1024);
             VaList vaList = VaList.make(b -> {
                 b.addVarg(C_INT, 12);
                 b.addVarg(C_DOUBLE, 5.5d);
                 b.addVarg(C_LONG_LONG, -200L);
                 b.addVarg(C_LONG_LONG, Long.MAX_VALUE);
-            }, session);
-            my_vsprintf(s, session.allocateUtf8String("%hhd %.2f %lld %lld"), vaList.segment());
+            }, arena.session());
+            my_vsprintf(s, arena.allocateUtf8String("%hhd %.2f %lld %lld"), vaList.segment());
             String str = s.getUtf8String(0);
             assertEquals(str, "12 5.50 -200 " + Long.MAX_VALUE);
        }

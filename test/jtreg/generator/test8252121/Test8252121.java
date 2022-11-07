@@ -23,6 +23,7 @@
 
 import org.testng.annotations.Test;
 
+import java.lang.foreign.Arena;
 import java.util.stream.IntStream;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
@@ -51,9 +52,9 @@ import static test.jextract.arrayparam.arrayparam_h.*;
 public class Test8252121 {
     @Test
     public void test() {
-        try (var session = MemorySession.openConfined()) {
+        try (var arena = Arena.openConfined()) {
             int[] array = { 3, 5, 89, 34, -33 };
-            MemorySegment seg = session.allocateArray(C_INT, array);
+            MemorySegment seg = arena.allocateArray(C_INT, array);
             assertEquals(IntStream.of(array).sum(), sum(seg));
             assertEquals(IntStream.of(array).reduce(1, (a,b) -> a*b), mul(seg));
         }

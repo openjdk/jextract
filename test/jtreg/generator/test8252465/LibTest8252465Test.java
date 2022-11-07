@@ -21,6 +21,7 @@
  * questions.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
@@ -48,11 +49,11 @@ import test.jextract.test8252465.*;
 public class LibTest8252465Test {
     @Test
     public void test() {
-        try (var session = MemorySession.openConfined()) {
-            var foo = Foo.allocate(session);
+        try (var arena = Arena.openConfined()) {
+            var foo = Foo.allocate(arena);
             Foo.x$set(foo, 3.14f);
             assertEquals(Foo.x$get(foo), 3.14f, 0.001f);
-            var bar = Bar.allocate(session);
+            var bar = Bar.allocate(arena);
             Bar.x$set(bar, -42);
             assertEquals(Bar.x$get(bar), -42);
         }

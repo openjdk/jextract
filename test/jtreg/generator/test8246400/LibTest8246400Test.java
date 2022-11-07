@@ -21,6 +21,7 @@
  * questions.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
@@ -49,16 +50,16 @@ public class LibTest8246400Test {
     @Test
     public void testSegmentRegister() {
         MemorySegment sum = null;
-        try (MemorySession session = MemorySession.openConfined()) {
-            var v1 = Vector.allocate(session);
+        try (Arena arena = Arena.openConfined()) {
+            var v1 = Vector.allocate(arena);
             Vector.x$set(v1, 1.0);
             Vector.y$set(v1, 0.0);
 
-            var v2 = Vector.allocate(session);
+            var v2 = Vector.allocate(arena);
             Vector.x$set(v2, 0.0);
             Vector.y$set(v2, 1.0);
 
-            sum = add(session, v1, v2);
+            sum = add(arena, v1, v2);
 
             assertEquals(Vector.x$get(sum), 1.0, 0.1);
             assertEquals(Vector.y$get(sum), 1.0, 0.1);
@@ -66,7 +67,7 @@ public class LibTest8246400Test {
             MemorySegment callback = cosine_similarity$dot.allocate((a, b) -> {
                 return (Vector.x$get(a) * Vector.x$get(b)) +
                     (Vector.y$get(a) * Vector.y$get(b));
-            }, session);
+            }, arena.session());
 
             var value = cosine_similarity(v1, v2, callback);
             assertEquals(value, 0.0, 0.1);

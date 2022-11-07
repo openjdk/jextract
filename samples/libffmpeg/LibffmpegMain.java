@@ -78,7 +78,7 @@ public class LibffmpegMain {
             // AVFormatContext *ppFormatCtx;
             var ppFormatCtx = session.allocate(C_POINTER);
             // char* fileName;
-            var fileName = session.allocateUtf8String(args[0]);
+            var fileName = arena.allocateUtf8String(args[0]);
 
             // open video file
             if (avformat_open_input(ppFormatCtx, fileName, NULL, NULL) != 0) {
@@ -93,7 +93,7 @@ public class LibffmpegMain {
                 throw new ExitException(1, "Could not find stream information");
             }
 
-            session.addCloseAction(()-> {
+            arena.addCloseAction(()-> {
                 // Close the video file
                 avformat_close_input(ppFormatCtx);
             });

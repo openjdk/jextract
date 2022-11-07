@@ -21,6 +21,7 @@
  * questions.
  */
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
@@ -48,9 +49,9 @@ import test.jextract.test8254983.*;
 public class LibTest8254983Test {
     @Test
     public void testOuterStruct() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (Arena arena = Arena.openConfined()) {
             assertEquals(((GroupLayout)Foo._struct.$LAYOUT()).memberLayouts().size(), 1);
-            MemorySegment str = Foo._struct.allocate(session);
+            MemorySegment str = Foo._struct.allocate(arena);
             Foo._struct.x$set(str, 42);
             assertEquals(Foo._struct.x$get(str), 42);
         }
@@ -59,8 +60,8 @@ public class LibTest8254983Test {
     @Test
     public void testInnerStruct() {
         assertEquals(((GroupLayout)Foo._union._struct.$LAYOUT()).memberLayouts().size(), 2);
-        try (MemorySession session = MemorySession.openConfined()) {
-            MemorySegment str = Foo._union._struct.allocate(session);
+        try (Arena arena = Arena.openConfined()) {
+            MemorySegment str = Foo._union._struct.allocate(arena);
             Foo._union._struct.x$set(str, 42);
             assertEquals(Foo._union._struct.x$get(str), 42);
         }
