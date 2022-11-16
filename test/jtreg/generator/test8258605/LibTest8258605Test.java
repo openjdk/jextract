@@ -22,7 +22,6 @@
  */
 
 import java.lang.foreign.Arena;
-import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 import test.jextract.test8258605.*;
 import static java.lang.foreign.MemorySegment.NULL;
@@ -54,7 +53,7 @@ public class LibTest8258605Test {
              f(CB.allocate(i -> {
                  assertTrue(i == 10);
                  callbackReached[0] = true;
-             }, arena.session()));
+             }, arena.scope()));
              assertTrue(callbackReached[0]);
         }
     }
@@ -72,7 +71,7 @@ public class LibTest8258605Test {
              f2(foo, CB.allocate(i -> {
                  assertTrue(i == 42);
                  callbackReached[0] = true;
-             }, arena.session()));
+             }, arena.scope()));
              assertTrue(callbackReached[0]);
         }
     }

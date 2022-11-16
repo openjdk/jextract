@@ -32,9 +32,18 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+/**
+ * {@snippet :
+ * struct CXUnsavedFile {
+ *     char* Filename;
+ *     char* Contents;
+ *     unsigned long Length;
+ * };
+ * }
+ */
 public class CXUnsavedFile {
 
-    static final  StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
+    static final StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("Filename"),
         Constants$root.C_POINTER$LAYOUT.withName("Contents"),
         Constants$root.C_LONG_LONG$LAYOUT.withName("Length")
@@ -46,10 +55,22 @@ public class CXUnsavedFile {
     public static VarHandle Filename$VH() {
         return CXUnsavedFile.Filename$VH;
     }
+    /**
+     * Getter for field:
+     * {@snippet :
+     * char* Filename;
+     * }
+     */
     public static MemorySegment Filename$get(MemorySegment seg) {
         return (java.lang.foreign.MemorySegment)CXUnsavedFile.Filename$VH.get(seg);
     }
-    public static void Filename$set( MemorySegment seg, MemorySegment x) {
+    /**
+     * Setter for field:
+     * {@snippet :
+     * char* Filename;
+     * }
+     */
+    public static void Filename$set(MemorySegment seg, MemorySegment x) {
         CXUnsavedFile.Filename$VH.set(seg, x);
     }
     public static MemorySegment Filename$get(MemorySegment seg, long index) {
@@ -62,10 +83,22 @@ public class CXUnsavedFile {
     public static VarHandle Contents$VH() {
         return CXUnsavedFile.Contents$VH;
     }
+    /**
+     * Getter for field:
+     * {@snippet :
+     * char* Contents;
+     * }
+     */
     public static MemorySegment Contents$get(MemorySegment seg) {
         return (java.lang.foreign.MemorySegment)CXUnsavedFile.Contents$VH.get(seg);
     }
-    public static void Contents$set( MemorySegment seg, MemorySegment x) {
+    /**
+     * Setter for field:
+     * {@snippet :
+     * char* Contents;
+     * }
+     */
+    public static void Contents$set(MemorySegment seg, MemorySegment x) {
         CXUnsavedFile.Contents$VH.set(seg, x);
     }
     public static MemorySegment Contents$get(MemorySegment seg, long index) {
@@ -78,10 +111,22 @@ public class CXUnsavedFile {
     public static VarHandle Length$VH() {
         return CXUnsavedFile.Length$VH;
     }
+    /**
+     * Getter for field:
+     * {@snippet :
+     * unsigned long Length;
+     * }
+     */
     public static long Length$get(MemorySegment seg) {
         return (long)CXUnsavedFile.Length$VH.get(seg);
     }
-    public static void Length$set( MemorySegment seg, long x) {
+    /**
+     * Setter for field:
+     * {@snippet :
+     * unsigned long Length;
+     * }
+     */
+    public static void Length$set(MemorySegment seg, long x) {
         CXUnsavedFile.Length$VH.set(seg, x);
     }
     public static long Length$get(MemorySegment seg, long index) {
@@ -92,10 +137,10 @@ public class CXUnsavedFile {
     }
     public static long sizeof() { return $LAYOUT().byteSize(); }
     public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
-    public static MemorySegment allocateArray(int len, SegmentAllocator allocator) {
+    public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment ofAddress(MemorySegment addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }
+    public static MemorySegment ofAddress(MemorySegment addr, SegmentScope scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
 }
 
 

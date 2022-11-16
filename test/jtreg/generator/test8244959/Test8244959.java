@@ -22,7 +22,6 @@
  */
 
 import java.lang.foreign.Arena;
-import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 
 import java.lang.foreign.MemorySegment;

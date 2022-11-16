@@ -99,11 +99,11 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             Constant functionDesc = constantBuilder.addFunctionDesc(className(), fiDesc);
             incrAlign();
             indent();
-            append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, MemorySession session) {\n");
+            append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, SegmentScope scope) {\n");
             incrAlign();
             indent();
             append("return RuntimeHelper.upcallStub(" + className() + ".class, fi, " +
-                functionDesc.accessExpression() + ", session);\n");
+                functionDesc.accessExpression() + ", scope);\n");
             decrAlign();
             indent();
             append("}\n");
@@ -117,11 +117,11 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                  fiDesc, false, true);
             incrAlign();
             indent();
-            append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, MemorySession session) {\n");
+            append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, SegmentScope scope) {\n");
             incrAlign();
             indent();
             append("MemorySegment symbol = MemorySegment.ofAddress(");
-            append("addr.address(), 0, session);\n");
+            append("addr.address(), 0, scope);\n");
             indent();
             append("return (");
             String delim = "";

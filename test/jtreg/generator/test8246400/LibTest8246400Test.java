@@ -23,7 +23,6 @@
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 import test.jextract.test8246400.*;
 import static org.testng.Assert.assertEquals;
@@ -67,7 +66,7 @@ public class LibTest8246400Test {
             MemorySegment callback = cosine_similarity$dot.allocate((a, b) -> {
                 return (Vector.x$get(a) * Vector.x$get(b)) +
                     (Vector.y$get(a) * Vector.y$get(b));
-            }, arena.session());
+            }, arena.scope());
 
             var value = cosine_similarity(v1, v2, callback);
             assertEquals(value, 0.0, 0.1);
@@ -75,6 +74,6 @@ public class LibTest8246400Test {
             value = cosine_similarity(v1, v1, callback);
             assertEquals(value, 1.0, 0.1);
         }
-        assertTrue(!sum.session().isAlive());
+        assertTrue(!sum.scope().isAlive());
     }
 }

@@ -74,9 +74,9 @@ public class LibffmpegMain {
         var pFrameRGB = NULL;
         var buffer = NULL;
 
-        try (var session = MemorySession.openConfined()) {
+        try (var arena = Arena.openConfined()) {
             // AVFormatContext *ppFormatCtx;
-            var ppFormatCtx = session.allocate(C_POINTER);
+            var ppFormatCtx = arena.allocate(C_POINTER);
             // char* fileName;
             var fileName = arena.allocateUtf8String(args[0]);
 
@@ -92,11 +92,6 @@ public class LibffmpegMain {
             if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
                 throw new ExitException(1, "Could not find stream information");
             }
-
-            arena.addCloseAction(()-> {
-                // Close the video file
-                avformat_close_input(ppFormatCtx);
-            });
 
             // Dump AV format info on stderr
             av_dump_format(pFormatCtx, 0, fileName, 0);
@@ -188,9 +183,9 @@ public class LibffmpegMain {
 
             int i = 0;
             // ACPacket packet;
-            var packet = AVPacket.allocate(session);
+            var packet = AVPacket.allocate(arena);
             // int* pFrameFinished;
-            var pFrameFinished = session.allocate(C_INT);
+            var pFrameFinished = arena.allocate(C_INT);
 
             while (av_read_frame(pFormatCtx, packet) >= 0) {
                 // Is this a packet from the video stream?
@@ -210,7 +205,7 @@ public class LibffmpegMain {
                         // Save the frame to disk
                         if (++i <= NUM_FRAMES_TO_CAPTURE) {
                             try {
-                                saveFrame(pFrameRGB, session, width, height, i);
+                                saveFrame(pFrameRGB, arena.scope(), width, height, i);
                             } catch (Exception exp) {
                                 exp.printStackTrace();
                                 throw new ExitException(1, "save frame failed for frame " + i);
@@ -223,6 +218,10 @@ public class LibffmpegMain {
                  av_free_packet(packet);
             }
 
+            if (!ppFormatCtx.equals(NULL)) {
+                // Close the video file
+                avformat_close_input(ppFormatCtx);
+            }
             throw new ExitException(0, "Goodbye!");
         } catch (ExitException ee) {
             System.err.println(ee.getMessage());
@@ -257,7 +256,7 @@ public class LibffmpegMain {
         System.exit(exitCode);
     }
 
-    private static void saveFrame(MemorySegment frameRGB, MemorySession session,
+    private static void saveFrame(MemorySegment frameRGB, SegmentScope scope,
             int width, int height, int iFrame)
             throws IOException {
         var header = String.format("P6\n%d %d\n255\n", width, height);
@@ -273,7 +272,7 @@ public class LibffmpegMain {
             // Write pixel data
             for (int y = 0; y < height; y++) {
                 // frameRGB.data[0] + y*frameRGB.linesize[0] is the pointer. And 3*width size of data
-                var pixelArray = MemorySegment.ofAddress(pdata.address() + y*linesize, 3*width, session);
+                var pixelArray = MemorySegment.ofAddress(pdata.address() + y*linesize, 3*width, scope);
                 // dump the pixel byte buffer to file
                 os.write(pixelArray.toArray(C_CHAR));
             }
