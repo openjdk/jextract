@@ -76,7 +76,9 @@ public static double distance ( MemorySegment x0) {
 }
 ```
 
-In other words, the `jextract` tool has generated all the required supporting code (`MemoryLayout`, `MethodHandle` and `FunctionDescriptor`) that is needed to call the underlying `distance` native function. For more examples on how to use the `jextract` tool with real-world libraries, please refer to the [samples folder](samples) (building/running particular sample may require specific third-party software installation).
+In other words, the `jextract` tool has generated all the required supporting code (`MemoryLayout`, `MethodHandle` and `FunctionDescriptor`) that is needed to call the underlying `distance` native function. For more examples on how to use the `jextract` tool with real-world libraries, please refer to the [samples folder](samples) (building/running particular sample may require specific third-party software installation). There are also some third-party samples:
+
+* [java-vulkan](https://github.com/brcolow/java-vulkan): Vulkan + Win32 API to render a triangle.
 
 #### Command line options
 
