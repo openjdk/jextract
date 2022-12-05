@@ -221,10 +221,9 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
                     return prefixedType("volatile", t);
                 case COMPLEX:
                     return prefixedType("complex", t);
-                case default:
-                    // defensive. If no name is present, we don't want to crash
-                    return new TypeVisitorResult(false, t.name().orElse(defaultName(t)));
             }
+            // defensive. If no name is present, we don't want to crash
+            return new TypeVisitorResult(false, t.name().orElse(defaultName(t)));
         }
 
         @Override

@@ -1,4 +1,4 @@
-* Install libffmpeg on Mac using homebrew
+* Install zstd on Mac using homebrew
 
     brew install zstd
 
