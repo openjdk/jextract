@@ -26,7 +26,7 @@ double distance(struct Point2d);
 
 We can run `jextract`, as follows:
 
-```
+```sh
 jextract --source -t org.jextract point.h
 ```
 
@@ -95,7 +95,6 @@ The `jextract` tool includes several customization options. Users can select in 
 | `--include-[function,macro,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings (see below). When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 | `--version`                                                  | print version information and exit                           |
 
-
 #### Additional clang options
 
 Users can specify additional clang compiler options, by creating a file named
@@ -105,13 +104,13 @@ Users can specify additional clang compiler options, by creating a file named
 
 To allow for symbol filtering, `jextract` can generate a *dump* of all the symbols encountered in an header file; this dump can be manipulated, and then used as an argument file (using the `@argfile` syntax also available in other JDK tools) to e.g. generate bindings only for a *subset* of symbols seen by `jextract`. For instance, if we run `jextract` with as follows:
 
-```
+```sh
 jextract --dump-includes=includes.txt point.h
 ```
 
 We obtain the following file (`includes.txt`):
 
-```
+```txt
 #### Extracted from: point.h
 
 --include-struct Point2d    # header: point.h
@@ -120,7 +119,7 @@ We obtain the following file (`includes.txt`):
 
 This file can be passed back to `jextract`, as follows:
 
-```
+```sh
 jextract -t org.jextract --source @includes.txt point.h
 ```
 
@@ -134,7 +133,7 @@ It is easy to see how this mechanism allows developers to look into the set of s
 
 > <details><summary><strong>Building older jextract versions</strong></summary>
 > 
-> The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by chercking out the appropriate branch.
+> The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by checking out the appropriate branch.
 > For example, to build a jextract tool which works against JDK 18:
 > 
 > `git checkout jdk18`
@@ -145,12 +144,10 @@ It is easy to see how this mechanism allows developers to look into the set of s
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
 
 (**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
-supports JDK 18. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
-
-
+supports JDK 18. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropriate JDK version needed for builds)
 
 ```sh
-$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean verify
+sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
 
@@ -160,11 +157,11 @@ $ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> clean ve
 > extract it then make `llvm_home` point to this directory, it may be possible to use a local installation instead.
 >
 > E.g. on macOs the `llvm_home` can also be set as one of these locations :
-> 
+>
 > * `/Library/Developer/CommandLineTools/usr/` if using Command Line Tools
 > * `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/` if using XCode
 > * `$(brew --prefix llvm)` if using the [LLVM install from Homebrew](https://formulae.brew.sh/formula/llvm#default)
-> 
+>
 > </details>
 
 After building, there should be a new `jextract` folder under `build`.
@@ -180,7 +177,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+sh ./gradlew -Pjdk19_home=<jdk19_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
 
 Note: running `jtreg` task requires `cmake` to be available on the `PATH`.
