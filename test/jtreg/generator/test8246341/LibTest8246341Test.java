@@ -23,9 +23,6 @@
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
-import java.lang.foreign.SegmentAllocator;
 import org.testng.annotations.Test;
 import test.jextract.test8246341.*;
 import static org.testng.Assert.assertEquals;
@@ -60,7 +57,7 @@ public class LibTest8246341Test {
                 assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 1).getUtf8String(0), "python");
                 assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 2).getUtf8String(0), "javascript");
                 assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 3).getUtf8String(0), "c++");
-            }, arena.session());
+            }, arena.scope());
             func(callback);
         }
         assertTrue(callbackCalled[0]);

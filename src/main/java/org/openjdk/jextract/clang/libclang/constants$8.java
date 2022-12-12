@@ -32,8 +32,10 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-class constants$8 {
+final class constants$8 {
 
+    // Suppresses default constructor, ensuring non-instantiability.
+    private constants$8() {}
     static final FunctionDescriptor clang_getTypedefDeclUnderlyingType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),

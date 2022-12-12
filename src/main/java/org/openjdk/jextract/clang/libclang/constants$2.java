@@ -32,8 +32,10 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-class constants$2 {
+final class constants$2 {
 
+    // Suppresses default constructor, ensuring non-instantiability.
+    private constants$2() {}
     static final FunctionDescriptor clang_getExpansionLocation$FUNC = FunctionDescriptor.ofVoid(
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),

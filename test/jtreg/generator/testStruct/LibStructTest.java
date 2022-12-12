@@ -25,7 +25,6 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
-import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
