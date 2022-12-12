@@ -17,11 +17,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04]
+        os: [macos-latest, ubuntu-20.04]
         include:
           - os: ubuntu-20.04
             TARGET: linux-gnu-ubuntu-20.04
             JAVA20_HOME: /tmp/deps/jdk-20
+          - os: macos-latest
+            TARGET: apple-darwin
+            JAVA20_HOME: /tmp/deps/jdk-20/jdk-20.jdk/Contents/Home
 
     steps:
     - name: 'Check out repository'
@@ -54,6 +57,11 @@ jobs:
       shell: sh
       run: |
         ${{ matrix.JAVA20_HOME }}/bin/java --version
+
+    - name: 'Setup Java 18'
+      uses: oracle-actions/setup-java@v1.3.1
+      with:
+        release: 18
 
     - name: 'Check default Java version'
       shell: sh
