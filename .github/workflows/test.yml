@@ -17,14 +17,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-20.04]
+        os: [ubuntu-20.04]
         include:
           - os: ubuntu-20.04
             TARGET: linux-gnu-ubuntu-20.04
             JAVA20_HOME: /tmp/deps/jdk-20
-          - os: macos-latest
-            TARGET: apple-darwin
-            JAVA20_HOME: /tmp/deps/jdk-20/jdk-20.jdk/Contents/Home
 
     steps:
     - name: 'Check out repository'
