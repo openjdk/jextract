@@ -58,10 +58,10 @@ jobs:
       run: |
         ${{ matrix.JAVA20_HOME }}/bin/java --version
 
-    - name: 'Setup Java 19'
+    - name: 'Setup Java 17'
       uses: oracle-actions/setup-java@v1.3.1
       with:
-        release: 19
+        release: 17
 
     - name: 'Check default Java version'
       shell: sh
