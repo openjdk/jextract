@@ -29,7 +29,6 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
-import java.lang.foreign.MemorySession;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;

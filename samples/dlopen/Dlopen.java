@@ -39,13 +39,13 @@ import static org.unix.dlfcn_h.*;
 public class Dlopen {
     // implementation of Symbol lookup that loads a given shared object using dlopen
     // and looks up symbols using dlsym
-    private static Function<String, Optional<MemorySegment>> lookup(String libraryName, MemorySession session) {
+    private static Function<String, Optional<MemorySegment>> lookup(String libraryName, SegmentScope scope) {
         try (Arena libArena = Arena.openConfined()) {
             var handleAddr = dlopen(libArena.allocateUtf8String(libraryName), RTLD_LOCAL());
             if (handleAddr.equals(MemorySegment.NULL)) {
                 throw new IllegalArgumentException("Cannot find library: " + libraryName);
             }
-            var handle = MemorySegment.ofAddress(handleAddr.address(), 0, session,
+            var handle = MemorySegment.ofAddress(handleAddr.address(), 0, scope,
                 () -> dlclose(handleAddr));
             return name -> {
                 try (var arena = Arena.openConfined()) {
@@ -61,7 +61,7 @@ public class Dlopen {
         var arg = args.length > 0? args[0] : "Java";
         var libName = "libhello.dylib";
         try (var arena = Arena.openConfined()) {
-            var symLookup = lookup(libName, arena.session());
+            var symLookup = lookup(libName, arena.scope());
 
             var linker = Linker.nativeLinker();
             // get method handle for a function from helloLIb

@@ -95,8 +95,8 @@ public class SqliteMain {
             var callback = sqlite3_exec$callback.allocate((a, argc, argv, columnNames) -> {
                 System.out.println("Row num: " + rowNum[0]++);
                 System.out.println("numColumns = " + argc);
-                var argv_seg = MemorySegment.ofAddress(argv.address(), C_POINTER.byteSize() * argc, arena.session());
-                var columnNames_seg = MemorySegment.ofAddress(columnNames.address(), C_POINTER.byteSize() * argc, arena.session());
+                var argv_seg = MemorySegment.ofAddress(argv.address(), C_POINTER.byteSize() * argc, arena.scope());
+                var columnNames_seg = MemorySegment.ofAddress(columnNames.address(), C_POINTER.byteSize() * argc, arena.scope());
                 for (int i = 0; i < argc; i++) {
                      String name = columnNames_seg.getAtIndex(C_POINTER, i).getUtf8String(0);
                      String value = argv_seg.getAtIndex(C_POINTER, i).getUtf8String(0);
@@ -104,7 +104,7 @@ public class SqliteMain {
                      System.out.printf("%s = %s\n", name, value);
                 }
                 return 0;
-            }, arena.session());
+            }, arena.scope());
 
             // select query
             sql = arena.allocateUtf8String("SELECT * FROM EMPLOYEE");

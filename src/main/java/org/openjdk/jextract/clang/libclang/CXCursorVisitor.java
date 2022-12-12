@@ -32,17 +32,22 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+/**
+ * {@snippet :
+ * enum CXChildVisitResult (*CXCursorVisitor)(struct  cursor,struct  parent,void* client_data);
+ * }
+ */
 public interface CXCursorVisitor {
 
     int apply(java.lang.foreign.MemorySegment cursor, java.lang.foreign.MemorySegment parent, java.lang.foreign.MemorySegment client_data);
-    static MemorySegment allocate(CXCursorVisitor fi, MemorySession session) {
-        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, session);
+    static MemorySegment allocate(CXCursorVisitor fi, SegmentScope scope) {
+        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, scope);
     }
-    static CXCursorVisitor ofAddress(MemorySegment addr, MemorySession session) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, session);
+    static CXCursorVisitor ofAddress(MemorySegment addr, SegmentScope scope) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
         return (java.lang.foreign.MemorySegment _cursor, java.lang.foreign.MemorySegment _parent, java.lang.foreign.MemorySegment _client_data) -> {
             try {
-                return (int)constants$13.CXCursorVisitor$MH.invokeExact((MemorySegment)symbol, _cursor, _parent, _client_data);
+                return (int)constants$13.CXCursorVisitor$MH.invokeExact(symbol, _cursor, _parent, _client_data);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
