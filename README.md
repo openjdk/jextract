@@ -24,7 +24,7 @@ supports JDK 18. Please checkout the [Gradle compatibility matrix](https://docs.
 
 
 ```sh
-$ sh ./gradlew -Pjdk20_home=<jdk20_home_dir> -Pllvm_home=<libclang_dir> clean verify
+$ sh ./gradlew -Pjdk21_home=<jdk21_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
 
@@ -52,7 +52,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk20_home=<jdk20_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+$ sh ./gradlew -Pjdk21_home=<jdk21_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
 
 Note however that running `jtreg` task requires `cmake` to be available on the `PATH`.

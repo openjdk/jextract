@@ -8,4 +8,4 @@ jextract --source -t libffmpeg \
   --header-class-name Libffmpeg \
   libffmpeg.h
 
-javac --enable-preview --source=20 libffmpeg/*.java
+javac --enable-preview --source=21 libffmpeg/*.java

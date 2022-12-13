@@ -32,8 +32,10 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-class constants$14 {
+final class constants$14 {
 
+    // Suppresses default constructor, ensuring non-instantiability.
+    private constants$14() {}
     static final FunctionDescriptor clang_getCursorSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),

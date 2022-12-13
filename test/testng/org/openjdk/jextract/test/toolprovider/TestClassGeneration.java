@@ -25,13 +25,11 @@ package org.openjdk.jextract.test.toolprovider;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentScope;
 import testlib.TestUtils;
 import org.testng.annotations.*;
 import testlib.JextractToolRunner;
 
-import java.lang.foreign.MemorySession;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
@@ -205,7 +203,7 @@ public class TestClassGeneration extends JextractToolRunner {
         Class<?> fiClass = loader.loadClass("com.acme." + name);
         assertNotNull(fiClass);
         checkMethod(fiClass, "apply", type);
-        checkMethod(fiClass, "allocate", MemorySegment.class, fiClass, MemorySession.class);
+        checkMethod(fiClass, "allocate", MemorySegment.class, fiClass, SegmentScope.class);
     }
 
     @BeforeClass

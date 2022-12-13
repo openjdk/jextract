@@ -40,14 +40,14 @@ class PcreCheck {
       System.exit(1);
     }
 
-    try (var session = Arena.openConfined()) {
+    try (var arena = Arena.openConfined()) {
       // given regex to C string
-      var pattern = session.allocateUtf8String(args[0]);
+      var pattern = arena.allocateUtf8String(args[0]);
       var patternSize = args[0].length();
 
       // output params from pcre2_compile_8
-      var errcodePtr = session.allocate(C_INT);
-      var erroffPtr = session.allocate(C_LONG);
+      var errcodePtr = arena.allocate(C_INT);
+      var erroffPtr = arena.allocate(C_LONG);
 
       // compile the given regex
       var re = pcre2_compile_8(pattern, patternSize, 0,
@@ -55,7 +55,7 @@ class PcreCheck {
 
       // if compilation failed, report error and exit
       if (re.equals(NULL)) {
-        var buffer = session.allocateArray(C_CHAR, 128L);
+        var buffer = arena.allocateArray(C_CHAR, 128L);
         pcre2_get_error_message_8(errcodePtr.get(C_INT, 0),
             buffer, 127);
         System.err.printf("regex compilation failed: %s\n",
@@ -66,7 +66,7 @@ class PcreCheck {
       var ovecsize = 64;
       var matchData = pcre2_match_data_create_8(ovecsize, NULL);
 
-      var subject = session.allocateUtf8String(args[1]);
+      var subject = arena.allocateUtf8String(args[1]);
       var subjectSize = args[1].length();
       var rc = pcre2_match_8(re, subject, subjectSize, 0, 0, matchData, NULL);
       if (rc == 0) {

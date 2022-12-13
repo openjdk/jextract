@@ -24,7 +24,6 @@
 import java.lang.foreign.Arena;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 import static test.jextract.test8254983.test8254983_h.*;

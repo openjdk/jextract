@@ -7,17 +7,22 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+/**
+ * {@snippet :
+ * void (*JImageResourceIterator_t)(struct JImageFile* jimage,int (*visitor)(struct JImageFile*,char*,char*,char*,char*,char*,void*),void* arg);
+ * }
+ */
 public interface JImageResourceIterator_t {
 
     void apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment visitor, java.lang.foreign.MemorySegment arg);
-    static MemorySegment allocate(JImageResourceIterator_t fi, MemorySession session) {
-        return RuntimeHelper.upcallStub(JImageResourceIterator_t.class, fi, constants$3.JImageResourceIterator_t$FUNC, session);
+    static MemorySegment allocate(JImageResourceIterator_t fi, SegmentScope scope) {
+        return RuntimeHelper.upcallStub(JImageResourceIterator_t.class, fi, constants$3.JImageResourceIterator_t$FUNC, scope);
     }
-    static JImageResourceIterator_t ofAddress(MemorySegment addr, MemorySession session) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, session);
+    static JImageResourceIterator_t ofAddress(MemorySegment addr, SegmentScope scope) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _visitor, java.lang.foreign.MemorySegment _arg) -> {
             try {
-                constants$3.JImageResourceIterator_t$MH.invokeExact((MemorySegment)symbol, _jimage, _visitor, _arg);
+                constants$3.JImageResourceIterator_t$MH.invokeExact(symbol, _jimage, _visitor, _arg);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

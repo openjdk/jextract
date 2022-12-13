@@ -4,4 +4,4 @@ jextract --source -t libzstd \
   --header-class-name Libzstd \
   /usr/local/Cellar/zstd/1.5.2/include/zstd.h
 
-javac --enable-preview --source=20 libzstd/*.java
+javac --enable-preview --source=21 libzstd/*.java

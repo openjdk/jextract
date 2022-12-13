@@ -5,4 +5,4 @@ jextract --source \
   -l ${LIBTENSORFLOW_HOME}/lib/libtensorflow.dylib \
   ${LIBTENSORFLOW_HOME}/include/tensorflow/c/c_api.h
 
-javac --enable-preview --source=20 org/tensorflow/*.java
+javac --enable-preview --source=21 org/tensorflow/*.java

@@ -32,8 +32,10 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-class constants$18 {
+final class constants$18 {
 
+    // Suppresses default constructor, ensuring non-instantiability.
+    private constants$18() {}
     static final FunctionDescriptor clang_EvalResult_getAsLongLong$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         Constants$root.C_POINTER$LAYOUT
     );

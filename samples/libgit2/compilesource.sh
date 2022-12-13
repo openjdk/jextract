@@ -4,4 +4,4 @@ jextract --source -t com.github -lgit2 \
   -I ${LIBGIT2_HOME}/include/git2 \
   ${LIBGIT2_HOME}/include/git2.h
 
-javac --enable-preview --source=20 com/github/*.java
+javac --enable-preview --source=21 com/github/*.java

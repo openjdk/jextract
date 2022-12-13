@@ -32,8 +32,10 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-class constants$9 {
+final class constants$9 {
 
+    // Suppresses default constructor, ensuring non-instantiability.
+    private constants$9() {}
     static final FunctionDescriptor clang_Cursor_getArgument$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
         Constants$root.C_INT$LAYOUT.withName("xdata"),

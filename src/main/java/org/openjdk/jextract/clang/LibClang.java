@@ -26,10 +26,10 @@
 package org.openjdk.jextract.clang;
 
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import java.lang.foreign.Linker;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.SegmentScope;
 import org.openjdk.jextract.clang.libclang.CXString;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -44,7 +44,7 @@ public class LibClang {
     // crash recovery is not an issue on Windows, so enable it there by default to work around a libclang issue with reparseTranslationUnit
     private static final boolean CRASH_RECOVERY = IS_WINDOWS || Boolean.getBoolean("libclang.crash_recovery");
 
-    private static final SegmentAllocator IMPLICIT_ALLOCATOR = (size, align) -> MemorySegment.allocateNative(size, align, MemorySession.implicit());
+    private static final SegmentAllocator IMPLICIT_ALLOCATOR = (size, align) -> MemorySegment.allocateNative(size, align, SegmentScope.auto());
 
     private final static MemorySegment disableCrashRecovery =
             IMPLICIT_ALLOCATOR.allocateUtf8String("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
@@ -87,7 +87,7 @@ public class LibClang {
      * conversion. The size of the prefix segment is set to 256, which should be enough to hold a CXString.
      */
     public final static SegmentAllocator STRING_ALLOCATOR = SegmentAllocator.prefixAllocator(
-            MemorySegment.allocateNative(CXString.sizeof(), 8, MemorySession.implicit()));
+            MemorySegment.allocateNative(CXString.sizeof(), 8, SegmentScope.auto()));
 
     public static String version() {
         var clangVersion = Index_h.clang_getClangVersion(STRING_ALLOCATOR);

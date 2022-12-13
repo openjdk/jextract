@@ -26,8 +26,6 @@ import org.testng.annotations.Test;
 import java.lang.foreign.Arena;
 import java.util.stream.IntStream;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
-import java.lang.foreign.SegmentAllocator;
 import static org.testng.Assert.assertEquals;
 
 import test.jextract.arrayparam.*;

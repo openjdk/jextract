@@ -28,7 +28,6 @@ package org.openjdk.jextract.clang;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 
 import org.openjdk.jextract.clang.libclang.CXType;
 import org.openjdk.jextract.clang.libclang.Index_h;

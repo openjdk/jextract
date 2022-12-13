@@ -28,7 +28,7 @@ package org.openjdk.jextract.clang;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentScope;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -241,7 +241,7 @@ public final class Cursor extends ClangDisposable.Owned {
             } else {
                 return Index_h.CXChildVisit_Break();
             }
-        }, MemorySession.global());
+        }, SegmentScope.global());
 
         synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
             // everything is confined, no need to synchronize

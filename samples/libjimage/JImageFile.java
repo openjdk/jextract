@@ -68,7 +68,7 @@ public class JImageFile {
                    System.out.println("package " + package_name.getUtf8String(0));
                    System.out.println("name " + name.getUtf8String(0));
                    return 1;
-                }, arena.session());
+                }, arena.scope());
 
             JIMAGE_ResourceIterator(jimageFile, visitor, NULL);
 

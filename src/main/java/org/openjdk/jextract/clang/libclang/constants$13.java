@@ -32,8 +32,10 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-class constants$13 {
+final class constants$13 {
 
+    // Suppresses default constructor, ensuring non-instantiability.
+    private constants$13() {}
     static final FunctionDescriptor clang_Cursor_isAnonymousRecordDecl$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),

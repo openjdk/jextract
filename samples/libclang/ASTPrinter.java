@@ -75,7 +75,7 @@ public class ASTPrinter {
                 level[0]--;
 
                 return CXChildVisit_Continue();
-            }, arena.session());
+            }, arena.scope());
 
             // get the AST root and visit it
             var root = clang_getTranslationUnitCursor(arena, tu);
