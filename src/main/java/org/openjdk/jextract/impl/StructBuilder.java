@@ -176,7 +176,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + "(MemorySegment segment, SegmentScope scope) {\n");
+        append(fiName + " " + javaName + "(MemorySegment segment, Arena scope) {\n");
         incrAlign();
         indent();
         append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), scope);\n");
@@ -193,8 +193,12 @@ class StructBuilder extends ConstantBuilder {
         append(MEMBER_MODS + " " + type.getSimpleName() + " " + javaName + "$get(MemorySegment " + seg + ") {\n");
         incrAlign();
         indent();
-        append("return (" + type.getName() + ")"
-                + vhConstant.accessExpression() + ".get(" + seg + ");\n");
+        append("return ((" + type.getName() + ")"
+                + vhConstant.accessExpression() + ".get(" + seg + "))");
+        if (type.equals(MemorySegment.class)) {
+            append(".asUnbounded()");
+        }
+        append(";\n");
         decrAlign();
         indent();
         append("}\n");
@@ -280,7 +284,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS);
-        append(" MemorySegment ofAddress(MemorySegment addr, SegmentScope scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }\n");
+        append(" MemorySegment ofAddress(MemorySegment addr, Arena scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }\n");
         decrAlign();
     }
 
@@ -293,13 +297,17 @@ class StructBuilder extends ConstantBuilder {
         append(MEMBER_MODS + " " + type.getSimpleName() + " " + javaName + "$get(" + params + ") {\n");
         incrAlign();
         indent();
-        append("return (" + type.getName() + ")");
+        append("return ((" + type.getName() + ")");
         append(vhConstant.accessExpression());
         append(".get(");
         append(seg);
         append(".asSlice(");
         append(index);
-        append("*sizeof()));\n");
+        append("*sizeof())))");
+        if (type.equals(MemorySegment.class)) {
+            append(".asUnbounded()");
+        }
+        append(";\n");
         decrAlign();
         indent();
         append("}\n");

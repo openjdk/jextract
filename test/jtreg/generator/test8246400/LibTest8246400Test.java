@@ -49,7 +49,7 @@ public class LibTest8246400Test {
     @Test
     public void testSegmentRegister() {
         MemorySegment sum = null;
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             var v1 = Vector.allocate(arena);
             Vector.x$set(v1, 1.0);
             Vector.y$set(v1, 0.0);
@@ -66,7 +66,7 @@ public class LibTest8246400Test {
             MemorySegment callback = cosine_similarity$dot.allocate((a, b) -> {
                 return (Vector.x$get(a) * Vector.x$get(b)) +
                     (Vector.y$get(a) * Vector.y$get(b));
-            }, arena.scope());
+            }, arena);
 
             var value = cosine_similarity(v1, v2, callback);
             assertEquals(value, 0.0, 0.1);
@@ -74,6 +74,6 @@ public class LibTest8246400Test {
             value = cosine_similarity(v1, v1, callback);
             assertEquals(value, 1.0, 0.1);
         }
-        assertTrue(!sum.scope().isAlive());
+        assertTrue(!sum.scope().get().isAlive());
     }
 }

@@ -261,7 +261,7 @@ class ToplevelBuilder extends JavaSourceBuilder {
             } else if (vl.carrier() == double.class) {
                 return "JAVA_DOUBLE" + withBitAlignmentIfNeeded(ValueLayout.JAVA_DOUBLE, vl);
             } else if (vl.carrier() == MemorySegment.class) {
-                return "ADDRESS.withBitAlignment(" + vl.bitAlignment() + ").asUnbounded()";
+                return "ADDRESS" + withBitAlignmentIfNeeded(ValueLayout.ADDRESS, vl);
             } else {
                 return "MemoryLayout.paddingLayout(" + vl.bitSize() +  ")";
             }

@@ -49,15 +49,16 @@ public class LibTest8246341Test {
     @Test
     public void testPointerArray() {
         boolean[] callbackCalled = new boolean[1];
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             var callback = func$callback.allocate((argc, argv) -> {
                 callbackCalled[0] = true;
+                argv = argv.asUnbounded();
                 assertEquals(argc, 4);
-                assertEquals(argv.get(C_POINTER, 0).getUtf8String(0), "java");
-                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 1).getUtf8String(0), "python");
-                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 2).getUtf8String(0), "javascript");
-                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 3).getUtf8String(0), "c++");
-            }, arena.scope());
+                assertEquals(argv.get(C_POINTER, 0).asUnbounded().getUtf8String(0), "java");
+                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 1).asUnbounded().getUtf8String(0), "python");
+                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 2).asUnbounded().getUtf8String(0), "javascript");
+                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 3).asUnbounded().getUtf8String(0), "c++");
+            }, arena);
             func(callback);
         }
         assertTrue(callbackCalled[0]);
@@ -65,11 +66,11 @@ public class LibTest8246341Test {
 
     @Test
     public void testPointerAllocate() {
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             var addr = arena.allocate(C_POINTER);
             addr.set(C_POINTER, 0, MemorySegment.NULL);
             fillin(addr);
-            assertEquals(addr.get(C_POINTER, 0).getUtf8String(0), "hello world");
+            assertEquals(addr.get(C_POINTER, 0).asUnbounded().getUtf8String(0), "hello world");
         }
     }
 }

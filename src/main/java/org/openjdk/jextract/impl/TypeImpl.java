@@ -179,7 +179,7 @@ public abstract class TypeImpl implements Type {
     }
 
     public static final class PointerImpl extends DelegatedBase {
-        public static final ValueLayout.OfAddress POINTER_LAYOUT = ADDRESS.withBitAlignment(64).asUnbounded();
+        public static final ValueLayout.OfAddress POINTER_LAYOUT = ADDRESS.withBitAlignment(64);
 
         private final Supplier<Type> pointeeFactory;
 

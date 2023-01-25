@@ -48,19 +48,19 @@ import static test.jextract.test8258605.funcParam_h.*;
 public class LibTest8258605Test {
     @Test
     public void testFunctionCallback() {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
              boolean[] callbackReached = new boolean[1];
              f(CB.allocate(i -> {
                  assertTrue(i == 10);
                  callbackReached[0] = true;
-             }, arena.scope()));
+             }, arena));
              assertTrue(callbackReached[0]);
         }
     }
 
     @Test
     public void testStructFunctionPointerCallback() {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
              boolean[] callbackReached = new boolean[1];
 
              // get struct Foo instance
@@ -71,7 +71,7 @@ public class LibTest8258605Test {
              f2(foo, CB.allocate(i -> {
                  assertTrue(i == 42);
                  callbackReached[0] = true;
-             }, arena.scope()));
+             }, arena));
              assertTrue(callbackReached[0]);
         }
     }

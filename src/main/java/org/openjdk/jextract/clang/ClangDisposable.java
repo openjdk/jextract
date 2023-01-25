@@ -41,8 +41,8 @@ public abstract class ClangDisposable implements SegmentAllocator, AutoCloseable
     protected final Arena arena;
 
     public ClangDisposable(MemorySegment ptr, long size, Runnable cleanup) {
-        this.arena = Arena.openConfined();
-        this.ptr = MemorySegment.ofAddress(ptr.address(), size, arena.scope(), cleanup).asReadOnly();
+        this.arena = Arena.ofConfined();
+        this.ptr = MemorySegment.ofAddress(ptr.address(), size, arena, cleanup).asReadOnly();
     }
 
     public ClangDisposable(MemorySegment ptr, Runnable cleanup) {

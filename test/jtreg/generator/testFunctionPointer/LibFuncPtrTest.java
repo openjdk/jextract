@@ -43,8 +43,8 @@ import test.jextract.fp.*;
 public class LibFuncPtrTest {
     @Test
     public void test() {
-        try (Arena arena = Arena.openConfined()) {
-            var handle = func$f.allocate(x -> x * x, arena.scope());
+        try (Arena arena = Arena.ofConfined()) {
+            var handle = func$f.allocate(x -> x * x, arena);
             assertEquals(func(handle, 35), 35 * 35 + 35);
         }
     }
