@@ -31,6 +31,8 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Primitive;
+import org.openjdk.jextract.Type.Primitive.Kind;
 
 import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
@@ -261,7 +263,9 @@ class ToplevelBuilder extends JavaSourceBuilder {
             } else if (vl.carrier() == double.class) {
                 return "JAVA_DOUBLE" + withBitAlignmentIfNeeded(ValueLayout.JAVA_DOUBLE, vl);
             } else if (vl.carrier() == MemorySegment.class) {
-                return "ADDRESS.withBitAlignment(" + vl.bitAlignment() + ").asUnbounded()";
+                return "ADDRESS.withBitAlignment(" + vl.bitAlignment() + ")" +
+                ".withTargetLayout(MemoryLayout.sequenceLayout(" +
+                        resolvePrimitiveLayout((ValueLayout)Primitive.Kind.Char.layout().get()).accessExpression() + "))";
             } else {
                 return "MemoryLayout.paddingLayout(" + vl.bitSize() +  ")";
             }
