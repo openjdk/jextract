@@ -53,10 +53,10 @@ public class LibTest8246341Test {
             var callback = func$callback.allocate((argc, argv) -> {
                 callbackCalled[0] = true;
                 assertEquals(argc, 4);
-                assertEquals(argv.get(C_POINTER, 0).getUtf8String(0), "java");
-                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 1).asUnbounded().getUtf8String(0), "python");
-                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 2).asUnbounded().getUtf8String(0), "javascript");
-                assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 3).asUnbounded().getUtf8String(0), "c++");
+                assertEquals(argv.getAtIndex(C_POINTER, 0).getUtf8String(0), "java");
+                assertEquals(argv.getAtIndex(C_POINTER, 1).asUnbounded().getUtf8String(0), "python");
+                assertEquals(argv.getAtIndex(C_POINTER, 2).asUnbounded().getUtf8String(0), "javascript");
+                assertEquals(argv.getAtIndex(C_POINTER, 3).asUnbounded().getUtf8String(0), "c++");
             }, arena);
             func(callback);
         }
