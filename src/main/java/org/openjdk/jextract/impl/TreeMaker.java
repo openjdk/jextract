@@ -98,9 +98,7 @@ class TreeMaker {
         return switch (c.kind()) {
             case EnumDecl -> createEnum(c);
             case EnumConstantDecl -> createEnumConstant(c);
-            case FieldDecl -> c.isBitField() ?
-                        createBitfield(c) :
-                        createVar(c, Declaration.Variable.Kind.FIELD);
+            case FieldDecl -> createVar(c, Declaration.Variable.Kind.FIELD);
             case ParmDecl -> createVar(c, Declaration.Variable.Kind.PARAMETER);
             case FunctionDecl -> createFunction(c);
             case StructDecl -> createRecord(c, Declaration.Scoped.Kind.STRUCT);
@@ -314,13 +312,8 @@ class TreeMaker {
         }
     }
 
-    private Declaration.Variable createBitfield(Cursor c) {
-        checkCursorAny(c, CursorKind.FieldDecl);
-        return Declaration.bitfield(CursorPosition.of(c), c.spelling(), toType(c),
-                MemoryLayout.paddingLayout(c.getBitFieldWidth()));
-    }
-
     private Declaration.Variable createVar(Cursor c, Declaration.Variable.Kind kind) {
+        if (c.isBitField()) throw new AssertionError("Cannot get here!");
         checkCursorAny(c, CursorKind.VarDecl, CursorKind.FieldDecl, CursorKind.ParmDecl);
         Type type;
         try {
