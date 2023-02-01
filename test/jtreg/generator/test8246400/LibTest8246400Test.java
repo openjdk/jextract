@@ -74,6 +74,6 @@ public class LibTest8246400Test {
             value = cosine_similarity(v1, v1, callback);
             assertEquals(value, 1.0, 0.1);
         }
-        assertTrue(!sum.scope().get().isAlive());
+        assertTrue(!sum.scope().isAlive());
     }
 }
