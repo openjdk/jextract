@@ -31,6 +31,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Bitfield;
+import org.openjdk.jextract.Declaration.Variable.Kind;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 
@@ -104,7 +106,12 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
     @Override
     public Void visitVariable(Declaration.Variable d, Void aVoid) {
         indent();
-        builder.append("Variable: " + d.kind() + " " + d.name() + " type = " + d.type().accept(typeVisitor, null) + ", layout = " + d.layout());
+        if (d instanceof Bitfield bitfield) {
+            builder.append("Bitfield: " + " type = " + d.type().accept(typeVisitor, null) + ", name = " + bitfield.name()
+                    + ", offset = " + bitfield.offset() + ", width = " + bitfield.width());
+        } else {
+            builder.append("Variable: " + d.kind() + " " + d.name() + " type = " + d.type().accept(typeVisitor, null) + ", layout = " + d.layout());
+        }
         builder.append("\n");
         getAttributes(d);
         return null;
