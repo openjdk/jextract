@@ -52,9 +52,8 @@ public class LibTest8246341Test {
         try (Arena arena = Arena.ofConfined()) {
             var callback = func$callback.allocate((argc, argv) -> {
                 callbackCalled[0] = true;
-                argv = argv.asUnbounded();
                 assertEquals(argc, 4);
-                assertEquals(argv.get(C_POINTER, 0).asUnbounded().getUtf8String(0), "java");
+                assertEquals(argv.get(C_POINTER, 0).getUtf8String(0), "java");
                 assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 1).asUnbounded().getUtf8String(0), "python");
                 assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 2).asUnbounded().getUtf8String(0), "javascript");
                 assertEquals(argv.get(C_POINTER, C_POINTER.byteSize() * 3).asUnbounded().getUtf8String(0), "c++");

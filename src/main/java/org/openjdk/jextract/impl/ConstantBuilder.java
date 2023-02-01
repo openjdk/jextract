@@ -362,7 +362,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         append(fieldName);
         append(" = MemorySegment.ofAddress(");
         append(((Number)value).longValue());
-        append("L).asUnbounded();\n");
+        append("L);\n");
         decrAlign();
         return new Constant(className(), javaName, Constant.Kind.ADDRESS);
     }

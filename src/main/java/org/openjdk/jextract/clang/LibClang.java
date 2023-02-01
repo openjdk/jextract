@@ -75,7 +75,7 @@ public class LibClang {
 
     public static String CXStrToString(MemorySegment cxstr) {
         MemorySegment buf = Index_h.clang_getCString(cxstr);
-        String str = buf.asUnbounded().getUtf8String(0);
+        String str = buf.getUtf8String(0);
         Index_h.clang_disposeString(cxstr);
         return str;
     }

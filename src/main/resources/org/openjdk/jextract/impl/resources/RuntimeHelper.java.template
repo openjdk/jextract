@@ -51,7 +51,7 @@ final class RuntimeHelper {
 
     static MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
         return SYMBOL_LOOKUP.find(name)
-                .map(s -> s.asUnbounded().asSlice(0, layout.byteSize()))
+                .map(s -> s.asUnbounded().asSlice(0, layout))
                 .orElse(null);
     }
 

@@ -193,12 +193,8 @@ class StructBuilder extends ConstantBuilder {
         append(MEMBER_MODS + " " + type.getSimpleName() + " " + javaName + "$get(MemorySegment " + seg + ") {\n");
         incrAlign();
         indent();
-        append("return ((" + type.getName() + ")"
-                + vhConstant.accessExpression() + ".get(" + seg + "))");
-        if (type.equals(MemorySegment.class)) {
-            append(".asUnbounded()");
-        }
-        append(";\n");
+        append("return (" + type.getName() + ")"
+                + vhConstant.accessExpression() + ".get(" + seg + ");\n");
         decrAlign();
         indent();
         append("}\n");
@@ -297,17 +293,13 @@ class StructBuilder extends ConstantBuilder {
         append(MEMBER_MODS + " " + type.getSimpleName() + " " + javaName + "$get(" + params + ") {\n");
         incrAlign();
         indent();
-        append("return ((" + type.getName() + ")");
+        append("return (" + type.getName() + ")");
         append(vhConstant.accessExpression());
         append(".get(");
         append(seg);
         append(".asSlice(");
         append(index);
-        append("*sizeof())))");
-        if (type.equals(MemorySegment.class)) {
-            append(".asUnbounded()");
-        }
-        append(";\n");
+        append("*sizeof()));\n");
         decrAlign();
         indent();
         append("}\n");
