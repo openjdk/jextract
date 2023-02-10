@@ -43,7 +43,7 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     private long actualSize = 0L;
     // List to collect bitfield fields to process later, may be null
     private List<Declaration> bitfieldDecls;
-    private long bitfieldSize;
+    private List<MemoryLayout> bitfieldLayouts;
 
     StructLayoutComputer(TypeMaker typeMaker, long offsetInParent, Type parent, Type type) {
         super(typeMaker, parent, type);
@@ -54,7 +54,15 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     void addField(Declaration declaration) {
         if (bitfieldDecls != null) {
             bitfieldDecls.add(declaration);
-            bitfieldSize += ((Declaration.Bitfield)declaration).width();
+            MemoryLayout layout = null;
+            if (declaration instanceof Declaration.Scoped scoped) {
+                layout = scoped.layout().orElse(null);
+            } else if (declaration instanceof Declaration.Variable var) {
+                layout = var.layout().orElse(null);
+            }
+            if (layout != null) {
+                bitfieldLayouts.add(declaration.name().isEmpty() ? layout : layout.withName(declaration.name()));
+            }
         } else {
             super.addField(declaration);
         }
@@ -62,10 +70,10 @@ final class StructLayoutComputer extends RecordLayoutComputer {
 
     @Override
     void addPadding(long bits) {
-        if (bitfieldDecls == null) {
-            super.addPadding(bits);
+        if (bitfieldDecls != null) {
+            bitfieldLayouts.add(MemoryLayout.paddingLayout(bits));
         } else {
-            bitfieldSize += bits;
+            super.addPadding(bits);
         }
     }
 
@@ -78,7 +86,7 @@ final class StructLayoutComputer extends RecordLayoutComputer {
          */
         if (bitfieldDecls == null) {
             bitfieldDecls = new ArrayList<>();
-            bitfieldSize = 0;
+            bitfieldLayouts = new ArrayList<>();
         }
     }
 
@@ -147,14 +155,12 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     // process bitfields if any and clear bitfield layouts
     private void handleBitfields() {
         if (bitfieldDecls != null) {
+            List<MemoryLayout> prevBitfieldLayouts = bitfieldLayouts;
             List<Declaration> prevBitfieldDecls = bitfieldDecls;
-            long prevBitfieldSize = bitfieldSize;
             bitfieldDecls = null;
-            bitfieldSize = 0;
             if (!prevBitfieldDecls.isEmpty()) {
-                addField(bitfield(prevBitfieldDecls.toArray(new Declaration.Variable[0])));
+                addField(bitfield(prevBitfieldLayouts, prevBitfieldDecls.toArray(new Declaration.Variable[0])));
             }
-            fieldLayouts.add(MemoryLayout.paddingLayout(prevBitfieldSize));
         }
     }
 }

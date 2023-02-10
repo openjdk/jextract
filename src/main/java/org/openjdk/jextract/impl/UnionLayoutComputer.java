@@ -64,12 +64,12 @@ final class UnionLayoutComputer extends RecordLayoutComputer {
     }
 
     @Override
-    Declaration field(long offset, Cursor c) {
+    Declaration field(Cursor c) {
         if (c.isBitField()) {
-            Declaration.Variable var = (Declaration.Variable)super.field(offset, c);
-            return bitfield(var);
+            Declaration.Variable var = (Declaration.Variable)super.field(c);
+            return bitfield(List.of(var.layout().get()), var);
         } else {
-            return super.field(offset, c);
+            return super.field(c);
         }
     }
 
