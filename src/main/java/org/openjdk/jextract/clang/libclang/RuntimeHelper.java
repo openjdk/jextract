@@ -79,7 +79,9 @@ final class RuntimeHelper {
     }
 
     static MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
-        return SYMBOL_LOOKUP.find(name).orElse(null).asUnbounded().asSlice(0, layout.byteSize());
+        return SYMBOL_LOOKUP.find(name)
+                .map(s -> s.asUnbounded().asSlice(0, layout))
+                .orElse(null);
     }
 
     static MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {
