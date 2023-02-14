@@ -56,7 +56,7 @@ public class TranslationUnit extends ClangDisposable {
     }
 
     public final void save(Path path) throws TranslationUnitSaveException {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             MemorySegment pathStr = arena.allocateUtf8String(path.toAbsolutePath().toString());
             SaveError res = SaveError.valueOf(Index_h.clang_saveTranslationUnit(ptr, pathStr, 0));
             if (res != SaveError.None) {
@@ -79,7 +79,7 @@ public class TranslationUnit extends ClangDisposable {
     static long LENGTH_OFFSET = CXUnsavedFile.$LAYOUT().byteOffset(MemoryLayout.PathElement.groupElement("Length"));
 
     public void reparse(Index.UnsavedFile... inMemoryFiles) {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             MemorySegment files = inMemoryFiles.length == 0 ?
                     null :
                     arena.allocateArray(CXUnsavedFile.$LAYOUT(), inMemoryFiles.length);
@@ -121,7 +121,7 @@ public class TranslationUnit extends ClangDisposable {
     }
 
     public Tokens tokenize(SourceRange range) {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             MemorySegment p = arena.allocate(C_POINTER);
             MemorySegment pCnt = arena.allocate(C_INT);
             Index_h.clang_tokenize(ptr, range.segment, p, pCnt);

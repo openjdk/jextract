@@ -207,7 +207,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         append(fiName + " " + javaName + " () {\n");
         incrAlign();
         indent();
-        append("return " + fiName + ".ofAddress(" + javaName + "$get(), SegmentScope.global());\n");
+        append("return " + fiName + ".ofAddress(" + javaName + "$get(), Arena.global());\n");
         decrAlign();
         indent();
         append("}\n");

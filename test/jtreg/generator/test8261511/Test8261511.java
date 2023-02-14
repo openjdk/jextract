@@ -47,9 +47,9 @@ import static test.jextract.test8261511.test8261511_h.*;
 public class Test8261511 {
     @Test
     public void test() {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             var funcPtr = Foo.sum$get(get_foo(arena));
-            var sumIface = Foo.sum.ofAddress(funcPtr, arena.scope());
+            var sumIface = Foo.sum.ofAddress(funcPtr, arena);
             assertEquals(sumIface.apply(15,20), 35);
             assertEquals(sum(1.2, 4.5), 5.7, 0.001);
         }
