@@ -29,6 +29,7 @@ package org.openjdk.jextract.clang;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
+import java.util.function.Consumer;
 
 /**
  * This class models a libclang entity that has an explicit lifecycle (e.g. TranslationUnit, Index).
@@ -40,12 +41,12 @@ public abstract class ClangDisposable implements SegmentAllocator, AutoCloseable
     protected final MemorySegment ptr;
     protected final Arena arena;
 
-    public ClangDisposable(MemorySegment ptr, long size, Runnable cleanup) {
+    public ClangDisposable(MemorySegment ptr, long size, Consumer<MemorySegment> cleanup) {
         this.arena = Arena.ofConfined();
-        this.ptr = MemorySegment.ofAddress(ptr.address(), size, arena, cleanup).asReadOnly();
+        this.ptr = ptr.reinterpret(size, arena.scope(), cleanup).asReadOnly();
     }
 
-    public ClangDisposable(MemorySegment ptr, Runnable cleanup) {
+    public ClangDisposable(MemorySegment ptr, Consumer<MemorySegment> cleanup) {
         this(ptr, 0, cleanup);
     }
 

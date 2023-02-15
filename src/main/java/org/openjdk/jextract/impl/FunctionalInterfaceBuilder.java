@@ -117,11 +117,11 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                  fiDesc, false, true);
             incrAlign();
             indent();
-            append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena scope) {\n");
+            append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena arena) {\n");
             incrAlign();
             indent();
-            append("MemorySegment symbol = MemorySegment.ofAddress(");
-            append("addr.address(), 0, scope);\n");
+            append("MemorySegment symbol = addr.reinterpret(");
+            append("arena.scope(), null);\n");
             indent();
             append("return (");
             String delim = "";

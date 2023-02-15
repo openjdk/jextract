@@ -65,7 +65,7 @@ public class Diagnostic extends ClangDisposable {
     public static final int CXDiagnostic_Fatal   = Index_h.CXDiagnostic_Fatal();
 
     Diagnostic(MemorySegment ptr) {
-        super(ptr, () -> Index_h.clang_disposeDiagnostic(ptr));
+        super(ptr, Index_h::clang_disposeDiagnostic);
     }
 
     public int severity() {

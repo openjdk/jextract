@@ -65,7 +65,7 @@ public class LibUnsupportedTest {
     @Test
     public void testGetFoo() {
         try (Arena arena = Arena.ofConfined()) {
-            var seg = MemorySegment.ofAddress(getFoo().address(), Foo.sizeof(), arena);
+            var seg = Foo.ofAddress(getFoo(), arena);
             Foo.i$set(seg, 42);
             Foo.c$set(seg, (byte)'j');
             assertEquals(Foo.i$get(seg), 42);

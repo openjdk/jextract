@@ -80,7 +80,7 @@ final class RuntimeHelper {
 
     static MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
         return SYMBOL_LOOKUP.find(name)
-                .map(s -> s.asUnbounded().asSlice(0, layout))
+                .map(s -> s.reinterpret(layout.byteSize()))
                 .orElse(null);
     }
 
@@ -110,8 +110,8 @@ final class RuntimeHelper {
         }
     }
 
-    static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena scope) {
-         return MemorySegment.ofAddress(addr.address(), numElements * layout.byteSize(), scope);
+    static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena arena) {
+         return addr.reinterpret(numElements * layout.byteSize(), arena.scope(), null);
     }
 
     // Internals only below this point
