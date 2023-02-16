@@ -36,7 +36,7 @@ import org.unix.*;
 
 public class PanamaTime {
     public static void main(String[] args) {
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             var now = arena.allocate(C_LONG, System.currentTimeMillis() / 1000);
             MemorySegment time = tm.allocate(arena);
             localtime_r(now, time);
