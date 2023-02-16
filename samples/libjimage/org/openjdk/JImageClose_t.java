@@ -18,8 +18,8 @@ public interface JImageClose_t {
     static MemorySegment allocate(JImageClose_t fi, Arena scope) {
         return RuntimeHelper.upcallStub(JImageClose_t.class, fi, constants$0.JImageClose_t$FUNC, scope);
     }
-    static JImageClose_t ofAddress(MemorySegment addr, Arena scope) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
+    static JImageClose_t ofAddress(MemorySegment addr, Arena arena) {
+        MemorySegment symbol = addr.reinterpret(arena.scope(), null);
         return (java.lang.foreign.MemorySegment _jimage) -> {
             try {
                 constants$0.JImageClose_t$MH.invokeExact(symbol, _jimage);

@@ -47,7 +47,7 @@ public class TranslationUnit extends ClangDisposable {
     private static final int MAX_RETRIES = 10;
 
     TranslationUnit(MemorySegment addr) {
-        super(addr, () -> Index_h.clang_disposeTranslationUnit(addr));
+        super(addr, Index_h::clang_disposeTranslationUnit);
     }
 
     public Cursor getCursor() {
@@ -135,7 +135,7 @@ public class TranslationUnit extends ClangDisposable {
 
         Tokens(MemorySegment addr, int size) {
             super(addr, size * CXToken.$LAYOUT().byteSize(),
-                    () -> Index_h.clang_disposeTokens(TranslationUnit.this.ptr, addr, size));
+                    (addrCleanup) -> Index_h.clang_disposeTokens(TranslationUnit.this.ptr, addrCleanup, size));
             this.size = size;
         }
 

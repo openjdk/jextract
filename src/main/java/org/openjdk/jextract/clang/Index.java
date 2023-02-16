@@ -39,7 +39,7 @@ import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 public class Index extends ClangDisposable {
 
     Index(MemorySegment addr) {
-        super(addr, () -> Index_h.clang_disposeIndex(addr));
+        super(addr, Index_h::clang_disposeIndex);
     }
 
     public static class UnsavedFile {

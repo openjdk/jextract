@@ -18,8 +18,8 @@ public interface JImagePackageToModule_t {
     static MemorySegment allocate(JImagePackageToModule_t fi, Arena scope) {
         return RuntimeHelper.upcallStub(JImagePackageToModule_t.class, fi, constants$1.JImagePackageToModule_t$FUNC, scope);
     }
-    static JImagePackageToModule_t ofAddress(MemorySegment addr, Arena scope) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
+    static JImagePackageToModule_t ofAddress(MemorySegment addr, Arena arena) {
+        MemorySegment symbol = addr.reinterpret(arena.scope(), null);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _package_name) -> {
             try {
                 return (java.lang.foreign.MemorySegment)constants$1.JImagePackageToModule_t$MH.invokeExact(symbol, _jimage, _package_name);

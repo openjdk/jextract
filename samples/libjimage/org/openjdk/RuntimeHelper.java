@@ -92,8 +92,8 @@ final class RuntimeHelper {
         }
     }
 
-    static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena scope) {
-         return MemorySegment.ofAddress(addr.address(), numElements * layout.byteSize(), scope);
+    static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena arena) {
+         return addr.reinterpret(numElements * layout.byteSize(), arena.scope(), null);
     }
 
     // Internals only below this point
