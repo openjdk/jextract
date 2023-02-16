@@ -45,8 +45,7 @@ public class Dlopen {
             if (handleAddr.equals(MemorySegment.NULL)) {
                 throw new IllegalArgumentException("Cannot find library: " + libraryName);
             }
-            var handle = MemorySegment.ofAddress(handleAddr.address(), 0, arena,
-                () -> dlclose(handleAddr));
+            var handle = handleAddr.reinterpret(arena.scope(), org.unix.dlfcn_h::dlclose);
             return name -> {
                 try (var newArena = Arena.ofConfined()) {
                     var addr = dlsym(handle, newArena.allocateUtf8String(name));

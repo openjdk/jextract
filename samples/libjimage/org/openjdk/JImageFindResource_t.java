@@ -18,8 +18,8 @@ public interface JImageFindResource_t {
     static MemorySegment allocate(JImageFindResource_t fi, Arena scope) {
         return RuntimeHelper.upcallStub(JImageFindResource_t.class, fi, constants$1.JImageFindResource_t$FUNC, scope);
     }
-    static JImageFindResource_t ofAddress(MemorySegment addr, Arena scope) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
+    static JImageFindResource_t ofAddress(MemorySegment addr, Arena arena) {
+        MemorySegment symbol = addr.reinterpret(arena.scope(), null);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _module_name, java.lang.foreign.MemorySegment _version, java.lang.foreign.MemorySegment _name, java.lang.foreign.MemorySegment _size) -> {
             try {
                 return (long)constants$1.JImageFindResource_t$MH.invokeExact(symbol, _jimage, _module_name, _version, _name, _size);
