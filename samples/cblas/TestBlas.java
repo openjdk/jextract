@@ -53,7 +53,7 @@ public class TestBlas {
         alpha = 1;
         beta = 0;
 
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             var a = arena.allocateArray(C_DOUBLE,
                 1.0, 2.0, 3.0, 4.0,
                 1.0, 1.0, 1.0, 1.0,

@@ -15,10 +15,10 @@ import static java.lang.foreign.ValueLayout.*;
 public interface JImageResourceIterator_t {
 
     void apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment visitor, java.lang.foreign.MemorySegment arg);
-    static MemorySegment allocate(JImageResourceIterator_t fi, SegmentScope scope) {
+    static MemorySegment allocate(JImageResourceIterator_t fi, Arena scope) {
         return RuntimeHelper.upcallStub(JImageResourceIterator_t.class, fi, constants$3.JImageResourceIterator_t$FUNC, scope);
     }
-    static JImageResourceIterator_t ofAddress(MemorySegment addr, SegmentScope scope) {
+    static JImageResourceIterator_t ofAddress(MemorySegment addr, Arena scope) {
         MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _visitor, java.lang.foreign.MemorySegment _arg) -> {
             try {

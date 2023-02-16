@@ -15,10 +15,10 @@ import static java.lang.foreign.ValueLayout.*;
 public interface JImageFindResource_t {
 
     long apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment module_name, java.lang.foreign.MemorySegment version, java.lang.foreign.MemorySegment name, java.lang.foreign.MemorySegment size);
-    static MemorySegment allocate(JImageFindResource_t fi, SegmentScope scope) {
+    static MemorySegment allocate(JImageFindResource_t fi, Arena scope) {
         return RuntimeHelper.upcallStub(JImageFindResource_t.class, fi, constants$1.JImageFindResource_t$FUNC, scope);
     }
-    static JImageFindResource_t ofAddress(MemorySegment addr, SegmentScope scope) {
+    static JImageFindResource_t ofAddress(MemorySegment addr, Arena scope) {
         MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _module_name, java.lang.foreign.MemorySegment _version, java.lang.foreign.MemorySegment _name, java.lang.foreign.MemorySegment _size) -> {
             try {

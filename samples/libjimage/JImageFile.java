@@ -46,7 +46,7 @@ public class JImageFile {
            System.err.println(modPath + " not found, please check if your java.home");
            return;
         }
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             var jintResPtr = arena.allocate(jint);
             var moduleFilePath = arena.allocateUtf8String(javaHome + "/lib/modules");
             var jimageFile = JIMAGE_Open(moduleFilePath, jintResPtr);
@@ -68,7 +68,7 @@ public class JImageFile {
                    System.out.println("package " + package_name.getUtf8String(0));
                    System.out.println("name " + name.getUtf8String(0));
                    return 1;
-                }, arena.scope());
+                }, arena);
 
             JIMAGE_ResourceIterator(jimageFile, visitor, NULL);
 
