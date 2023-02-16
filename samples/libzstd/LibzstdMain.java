@@ -83,7 +83,7 @@ public class LibzstdMain {
         System.out.println(TEXT);
         System.out.println();
 
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             // Compress
             var uncompressedText = arena.allocateUtf8String(TEXT);
             // At least, the compressed text should not be larger than the uncompressed text.

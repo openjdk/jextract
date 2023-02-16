@@ -39,17 +39,17 @@ import static org.unix.dlfcn_h.*;
 public class Dlopen {
     // implementation of Symbol lookup that loads a given shared object using dlopen
     // and looks up symbols using dlsym
-    private static Function<String, Optional<MemorySegment>> lookup(String libraryName, SegmentScope scope) {
-        try (Arena libArena = Arena.openConfined()) {
+    private static Function<String, Optional<MemorySegment>> lookup(String libraryName, Arena arena) {
+        try (Arena libArena = Arena.ofConfined()) {
             var handleAddr = dlopen(libArena.allocateUtf8String(libraryName), RTLD_LOCAL());
             if (handleAddr.equals(MemorySegment.NULL)) {
                 throw new IllegalArgumentException("Cannot find library: " + libraryName);
             }
-            var handle = MemorySegment.ofAddress(handleAddr.address(), 0, scope,
+            var handle = MemorySegment.ofAddress(handleAddr.address(), 0, arena,
                 () -> dlclose(handleAddr));
             return name -> {
-                try (var arena = Arena.openConfined()) {
-                    var addr = dlsym(handle, arena.allocateUtf8String(name));
+                try (var newArena = Arena.ofConfined()) {
+                    var addr = dlsym(handle, newArena.allocateUtf8String(name));
                     return addr.equals(MemorySegment.NULL) ?
                         Optional.empty() : Optional.of(addr);
                 }
@@ -60,8 +60,8 @@ public class Dlopen {
     public static void main(String[] args) throws Throwable {
         var arg = args.length > 0? args[0] : "Java";
         var libName = "libhello.dylib";
-        try (var arena = Arena.openConfined()) {
-            var symLookup = lookup(libName, arena.scope());
+        try (var arena = Arena.ofConfined()) {
+            var symLookup = lookup(libName, arena);
 
             var linker = Linker.nativeLinker();
             // get method handle for a function from helloLIb

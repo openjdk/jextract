@@ -45,7 +45,7 @@ public class TensorflowLoadSavedModel {
             System.exit(1);
         }
 
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             var graph = TF_NewGraph();
             var status = TF_NewStatus();
             var sessionOpts = TF_NewSessionOptions();

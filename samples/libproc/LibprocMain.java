@@ -40,7 +40,7 @@ public class LibprocMain {
     private static final int NAME_BUF_MAX = 256;
 
     public static void main(String[] args) {
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             // get the number of processes
             int numPids = proc_listallpids(NULL, 0);
             // allocate an array

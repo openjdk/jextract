@@ -15,10 +15,10 @@ import static java.lang.foreign.ValueLayout.*;
 public interface JImageClose_t {
 
     void apply(java.lang.foreign.MemorySegment jimage);
-    static MemorySegment allocate(JImageClose_t fi, SegmentScope scope) {
+    static MemorySegment allocate(JImageClose_t fi, Arena scope) {
         return RuntimeHelper.upcallStub(JImageClose_t.class, fi, constants$0.JImageClose_t$FUNC, scope);
     }
-    static JImageClose_t ofAddress(MemorySegment addr, SegmentScope scope) {
+    static JImageClose_t ofAddress(MemorySegment addr, Arena scope) {
         MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
         return (java.lang.foreign.MemorySegment _jimage) -> {
             try {

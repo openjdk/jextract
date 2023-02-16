@@ -53,7 +53,7 @@ public class TCLMain {
             puts "Full name: $name(first) $name(last)"
         """;
 
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             var str = arena.allocateUtf8String(script);
             Tcl_Eval(interp, str);
         }

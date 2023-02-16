@@ -7,7 +7,7 @@ import java.lang.foreign.GroupLayout;
 import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.SegmentScope;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
@@ -32,7 +32,7 @@ final class RuntimeHelper {
     private static final SegmentAllocator THROWING_ALLOCATOR = (x, y) -> { throw new AssertionError("should not reach here"); };
 
     final static SegmentAllocator CONSTANT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align, SegmentScope.auto());
+            (size, align) -> Arena.ofAuto().allocate(size, align);
 
     static {
         // manual change
@@ -45,7 +45,8 @@ final class RuntimeHelper {
         } else {
             libPath = "/lib/libjimage.so"; // some Unix
         }
-        SymbolLookup loaderLookup = SymbolLookup.libraryLookup(libPath, SegmentScope.global());
+        SymbolLookup loaderLookup = SymbolLookup.libraryLookup(libPath, Arena.global());
+
         SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> LINKER.defaultLookup().find(name));
     }
 
@@ -60,7 +61,9 @@ final class RuntimeHelper {
     }
 
     static MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
-        return SYMBOL_LOOKUP.find(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), symbol.scope())).orElse(null);
+        return SYMBOL_LOOKUP.find(name)
+                .map(s -> s.asUnbounded().asSlice(0, layout))
+                .orElse(null);
     }
 
     static MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {
@@ -79,7 +82,7 @@ final class RuntimeHelper {
                 orElse(null);
     }
 
-    static <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, SegmentScope scope) {
+    static <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, Arena scope) {
         try {
             MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", fdesc.toMethodType());
             handle = handle.bindTo(z);
@@ -89,7 +92,7 @@ final class RuntimeHelper {
         }
     }
 
-    static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, SegmentScope scope) {
+    static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena scope) {
          return MemorySegment.ofAddress(addr.address(), numElements * layout.byteSize(), scope);
     }
 
