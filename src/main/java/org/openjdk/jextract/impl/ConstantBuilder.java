@@ -29,7 +29,6 @@ import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.StructLayout;
 import java.lang.foreign.ValueLayout;
@@ -81,9 +80,14 @@ public class ConstantBuilder extends ClassSourceBuilder {
                 () -> emitVarHandleField(javaName, nativeName, valueLayout, rootLayoutName, prefixElementNames));
     }
 
-    public Constant addMethodHandle(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
+    public Constant addDowncallMethodHandle(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
         return emitIfAbsent(javaName, Constant.Kind.METHOD_HANDLE,
-                () -> emitMethodHandleField(javaName, nativeName, descriptor, isVarargs, virtual));
+                () -> emitDowncallMethodHandleField(javaName, nativeName, descriptor, isVarargs, virtual));
+    }
+
+    public Constant addLookupMethodHandle(String javaName, String className, String name, FunctionDescriptor descriptor) {
+        return emitIfAbsent(javaName, Constant.Kind.METHOD_HANDLE,
+                () -> emitUpcallMethodHandleField(javaName, className, name, descriptor));
     }
 
     public Constant addSegment(String javaName, String nativeName, MemoryLayout layout) {
@@ -197,7 +201,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         return constant;
     }
 
-    private Constant emitMethodHandleField(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
+    private Constant emitDowncallMethodHandleField(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
         Constant functionDesc = addFunctionDesc(javaName, descriptor);
         incrAlign();
         String fieldName = Constant.Kind.METHOD_HANDLE.fieldName(javaName);
@@ -221,6 +225,21 @@ public class ConstantBuilder extends ClassSourceBuilder {
         append("\n");
         decrAlign();
         indent();
+        append(");\n");
+        decrAlign();
+        return new Constant(className(), javaName, Constant.Kind.METHOD_HANDLE);
+    }
+
+    private Constant emitUpcallMethodHandleField(String javaName, String className, String methodName, FunctionDescriptor descriptor) {
+        Constant functionDesc = addFunctionDesc(javaName, descriptor);
+        incrAlign();
+        String fieldName = Constant.Kind.METHOD_HANDLE.fieldName(javaName);
+        indent();
+        append(memberMods() + "MethodHandle ");
+        append(fieldName + " = RuntimeHelper.upcallHandle(");
+        append(className + ".class, ");
+        append("\"" + methodName + "\", ");
+        append(functionDesc.accessExpression());
         append(");\n");
         decrAlign();
         return new Constant(className(), javaName, Constant.Kind.METHOD_HANDLE);
