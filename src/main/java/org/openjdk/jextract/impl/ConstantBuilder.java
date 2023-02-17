@@ -25,8 +25,6 @@
 
 package org.openjdk.jextract.impl;
 
-import org.openjdk.jextract.impl.ConstantBuilder.Constant.Kind;
-
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemorySegment;
