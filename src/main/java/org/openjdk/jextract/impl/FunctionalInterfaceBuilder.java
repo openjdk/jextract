@@ -97,13 +97,14 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private void emitFunctionalFactories() {
         emitWithConstantClass(constantBuilder -> {
             Constant functionDesc = constantBuilder.addFunctionDesc(className(), fiDesc);
+            Constant upcallHandle = constantBuilder.addLookupMethodHandle(className() + "_UP", className(), "apply", fiDesc);
             incrAlign();
             indent();
             append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, Arena scope) {\n");
             incrAlign();
             indent();
-            append("return RuntimeHelper.upcallStub(" + className() + ".class, fi, " +
-                functionDesc.accessExpression() + ", scope);\n");
+            append("return RuntimeHelper.upcallStub(" +
+                upcallHandle.accessExpression() + ", fi, " + functionDesc.accessExpression() + ", scope);\n");
             decrAlign();
             indent();
             append("}\n");
@@ -113,7 +114,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalFactoryForPointer() {
         emitWithConstantClass(constantBuilder -> {
-            Constant mhConstant = constantBuilder.addMethodHandle(className(), className(),
+            Constant mhConstant = constantBuilder.addDowncallMethodHandle(className() + "_DOWN", className(),
                  fiDesc, false, true);
             incrAlign();
             indent();

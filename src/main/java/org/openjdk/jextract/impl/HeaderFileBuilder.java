@@ -24,7 +24,6 @@
  */
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.Linker;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemorySegment;
@@ -109,7 +108,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         boolean isVarargs = funcTree.type().varargs();
 
         emitWithConstantClass(constantBuilder -> {
-            Constant mhConstant = constantBuilder.addMethodHandle(javaName, nativeName, descriptor, isVarargs, false)
+            Constant mhConstant = constantBuilder.addDowncallMethodHandle(javaName, nativeName, descriptor, isVarargs, false)
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
             MethodType downcallType = descriptor.toMethodType();
             boolean needsAllocator = descriptor.returnLayout().isPresent() &&
