@@ -139,7 +139,7 @@ abstract class RecordLayoutComputer {
         if (c.isAnonymousStruct()) {
             addField(((org.openjdk.jextract.Type.Declared)computeAnonymous(typeMaker, offset, parent, c.type(), nextAnonymousName())).tree());
         } else {
-            addField(field(c));
+            addField(field(offset, c));
         }
     }
 
@@ -147,12 +147,11 @@ abstract class RecordLayoutComputer {
         return "$anon$" + anonCount++;
     }
 
-    Declaration field(Cursor c) {
+    Declaration field(long offset, Cursor c) {
         org.openjdk.jextract.Type type = typeMaker.makeType(c.type());
         String name = c.spelling();
         if (c.isBitField()) {
-            MemoryLayout sublayout = MemoryLayout.paddingLayout(c.getBitFieldWidth());
-            return Declaration.bitfield(TreeMaker.CursorPosition.of(c), name, type, sublayout.withName(name));
+            return Declaration.bitfield(TreeMaker.CursorPosition.of(c), name, type, offset, c.getBitFieldWidth());
         } else if (c.isAnonymousStruct() && type instanceof org.openjdk.jextract.Type.Declared decl) {
             return decl.tree();
         } else {
@@ -167,8 +166,8 @@ abstract class RecordLayoutComputer {
         return c.isBitField() ? c.getBitFieldWidth() : c.type().size() * 8;
     }
 
-    Declaration.Scoped bitfield(List<MemoryLayout> sublayouts, Declaration.Variable... declarations) {
-        return Declaration.bitfields(declarations[0].pos(), MemoryLayout.structLayout(sublayouts.toArray(new MemoryLayout[0])), declarations);
+    Declaration.Scoped bitfield(Declaration.Variable... declarations) {
+        return Declaration.bitfields(declarations[0].pos(), declarations);
     }
 
     long offsetOf(Type parent, Cursor c) {

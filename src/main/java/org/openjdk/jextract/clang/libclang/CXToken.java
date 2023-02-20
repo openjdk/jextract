@@ -32,9 +32,17 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+/**
+ * {@snippet :
+ * struct {
+ *     unsigned int int_data[4];
+ *     void* ptr_data;
+ * };
+ * }
+ */
 public class CXToken {
 
-    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+    static final StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(4, Constants$root.C_INT$LAYOUT).withName("int_data"),
         Constants$root.C_POINTER$LAYOUT.withName("ptr_data")
     );
@@ -48,10 +56,22 @@ public class CXToken {
     public static VarHandle ptr_data$VH() {
         return CXToken.ptr_data$VH;
     }
+    /**
+     * Getter for field:
+     * {@snippet :
+     * void* ptr_data;
+     * }
+     */
     public static MemorySegment ptr_data$get(MemorySegment seg) {
         return (java.lang.foreign.MemorySegment)CXToken.ptr_data$VH.get(seg);
     }
-    public static void ptr_data$set( MemorySegment seg, MemorySegment x) {
+    /**
+     * Setter for field:
+     * {@snippet :
+     * void* ptr_data;
+     * }
+     */
+    public static void ptr_data$set(MemorySegment seg, MemorySegment x) {
         CXToken.ptr_data$VH.set(seg, x);
     }
     public static MemorySegment ptr_data$get(MemorySegment seg, long index) {
@@ -62,10 +82,10 @@ public class CXToken {
     }
     public static long sizeof() { return $LAYOUT().byteSize(); }
     public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
-    public static MemorySegment allocateArray(int len, SegmentAllocator allocator) {
+    public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment ofAddress(MemorySegment addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }
+    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
 }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,12 +21,13 @@
  * questions.
  */
 
-#ifdef _WIN64
-#define EXPORT __declspec(dllexport)
-#else
-#define EXPORT
-#endif
+enum Color { RED, GREEN, BLUE };
 
-#include <stdarg.h>
+/* enum with init values */
+enum Suit {
+    club = 1,
+    diamonds = 2,
+    hearts = 3,
+    spades = 4
+};
 
-EXPORT int my_vsprintf(char *s, const char* format, va_list arg);

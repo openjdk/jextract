@@ -21,7 +21,7 @@
  * questions.
  */
 
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.Arena;
 import org.testng.annotations.Test;
 import test.jextract.test8258605.*;
 import static java.lang.foreign.MemorySegment.NULL;
@@ -48,30 +48,30 @@ import static test.jextract.test8258605.funcParam_h.*;
 public class LibTest8258605Test {
     @Test
     public void testFunctionCallback() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
              boolean[] callbackReached = new boolean[1];
              f(CB.allocate(i -> {
                  assertTrue(i == 10);
                  callbackReached[0] = true;
-             }, session));
+             }, arena));
              assertTrue(callbackReached[0]);
         }
     }
 
     @Test
     public void testStructFunctionPointerCallback() {
-        try (MemorySession session = MemorySession.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
              boolean[] callbackReached = new boolean[1];
 
              // get struct Foo instance
-             var foo = getFoo(session);
+             var foo = getFoo(arena);
              // make sure that foo.bar is not NULL
              assertFalse(Foo.bar$get(foo).equals(NULL));
 
              f2(foo, CB.allocate(i -> {
                  assertTrue(i == 42);
                  callbackReached[0] = true;
-             }, session));
+             }, arena));
              assertTrue(callbackReached[0]);
         }
     }

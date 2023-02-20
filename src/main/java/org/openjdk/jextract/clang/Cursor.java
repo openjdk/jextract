@@ -26,8 +26,8 @@
 
 package org.openjdk.jextract.clang;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -113,10 +113,14 @@ public final class Cursor extends ClangDisposable.Owned {
         return new Cursor(cursorDef, owner);
     }
 
+    public boolean isFunctionInlined() {
+        return Index_h.clang_Cursor_isFunctionInlined(segment) != 0;
+    }
+
     public SourceLocation getSourceLocation() {
         MemorySegment loc = Index_h.clang_getCursorLocation(owner, segment);
-        try (MemorySession session = MemorySession.openConfined()) {
-            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(session)) != 0) {
+        try (Arena arena = Arena.ofConfined()) {
+            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(arena)) != 0) {
                 return null;
             }
         }
@@ -164,6 +168,10 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public CursorLanguage language() {
         return CursorLanguage.valueOf(Index_h.clang_getCursorLanguage(segment));
+    }
+
+    public LinkageKind linkage() {
+        return LinkageKind.valueOf(Index_h.clang_getCursorLinkage(segment));
     }
 
     public int kind0() {
@@ -232,7 +240,7 @@ public final class Cursor extends ClangDisposable.Owned {
             } else {
                 return Index_h.CXChildVisit_Break();
             }
-        }, MemorySession.global());
+        }, Arena.global());
 
         synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
             // everything is confined, no need to synchronize

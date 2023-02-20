@@ -1,7 +1,8 @@
-* Install zstd on
+Install zstd on Mac using homebrew
 
     Mac: using homebrew "brew install zstd"
-    Linux: use the relevant package manager (e.g. "sudo apt install libzstd-dev"). The -dev variant includes the necessary headers.
+    Linux: use the relevant package manager (e.g. "sudo apt install libzstd-dev").
+           The -dev variant includes the necessary headers.
 
 * run ./compile.sh or ./compilesource.sh to jextract zstd headers
 
@@ -11,3 +12,6 @@
 
 NOTE: For Linux, the path $(brew --prefix zstd) needs to be replaced with
       relevant code (e.g. $(pkg-config --variable=prefix libzstd) )
+
+NOTE: This example is compatible with zstd 1.5.2 - 1.5.4. Make sure your zstd version is compatible
+      with any of these version in order to run the example.

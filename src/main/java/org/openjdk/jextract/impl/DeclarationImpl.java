@@ -141,7 +141,7 @@ public abstract class DeclarationImpl implements Declaration {
         }
     }
 
-    public static final class VariableImpl extends DeclarationImpl implements Declaration.Variable {
+    public static class VariableImpl extends DeclarationImpl implements Declaration.Variable {
 
         final Variable.Kind kind;
         final Type type;
@@ -204,6 +204,56 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public int hashCode() {
             return Objects.hash(super.hashCode(), kind, type);
+        }
+    }
+
+    public static final class BitfieldImpl extends VariableImpl implements Declaration.Bitfield {
+
+        final long offset;
+        final long width;
+
+        private BitfieldImpl(Type type, long offset, long width, String name, Position pos, Map<String, List<Constable>> attrs) {
+            super(type, Optional.<MemoryLayout>empty(), Kind.BITFIELD, name, pos, attrs);
+            this.offset = offset;
+            this.width = width;
+        }
+
+        public BitfieldImpl(Type type, long offset, long width, String name, Position pos) {
+            this(type, offset, width, name, pos, null);
+        }
+
+        @Override
+        public long offset() {
+            return offset;
+        }
+
+        @Override
+        public long width() {
+            return width;
+        }
+
+        @Override
+        public Variable withAttributes(Map<String, List<Constable>> attrs) {
+            return new BitfieldImpl(type, offset, width, name(), pos(), attrs);
+        }
+
+        @Override
+        public Variable stripAttributes() {
+            return new BitfieldImpl(type, offset, width, name(), pos(), null);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof BitfieldImpl bitfield)) return false;
+            if (!super.equals(o)) return false;
+            return offset == bitfield.offset &&
+                    width == bitfield.width;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(super.hashCode(), offset, width);
         }
     }
 

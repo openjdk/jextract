@@ -248,6 +248,22 @@ public interface Declaration {
     }
 
     /**
+     * A bitfield declaration. Same as a variable declaration, but doesn't have a layout. Instead, it has
+     * an offset (relative to the enclosing container) and a width.
+     */
+    interface Bitfield extends Variable {
+        /**
+         * {@return The bitfield offset (relative to the enclosing container)}
+         */
+        long offset();
+
+        /**
+         * {@return The bitfield width (in bits)}
+         */
+        long width();
+    }
+
+    /**
      * A constant value declaration.
      */
     interface Constant extends Declaration {
@@ -354,15 +370,16 @@ public interface Declaration {
     }
 
     /**
-     * Creates a new bitfield declaration with given name, type and layout.
+     * Creates a new bitfield declaration with given name, type, offset and width.
      * @param pos the bitfield declaration position.
      * @param name the bitfield declaration name.
      * @param type the bitfield declaration type.
-     * @param layout the bitfield declaration layout.
+     * @param offset the offset of the bitfield (relative to the enclosing container).
+     * @param width the bitfield width.
      * @return a new bitfield declaration with given name, type and layout.
      */
-    static Declaration.Variable bitfield(Position pos, String name, Type type, MemoryLayout layout) {
-        return new DeclarationImpl.VariableImpl(type, layout, Declaration.Variable.Kind.BITFIELD, name, pos);
+    static Declaration.Variable bitfield(Position pos, String name, Type type, long offset, long width) {
+        return new DeclarationImpl.BitfieldImpl(type, offset, width, name, pos);
     }
 
     /**
@@ -414,13 +431,12 @@ public interface Declaration {
     /**
      * Creates a new bitfields group declaration with given name and layout.
      * @param pos the bitfields group declaration position.
-     * @param layout the bitfields group declaration layout.
      * @param bitfields the bitfields group member declarations.
      * @return a new bitfields group declaration with given name and layout.
      */
-    static Declaration.Scoped bitfields(Position pos, MemoryLayout layout, Declaration.Variable... bitfields) {
+    static Declaration.Scoped bitfields(Position pos, Declaration.Variable... bitfields) {
         List<Declaration> declList = List.of(bitfields);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.BITFIELDS, layout, declList, "", pos);
+        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.BITFIELDS, declList, "", pos);
     }
 
     /**

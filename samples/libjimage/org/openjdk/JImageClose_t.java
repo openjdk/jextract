@@ -7,17 +7,22 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+/**
+ * {@snippet :
+ * void (*JImageClose_t)(struct JImageFile* jimage);
+ * }
+ */
 public interface JImageClose_t {
 
     void apply(java.lang.foreign.MemorySegment jimage);
-    static MemorySegment allocate(JImageClose_t fi, MemorySession session) {
-        return RuntimeHelper.upcallStub(JImageClose_t.class, fi, constants$0.JImageClose_t$FUNC, session);
+    static MemorySegment allocate(JImageClose_t fi, Arena scope) {
+        return RuntimeHelper.upcallStub(JImageClose_t.class, fi, constants$0.JImageClose_t$FUNC, scope);
     }
-    static JImageClose_t ofAddress(MemorySegment addr, MemorySession session) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, session);
+    static JImageClose_t ofAddress(MemorySegment addr, Arena scope) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
         return (java.lang.foreign.MemorySegment _jimage) -> {
             try {
-                constants$0.JImageClose_t$MH.invokeExact((MemorySegment)symbol, _jimage);
+                constants$0.JImageClose_t$MH.invokeExact(symbol, _jimage);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

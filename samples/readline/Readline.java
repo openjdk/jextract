@@ -29,15 +29,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
 import static org.unix.readline_h.*;
 import org.unix.*;
 
 public class Readline {
     public static void main(String[] args) {
-       try (var session = MemorySession.openConfined()) {
-            var url = session.allocateUtf8String("name? ");
+       try (var arena = Arena.ofConfined()) {
+            var url = arena.allocateUtf8String("name? ");
 
             // call "readline" API
             var p = readline(url);

@@ -83,11 +83,11 @@ public class LibzstdMain {
         System.out.println(TEXT);
         System.out.println();
 
-        try (var session = MemorySession.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             // Compress
-            var uncompressedText = session.allocateUtf8String(TEXT);
+            var uncompressedText = arena.allocateUtf8String(TEXT);
             // At least, the compressed text should not be larger than the uncompressed text.
-            var compressedText = session.allocate(TEXT.length());
+            var compressedText = arena.allocate(TEXT.length());
             long compressResult = ZSTD_compress(compressedText, compressedText.byteSize(), uncompressedText, uncompressedText.byteSize(), ZSTD_defaultCLevel());
             if (ZSTD_isError(compressResult) != 0) {
                 System.out.println("Error compressing: " + errorMessage(compressResult));
@@ -99,7 +99,7 @@ public class LibzstdMain {
             System.out.println();
 
             // Decompress again
-            var decompressed = session.allocate(TEXT.length() * 2, 64); // Needs extra space to decompress
+            var decompressed = arena.allocate(TEXT.length() * 2, 64); // Needs extra space to decompress
             long decompressResult = ZSTD_decompress(decompressed, decompressed.byteSize(), compressedText, compressResult);
             if (ZSTD_isError(decompressResult) != 0) {
                 System.out.println("Error decompressing: " + errorMessage(decompressResult));

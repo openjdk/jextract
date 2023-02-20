@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 public class IncludeHelper {
 
     public enum IncludeKind {
-        MACRO,
+        CONSTANT,
         VAR,
         FUNCTION,
         TYPEDEF,
@@ -59,7 +59,7 @@ public class IncludeHelper {
 
         static IncludeKind fromDeclaration(Declaration d) {
             if (d instanceof Declaration.Constant) {
-                return MACRO;
+                return CONSTANT;
             } else if (d instanceof Declaration.Variable) {
                 return VAR;
             } else if (d instanceof Declaration.Function) {
@@ -100,7 +100,7 @@ public class IncludeHelper {
     }
 
     public boolean isIncluded(Declaration.Constant constant) {
-        return checkIncludedAndAddIfNeeded(IncludeKind.MACRO, constant);
+        return checkIncludedAndAddIfNeeded(IncludeKind.CONSTANT, constant);
     }
 
     public boolean isIncluded(Declaration.Typedef typedef) {

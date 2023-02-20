@@ -30,7 +30,7 @@
  */
 
 import java.lang.foreign.SegmentAllocator;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.Arena;
 import static com.github.git2_h.*;
 import static java.lang.foreign.MemorySegment.NULL;
 import com.github.*;
@@ -42,10 +42,10 @@ public class GitClone {
               System.exit(1);
           }
           git_libgit2_init();
-          try (var session = MemorySession.openConfined()) {
-              var repo = session.allocate(C_POINTER);
-              var url = session.allocateUtf8String(args[0]);
-              var path = session.allocateUtf8String(args[1]);
+          try (var arena = Arena.ofConfined()) {
+              var repo = arena.allocate(C_POINTER);
+              var url = arena.allocateUtf8String(args[0]);
+              var path = arena.allocateUtf8String(args[1]);
               System.out.println(git_clone(repo, url, path, NULL));
           }
           git_libgit2_shutdown();

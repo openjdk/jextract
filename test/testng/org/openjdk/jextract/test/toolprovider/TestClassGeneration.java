@@ -22,15 +22,14 @@
  */
 package org.openjdk.jextract.test.toolprovider;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.Arena;
 import testlib.TestUtils;
 import org.testng.annotations.*;
 import testlib.JextractToolRunner;
 
-import java.lang.foreign.MemorySession;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
@@ -185,8 +184,8 @@ public class TestClassGeneration extends JextractToolRunner {
         Class<?> structCls = loader.loadClass("com.acme." + structName);
         Method layout_getter = checkMethod(structCls, "$LAYOUT", MemoryLayout.class);
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
-        try (MemorySession session = MemorySession.openConfined()) {
-            MemorySegment struct = session.allocate(structLayout);
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment struct = arena.allocate(structLayout);
             Method vh_getter = checkMethod(structCls, memberName + "$VH", VarHandle.class);
             VarHandle vh = (VarHandle) vh_getter.invoke(null);
             assertEquals(vh.varType(), expectedType);
@@ -204,7 +203,7 @@ public class TestClassGeneration extends JextractToolRunner {
         Class<?> fiClass = loader.loadClass("com.acme." + name);
         assertNotNull(fiClass);
         checkMethod(fiClass, "apply", type);
-        checkMethod(fiClass, "allocate", MemorySegment.class, fiClass, MemorySession.class);
+        checkMethod(fiClass, "allocate", MemorySegment.class, fiClass, Arena.class);
     }
 
     @BeforeClass

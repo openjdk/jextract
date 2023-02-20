@@ -5,4 +5,4 @@ jextract --source -l readline -t org.unix \
   --include-function free \
   myreadline.h
 
-javac --enable-preview --source=20 org/unix/*.java
+javac --enable-preview --source=21 org/unix/*.java

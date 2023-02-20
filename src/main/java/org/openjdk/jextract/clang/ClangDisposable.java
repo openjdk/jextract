@@ -26,8 +26,8 @@
 
 package org.openjdk.jextract.clang;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import java.lang.foreign.SegmentAllocator;
 
 /**
@@ -38,14 +38,11 @@ import java.lang.foreign.SegmentAllocator;
  */
 public abstract class ClangDisposable implements SegmentAllocator, AutoCloseable {
     protected final MemorySegment ptr;
-    protected final MemorySession session;
-    protected final SegmentAllocator arena;
+    protected final Arena arena;
 
     public ClangDisposable(MemorySegment ptr, long size, Runnable cleanup) {
-        this.session = MemorySession.openConfined();
-        this.ptr = MemorySegment.ofAddress(ptr.address(), size, session).asReadOnly();
-        session.addCloseAction(cleanup);
-        this.arena = SegmentAllocator.newNativeArena(session);
+        this.arena = Arena.ofConfined();
+        this.ptr = MemorySegment.ofAddress(ptr.address(), size, arena, cleanup).asReadOnly();
     }
 
     public ClangDisposable(MemorySegment ptr, Runnable cleanup) {
@@ -54,7 +51,7 @@ public abstract class ClangDisposable implements SegmentAllocator, AutoCloseable
 
     @Override
     public void close() {
-        session.close();
+        arena.close();
     }
 
     @Override

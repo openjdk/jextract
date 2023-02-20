@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,11 +21,7 @@
  * questions.
  */
 
-#include "vsprintf.h"
-
-#include <stdio.h>
-#include <stdarg.h>
-
-EXPORT int my_vsprintf(char *s, const char* format, va_list arg) {
-    return vsprintf(s, format, arg);
-}
+typedef unsigned long size_t;
+typedef int INT_32;
+typedef int* INT_PTR;
+typedef struct Foo* OPAQUE_PTR;

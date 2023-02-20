@@ -1,1 +1,1 @@
-java --enable-native-access=ALL-UNNAMED --enable-preview --source=20 HelloWorld.java
+java --enable-native-access=ALL-UNNAMED --enable-preview --source=21 HelloWorld.java
