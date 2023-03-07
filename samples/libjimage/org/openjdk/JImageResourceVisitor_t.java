@@ -19,7 +19,7 @@ public interface JImageResourceVisitor_t {
         return RuntimeHelper.upcallStub(JImageResourceVisitor_t.class, fi, constants$2.JImageResourceVisitor_t$FUNC, scope);
     }
     static JImageResourceVisitor_t ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena.scope(), null);
+        MemorySegment symbol = addr.reinterpret(arena, null);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _module_name, java.lang.foreign.MemorySegment _version, java.lang.foreign.MemorySegment _package_, java.lang.foreign.MemorySegment _name, java.lang.foreign.MemorySegment _extension, java.lang.foreign.MemorySegment _arg) -> {
             try {
                 return (int)constants$2.JImageResourceVisitor_t$MH.invokeExact(symbol, _jimage, _module_name, _version, _package_, _name, _extension, _arg);

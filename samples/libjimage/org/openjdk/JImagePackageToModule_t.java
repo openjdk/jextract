@@ -19,7 +19,7 @@ public interface JImagePackageToModule_t {
         return RuntimeHelper.upcallStub(JImagePackageToModule_t.class, fi, constants$1.JImagePackageToModule_t$FUNC, scope);
     }
     static JImagePackageToModule_t ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena.scope(), null);
+        MemorySegment symbol = addr.reinterpret(arena, null);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _package_name) -> {
             try {
                 return (java.lang.foreign.MemorySegment)constants$1.JImagePackageToModule_t$MH.invokeExact(symbol, _jimage, _package_name);

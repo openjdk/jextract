@@ -19,7 +19,7 @@ public interface JImageResourceIterator_t {
         return RuntimeHelper.upcallStub(JImageResourceIterator_t.class, fi, constants$3.JImageResourceIterator_t$FUNC, scope);
     }
     static JImageResourceIterator_t ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena.scope(), null);
+        MemorySegment symbol = addr.reinterpret(arena, null);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _visitor, java.lang.foreign.MemorySegment _arg) -> {
             try {
                 constants$3.JImageResourceIterator_t$MH.invokeExact(symbol, _jimage, _visitor, _arg);
