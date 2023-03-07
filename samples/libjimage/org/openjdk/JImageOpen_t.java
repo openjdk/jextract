@@ -19,7 +19,7 @@ public interface JImageOpen_t {
         return RuntimeHelper.upcallStub(JImageOpen_t.class, fi, constants$0.JImageOpen_t$FUNC, scope);
     }
     static JImageOpen_t ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena.scope(), null);
+        MemorySegment symbol = addr.reinterpret(arena, null);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _package_name) -> {
             try {
                 return (java.lang.foreign.MemorySegment)constants$0.JImageOpen_t$MH.invokeExact(symbol, _jimage, _package_name);

@@ -248,7 +248,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         indent();
         append(MEMBER_MODS);
         append(" final");
-        append(" OfAddress ");
+        append(" AddressLayout ");
         append(name);
         append(" = ");
         append(toplevel().rootConstants().resolvePrimitiveLayout(TypeImpl.PointerImpl.POINTER_LAYOUT).accessExpression());

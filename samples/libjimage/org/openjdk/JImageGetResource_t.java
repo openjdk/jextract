@@ -19,7 +19,7 @@ public interface JImageGetResource_t {
         return RuntimeHelper.upcallStub(JImageGetResource_t.class, fi, constants$2.JImageGetResource_t$FUNC, scope);
     }
     static JImageGetResource_t ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena.scope(), null);
+        MemorySegment symbol = addr.reinterpret(arena, null);
         return (java.lang.foreign.MemorySegment _jimage, long _location, java.lang.foreign.MemorySegment _buffer, long _size) -> {
             try {
                 return (long)constants$2.JImageGetResource_t$MH.invokeExact(symbol, _jimage, _location, _buffer, _size);

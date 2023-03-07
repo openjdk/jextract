@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Supplier;
 
+import java.lang.foreign.AddressLayout;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
@@ -179,7 +180,7 @@ public abstract class TypeImpl implements Type {
     }
 
     public static final class PointerImpl extends DelegatedBase {
-        public static final ValueLayout.OfAddress POINTER_LAYOUT = ADDRESS.withBitAlignment(64)
+        public static final AddressLayout POINTER_LAYOUT = ADDRESS.withBitAlignment(64)
                 .withTargetLayout(MemoryLayout.sequenceLayout(ValueLayout.JAVA_BYTE));
 
         private final Supplier<Type> pointeeFactory;

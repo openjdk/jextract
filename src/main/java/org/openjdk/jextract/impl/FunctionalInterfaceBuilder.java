@@ -122,7 +122,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             incrAlign();
             indent();
             append("MemorySegment symbol = addr.reinterpret(");
-            append("arena.scope(), null);\n");
+            append("arena, null);\n");
             indent();
             append("return (");
             String delim = "";
