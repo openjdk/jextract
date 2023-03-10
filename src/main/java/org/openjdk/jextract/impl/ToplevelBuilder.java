@@ -279,7 +279,7 @@ class ToplevelBuilder extends JavaSourceBuilder {
         }
 
         private Constant addPrimitiveLayout(String javaName, ValueLayout layout) {
-            ValueLayout layoutNoName = layoutNoName(layout);
+            ValueLayout layoutNoName = layout.withoutName();
             Constant layoutConstant = super.addLayout(javaName, layoutNoName);
             primitiveLayouts.put(layoutNoName, layoutConstant);
             return layoutConstant;
@@ -289,35 +289,8 @@ class ToplevelBuilder extends JavaSourceBuilder {
             return addPrimitiveLayout(javaName, (ValueLayout)kind.layout().orElseThrow());
         }
 
-        private ValueLayout layoutNoName(ValueLayout layout) {
-            final ValueLayout newLayout;
-            if (layout.carrier() == boolean.class) {
-                newLayout = ValueLayout.JAVA_BOOLEAN;
-            } else if (layout.carrier() == byte.class) {
-                newLayout = ValueLayout.JAVA_BYTE;
-            } else if (layout.carrier() == char.class) {
-                newLayout = ValueLayout.JAVA_CHAR;
-            } else if (layout.carrier() == short.class) {
-                newLayout = ValueLayout.JAVA_SHORT;
-            } else if (layout.carrier() == int.class) {
-                newLayout = ValueLayout.JAVA_INT;
-            } else if (layout.carrier() == float.class) {
-                newLayout = ValueLayout.JAVA_FLOAT;
-            } else if (layout.carrier() == long.class) {
-                newLayout = ValueLayout.JAVA_LONG;
-            } else if (layout.carrier() == double.class) {
-                newLayout = ValueLayout.JAVA_DOUBLE;
-            } else if (layout.carrier() == MemorySegment.class) {
-                newLayout = ValueLayout.ADDRESS;
-            } else {
-                throw new AssertionError("Cannot get here");
-            }
-            // drop name if present
-            return newLayout.withOrder(layout.order()).withBitAlignment(layout.bitAlignment());
-        }
-
         public Constant resolvePrimitiveLayout(ValueLayout layout) {
-            return primitiveLayouts.get(layoutNoName(layout));
+            return primitiveLayouts.get(layout.withoutName());
         }
     }
 
