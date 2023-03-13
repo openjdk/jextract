@@ -354,7 +354,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             declared.tree().accept(this, tree);
         }
 
-        MemoryLayout layout = tree.layout().orElse(Type.layoutFor(type).orElse(null));
+        MemoryLayout layout = Type.layoutFor(type).orElse(null);
         if (layout == null) {
             //no layout - abort
             return null;

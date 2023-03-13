@@ -279,7 +279,7 @@ class ToplevelBuilder extends JavaSourceBuilder {
         }
 
         private Constant addPrimitiveLayout(String javaName, ValueLayout layout) {
-            ValueLayout layoutNoName = layout.withoutName();
+            ValueLayout layoutNoName = normalize(layout);
             Constant layoutConstant = super.addLayout(javaName, layoutNoName);
             primitiveLayouts.put(layoutNoName, layoutConstant);
             return layoutConstant;
@@ -290,7 +290,13 @@ class ToplevelBuilder extends JavaSourceBuilder {
         }
 
         public Constant resolvePrimitiveLayout(ValueLayout layout) {
-            return primitiveLayouts.get(layout.withoutName());
+            return primitiveLayouts.get(normalize(layout));
+        }
+
+        public ValueLayout normalize(ValueLayout valueLayout) {
+            return valueLayout
+                    .withBitAlignment(valueLayout.bitSize()) // use natural alignment
+                    .withoutName(); // drop name
         }
     }
 

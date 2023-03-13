@@ -110,7 +110,7 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
             builder.append("Bitfield: " + " type = " + d.type().accept(typeVisitor, null) + ", name = " + bitfield.name()
                     + ", offset = " + bitfield.offset() + ", width = " + bitfield.width());
         } else {
-            builder.append("Variable: " + d.kind() + " " + d.name() + " type = " + d.type().accept(typeVisitor, null) + ", layout = " + d.layout());
+            builder.append("Variable: " + d.kind() + " " + d.name() + " type = " + d.type().accept(typeVisitor, null));
         }
         builder.append("\n");
         getAttributes(d);

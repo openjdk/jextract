@@ -178,11 +178,6 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Optional<MemoryLayout> layout() {
-            return layout;
-        }
-
-        @Override
         public Variable withAttributes(Map<String, List<Constable>> attrs) {
             return new VariableImpl(type, layout, kind, name(), pos(), attrs);
         }
