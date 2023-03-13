@@ -289,6 +289,11 @@ public class ConstantBuilder extends ClassSourceBuilder {
     private void emitLayoutString(MemoryLayout l) {
         if (l instanceof ValueLayout val) {
             append(primitiveLayoutString(val));
+            if (l.bitAlignment() != l.bitSize()) {
+                append(".withBitAlignment(");
+                append(l.bitAlignment());
+                append(")");
+            }
         } else if (l instanceof SequenceLayout seq) {
             append("MemoryLayout.sequenceLayout(");
             append(seq.elementCount() + ", ");

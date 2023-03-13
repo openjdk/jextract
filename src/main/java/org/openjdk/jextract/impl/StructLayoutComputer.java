@@ -51,12 +51,12 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     }
 
     @Override
-    void addField(Declaration declaration) {
+    void addField(long offset, Declaration declaration) {
         if (bitfieldDecls != null) {
             bitfieldDecls.add(declaration);
             bitfieldSize += ((Declaration.Bitfield)declaration).width();
         } else {
-            super.addField(declaration);
+            super.addField(offset, declaration);
         }
     }
 
@@ -140,7 +140,8 @@ final class StructLayoutComputer extends RecordLayoutComputer {
         } else if (anonName != null) {
             g = g.withName(anonName);
         }
-        Declaration.Scoped declaration = Declaration.struct(TreeMaker.CursorPosition.of(cursor), cursor.spelling(), g, fieldDecls.stream().toArray(Declaration[]::new));
+        Declaration.Scoped declaration = Declaration.struct(TreeMaker.CursorPosition.of(cursor), cursor.spelling(),
+                g, fieldDecls.stream().toArray(Declaration[]::new));
         return declaration;
     }
 
@@ -152,7 +153,7 @@ final class StructLayoutComputer extends RecordLayoutComputer {
             bitfieldDecls = null;
             bitfieldSize = 0;
             if (!prevBitfieldDecls.isEmpty()) {
-                addField(bitfield(prevBitfieldDecls.toArray(new Declaration.Variable[0])));
+                addField(offset, bitfield(prevBitfieldDecls.toArray(new Declaration.Variable[0])));
             }
             fieldLayouts.add(MemoryLayout.paddingLayout(prevBitfieldSize));
         }

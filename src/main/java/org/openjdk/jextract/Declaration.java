@@ -235,12 +235,6 @@ public interface Declaration {
         Type type();
 
         /**
-         * The optional layout associated with this variable declaration.
-         * @return The optional layout associated with this variable declaration.
-         */
-        Optional<MemoryLayout> layout();
-
-        /**
          * The kind associated with this variable declaration.
          * @return The kind associated with this variable declaration.
          */
