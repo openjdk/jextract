@@ -31,6 +31,8 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Primitive;
+import org.openjdk.jextract.Type.Primitive.Kind;
 
 import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
@@ -275,7 +277,7 @@ class ToplevelBuilder extends JavaSourceBuilder {
         }
 
         private Constant addPrimitiveLayout(String javaName, ValueLayout layout) {
-            ValueLayout layoutNoName = layoutNoName(layout);
+            ValueLayout layoutNoName = normalize(layout);
             Constant layoutConstant = super.addLayout(javaName, layoutNoName);
             primitiveLayouts.put(layoutNoName, layoutConstant);
             return layoutConstant;
@@ -285,14 +287,13 @@ class ToplevelBuilder extends JavaSourceBuilder {
             return addPrimitiveLayout(javaName, (ValueLayout)kind.layout().orElseThrow());
         }
 
-        private ValueLayout layoutNoName(ValueLayout layout) {
-            // drop name if present
-            return MemoryLayout.valueLayout(layout.carrier(), layout.order())
-                    .withBitAlignment(layout.bitAlignment());
+        public Constant resolvePrimitiveLayout(ValueLayout layout) {
+            return primitiveLayouts.get(normalize(layout));
         }
 
-        public Constant resolvePrimitiveLayout(ValueLayout layout) {
-            return primitiveLayouts.get(layoutNoName(layout));
+        public ValueLayout normalize(ValueLayout valueLayout) {
+            return MemoryLayout.valueLayout(valueLayout.carrier(), valueLayout.order()) // drop name
+                    .withBitAlignment(valueLayout.bitSize()); // use natural alignment
         }
     }
 
