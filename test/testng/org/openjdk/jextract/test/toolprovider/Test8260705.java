@@ -25,7 +25,7 @@ package org.openjdk.jextract.test.toolprovider;
 
 import java.lang.reflect.Method;
 import java.nio.file.Path;
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySegment;
 import testlib.TestUtils;
 import org.testng.annotations.Test;

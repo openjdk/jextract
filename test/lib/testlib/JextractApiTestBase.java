@@ -120,7 +120,7 @@ public class JextractApiTestBase {
     public static Declaration.Variable checkBitField(Declaration.Scoped record, String name, Type type, int size) {
         Declaration.Variable global = checkVariable(record, name, type);
         assertEquals(global.kind(), Declaration.Variable.Kind.BITFIELD);
-        assertEquals(global.layout().get().bitSize(), size);
+        assertEquals(((Declaration.Bitfield)global).width(), size);
         return global;
     }
 

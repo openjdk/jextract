@@ -29,9 +29,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 // import jextracted tcl 'header' class
 import static org.tcl.tcl_h.*;
 import org.tcl.*;
@@ -53,8 +53,8 @@ public class TCLMain {
             puts "Full name: $name(first) $name(last)"
         """;
 
-        try (var session = MemorySession.openConfined()) {
-            var str = session.allocateUtf8String(script);
+        try (var arena = Arena.openConfined()) {
+            var str = arena.allocateUtf8String(script);
             Tcl_Eval(interp, str);
         }
 

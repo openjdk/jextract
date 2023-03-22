@@ -32,8 +32,26 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-class constants$9 {
+final class constants$9 {
 
+    // Suppresses default constructor, ensuring non-instantiability.
+    private constants$9() {}
+    static final FunctionDescriptor clang_Cursor_getArgument$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
+        Constants$root.C_INT$LAYOUT.withName("kind"),
+        Constants$root.C_INT$LAYOUT.withName("xdata"),
+        MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
+    ),
+        MemoryLayout.structLayout(
+            Constants$root.C_INT$LAYOUT.withName("kind"),
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
+        ),
+        Constants$root.C_INT$LAYOUT
+    );
+    static final MethodHandle clang_Cursor_getArgument$MH = RuntimeHelper.downcallHandle(
+        "clang_Cursor_getArgument",
+        constants$9.clang_Cursor_getArgument$FUNC
+    );
     static final FunctionDescriptor clang_equalTypes$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -87,31 +105,16 @@ class constants$9 {
         "clang_Cursor_isMacroFunctionLike",
         constants$9.clang_Cursor_isMacroFunctionLike$FUNC
     );
-    static final FunctionDescriptor clang_isVolatileQualifiedType$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
+    static final FunctionDescriptor clang_Cursor_isFunctionInlined$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
+            Constants$root.C_INT$LAYOUT.withName("xdata"),
+            MemoryLayout.sequenceLayout(3, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
-    static final MethodHandle clang_isVolatileQualifiedType$MH = RuntimeHelper.downcallHandle(
-        "clang_isVolatileQualifiedType",
-        constants$9.clang_isVolatileQualifiedType$FUNC
-    );
-    static final FunctionDescriptor clang_getTypedefName$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
-        Constants$root.C_POINTER$LAYOUT.withName("data"),
-        Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
-    ),
-        MemoryLayout.structLayout(
-            Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
-            MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
-        )
-    );
-    static final MethodHandle clang_getTypedefName$MH = RuntimeHelper.downcallHandle(
-        "clang_getTypedefName",
-        constants$9.clang_getTypedefName$FUNC
+    static final MethodHandle clang_Cursor_isFunctionInlined$MH = RuntimeHelper.downcallHandle(
+        "clang_Cursor_isFunctionInlined",
+        constants$9.clang_Cursor_isFunctionInlined$FUNC
     );
 }
 

@@ -3,4 +3,4 @@ jextract --source \
    -l lapacke -t lapack \
    /usr/local/opt/lapack/include/lapacke.h 
 
-javac --enable-preview --source=19 lapack/*.java
+javac --enable-preview --source=20 lapack/*.java

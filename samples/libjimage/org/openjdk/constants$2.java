@@ -7,8 +7,10 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-class constants$2 {
+final class constants$2 {
 
+    // Suppresses default constructor, ensuring non-instantiability.
+    private constants$2() {}
     static final FunctionDescriptor JIMAGE_GetResource$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_LONG_LONG$LAYOUT,
@@ -17,7 +19,7 @@ class constants$2 {
     );
     static final MethodHandle JIMAGE_GetResource$MH = RuntimeHelper.downcallHandle(
         "JIMAGE_GetResource",
-        constants$2.JIMAGE_GetResource$FUNC, false
+        constants$2.JIMAGE_GetResource$FUNC
     );
     static final FunctionDescriptor JImageGetResource_t$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -26,7 +28,7 @@ class constants$2 {
         Constants$root.C_LONG_LONG$LAYOUT
     );
     static final MethodHandle JImageGetResource_t$MH = RuntimeHelper.downcallHandle(
-        constants$2.JImageGetResource_t$FUNC, false
+        constants$2.JImageGetResource_t$FUNC
     );
     static final FunctionDescriptor JImageResourceVisitor_t$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -38,7 +40,7 @@ class constants$2 {
         Constants$root.C_POINTER$LAYOUT
     );
     static final MethodHandle JImageResourceVisitor_t$MH = RuntimeHelper.downcallHandle(
-        constants$2.JImageResourceVisitor_t$FUNC, false
+        constants$2.JImageResourceVisitor_t$FUNC
     );
     static final FunctionDescriptor JIMAGE_ResourceIterator$FUNC = FunctionDescriptor.ofVoid(
         Constants$root.C_POINTER$LAYOUT,
@@ -47,7 +49,7 @@ class constants$2 {
     );
     static final MethodHandle JIMAGE_ResourceIterator$MH = RuntimeHelper.downcallHandle(
         "JIMAGE_ResourceIterator",
-        constants$2.JIMAGE_ResourceIterator$FUNC, false
+        constants$2.JIMAGE_ResourceIterator$FUNC
     );
 }
 

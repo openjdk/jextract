@@ -29,9 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.SegmentAllocator;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.Arena;
 import blas.*;
 import static blas.cblas_h.*;
 
@@ -54,17 +53,17 @@ public class TestBlas {
         alpha = 1;
         beta = 0;
 
-        try (var session = MemorySession.openConfined()) {
-            var a = session.allocateArray(C_DOUBLE,
+        try (var arena = Arena.openConfined()) {
+            var a = arena.allocateArray(C_DOUBLE,
                 1.0, 2.0, 3.0, 4.0,
                 1.0, 1.0, 1.0, 1.0,
                 3.0, 4.0, 5.0, 6.0,
                 5.0, 6.0, 7.0, 8.0
             );
-            var x = session.allocateArray(C_DOUBLE,
+            var x = arena.allocateArray(C_DOUBLE,
                 1.0, 2.0, 1.0, 1.0
             );
-            var y = session.allocateArray(C_DOUBLE, n);
+            var y = arena.allocateArray(C_DOUBLE, n);
 
             cblas_dgemv(Layout, transa, m, n, alpha, a, lda, x, incx, beta, y, incy);
             /* Print y */

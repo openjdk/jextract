@@ -41,6 +41,7 @@ import org.openjdk.jextract.Type;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.CursorLanguage;
+import org.openjdk.jextract.clang.LinkageKind;
 import org.openjdk.jextract.clang.SourceLocation;
 
 class TreeMaker {
@@ -66,6 +67,8 @@ class TreeMaker {
     public Declaration createTree(Cursor c) {
         Objects.requireNonNull(c);
         CursorLanguage lang = c.language();
+        LinkageKind linkage = c.linkage();
+
         /*
          * We detect non-C constructs to early exit with error for
          * unsupported features. But libclang maps both C11's _Static_assert
@@ -77,6 +80,16 @@ class TreeMaker {
                 c.kind() != CursorKind.StaticAssert) {
             throw new RuntimeException("Unsupported language: " + c.language());
         }
+
+        // If we can clearly determine internal linkage, then filter it.
+        if (linkage == LinkageKind.Internal) {
+            return null;
+        }
+
+        // filter inline functions
+        if (c.isFunctionInlined()) {
+            return null;
+        }
         var rv = (DeclarationImpl) createTreeInternal(c);
         return (rv == null) ? null : rv.withAttributes(collectAttributes(c));
     }
@@ -85,9 +98,7 @@ class TreeMaker {
         return switch (c.kind()) {
             case EnumDecl -> createEnum(c);
             case EnumConstantDecl -> createEnumConstant(c);
-            case FieldDecl -> c.isBitField() ?
-                        createBitfield(c) :
-                        createVar(c, Declaration.Variable.Kind.FIELD);
+            case FieldDecl -> createVar(c, Declaration.Variable.Kind.FIELD);
             case ParmDecl -> createVar(c, Declaration.Variable.Kind.PARAMETER);
             case FunctionDecl -> createFunction(c);
             case StructDecl -> createRecord(c, Declaration.Scoped.Kind.STRUCT);
@@ -142,6 +153,22 @@ class TreeMaker {
 
         public Cursor cursor() {
             return cursor;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj instanceof Position pos) {
+                return Objects.equals(path, pos.path()) &&
+                    Objects.equals(line, pos.line()) &&
+                    Objects.equals(column, pos.col());
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path, line, column);
         }
 
         @Override
@@ -285,13 +312,8 @@ class TreeMaker {
         }
     }
 
-    private Declaration.Variable createBitfield(Cursor c) {
-        checkCursorAny(c, CursorKind.FieldDecl);
-        return Declaration.bitfield(CursorPosition.of(c), c.spelling(), toType(c),
-                MemoryLayout.paddingLayout(c.getBitFieldWidth()));
-    }
-
     private Declaration.Variable createVar(Cursor c, Declaration.Variable.Kind kind) {
+        if (c.isBitField()) throw new AssertionError("Cannot get here!");
         checkCursorAny(c, CursorKind.VarDecl, CursorKind.FieldDecl, CursorKind.ParmDecl);
         Type type;
         try {

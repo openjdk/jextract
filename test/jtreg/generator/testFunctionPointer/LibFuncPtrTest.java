@@ -21,7 +21,7 @@
  * questions.
  */
 
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.Arena;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -43,8 +43,8 @@ import test.jextract.fp.*;
 public class LibFuncPtrTest {
     @Test
     public void test() {
-        try (MemorySession session = MemorySession.openConfined()) {
-            var handle = func$f.allocate(x -> x * x, session);
+        try (Arena arena = Arena.openConfined()) {
+            var handle = func$f.allocate(x -> x * x, arena.scope());
             assertEquals(func(handle, 35), 35 * 35 + 35);
         }
     }

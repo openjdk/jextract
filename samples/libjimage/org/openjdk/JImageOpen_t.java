@@ -7,17 +7,22 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+/**
+ * {@snippet :
+ * struct JImageFile* (*JImageOpen_t)(char* name,int* error);
+ * }
+ */
 public interface JImageOpen_t {
 
-    java.lang.foreign.Addressable apply(java.lang.foreign.MemoryAddress name, java.lang.foreign.MemoryAddress error);
-    static MemorySegment allocate(JImageOpen_t fi, MemorySession session) {
-        return RuntimeHelper.upcallStub(JImageOpen_t.class, fi, constants$0.JImageOpen_t$FUNC, "(Ljava/lang/foreign/MemoryAddress;Ljava/lang/foreign/MemoryAddress;)Ljava/lang/foreign/Addressable;", session);
+    java.lang.foreign.MemorySegment apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment package_name);
+    static MemorySegment allocate(JImageOpen_t fi, SegmentScope scope) {
+        return RuntimeHelper.upcallStub(JImageOpen_t.class, fi, constants$0.JImageOpen_t$FUNC, scope);
     }
-    static JImageOpen_t ofAddress(MemoryAddress addr, MemorySession session) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr, 0, session);
-        return (java.lang.foreign.MemoryAddress _name, java.lang.foreign.MemoryAddress _error) -> {
+    static JImageOpen_t ofAddress(MemorySegment addr, SegmentScope scope) {
+        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
+        return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _package_name) -> {
             try {
-                return (java.lang.foreign.Addressable)(java.lang.foreign.MemoryAddress)constants$0.JImageOpen_t$MH.invokeExact((Addressable)symbol, (java.lang.foreign.Addressable)_name, (java.lang.foreign.Addressable)_error);
+                return (java.lang.foreign.MemorySegment)constants$0.JImageOpen_t$MH.invokeExact(symbol, _jimage, _package_name);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

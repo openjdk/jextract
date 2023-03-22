@@ -1,0 +1,11 @@
+* Install zstd on Mac using homebrew
+
+    brew install zstd
+
+* run ./compile.sh or ./compilesource.sh to jextract zstd headers
+
+* run
+
+    sh ./run.sh
+
+

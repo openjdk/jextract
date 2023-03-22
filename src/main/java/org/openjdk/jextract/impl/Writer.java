@@ -51,7 +51,7 @@ public final class Writer {
         } else {
             return InMemoryJavaCompiler.compile(sources,
                 "--enable-preview",
-                "--source", "19",
+                "--source", "20",
                 "-d", dest.toAbsolutePath().toString(),
                 "-cp", dest.toAbsolutePath().toString());
         }

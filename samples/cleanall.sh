@@ -43,6 +43,9 @@ cd ..
 cd python3
 rm -rf org
 cd ..
+cd pcre2
+rm -rf org
+cd ..
 cd readline
 rm -rf org
 cd ..
@@ -58,4 +61,7 @@ rm -rf org
 cd ..
 cd time
 rm -rf org
+cd ..
+cd libzstd
+rm -rf libzstd
 cd ..

@@ -29,7 +29,7 @@ import org.openjdk.jextract.clang.LibClang;
 import org.openjdk.jextract.impl.ClangException;
 import org.openjdk.jextract.impl.CommandLine;
 import org.openjdk.jextract.impl.IncludeHelper;
-import org.openjdk.jextract.impl.OutputFactory;
+import org.openjdk.jextract.impl.CodeGenerator;
 import org.openjdk.jextract.impl.Parser;
 import org.openjdk.jextract.impl.Options;
 import org.openjdk.jextract.impl.Writer;
@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.spi.ToolProvider;
 import java.util.stream.Collectors;
@@ -69,6 +70,7 @@ public final class JextractTool {
     }
 
     public static final boolean DEBUG = Boolean.getBoolean("jextract.debug");
+    public static final Optional<Path> PLATFORM_INCLUDE_PATH = inferPlatformIncludePath();
 
     // error codes
     private static final int SUCCESS       = 0;
@@ -116,12 +118,12 @@ public final class JextractTool {
 
     public static List<JavaFileObject> generate(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, List<String> libNames) {
-        return List.of(OutputFactory.generateWrapped(decl, headerName, targetPkg, new IncludeHelper(), libNames));
+        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, new IncludeHelper(), libNames));
     }
 
     private static List<JavaFileObject> generateInternal(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, IncludeHelper includeHelper, List<String> libNames) {
-        return List.of(OutputFactory.generateWrapped(decl, headerName, targetPkg, includeHelper, libNames));
+        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, includeHelper, libNames));
     }
 
     /**
@@ -331,15 +333,15 @@ public final class JextractTool {
         }
 
         OptionParser parser = new OptionParser();
-        parser.accepts("-D", format("help.D"), true);
+        parser.accepts("-D", List.of("--define-macro"), format("help.D"), true);
         parser.accepts("--dump-includes", format("help.dump-includes"), true);
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
             parser.accepts("--" + includeKind.optionName(), format("help." + includeKind.optionName()), true);
         }
         parser.accepts("-h", List.of("-?", "--help"), format("help.h"), false);
         parser.accepts("--header-class-name", format("help.header-class-name"), true);
-        parser.accepts("-I", format("help.I"), true);
-        parser.accepts("-l", format("help.l"), true);
+        parser.accepts("-I", List.of("--include-dir"), format("help.I"), true);
+        parser.accepts("-l", List.of("--library"), format("help.l"), true);
         parser.accepts("--output", format("help.output"), true);
         parser.accepts("--source", format("help.source"), false);
         parser.accepts("-t", List.of("--target-package"), format("help.t"), true);
@@ -397,6 +399,11 @@ public final class JextractTool {
         if (Files.isDirectory(builtinInc)) {
             builder.addClangArg("-I" + builtinInc);
         }
+
+        PLATFORM_INCLUDE_PATH.ifPresent(platformPath -> {
+            builder.addClangArg("-I" + platformPath);
+        });
+
         String jextractHeaderPath = System.getProperty("jextract.header.path");
         if (jextractHeaderPath != null) {
             builtinInc = Paths.get(jextractHeaderPath);
@@ -523,5 +530,27 @@ public final class JextractTool {
             JextractTool instance = new JextractTool(out, err);
             return instance.run(args);
         }
+    }
+
+    private static Optional<Path> inferPlatformIncludePath() {
+        String os = System.getProperty("os.name");
+        if (os.equals("Mac OS X")) {
+            try {
+                ProcessBuilder pb = new ProcessBuilder().
+                    command("/usr/bin/xcrun", "--show-sdk-path");
+                Process proc = pb.start();
+                String str = new String(proc.getInputStream().readAllBytes());
+                Path dir = Paths.get(str.trim(), "usr", "include");
+                if (Files.isDirectory(dir)) {
+                    return Optional.of(dir);
+                }
+            } catch (IOException ioExp) {
+                if (JextractTool.DEBUG) {
+                    ioExp.printStackTrace(System.err);
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 }

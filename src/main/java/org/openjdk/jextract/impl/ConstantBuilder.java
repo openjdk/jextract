@@ -27,10 +27,10 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemoryAddress;
-import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.StructLayout;
 import java.lang.foreign.ValueLayout;
 
 import java.lang.invoke.MethodHandle;
@@ -80,9 +80,14 @@ public class ConstantBuilder extends ClassSourceBuilder {
                 () -> emitVarHandleField(javaName, nativeName, valueLayout, rootLayoutName, prefixElementNames));
     }
 
-    public Constant addMethodHandle(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
+    public Constant addDowncallMethodHandle(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
         return emitIfAbsent(javaName, Constant.Kind.METHOD_HANDLE,
-                () -> emitMethodHandleField(javaName, nativeName, descriptor, isVarargs, virtual));
+                () -> emitDowncallMethodHandleField(javaName, nativeName, descriptor, isVarargs, virtual));
+    }
+
+    public Constant addLookupMethodHandle(String javaName, String className, String name, FunctionDescriptor descriptor) {
+        return emitIfAbsent(javaName, Constant.Kind.METHOD_HANDLE,
+                () -> emitUpcallMethodHandleField(javaName, className, name, descriptor));
     }
 
     public Constant addSegment(String javaName, String nativeName, MemoryLayout layout) {
@@ -96,10 +101,10 @@ public class ConstantBuilder extends ClassSourceBuilder {
     }
 
     public Constant addConstantDesc(String javaName, Class<?> type, Object value) {
-        if (type == MemorySegment.class) {
+        if (value instanceof String) {
             return emitIfAbsent(javaName, Constant.Kind.SEGMENT,
                     () -> emitConstantSegment(javaName, value));
-        } else if (type == MemoryAddress.class) {
+        } else if (type == MemorySegment.class) {
             return emitIfAbsent(javaName, Constant.Kind.ADDRESS,
                     () -> emitConstantAddress(javaName, value));
         } else {
@@ -107,14 +112,14 @@ public class ConstantBuilder extends ClassSourceBuilder {
         }
     }
 
-    static class Constant {
+    static final class Constant {
 
         enum Kind {
             LAYOUT(MemoryLayout.class, "$LAYOUT"),
             METHOD_HANDLE(MethodHandle.class, "$MH"),
             VAR_HANDLE(VarHandle.class, "$VH"),
             FUNCTION_DESCRIPTOR(FunctionDescriptor.class, "$FUNC"),
-            ADDRESS(MemoryAddress.class, "$ADDR"),
+            ADDRESS(MemorySegment.class, "$ADDR"),
             SEGMENT(MemorySegment.class, "$SEGMENT");
 
             final Class<?> type;
@@ -196,7 +201,7 @@ public class ConstantBuilder extends ClassSourceBuilder {
         return constant;
     }
 
-    private Constant emitMethodHandleField(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
+    private Constant emitDowncallMethodHandleField(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
         Constant functionDesc = addFunctionDesc(javaName, descriptor);
         incrAlign();
         String fieldName = Constant.Kind.METHOD_HANDLE.fieldName(javaName);
@@ -220,6 +225,21 @@ public class ConstantBuilder extends ClassSourceBuilder {
         append("\n");
         decrAlign();
         indent();
+        append(");\n");
+        decrAlign();
+        return new Constant(className(), javaName, Constant.Kind.METHOD_HANDLE);
+    }
+
+    private Constant emitUpcallMethodHandleField(String javaName, String className, String methodName, FunctionDescriptor descriptor) {
+        Constant functionDesc = addFunctionDesc(javaName, descriptor);
+        incrAlign();
+        String fieldName = Constant.Kind.METHOD_HANDLE.fieldName(javaName);
+        indent();
+        append(memberMods() + "MethodHandle ");
+        append(fieldName + " = RuntimeHelper.upcallHandle(");
+        append(className + ".class, ");
+        append("\"" + methodName + "\", ");
+        append(functionDesc.accessExpression());
         append(");\n");
         decrAlign();
         return new Constant(className(), javaName, Constant.Kind.METHOD_HANDLE);
@@ -254,8 +274,8 @@ public class ConstantBuilder extends ClassSourceBuilder {
         String fieldName = Constant.Kind.LAYOUT.fieldName(javaName);
         incrAlign();
         indent();
-        String layoutClassName = layout.getClass().getSimpleName();
-        append(memberMods() + " " + layoutClassName + " " + fieldName + " = ");
+        String layoutClassName = Utils.layoutDeclarationType(layout).getSimpleName();
+        append(memberMods() + layoutClassName + " " + fieldName + " = ");
         emitLayoutString(layout);
         append(";\n");
         decrAlign();
@@ -269,13 +289,18 @@ public class ConstantBuilder extends ClassSourceBuilder {
     private void emitLayoutString(MemoryLayout l) {
         if (l instanceof ValueLayout val) {
             append(primitiveLayoutString(val));
+            if (l.bitAlignment() != l.bitSize()) {
+                append(".withBitAlignment(");
+                append(l.bitAlignment());
+                append(")");
+            }
         } else if (l instanceof SequenceLayout seq) {
             append("MemoryLayout.sequenceLayout(");
             append(seq.elementCount() + ", ");
             emitLayoutString(seq.elementLayout());
             append(")");
         } else if (l instanceof GroupLayout group) {
-            if (group.isStruct()) {
+            if (group instanceof StructLayout) {
                 append("MemoryLayout.structLayout(\n");
             } else {
                 append("MemoryLayout.unionLayout(\n");
@@ -357,9 +382,9 @@ public class ConstantBuilder extends ClassSourceBuilder {
         indent();
         String fieldName = Constant.Kind.ADDRESS.fieldName(javaName);
         append(memberMods());
-        append("MemoryAddress ");
+        append("MemorySegment ");
         append(fieldName);
-        append(" = MemoryAddress.ofLong(");
+        append(" = MemorySegment.ofAddress(");
         append(((Number)value).longValue());
         append("L);\n");
         decrAlign();
