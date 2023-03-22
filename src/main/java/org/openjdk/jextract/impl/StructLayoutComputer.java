@@ -154,6 +154,10 @@ final class StructLayoutComputer extends RecordLayoutComputer {
             if (!prevBitfieldDecls.isEmpty()) {
                 addField(bitfield(prevBitfieldDecls.toArray(new Declaration.Variable[0])));
             }
+            if (prevBitfieldSize == 0) {
+                // nothing to do
+                return;
+            }
             fieldLayouts.add(MemoryLayout.paddingLayout(prevBitfieldSize));
         }
     }
