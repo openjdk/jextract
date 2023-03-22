@@ -1,6 +1,6 @@
 jextract --source -t libffmpeg \
   -I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include \
-  -I /usr/local/Cellar/ffmpeg@4/4.4.2/include \
+  -I /usr/local/Cellar/ffmpeg@4/4.4.3/include \
   -l avcodec \
   -l avformat \
   -l avutil \
@@ -8,4 +8,4 @@ jextract --source -t libffmpeg \
   --header-class-name Libffmpeg \
   libffmpeg.h
 
-javac --enable-preview --source=19 libffmpeg/*.java
+javac --enable-preview --source=20 libffmpeg/*.java

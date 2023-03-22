@@ -30,27 +30,27 @@
  */
 
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
 import org.unix.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 import static org.unix.libproc_h.*;
 
 public class LibprocMain {
     private static final int NAME_BUF_MAX = 256;
 
     public static void main(String[] args) {
-        try (var session = MemorySession.openConfined()) {
+        try (var arena = Arena.openConfined()) {
             // get the number of processes
             int numPids = proc_listallpids(NULL, 0);
             // allocate an array
-            var pids = session.allocateArray(C_INT, numPids);
+            var pids = arena.allocateArray(C_INT, numPids);
             // list all the pids into the native array
             proc_listallpids(pids, numPids);
             // convert native array to java array
             int[] jpids = pids.toArray(C_INT);
             // buffer for process name
-            var nameBuf = session.allocateArray(C_CHAR, NAME_BUF_MAX);
+            var nameBuf = arena.allocateArray(C_CHAR, NAME_BUF_MAX);
             for (int i = 0; i < jpids.length; i++) {
                 int pid = jpids[i];
                 // get the process name

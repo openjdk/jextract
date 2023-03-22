@@ -29,6 +29,7 @@ import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.UnionLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
@@ -47,14 +48,17 @@ class StructBuilder extends ConstantBuilder {
 
     private static final String MEMBER_MODS = "public static";
 
+    private final Declaration.Scoped structTree;
     private final GroupLayout structLayout;
     private final Type structType;
     private final Deque<String> prefixElementNames;
 
-    StructBuilder(JavaSourceBuilder enclosing, String name, GroupLayout structLayout, Type structType) {
+    StructBuilder(JavaSourceBuilder enclosing, Declaration.Scoped structTree,
+        String name, GroupLayout structLayout) {
         super(enclosing, name);
+        this.structTree = structTree;
         this.structLayout = structLayout;
-        this.structType = structType;
+        this.structType = Type.declared(structTree);
         prefixElementNames = new ArrayDeque<>();
     }
 
@@ -80,8 +84,15 @@ class StructBuilder extends ConstantBuilder {
     void classBegin() {
         if (!inAnonymousNested()) {
             super.classBegin();
-            addLayout(layoutField(), ((Type.Declared) structType).tree().layout().get())
+            addLayout(layoutField(), ((Type.Declared) structType).tree().layout().orElseThrow())
                     .emitGetter(this, MEMBER_MODS, Constant.SUFFIX_ONLY);
+        }
+    }
+
+    @Override
+    void classDeclBegin() {
+        if (!inAnonymousNested()) {
+            emitDocComment(structTree);
         }
     }
 
@@ -105,27 +116,30 @@ class StructBuilder extends ConstantBuilder {
     }
 
     @Override
-    public StructBuilder addStruct(String name, Declaration parent, GroupLayout layout, Type type) {
-        if (name.isEmpty() && (parent instanceof Declaration.Scoped)) {
+    public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
+        String name, GroupLayout layout) {
+        if (isNestedAnonStruct) {
             //nested anon struct - merge into this builder!
             String anonName = layout.name().orElseThrow();
             pushPrefixElement(anonName);
             return this;
         } else {
-            return new StructBuilder(this, name.isEmpty() ? parent.name() : name, layout, type);
+            return new StructBuilder(this, tree, name, layout);
         }
     }
 
     @Override
-    public String addFunctionalInterface(String name, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, name, descriptor, parameterNames);
+    public void addFunctionalInterface(Type.Function funcType, String javaName,
+        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, funcType, javaName, descriptor, parameterNames);
         builder.classBegin();
         builder.classEnd();
-        return builder.className();
     }
 
     @Override
-    public void addVar(String javaName, String nativeName, MemoryLayout layout, Optional<String> fiName) {
+    public void addVar(Declaration.Variable varTree, String javaName,
+        MemoryLayout layout, Optional<String> fiName) {
+        String nativeName = varTree.name();
         try {
             structLayout.byteOffset(elementPaths(nativeName));
         } catch (UnsupportedOperationException uoe) {
@@ -140,7 +154,9 @@ class StructBuilder extends ConstantBuilder {
         } else if (layout instanceof ValueLayout valueLayout) {
             Constant vhConstant = addFieldVarHandle(javaName, nativeName, valueLayout, layoutField(), prefixNamesList())
                     .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
+            emitFieldDocComment(varTree, "Getter for field:");
             emitFieldGetter(vhConstant, javaName, valueLayout.carrier());
+            emitFieldDocComment(varTree, "Setter for field:");
             emitFieldSetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldGetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldSetter(vhConstant, javaName, valueLayout.carrier());
@@ -150,14 +166,20 @@ class StructBuilder extends ConstantBuilder {
         }
     }
 
+    private void emitFieldDocComment(Declaration.Variable varTree, String header) {
+        incrAlign();
+        emitDocComment(varTree, header);
+        decrAlign();
+    }
+
     private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + " (MemorySegment segment, MemorySession session) {\n");
+        append(fiName + " " + javaName + "(MemorySegment segment, SegmentScope scope) {\n");
         incrAlign();
         indent();
-        append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), session);\n");
+        append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), scope);\n");
         decrAlign();
         indent();
         append("}\n");
@@ -185,7 +207,7 @@ class StructBuilder extends ConstantBuilder {
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
         String param = MemorySegment.class.getSimpleName() + " " + seg;
-        append(MEMBER_MODS + " void " + javaName + "$set( " + param + ", " + type.getSimpleName() + " " + x + ") {\n");
+        append(MEMBER_MODS + " void " + javaName + "$set(" + param + ", " + type.getSimpleName() + " " + x + ") {\n");
         incrAlign();
         indent();
         append(vhConstant.accessExpression() + ".set(" + seg + ", " + x + ");\n");
@@ -244,7 +266,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS);
-        append(" MemorySegment allocateArray(int len, SegmentAllocator allocator) {\n");
+        append(" MemorySegment allocateArray(long len, SegmentAllocator allocator) {\n");
         incrAlign();
         indent();
         append("return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));\n");
@@ -258,7 +280,7 @@ class StructBuilder extends ConstantBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS);
-        append(" MemorySegment ofAddress(MemoryAddress addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }\n");
+        append(" MemorySegment ofAddress(MemorySegment addr, SegmentScope scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }\n");
         decrAlign();
     }
 
@@ -321,7 +343,7 @@ class StructBuilder extends ConstantBuilder {
     }
 
     private String layoutField() {
-        String suffix = structLayout.isUnion() ? "union" : "struct";
+        String suffix = (structLayout instanceof UnionLayout) ? "union" : "struct";
         return qualifiedName(this) + "$" + suffix;
     }
 }

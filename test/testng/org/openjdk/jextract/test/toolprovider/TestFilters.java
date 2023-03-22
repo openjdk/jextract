@@ -89,7 +89,8 @@ public class TestFilters extends JextractToolRunner {
     enum FilterKind {
         VAR("_global", "--include-var"),
         FUNCTION("_function", "--include-function"),
-        CONSTANT("_constant", "--include-macro"),
+        MACRO_CONSTANT("_constant", "--include-constant"),
+        ENUM_CONSTANT("RED", "--include-constant"),
         TYPEDEF("_typedef", "--include-typedef"),
         STRUCT("_struct", "--include-struct"),
         UNION("_union", "--include-union");
@@ -104,7 +105,7 @@ public class TestFilters extends JextractToolRunner {
 
         Object get(Class<?> headerClass) {
             return switch (this) {
-                case FUNCTION, CONSTANT -> findMethod(headerClass, symbolName);
+                case FUNCTION, MACRO_CONSTANT, ENUM_CONSTANT -> findMethod(headerClass, symbolName);
                 case VAR -> findMethod(headerClass, symbolName + "$get");
                 case TYPEDEF -> findField(headerClass, symbolName);
                 case STRUCT, UNION -> {

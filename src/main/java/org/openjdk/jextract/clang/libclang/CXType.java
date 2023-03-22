@@ -32,9 +32,17 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+/**
+ * {@snippet :
+ * struct {
+ *     enum CXTypeKind kind;
+ *     void* data[2];
+ * };
+ * }
+ */
 public class CXType {
 
-    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+    static final StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
         MemoryLayout.paddingLayout(32),
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
@@ -46,10 +54,22 @@ public class CXType {
     public static VarHandle kind$VH() {
         return CXType.kind$VH;
     }
+    /**
+     * Getter for field:
+     * {@snippet :
+     * enum CXTypeKind kind;
+     * }
+     */
     public static int kind$get(MemorySegment seg) {
         return (int)CXType.kind$VH.get(seg);
     }
-    public static void kind$set( MemorySegment seg, int x) {
+    /**
+     * Setter for field:
+     * {@snippet :
+     * enum CXTypeKind kind;
+     * }
+     */
+    public static void kind$set(MemorySegment seg, int x) {
         CXType.kind$VH.set(seg, x);
     }
     public static int kind$get(MemorySegment seg, long index) {
@@ -63,10 +83,10 @@ public class CXType {
     }
     public static long sizeof() { return $LAYOUT().byteSize(); }
     public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
-    public static MemorySegment allocateArray(int len, SegmentAllocator allocator) {
+    public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment ofAddress(MemoryAddress addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }
+    public static MemorySegment ofAddress(MemorySegment addr, SegmentScope scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
 }
 
 

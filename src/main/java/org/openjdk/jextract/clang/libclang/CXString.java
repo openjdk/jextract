@@ -32,9 +32,17 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+/**
+ * {@snippet :
+ * struct {
+ *     void* data;
+ *     unsigned int private_flags;
+ * };
+ * }
+ */
 public class CXString {
 
-    static final  GroupLayout $struct$LAYOUT = MemoryLayout.structLayout(
+    static final StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
         MemoryLayout.paddingLayout(32)
@@ -46,26 +54,50 @@ public class CXString {
     public static VarHandle data$VH() {
         return CXString.data$VH;
     }
-    public static MemoryAddress data$get(MemorySegment seg) {
-        return (java.lang.foreign.MemoryAddress)CXString.data$VH.get(seg);
+    /**
+     * Getter for field:
+     * {@snippet :
+     * void* data;
+     * }
+     */
+    public static MemorySegment data$get(MemorySegment seg) {
+        return (java.lang.foreign.MemorySegment)CXString.data$VH.get(seg);
     }
-    public static void data$set( MemorySegment seg, MemoryAddress x) {
+    /**
+     * Setter for field:
+     * {@snippet :
+     * void* data;
+     * }
+     */
+    public static void data$set(MemorySegment seg, MemorySegment x) {
         CXString.data$VH.set(seg, x);
     }
-    public static MemoryAddress data$get(MemorySegment seg, long index) {
-        return (java.lang.foreign.MemoryAddress)CXString.data$VH.get(seg.asSlice(index*sizeof()));
+    public static MemorySegment data$get(MemorySegment seg, long index) {
+        return (java.lang.foreign.MemorySegment)CXString.data$VH.get(seg.asSlice(index*sizeof()));
     }
-    public static void data$set(MemorySegment seg, long index, MemoryAddress x) {
+    public static void data$set(MemorySegment seg, long index, MemorySegment x) {
         CXString.data$VH.set(seg.asSlice(index*sizeof()), x);
     }
     static final VarHandle private_flags$VH = $struct$LAYOUT.varHandle(MemoryLayout.PathElement.groupElement("private_flags"));
     public static VarHandle private_flags$VH() {
         return CXString.private_flags$VH;
     }
+    /**
+     * Getter for field:
+     * {@snippet :
+     * unsigned int private_flags;
+     * }
+     */
     public static int private_flags$get(MemorySegment seg) {
         return (int)CXString.private_flags$VH.get(seg);
     }
-    public static void private_flags$set( MemorySegment seg, int x) {
+    /**
+     * Setter for field:
+     * {@snippet :
+     * unsigned int private_flags;
+     * }
+     */
+    public static void private_flags$set(MemorySegment seg, int x) {
         CXString.private_flags$VH.set(seg, x);
     }
     public static int private_flags$get(MemorySegment seg, long index) {
@@ -76,10 +108,10 @@ public class CXString {
     }
     public static long sizeof() { return $LAYOUT().byteSize(); }
     public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
-    public static MemorySegment allocateArray(int len, SegmentAllocator allocator) {
+    public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment ofAddress(MemoryAddress addr, MemorySession session) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, session); }
+    public static MemorySegment ofAddress(MemorySegment addr, SegmentScope scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
 }
 
 

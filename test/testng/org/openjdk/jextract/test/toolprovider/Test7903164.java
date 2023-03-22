@@ -58,4 +58,18 @@ public class Test7903164 extends JextractToolRunner {
             TestUtils.deleteDir(output);
         }
     }
+
+    @Test
+    public void testWithMacro2() {
+        Path output = getOutputFilePath("7903164gen_withmacro2");
+        Path outputH = getInputFilePath("test7903164.h");
+        run("--define-macro", "FOO", "--output", output.toString(), outputH.toString()).checkSuccess();
+        try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
+            assertNotNull(loader.loadClass("test7903164_h"));
+            assertNotNull(loader.loadClass("func"));
+            assertNotNull(loader.loadClass("func2"));
+        } finally {
+            TestUtils.deleteDir(output);
+        }
+    }
 }

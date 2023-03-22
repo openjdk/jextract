@@ -47,7 +47,7 @@ $(foreach file,$(NATIVE_TEST_SOURCES),$(eval $(call BuildNativeLibrary,$(file),$
 $(BUILD_CLASSES_DIR):
 	$(MKDIR) -p $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
-	    --release=19 \
+	    --release=20 \
 	    --enable-preview \
 	    -d "$(BUILD_CLASSES_DIR)" \
 	    src/main/java/module-info.java \
@@ -71,7 +71,7 @@ $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
 	# create jextract jmod file
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jmod \
 	    create \
-	    --module-version=19 \
+	    --module-version=20 \
 	    --class-path=$(BUILD_CLASSES_DIR) \
 	    --libs=$(JEXTRACT_JMOD_LIBS_DIR) \
 	    --conf=$(JEXTRACT_JMOD_CONF_DIR) \

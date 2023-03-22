@@ -26,9 +26,9 @@
 
 package org.openjdk.jextract.clang;
 
-import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.SegmentScope;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -114,10 +114,14 @@ public final class Cursor extends ClangDisposable.Owned {
         return new Cursor(cursorDef, owner);
     }
 
+    public boolean isFunctionInlined() {
+        return Index_h.clang_Cursor_isFunctionInlined(segment) != 0;
+    }
+
     public SourceLocation getSourceLocation() {
         MemorySegment loc = Index_h.clang_getCursorLocation(owner, segment);
-        try (MemorySession session = MemorySession.openConfined()) {
-            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(session)) != 0) {
+        try (Arena arena = Arena.openConfined()) {
+            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(arena)) != 0) {
                 return null;
             }
         }
@@ -165,6 +169,10 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public CursorLanguage language() {
         return CursorLanguage.valueOf(Index_h.clang_getCursorLanguage(segment));
+    }
+
+    public LinkageKind linkage() {
+        return LinkageKind.valueOf(Index_h.clang_getCursorLinkage(segment));
     }
 
     public int kind0() {
@@ -233,14 +241,14 @@ public final class Cursor extends ClangDisposable.Owned {
             } else {
                 return Index_h.CXChildVisit_Break();
             }
-        }, MemorySession.openImplicit());
+        }, SegmentScope.global());
 
         synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
             // everything is confined, no need to synchronize
             Context prevContext = pendingContext;
             try {
                 pendingContext = new Context(op, c.owner);
-                Index_h.clang_visitChildren(c.segment, callback, MemoryAddress.NULL);
+                Index_h.clang_visitChildren(c.segment, callback, MemorySegment.NULL);
                 pendingContext.handleExceptions();
             } finally {
                 pendingContext = prevContext;
@@ -252,13 +260,13 @@ public final class Cursor extends ClangDisposable.Owned {
         return new TranslationUnit(Index_h.clang_Cursor_getTranslationUnit(segment));
     }
 
-    private MemoryAddress eval0() {
+    private MemorySegment eval0() {
         return Index_h.clang_Cursor_Evaluate(segment);
     }
 
     public EvalResult eval() {
-        MemoryAddress ptr = eval0();
-        return ptr == MemoryAddress.NULL ? EvalResult.erroneous : new EvalResult(ptr);
+        MemorySegment ptr = eval0();
+        return ptr == MemorySegment.NULL ? EvalResult.erroneous : new EvalResult(ptr);
     }
 
     public PrintingPolicy getPrintingPolicy() {

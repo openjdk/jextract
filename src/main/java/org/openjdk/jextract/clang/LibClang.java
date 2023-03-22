@@ -25,13 +25,11 @@
  */
 package org.openjdk.jextract.clang;
 
-import java.lang.foreign.Addressable;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.Linker;
 import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.MemoryAddress;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
 import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.SegmentScope;
 import org.openjdk.jextract.clang.libclang.CXString;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -46,9 +44,10 @@ public class LibClang {
     // crash recovery is not an issue on Windows, so enable it there by default to work around a libclang issue with reparseTranslationUnit
     private static final boolean CRASH_RECOVERY = IS_WINDOWS || Boolean.getBoolean("libclang.crash_recovery");
 
+    private static final SegmentAllocator IMPLICIT_ALLOCATOR = (size, align) -> MemorySegment.allocateNative(size, align, SegmentScope.auto());
+
     private final static MemorySegment disableCrashRecovery =
-            SegmentAllocator.implicitAllocator()
-                            .allocateUtf8String("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
+            IMPLICIT_ALLOCATOR.allocateUtf8String("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
 
     static {
         if (!CRASH_RECOVERY) {
@@ -57,9 +56,9 @@ public class LibClang {
             try {
                 Linker linker = Linker.nativeLinker();
                 String putenv = IS_WINDOWS ? "_putenv" : "putenv";
-                MethodHandle PUT_ENV = linker.downcallHandle(linker.defaultLookup().lookup(putenv).get(),
+                MethodHandle PUT_ENV = linker.downcallHandle(linker.defaultLookup().find(putenv).get(),
                                 FunctionDescriptor.of(C_INT, C_POINTER));
-                int res = (int) PUT_ENV.invokeExact((Addressable)disableCrashRecovery);
+                int res = (int) PUT_ENV.invokeExact((MemorySegment)disableCrashRecovery);
             } catch (Throwable ex) {
                 throw new ExceptionInInitializerError(ex);
             }
@@ -75,7 +74,7 @@ public class LibClang {
     }
 
     public static String CXStrToString(MemorySegment cxstr) {
-        MemoryAddress buf = Index_h.clang_getCString(cxstr);
+        MemorySegment buf = Index_h.clang_getCString(cxstr);
         String str = buf.getUtf8String(0);
         Index_h.clang_disposeString(cxstr);
         return str;
@@ -88,7 +87,7 @@ public class LibClang {
      * conversion. The size of the prefix segment is set to 256, which should be enough to hold a CXString.
      */
     public final static SegmentAllocator STRING_ALLOCATOR = SegmentAllocator.prefixAllocator(
-            MemorySegment.allocateNative(CXString.sizeof(), 8, MemorySession.openImplicit()));
+            MemorySegment.allocateNative(CXString.sizeof(), 8, SegmentScope.auto()));
 
     public static String version() {
         var clangVersion = Index_h.clang_getClangVersion(STRING_ALLOCATOR);

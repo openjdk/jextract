@@ -32,6 +32,8 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.lang.foreign.*;
 import libffmpeg.AVCodecContext;
 import libffmpeg.AVFormatContext;
@@ -39,7 +41,7 @@ import libffmpeg.AVFrame;
 import libffmpeg.AVPacket;
 import libffmpeg.AVStream;
 import static libffmpeg.Libffmpeg.*;
-import static java.lang.foreign.MemoryAddress.NULL;
+import static java.lang.foreign.MemorySegment.NULL;
 
 /*
  * This sample is based on C sample from the ffmpeg tutorial at
@@ -51,38 +53,57 @@ import static java.lang.foreign.MemoryAddress.NULL;
 public class LibffmpegMain {
     private static int NUM_FRAMES_TO_CAPTURE = 5;
 
-    static class ExitException extends RuntimeException {
-        final int exitCode;
-        ExitException(int exitCode, String msg) {
-            super(msg);
-            this.exitCode = exitCode;
+    record Exit(String message, int exitCode) {}
+
+    public static void main(String[] args) {
+        var exit = run(args);
+        System.err.println(exit.message());
+        System.exit(exit.exitCode());
+    }
+
+    private static class ArenaCleanup implements AutoCloseable {
+        private Arena arena = Arena.openConfined();
+        private final List<Runnable> preCloseActions = new ArrayList<>();
+
+        void addCleanup(Runnable runnable) {
+            preCloseActions.add(runnable);
+        }
+
+        Arena arena() {
+            return arena;
+        }
+
+        @Override
+        public void close() {
+            preCloseActions.forEach(Runnable::run);
+            System.out.println("cleanup done");
+            arena.close();
         }
     }
 
-    public static void main(String[] args) {
+    private static Exit run(String[] args) {
         if (args.length != 1) {
-            System.err.println("please pass a .mp4 file");
-            System.exit(1);
+            return new Exit("please pass a .mp4 file", 1);
         }
 
         av_register_all();
 
-        int exitCode = 0;
         var pCodecCtxOrig = NULL;
         var pCodecCtx = NULL;
         var pFrame = NULL;
         var pFrameRGB = NULL;
         var buffer = NULL;
 
-        try (var session = MemorySession.openConfined()) {
+        try (var arenaCleanup = new ArenaCleanup()) {
+            var arena = arenaCleanup.arena();
             // AVFormatContext *ppFormatCtx;
-            var ppFormatCtx = MemorySegment.allocateNative(C_POINTER, session);
+            var ppFormatCtx = arena.allocate(C_POINTER);
             // char* fileName;
-            var fileName = session.allocateUtf8String(args[0]);
+            var fileName = arena.allocateUtf8String(args[0]);
 
             // open video file
             if (avformat_open_input(ppFormatCtx, fileName, NULL, NULL) != 0) {
-                throw new ExitException(1, "Cannot open " + args[0]);
+                return new Exit("Cannot open " + args[0], 1);
             }
             System.out.println("opened " + args[0]);
             // AVFormatContext *pFormatCtx;
@@ -90,10 +111,11 @@ public class LibffmpegMain {
 
             // Retrieve stream info
             if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
-                throw new ExitException(1, "Could not find stream information");
+                return new Exit("Could not find stream information", 1);
+
             }
 
-            session.addCloseAction(()-> {
+            arenaCleanup.addCleanup(() -> {
                 // Close the video file
                 avformat_close_input(ppFormatCtx);
             });
@@ -104,13 +126,11 @@ public class LibffmpegMain {
             // Find the first video stream
             int videoStream = -1;
             // AVFrameContext formatCtx;
-            var formatCtx = MemorySegment.ofAddress(pFormatCtx, AVFormatContext.sizeof(), session);
             // formatCtx.nb_streams
-            int nb_streams = AVFormatContext.nb_streams$get(formatCtx);
+            int nb_streams = AVFormatContext.nb_streams$get(pFormatCtx);
             System.out.println("number of streams: " + nb_streams);
             // formatCtx.streams
-            var pStreams = AVFormatContext.streams$get(formatCtx);
-            var streamsArray = MemorySegment.ofAddress(pStreams, nb_streams * C_POINTER.byteSize(), session);
+            var pStreams = AVFormatContext.streams$get(pFormatCtx);
 
             // AVCodecContext* pVideoCodecCtx;
             var pVideoCodecCtx = NULL;
@@ -118,29 +138,26 @@ public class LibffmpegMain {
             var pCodec = NULL;
             for (int i = 0; i < nb_streams; i++) {
                 // AVStream* pStream;
-                var pStream = streamsArray.getAtIndex(C_POINTER, i);
-                // AVStream stream;
-                var stream = MemorySegment.ofAddress(pStream, AVStream.sizeof(), session);
+                var pStream = pStreams.getAtIndex(C_POINTER, i);
                 // AVCodecContext* pCodecCtx;
-                pCodecCtx = AVStream.codec$get(stream);
-                var avcodecCtx = MemorySegment.ofAddress(pCodecCtx, AVCodecContext.sizeof(), session);
-                if (AVCodecContext.codec_type$get(avcodecCtx) == AVMEDIA_TYPE_VIDEO()) {
+                pCodecCtx = AVStream.codec$get(pStream);
+                if (AVCodecContext.codec_type$get(pCodecCtx) == AVMEDIA_TYPE_VIDEO()) {
                     videoStream = i;
                     pVideoCodecCtx = pCodecCtx;
                     // Find the decoder for the video stream
-                    pCodec = avcodec_find_decoder(AVCodecContext.codec_id$get(avcodecCtx));
+                    pCodec = avcodec_find_decoder(AVCodecContext.codec_id$get(pCodecCtx));
                     break;
                 }
             }
 
             if (videoStream == -1) {
-                throw new ExitException(1, "Didn't find a video stream");
+                return new Exit("Didn't find a video stream", 1);
             } else {
                 System.out.println("Found video stream (index: " + videoStream + ")");
             }
 
             if (pCodec.equals(NULL)) {
-                throw new ExitException(1, "Unsupported codec");
+                return new Exit("Unsupported codec", 1);
             }
 
             // Copy context
@@ -149,12 +166,12 @@ public class LibffmpegMain {
             // AVCodecContext *pCodecCtx;
             pCodecCtx = avcodec_alloc_context3(pCodec);
             if (avcodec_copy_context(pCodecCtx, pCodecCtxOrig) != 0) {
-                throw new ExitException(1, "Cannot copy context");
+                return new Exit("Cannot copy context", 1);
             }
 
             // Open codec
             if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
-                throw new ExitException(1, "Cannot open codec");
+                return new Exit("Cannot open codec", 1);
             }
 
             // Allocate video frame
@@ -165,23 +182,20 @@ public class LibffmpegMain {
             pFrameRGB = av_frame_alloc();
 
             // Determine required buffer size and allocate buffer
-            var codecCtx = MemorySegment.ofAddress(pCodecCtx, AVCodecContext.sizeof(), session);
-            int width = AVCodecContext.width$get(codecCtx);
-            int height = AVCodecContext.height$get(codecCtx);
+            int width = AVCodecContext.width$get(pCodecCtx);
+            int height = AVCodecContext.height$get(pCodecCtx);
             int numBytes = avpicture_get_size(AV_PIX_FMT_RGB24(), width, height);
             buffer = av_malloc(numBytes * C_CHAR.byteSize());
 
 
             if (pFrame.equals(NULL)) {
-                throw new ExitException(1, "Cannot allocate frame");
+                return new Exit("Cannot allocate frame", 1);
             }
-            var frame = MemorySegment.ofAddress(pFrame, AVFrame.sizeof(), session);
             if (pFrameRGB.equals(NULL)) {
-                throw new ExitException(1, "Cannot allocate RGB frame");
+                return new Exit("Cannot allocate RGB frame", 1);
             }
-            var frameRGB = MemorySegment.ofAddress(pFrameRGB, AVFrame.sizeof(), session);
             if (buffer.equals(NULL)) {
-                throw new ExitException(1, "cannot allocate buffer");
+                return new Exit("cannot allocate buffer", 1);
             }
 
             // Assign appropriate parts of buffer to image planes in pFrameRGB
@@ -190,15 +204,15 @@ public class LibffmpegMain {
             avpicture_fill(pFrameRGB, buffer, AV_PIX_FMT_RGB24(), width, height);
 
             // initialize SWS context for software scaling
-            int pix_fmt = AVCodecContext.pix_fmt$get(codecCtx);
+            int pix_fmt = AVCodecContext.pix_fmt$get(pCodecCtx);
             var sws_ctx = sws_getContext(width, height, pix_fmt, width, height,
                 AV_PIX_FMT_RGB24(), SWS_BILINEAR(), NULL, NULL, NULL);
 
             int i = 0;
             // ACPacket packet;
-            var packet = AVPacket.allocate(session);
+            var packet = AVPacket.allocate(arena);
             // int* pFrameFinished;
-            var pFrameFinished = MemorySegment.allocateNative(C_INT, session);
+            var pFrameFinished = arena.allocate(C_INT);
 
             while (av_read_frame(pFormatCtx, packet) >= 0) {
                 // Is this a packet from the video stream?
@@ -211,17 +225,17 @@ public class LibffmpegMain {
                     // Did we get a video frame?
                     if (frameFinished != 0) {
                         // Convert the image from its native format to RGB
-                        sws_scale(sws_ctx, AVFrame.data$slice(frame),
-                            AVFrame.linesize$slice(frame), 0, height,
-                            AVFrame.data$slice(frameRGB), AVFrame.linesize$slice(frameRGB));
+                        sws_scale(sws_ctx, AVFrame.data$slice(pFrame),
+                            AVFrame.linesize$slice(pFrame), 0, height,
+                            AVFrame.data$slice(pFrameRGB), AVFrame.linesize$slice(pFrameRGB));
 
                         // Save the frame to disk
                         if (++i <= NUM_FRAMES_TO_CAPTURE) {
                             try {
-                                saveFrame(frameRGB, session, width, height, i);
+                                saveFrame(pFrameRGB, arena.scope(), width, height, i);
                             } catch (Exception exp) {
                                 exp.printStackTrace();
-                                throw new ExitException(1, "save frame failed for frame " + i);
+                                return new Exit("save frame failed for frame " + i, 1);
                             }
                         }
                      }
@@ -230,11 +244,6 @@ public class LibffmpegMain {
                  // Free the packet that was allocated by av_read_frame
                  av_free_packet(packet);
             }
-
-            throw new ExitException(0, "Goodbye!");
-        } catch (ExitException ee) {
-            System.err.println(ee.getMessage());
-            exitCode = ee.exitCode;
         } finally {
             // clean-up everything
 
@@ -262,10 +271,10 @@ public class LibffmpegMain {
             }
         }
 
-        System.exit(exitCode);
+        return new Exit("Goodbye!", 0);
     }
 
-    private static void saveFrame(MemorySegment frameRGB, MemorySession session,
+    private static void saveFrame(MemorySegment frameRGB, SegmentScope scope,
             int width, int height, int iFrame)
             throws IOException {
         var header = String.format("P6\n%d %d\n255\n", width, height);
@@ -281,7 +290,7 @@ public class LibffmpegMain {
             // Write pixel data
             for (int y = 0; y < height; y++) {
                 // frameRGB.data[0] + y*frameRGB.linesize[0] is the pointer. And 3*width size of data
-                var pixelArray = MemorySegment.ofAddress(pdata.addOffset(y*linesize), 3*width, session);
+                var pixelArray = MemorySegment.ofAddress(pdata.address() + y*linesize, 3*width, scope);
                 // dump the pixel byte buffer to file
                 os.write(pixelArray.toArray(C_CHAR));
             }
