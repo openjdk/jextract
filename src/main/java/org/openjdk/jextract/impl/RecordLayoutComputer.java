@@ -26,6 +26,7 @@
 
 package org.openjdk.jextract.impl;
 
+import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.clang.Cursor;
@@ -33,6 +34,9 @@ import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.Type;
 import org.openjdk.jextract.clang.TypeKind;
 
+import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.StructLayout;
+import java.lang.foreign.ValueLayout;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -117,16 +121,19 @@ abstract class RecordLayoutComputer {
     abstract void processField(Cursor c);
     abstract Declaration.Scoped finishRecord(String anonName);
 
-    void addField(Declaration declaration) {
+    void addField(long offset, Declaration declaration) {
         fieldDecls.add(declaration);
         MemoryLayout layout = null;
         if (declaration instanceof Declaration.Scoped scoped) {
             layout = scoped.layout().orElse(null);
         } else if (declaration instanceof Declaration.Variable var) {
-            layout = var.layout().orElse(null);
+            layout = org.openjdk.jextract.Type.layoutFor(var.type()).orElse(null);
         }
         if (layout != null) {
-            //fieldLayouts.add(layout.name().isEmpty() ? layout.withName(declaration.name()) : layout);
+            if ((offset % layout.bitAlignment()) != 0) {
+                long maxAlign = Long.lowestOneBit(offset);
+                layout = forceAlign(layout, maxAlign);
+            }
             fieldLayouts.add(declaration.name().isEmpty() ? layout : layout.withName(declaration.name()));
         }
     }
@@ -137,9 +144,9 @@ abstract class RecordLayoutComputer {
 
     void addField(long offset, Type parent, Cursor c) {
         if (c.isAnonymousStruct()) {
-            addField(((org.openjdk.jextract.Type.Declared)computeAnonymous(typeMaker, offset, parent, c.type(), nextAnonymousName())).tree());
+            addField(offset, ((org.openjdk.jextract.Type.Declared)computeAnonymous(typeMaker, offset, parent, c.type(), nextAnonymousName())).tree());
         } else {
-            addField(field(c));
+            addField(offset, field(offset, c));
         }
     }
 
@@ -147,12 +154,11 @@ abstract class RecordLayoutComputer {
         return "$anon$" + anonCount++;
     }
 
-    Declaration field(Cursor c) {
+    Declaration field(long offset, Cursor c) {
         org.openjdk.jextract.Type type = typeMaker.makeType(c.type());
         String name = c.spelling();
         if (c.isBitField()) {
-            MemoryLayout sublayout = MemoryLayout.paddingLayout(c.getBitFieldWidth());
-            return Declaration.bitfield(TreeMaker.CursorPosition.of(c), name, type, sublayout.withName(name));
+            return Declaration.bitfield(TreeMaker.CursorPosition.of(c), name, type, offset, c.getBitFieldWidth());
         } else if (c.isAnonymousStruct() && type instanceof org.openjdk.jextract.Type.Declared decl) {
             return decl.tree();
         } else {
@@ -167,8 +173,8 @@ abstract class RecordLayoutComputer {
         return c.isBitField() ? c.getBitFieldWidth() : c.type().size() * 8;
     }
 
-    Declaration.Scoped bitfield(List<MemoryLayout> sublayouts, Declaration.Variable... declarations) {
-        return Declaration.bitfields(declarations[0].pos(), MemoryLayout.structLayout(sublayouts.toArray(new MemoryLayout[0])), declarations);
+    Declaration.Scoped bitfield(Declaration.Variable... declarations) {
+        return Declaration.bitfields(declarations[0].pos(), declarations);
     }
 
     long offsetOf(Type parent, Cursor c) {
@@ -184,6 +190,22 @@ abstract class RecordLayoutComputer {
             return offsets.stream().findFirst()
                     .orElseThrow(() -> new IllegalStateException(
                             "Can not find offset of: " + c + ", in: " + parent));
+        }
+    }
+
+    MemoryLayout forceAlign(MemoryLayout layout, long maxAlign) {
+        if (layout instanceof GroupLayout groupLayout) {
+            MemoryLayout[] newMembers = groupLayout.memberLayouts()
+                    .stream().map(l -> forceAlign(l, maxAlign)).toArray(MemoryLayout[]::new);
+            return groupLayout instanceof StructLayout ?
+                    MemoryLayout.structLayout(newMembers) :
+                    MemoryLayout.unionLayout(newMembers);
+        } else if (layout instanceof SequenceLayout sequenceLayout) {
+            return MemoryLayout.sequenceLayout(sequenceLayout.elementCount(),
+                    forceAlign(sequenceLayout.elementLayout(), maxAlign));
+        } else {
+            return layout.bitAlignment() > maxAlign ?
+                    layout.withBitAlignment(maxAlign) : layout;
         }
     }
 }
