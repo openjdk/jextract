@@ -30,6 +30,7 @@ import java.util.List;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.Constants.Constant;
 
 /**
  * Superclass for .java source generator classes.
@@ -159,6 +160,10 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
 
     // Internal generation helpers (used by other builders)
 
+    void append(Object o) {
+        sb.append(o);
+    }
+
     void append(String s) {
         sb.append(s);
     }
@@ -264,17 +269,17 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         }
     }
 
-    void emitGetter(String mods, Class<?> type, String name, String access, boolean nullCheck, String symbolName) {
+    void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant) {
         incrAlign();
         indent();
-        append(mods + " " + type.getSimpleName() + " " +name + "() {\n");
+        append(mods + " " + constant.type().getSimpleName() + " " + getterName + "() {\n");
         incrAlign();
         indent();
         append("return ");
         if (nullCheck) {
             append("RuntimeHelper.requireNonNull(");
         }
-        append(access);
+        append(constant.accessExpression());
         if (nullCheck) {
             append(",\"");
             append(symbolName);
@@ -285,10 +290,6 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         indent();
         append("}\n");
         decrAlign();
-    }
-
-    void emitGetter(String mods, Class<?> type, String name, String access) {
-        emitGetter(mods, type, name, access, false, null);
     }
 
     @Override

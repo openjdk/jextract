@@ -58,15 +58,6 @@ class ToplevelBuilder extends JavaSourceBuilder {
         SplitHeader first = lastHeader = new FirstHeader(headerClassName);
         builders.add(first);
         constants = new Constants(this);
-        constants.addLayout(Type.Primitive.Kind.Bool.layout().get());
-        constants.addLayout(Type.Primitive.Kind.Char.layout().get());
-        constants.addLayout(Type.Primitive.Kind.Short.layout().get());
-        constants.addLayout(Type.Primitive.Kind.Int.layout().get());
-        constants.addLayout(Type.Primitive.Kind.Long.layout().get());
-        constants.addLayout(Type.Primitive.Kind.LongLong.layout().get());
-        constants.addLayout(Type.Primitive.Kind.Float.layout().get());
-        constants.addLayout(Type.Primitive.Kind.Double.layout().get());
-        constants.addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT);
         first.classBegin();
     }
 

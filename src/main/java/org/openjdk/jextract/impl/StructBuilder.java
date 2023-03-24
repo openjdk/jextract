@@ -86,7 +86,7 @@ class StructBuilder extends ClassSourceBuilder {
         if (!inAnonymousNested()) {
             super.classBegin();
             layoutConstant = constants().addLayout(((Type.Declared) structType).tree().layout().orElseThrow());
-            layoutConstant.emitGetter(this, MEMBER_MODS, c -> c.kind().nameSuffix);
+            layoutConstant.emitGetter(this, MEMBER_MODS, Constant::nameSuffix);
         }
     }
 

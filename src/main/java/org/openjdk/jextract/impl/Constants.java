@@ -25,8 +25,6 @@
 
 package org.openjdk.jextract.impl;
 
-import org.openjdk.jextract.Type.Primitive;
-
 import javax.tools.JavaFileObject;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
@@ -71,67 +69,50 @@ public class Constants {
         return currentBuilder;
     }
 
-    static final class Constant {
+    record Constant(Builder builder, Class<?> type, String constantName) {
 
-        enum Kind {
-            LAYOUT(MemoryLayout.class, "$LAYOUT"),
-            METHOD_HANDLE(MethodHandle.class, "$MH"),
-            VAR_HANDLE(VarHandle.class, "$VH"),
-            FUNCTION_DESCRIPTOR(FunctionDescriptor.class, "$FUNC"),
-            ADDRESS(MemorySegment.class, "$ADDR"),
-            SEGMENT(MemorySegment.class, "$SEGMENT");
-
-            final Class<?> type;
-            final String nameSuffix;
-
-            Kind(Class<?> type, String nameSuffix) {
-                this.type = type;
-                this.nameSuffix = nameSuffix;
-            }
-
-            String fieldName(String javaName) {
-                return javaName + nameSuffix;
-            }
-        }
-
-        private final String className;
-        private final String constantName;
-        private final Kind kind;
-
-        Constant(String className, String constantName, Kind kind) {
-            this.className = className;
-            this.constantName = constantName;
-            this.kind = kind;
-        }
-
-        String className() {
-            return className;
-        }
-
-        Kind kind() {
-            return kind;
+        String getterName(String javaName) {
+            return javaName + nameSuffix();
         }
 
         String accessExpression() {
-            return className + "." + constantName;
+            return builder.className() + "." + constantName;
         }
 
         Constant emitGetter(ClassSourceBuilder builder, String mods, String javaName) {
-            return emitGetter(builder, mods, c -> c.kind.fieldName(javaName));
+            return emitGetter(builder, mods, c -> c.getterName(javaName));
         }
 
         Constant emitGetter(ClassSourceBuilder builder, String mods, String javaName, String symbolName) {
-            return emitGetter(builder, mods, symbolName, c -> c.kind.fieldName(javaName));
+            return emitGetter(builder, mods, symbolName, c -> c.getterName(javaName));
         }
 
         Constant emitGetter(ClassSourceBuilder builder, String mods, Function<Constant, String> getterNameFunc) {
-            builder.emitGetter(mods, kind.type, getterNameFunc.apply(this), accessExpression());
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), false, null, this);
             return this;
         }
 
         Constant emitGetter(ClassSourceBuilder builder, String mods, String symbolName, Function<Constant, String> getterNameFunc) {
-            builder.emitGetter(mods, kind.type, getterNameFunc.apply(this), accessExpression(), true, symbolName);
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), true, symbolName, this);
             return this;
+        }
+
+        String nameSuffix() {
+            if (type.equals(MemorySegment.class)) {
+                return "$SEGMENT";
+            } else if (type.equals(MemoryLayout.class)) {
+                return "$LAYOUT";
+            } else if (type.equals(MethodHandle.class)) {
+                return "$MH";
+            } else if (type.equals(VarHandle.class)) {
+                return "$VH";
+            } else if (type.equals(FunctionDescriptor.class)) {
+                return "$DESC";
+            } else if (type.isPrimitive()) {
+                return "$" + type.getSimpleName().toUpperCase();
+            } else {
+                throw new AssertionError("Cannot get here: " + type.getSimpleName());
+            }
         }
     }
 
@@ -187,7 +168,7 @@ public class Constants {
             indent();
             append(");\n");
             decrAlign();
-            return new Constant(className(), constName, Constant.Kind.METHOD_HANDLE);
+            return new Constant(this, MethodHandle.class, constName);
         }
 
         private Constant emitUpcallMethodHandleField(String className, String methodName, FunctionDescriptor descriptor) {
@@ -202,7 +183,7 @@ public class Constants {
             append(functionDesc.accessExpression());
             append(");\n");
             decrAlign();
-            return new Constant(className(), constName, Constant.Kind.METHOD_HANDLE);
+            return new Constant(this, MethodHandle.class, constName);
         }
 
         private Constant emitVarHandleField(String nativeName, ValueLayout valueLayout,
@@ -227,7 +208,7 @@ public class Constants {
             append(")");
             append(";\n");
             decrAlign();
-            return new Constant(className(), constName, Constant.Kind.VAR_HANDLE);
+            return new Constant(this, VarHandle.class, constName);
         }
 
         private Constant emitLayoutField(MemoryLayout layout) {
@@ -239,14 +220,10 @@ public class Constants {
             emitLayoutString(layout);
             append(";\n");
             decrAlign();
-            return new Constant(className(), constName, Constant.Kind.LAYOUT);
+            return new Constant(this, MemoryLayout.class, constName);
         }
 
         protected String primitiveLayoutString(ValueLayout vl) {
-            Constant primitiveLayout = cache.get(vl);
-            if (primitiveLayout != null) {
-                return primitiveLayout.accessExpression();
-            }
             if (vl.carrier() == boolean.class) {
                 return "JAVA_BOOLEAN";
             } else if (vl.carrier() == char.class) {
@@ -264,8 +241,7 @@ public class Constants {
             } else if (vl.carrier() == double.class) {
                 return "JAVA_DOUBLE";
             } else if (vl.carrier() == MemorySegment.class) {
-                return "ADDRESS.withTargetLayout(MemoryLayout.sequenceLayout(" +
-                        addLayout(Primitive.Kind.Char.layout().get()).accessExpression() + "))";
+                return "RuntimeHelper.POINTER";
             } else {
                 return "MemoryLayout.paddingLayout(" + vl.bitSize() +  ")";
             }
@@ -345,7 +321,7 @@ public class Constants {
             }
             append(");\n");
             decrAlign();
-            return new Constant(className(), constName, Constant.Kind.FUNCTION_DESCRIPTOR);
+            return new Constant(this, FunctionDescriptor.class, constName);
         }
 
         private Constant emitConstantSegment(Object value) {
@@ -359,7 +335,7 @@ public class Constants {
             append(Utils.quote(Objects.toString(value)));
             append("\");\n");
             decrAlign();
-            return new Constant(className(), constName, Constant.Kind.SEGMENT);
+            return new Constant(this, MemorySegment.class, constName);
         }
 
         private Constant emitConstantAddress(Object value) {
@@ -373,7 +349,49 @@ public class Constants {
             append(((Number)value).longValue());
             append("L);\n");
             decrAlign();
-            return new Constant(className(), constName, Constant.Kind.ADDRESS);
+            return new Constant(this, MemorySegment.class, constName);
+        }
+
+        private Constant emitLiteral(Class<?> type, Object value) {
+            incrAlign();
+            indent();
+            append(memberMods());
+            append(type.getSimpleName() + " ");
+            String constName = newConstantName();
+            append(constName + " = ");
+            if (type == float.class) {
+                float f = ((Number)value).floatValue();
+                if (Float.isFinite(f)) {
+                    append(value);
+                    append("f");
+                } else {
+                    append("Float.valueOf(\"");
+                    append(value);
+                    append("\")");
+                }
+            } else if (type == long.class) {
+                append(value.toString());
+                append("L");
+            } else if (type == double.class) {
+                double d = ((Number)value).doubleValue();
+                if (Double.isFinite(d)) {
+                    append(value);
+                    append("d");
+                } else {
+                    append("Double.valueOf(\"");
+                    append(value);
+                    append("\")");
+                }
+            } else if (type == boolean.class) {
+                boolean booleanValue = ((Number)value).byteValue() != 0;
+                append(booleanValue);
+            } else {
+                append("(" + type.getName() + ")");
+                append(value + "L");
+            }
+            append(";\n");
+            decrAlign();
+            return new Constant(this, type, constName);
         }
 
         private Constant emitSegmentField(String nativeName, MemoryLayout layout) {
@@ -390,7 +408,7 @@ public class Constants {
             append(layoutConstant.accessExpression());
             append(");\n");
             decrAlign();
-            return new Constant(className(), constName, Constant.Kind.SEGMENT);
+            return new Constant(this, MemorySegment.class, constName);
         }
 
         String newConstantName() {
@@ -445,12 +463,19 @@ public class Constants {
     }
 
     public Constant addConstantDesc(Class<?> type, Object value) {
-        if (value instanceof String) {
-            return builder().emitConstantSegment(value);
-        } else if (type == MemorySegment.class) {
-            return builder().emitConstantAddress(value);
-        } else {
-            throw new UnsupportedOperationException();
+        record ConstantKey(Class<?> type, Object value) { }
+        var key = new ConstantKey(type, value);
+        Constant constant = cache.get(key);
+        if (constant == null) {
+            if (value instanceof String) {
+                constant = builder().emitConstantSegment(value);
+            } else if (type == MemorySegment.class) {
+                constant = builder().emitConstantAddress(value);
+            } else {
+                constant = builder().emitLiteral(type, value);
+            }
+            cache.put(key, constant);
         }
+        return constant;
     }
 }

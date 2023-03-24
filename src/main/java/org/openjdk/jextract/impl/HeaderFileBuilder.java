@@ -116,12 +116,8 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
         Object value = constantTree.value();
         emitDocComment(constantTree);
-        if (javaType.equals(MemorySegment.class)) {
-            constants().addConstantDesc(javaType, value)
-                        .emitGetter(this, MEMBER_MODS, c -> javaName);
-        } else {
-            emitGetter(MEMBER_MODS, javaType, javaName, getConstantString(javaType, value));
-        }
+        constants().addConstantDesc(javaType, value)
+                    .emitGetter(this, MEMBER_MODS, c -> javaName);
     }
 
     // private generation
@@ -142,7 +138,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         incrAlign();
         indent();
         append("var mh$ = ");
-        append(mhConstant.kind().fieldName(javaName));
+        append(mhConstant.getterName(javaName));
         append("();\n");
         indent();
         append("try {\n");
@@ -253,41 +249,6 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
             case Short, Int, Long, LongLong, Float, Double, Char -> true;
             default -> false;
         };
-    }
-
-    private String getConstantString(Class<?> type, Object value) {
-        StringBuilder buf = new StringBuilder();
-        if (type == float.class) {
-            float f = ((Number)value).floatValue();
-            if (Float.isFinite(f)) {
-                buf.append(value);
-                buf.append("f");
-            } else {
-                buf.append("Float.valueOf(\"");
-                buf.append(value);
-                buf.append("\")");
-            }
-        } else if (type == long.class) {
-            buf.append(value);
-            buf.append("L");
-        } else if (type == double.class) {
-            double d = ((Number)value).doubleValue();
-            if (Double.isFinite(d)) {
-                buf.append(value);
-                buf.append("d");
-            } else {
-                buf.append("Double.valueOf(\"");
-                buf.append(value);
-                buf.append("\")");
-            }
-        } else if (type == boolean.class) {
-            boolean booleanValue = ((Number)value).byteValue() != 0;
-            buf.append(booleanValue);
-        } else {
-            buf.append("(" + type.getName() + ")");
-            buf.append(value + "L");
-        }
-        return buf.toString();
     }
 
     private void emitGlobalGetter(Constant segmentConstant, Constant vhConstant, String javaName, String nativeName, Class<?> type) {
