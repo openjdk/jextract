@@ -25,7 +25,10 @@
 
 package org.openjdk.jextract.impl;
 
+import org.openjdk.jextract.Type;
+
 import javax.tools.JavaFileObject;
+import java.lang.foreign.AddressLayout;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
@@ -53,6 +56,17 @@ public class Constants {
         currentBuilder = new Builder(enclosing, 0);
         constantBuilders.add(currentBuilder);
         currentBuilder.classBegin();
+        // prime the cache with basic primitive/pointer (immediate) layouts
+        for (Type.Primitive.Kind kind : Type.Primitive.Kind.values()) {
+            kind.layout().ifPresent(layout -> {
+                if (layout instanceof ValueLayout valueLayout) {
+                    cache.put(valueLayout, ImmediateConstant.ofPrimitiveLayout(valueLayout));
+                }
+            });
+        }
+        AddressLayout pointerLayout = ValueLayout.ADDRESS.withTargetLayout(
+                MemoryLayout.sequenceLayout(ValueLayout.JAVA_BYTE));
+        cache.put(pointerLayout, ImmediateConstant.ofPrimitiveLayout(pointerLayout));
     }
 
     static final int CONSTANTS_PER_CLASS = Integer.getInteger("jextract.constants.per.class", 5);
@@ -69,14 +83,20 @@ public class Constants {
         return currentBuilder;
     }
 
-    record Constant(Builder builder, Class<?> type, String constantName) {
+    static sealed abstract class Constant permits Builder.NamedConstant, ImmediateConstant {
+
+        final Class<?> type;
+
+        public Constant(Class<?> type) {
+            this.type = type;
+        }
+
+        Class<?> type() {
+            return type;
+        }
 
         String getterName(String javaName) {
             return javaName + nameSuffix();
-        }
-
-        String accessExpression() {
-            return builder.className() + "." + constantName;
         }
 
         Constant emitGetter(ClassSourceBuilder builder, String mods, String javaName) {
@@ -108,11 +128,86 @@ public class Constants {
                 return "$VH";
             } else if (type.equals(FunctionDescriptor.class)) {
                 return "$DESC";
-            } else if (type.isPrimitive()) {
-                return "$" + type.getSimpleName().toUpperCase();
             } else {
-                throw new AssertionError("Cannot get here: " + type.getSimpleName());
+                return "";
             }
+        }
+
+        abstract String accessExpression();
+    }
+
+    final static class ImmediateConstant extends Constant {
+        final String value;
+
+        ImmediateConstant(Class<?> type, String value) {
+            super(type);
+            this.value = value;
+        }
+
+        @Override
+        String accessExpression() {
+            return value;
+        }
+
+        static ImmediateConstant ofPrimitiveLayout(ValueLayout vl) {
+            final String layoutStr;
+            if (vl.carrier() == boolean.class) {
+                layoutStr = "JAVA_BOOLEAN";
+            } else if (vl.carrier() == char.class) {
+                layoutStr = "JAVA_CHAR";
+            } else if (vl.carrier() == byte.class) {
+                layoutStr = "JAVA_BYTE";
+            } else if (vl.carrier() == short.class) {
+                layoutStr = "JAVA_SHORT";
+            } else if (vl.carrier() == int.class) {
+                layoutStr = "JAVA_INT";
+            } else if (vl.carrier() == float.class) {
+                layoutStr = "JAVA_FLOAT";
+            } else if (vl.carrier() == long.class) {
+                layoutStr = "JAVA_LONG";
+            } else if (vl.carrier() == double.class) {
+                layoutStr = "JAVA_DOUBLE";
+            } else if (vl.carrier() == MemorySegment.class) {
+                layoutStr = "RuntimeHelper.POINTER";
+            } else {
+                throw new UnsupportedOperationException("Unsupported layout: " + vl);
+            }
+            return new ImmediateConstant(MemoryLayout.class, layoutStr);
+        }
+
+        static Constant ofLiteral(Class<?> type, Object value) {
+            StringBuilder buf = new StringBuilder();
+            if (type == float.class) {
+                float f = ((Number)value).floatValue();
+                if (Float.isFinite(f)) {
+                    buf.append(value);
+                    buf.append("f");
+                } else {
+                    buf.append("Float.valueOf(\"");
+                    buf.append(value);
+                    buf.append("\")");
+                }
+            } else if (type == long.class) {
+                buf.append(value.toString());
+                buf.append("L");
+            } else if (type == double.class) {
+                double d = ((Number)value).doubleValue();
+                if (Double.isFinite(d)) {
+                    buf.append(value);
+                    buf.append("d");
+                } else {
+                    buf.append("Double.valueOf(\"");
+                    buf.append(value);
+                    buf.append("\")");
+                }
+            } else if (type == boolean.class) {
+                boolean booleanValue = ((Number)value).byteValue() != 0;
+                buf.append(booleanValue);
+            } else {
+                buf.append("(" + type.getName() + ")");
+                buf.append(value + "L");
+            }
+            return new ImmediateConstant(type, buf.toString());
         }
     }
 
@@ -142,13 +237,31 @@ public class Constants {
 
         int constantIndex = 0;
 
+        final class NamedConstant extends Constant {
+            final String constantName;
+
+            NamedConstant(Class<?> type) {
+                super(type);
+                this.constantName = newConstantName();
+            }
+
+            String constantName() {
+                return constantName;
+            }
+
+            @Override
+            String accessExpression() {
+                return className() + "." + constantName;
+            }
+        }
+
         private Constant emitDowncallMethodHandleField(String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
             Constant functionDesc = addFunctionDesc(descriptor);
             incrAlign();
-            String constName = newConstantName();
+            NamedConstant mhConst = new NamedConstant(MethodHandle.class);
             indent();
             append(memberMods() + "MethodHandle ");
-            append(constName + " = RuntimeHelper.");
+            append(mhConst.constantName + " = RuntimeHelper.");
             if (isVarargs) {
                 append("downcallHandleVariadic");
             } else {
@@ -168,22 +281,22 @@ public class Constants {
             indent();
             append(");\n");
             decrAlign();
-            return new Constant(this, MethodHandle.class, constName);
+            return mhConst;
         }
 
         private Constant emitUpcallMethodHandleField(String className, String methodName, FunctionDescriptor descriptor) {
             Constant functionDesc = addFunctionDesc(descriptor);
             incrAlign();
-            String constName = newConstantName();
+            NamedConstant mhConst = new NamedConstant(MethodHandle.class);
             indent();
             append(memberMods() + "MethodHandle ");
-            append(constName + " = RuntimeHelper.upcallHandle(");
+            append(mhConst.constantName + " = RuntimeHelper.upcallHandle(");
             append(className + ".class, ");
             append("\"" + methodName + "\", ");
             append(functionDesc.accessExpression());
             append(");\n");
             decrAlign();
-            return new Constant(this, MethodHandle.class, constName);
+            return mhConst;
         }
 
         private Constant emitVarHandleField(String nativeName, ValueLayout valueLayout,
@@ -193,8 +306,8 @@ public class Constants {
                     addLayout(valueLayout).accessExpression();
             incrAlign();
             indent();
-            String constName = newConstantName();
-            append(memberMods() + "VarHandle " + constName + " = ");
+            NamedConstant vhConst = new NamedConstant(VarHandle.class);
+            append(memberMods() + "VarHandle " + vhConst.constantName + " = ");
             append(layoutAccess);
             append(".varHandle(");
             String prefix = "";
@@ -208,48 +321,24 @@ public class Constants {
             append(")");
             append(";\n");
             decrAlign();
-            return new Constant(this, VarHandle.class, constName);
+            return vhConst;
         }
 
         private Constant emitLayoutField(MemoryLayout layout) {
-            String constName = newConstantName();
+            NamedConstant layoutConst = new NamedConstant(MemoryLayout.class);
             incrAlign();
             indent();
             String layoutClassName = Utils.layoutDeclarationType(layout).getSimpleName();
-            append(memberMods() + layoutClassName + " " + constName + " = ");
+            append(memberMods() + layoutClassName + " " + layoutConst.constantName + " = ");
             emitLayoutString(layout);
             append(";\n");
             decrAlign();
-            return new Constant(this, MemoryLayout.class, constName);
-        }
-
-        protected String primitiveLayoutString(ValueLayout vl) {
-            if (vl.carrier() == boolean.class) {
-                return "JAVA_BOOLEAN";
-            } else if (vl.carrier() == char.class) {
-                return "JAVA_CHAR";
-            } else if (vl.carrier() == byte.class) {
-                return "JAVA_BYTE";
-            } else if (vl.carrier() == short.class) {
-                return "JAVA_SHORT";
-            } else if (vl.carrier() == int.class) {
-                return "JAVA_INT";
-            } else if (vl.carrier() == float.class) {
-                return "JAVA_FLOAT";
-            } else if (vl.carrier() == long.class) {
-                return "JAVA_LONG";
-            } else if (vl.carrier() == double.class) {
-                return "JAVA_DOUBLE";
-            } else if (vl.carrier() == MemorySegment.class) {
-                return "RuntimeHelper.POINTER";
-            } else {
-                return "MemoryLayout.paddingLayout(" + vl.bitSize() +  ")";
-            }
+            return layoutConst;
         }
 
         private void emitLayoutString(MemoryLayout l) {
             if (l instanceof ValueLayout val) {
-                append(primitiveLayoutString(val));
+                append(ImmediateConstant.ofPrimitiveLayout(val).accessExpression());
                 if (l.bitAlignment() != l.bitSize()) {
                     append(".withBitAlignment(");
                     append(l.bitAlignment());
@@ -293,8 +382,8 @@ public class Constants {
             final boolean noArgs = desc.argumentLayouts().isEmpty();
             append(memberMods());
             append("FunctionDescriptor ");
-            String constName = newConstantName();
-            append(constName);
+            NamedConstant descConstant = new NamedConstant(FunctionDescriptor.class);
+            append(descConstant.constantName);
             append(" = ");
             if (desc.returnLayout().isPresent()) {
                 append("FunctionDescriptor.of(");
@@ -321,7 +410,7 @@ public class Constants {
             }
             append(");\n");
             decrAlign();
-            return new Constant(this, FunctionDescriptor.class, constName);
+            return descConstant;
         }
 
         private Constant emitConstantSegment(Object value) {
@@ -329,13 +418,13 @@ public class Constants {
             indent();
             append(memberMods());
             append("MemorySegment ");
-            String constName = newConstantName();
-            append(constName);
+            NamedConstant segConstant = new NamedConstant(MemorySegment.class);
+            append(segConstant.constantName);
             append(" = RuntimeHelper.CONSTANT_ALLOCATOR.allocateUtf8String(\"");
             append(Utils.quote(Objects.toString(value)));
             append("\");\n");
             decrAlign();
-            return new Constant(this, MemorySegment.class, constName);
+            return segConstant;
         }
 
         private Constant emitConstantAddress(Object value) {
@@ -343,55 +432,13 @@ public class Constants {
             indent();
             append(memberMods());
             append("MemorySegment ");
-            String constName = newConstantName();
-            append(constName);
+            NamedConstant segConstant = new NamedConstant(MemorySegment.class);
+            append(segConstant.constantName);
             append(" = MemorySegment.ofAddress(");
             append(((Number)value).longValue());
             append("L);\n");
             decrAlign();
-            return new Constant(this, MemorySegment.class, constName);
-        }
-
-        private Constant emitLiteral(Class<?> type, Object value) {
-            incrAlign();
-            indent();
-            append(memberMods());
-            append(type.getSimpleName() + " ");
-            String constName = newConstantName();
-            append(constName + " = ");
-            if (type == float.class) {
-                float f = ((Number)value).floatValue();
-                if (Float.isFinite(f)) {
-                    append(value);
-                    append("f");
-                } else {
-                    append("Float.valueOf(\"");
-                    append(value);
-                    append("\")");
-                }
-            } else if (type == long.class) {
-                append(value.toString());
-                append("L");
-            } else if (type == double.class) {
-                double d = ((Number)value).doubleValue();
-                if (Double.isFinite(d)) {
-                    append(value);
-                    append("d");
-                } else {
-                    append("Double.valueOf(\"");
-                    append(value);
-                    append("\")");
-                }
-            } else if (type == boolean.class) {
-                boolean booleanValue = ((Number)value).byteValue() != 0;
-                append(booleanValue);
-            } else {
-                append("(" + type.getName() + ")");
-                append(value + "L");
-            }
-            append(";\n");
-            decrAlign();
-            return new Constant(this, type, constName);
+            return segConstant;
         }
 
         private Constant emitSegmentField(String nativeName, MemoryLayout layout) {
@@ -400,15 +447,15 @@ public class Constants {
             indent();
             append(memberMods());
             append("MemorySegment ");
-            String constName = newConstantName();
-            append(constName);
+            NamedConstant segConstant = new NamedConstant(MemorySegment.class);
+            append(segConstant.constantName);
             append(" = ");
             append("RuntimeHelper.lookupGlobalVariable(");
             append("\"" + nativeName + "\", ");
             append(layoutConstant.accessExpression());
             append(");\n");
             decrAlign();
-            return new Constant(this, MemorySegment.class, constName);
+            return segConstant;
         }
 
         String newConstantName() {
@@ -472,7 +519,7 @@ public class Constants {
             } else if (type == MemorySegment.class) {
                 constant = builder().emitConstantAddress(value);
             } else {
-                constant = builder().emitLiteral(type, value);
+                constant = ImmediateConstant.ofLiteral(type, value);
             }
             cache.put(key, constant);
         }
