@@ -153,7 +153,7 @@ class StructBuilder extends ClassSourceBuilder {
                 emitSegmentGetter(javaName, nativeName, layout);
             }
         } else if (layout instanceof ValueLayout valueLayout) {
-            Constant vhConstant = constants().addFieldVarHandle(nativeName, valueLayout, layoutConstant, prefixNamesList())
+            Constant vhConstant = constants().addFieldVarHandle(nativeName, structLayout, prefixNamesList())
                     .emitGetter(this, MEMBER_MODS, javaName);
             emitFieldDocComment(varTree, "Getter for field:");
             emitFieldGetter(vhConstant, javaName, valueLayout.carrier());

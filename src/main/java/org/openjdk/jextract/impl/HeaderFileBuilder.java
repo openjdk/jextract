@@ -82,7 +82,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         } else if (layout instanceof ValueLayout valueLayout) {
             constants().addLayout(valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName);
-            Constant vhConstant = constants().addGlobalVarHandle(nativeName, valueLayout)
+            Constant vhConstant = constants().addGlobalVarHandle(valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName);
             Constant segmentConstant = constants().addSegment(nativeName, valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName, nativeName);
@@ -103,7 +103,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         String nativeName = funcTree.name();
         boolean isVarargs = funcTree.type().varargs();
 
-        Constant mhConstant = constants().addDowncallMethodHandle(nativeName, descriptor, isVarargs, false)
+        Constant mhConstant = constants().addDowncallMethodHandle(nativeName, descriptor, isVarargs)
                 .emitGetter(this, MEMBER_MODS, javaName, nativeName);
         MethodType downcallType = descriptor.toMethodType();
         boolean needsAllocator = descriptor.returnLayout().isPresent() &&

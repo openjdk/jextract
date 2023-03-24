@@ -110,8 +110,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactoryForPointer() {
-        Constant mhConstant = constants().addDowncallMethodHandle(fullName(),
-                 fiDesc, false, true);
+        Constant mhConstant = constants().addVirtualDowncallMethodHandle(fiDesc);
         incrAlign();
         indent();
         append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena arena) {\n");

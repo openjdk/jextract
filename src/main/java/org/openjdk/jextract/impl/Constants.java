@@ -299,25 +299,32 @@ public class Constants {
             return mhConst;
         }
 
-        private Constant emitVarHandleField(String nativeName, ValueLayout valueLayout,
-                                            Constant rootLayout, List<String> prefixElementNames) {
-            String layoutAccess = rootLayout != null ?
-                    rootLayout.accessExpression() :
-                    addLayout(valueLayout).accessExpression();
+        private Constant emitVarHandle(ValueLayout valueLayout) {
+            Constant layoutConstant = addLayout(valueLayout);
             incrAlign();
             indent();
             NamedConstant vhConst = new NamedConstant(VarHandle.class);
             append(memberMods() + "VarHandle " + vhConst.constantName + " = ");
-            append(layoutAccess);
+            append(layoutConstant.accessExpression());
+            append(".varHandle();\n");
+            decrAlign();
+            return vhConst;
+        }
+
+        private Constant emitFieldVarHandle(String nativeName, GroupLayout parentLayout, List<String> prefixElementNames) {
+            Constant layoutConstant = addLayout(parentLayout);
+            incrAlign();
+            indent();
+            NamedConstant vhConst = new NamedConstant(VarHandle.class);
+            append(memberMods() + "VarHandle " + vhConst.constantName + " = ");
+            append(layoutConstant.accessExpression());
             append(".varHandle(");
             String prefix = "";
-            if (rootLayout != null) {
-                for (String prefixElementName : prefixElementNames) {
-                    append(prefix + "MemoryLayout.PathElement.groupElement(\"" + prefixElementName + "\")");
-                    prefix = ", ";
-                }
-                append(prefix + "MemoryLayout.PathElement.groupElement(\"" + nativeName + "\")");
+            for (String prefixElementName : prefixElementNames) {
+                append(prefix + "MemoryLayout.PathElement.groupElement(\"" + prefixElementName + "\")");
+                prefix = ", ";
             }
+            append(prefix + "MemoryLayout.PathElement.groupElement(\"" + nativeName + "\")");
             append(")");
             append(";\n");
             decrAlign();
@@ -474,22 +481,34 @@ public class Constants {
         return constant;
     }
 
-    public Constant addFieldVarHandle(String nativeName, ValueLayout valueLayout,
-                                      Constant rootLayout, List<String> prefixElementNames) {
-        return addVarHandle(nativeName, valueLayout, rootLayout, prefixElementNames);
+    public Constant addFieldVarHandle(String nativeName, GroupLayout parentLayout, List<String> prefixElementNames) {
+        return builder().emitFieldVarHandle(nativeName, parentLayout, prefixElementNames);
     }
 
-    public Constant addGlobalVarHandle(String nativeName, ValueLayout valueLayout) {
-        return addVarHandle(nativeName, valueLayout, null, List.of());
+    public Constant addGlobalVarHandle(ValueLayout valueLayout) {
+        record VarHandleKey(ValueLayout valueLayout) { }
+        VarHandleKey key = new VarHandleKey(valueLayout.withoutName());
+        Constant constant = cache.get(key);
+        if (constant == null) {
+            constant = builder().emitVarHandle(valueLayout);
+            cache.put(key, constant);
+        }
+        return constant;
     }
 
-    private Constant addVarHandle(String nativeName, ValueLayout valueLayout,
-                                  Constant rootLayout, List<String> prefixElementNames) {
-        return builder().emitVarHandleField(nativeName, valueLayout, rootLayout, prefixElementNames);
+    public Constant addDowncallMethodHandle(String nativeName, FunctionDescriptor descriptor, boolean isVarargs) {
+        return builder().emitDowncallMethodHandleField(nativeName, descriptor, isVarargs, false);
     }
 
-    public Constant addDowncallMethodHandle(String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
-        return builder().emitDowncallMethodHandleField(nativeName, descriptor, isVarargs, virtual);
+    public Constant addVirtualDowncallMethodHandle(FunctionDescriptor descriptor) {
+        record DowncallKey(FunctionDescriptor desc) { }
+        DowncallKey downcallKey = new DowncallKey(descriptor);
+        Constant constant = cache.get(downcallKey);
+        if (constant == null) {
+            constant = builder().emitDowncallMethodHandleField(null, descriptor, false, true);
+            cache.put(downcallKey, constant);
+        }
+        return constant;
     }
 
     public Constant addUpcallMethodHandle(String className, String name, FunctionDescriptor descriptor) {
