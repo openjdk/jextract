@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,7 +27,7 @@ package org.openjdk.jextract.impl;
 import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
 import java.util.List;
-import java.util.function.Consumer;
+
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
@@ -264,7 +264,7 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         }
     }
 
-    protected void emitGetter(String mods, Class<?> type, String name, String access, boolean nullCheck, String symbolName) {
+    void emitGetter(String mods, Class<?> type, String name, String access, boolean nullCheck, String symbolName) {
         incrAlign();
         indent();
         append(mods + " " + type.getSimpleName() + " " +name + "() {\n");
@@ -287,20 +287,12 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         decrAlign();
     }
 
-    protected void emitGetter(String mods, Class<?> type, String name, String access) {
+    void emitGetter(String mods, Class<?> type, String name, String access) {
         emitGetter(mods, type, name, access, false, null);
     }
 
-    ToplevelBuilder toplevel() {
-        JavaSourceBuilder encl = enclosing;
-        while (encl instanceof ClassSourceBuilder classSourceBuilder) {
-            encl = classSourceBuilder.enclosing;
-        }
-        return (ToplevelBuilder)encl;
-    }
-
     @Override
-    protected void emitWithConstantClass(Consumer<ConstantBuilder> constantConsumer) {
-        enclosing.emitWithConstantClass(constantConsumer);
+    protected Constants constants() {
+        return enclosing.constants();
     }
 }

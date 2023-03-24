@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,10 +29,10 @@ import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
-import java.lang.foreign.UnionLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.Constants.Constant;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ import java.util.Optional;
 /**
  * This class generates static utilities class for C structs, unions.
  */
-class StructBuilder extends ConstantBuilder {
+class StructBuilder extends ClassSourceBuilder {
 
     private static final String MEMBER_MODS = "public static";
 
@@ -52,10 +52,11 @@ class StructBuilder extends ConstantBuilder {
     private final GroupLayout structLayout;
     private final Type structType;
     private final Deque<String> prefixElementNames;
+    private Constant layoutConstant;
 
     StructBuilder(JavaSourceBuilder enclosing, Declaration.Scoped structTree,
         String name, GroupLayout structLayout) {
-        super(enclosing, name);
+        super(enclosing, Kind.CLASS, name);
         this.structTree = structTree;
         this.structLayout = structLayout;
         this.structType = Type.declared(structTree);
@@ -84,8 +85,8 @@ class StructBuilder extends ConstantBuilder {
     void classBegin() {
         if (!inAnonymousNested()) {
             super.classBegin();
-            addLayout(layoutField(), ((Type.Declared) structType).tree().layout().orElseThrow())
-                    .emitGetter(this, MEMBER_MODS, Constant.SUFFIX_ONLY);
+            layoutConstant = constants().addLayout(((Type.Declared) structType).tree().layout().orElseThrow());
+            layoutConstant.emitGetter(this, MEMBER_MODS, c -> c.kind().nameSuffix);
         }
     }
 
@@ -152,8 +153,8 @@ class StructBuilder extends ConstantBuilder {
                 emitSegmentGetter(javaName, nativeName, layout);
             }
         } else if (layout instanceof ValueLayout valueLayout) {
-            Constant vhConstant = addFieldVarHandle(javaName, nativeName, valueLayout, layoutField(), prefixNamesList())
-                    .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
+            Constant vhConstant = constants().addFieldVarHandle(nativeName, valueLayout, layoutConstant, prefixNamesList())
+                    .emitGetter(this, MEMBER_MODS, javaName);
             emitFieldDocComment(varTree, "Getter for field:");
             emitFieldGetter(vhConstant, javaName, valueLayout.carrier());
             emitFieldDocComment(varTree, "Setter for field:");
@@ -329,21 +330,5 @@ class StructBuilder extends ConstantBuilder {
         indent();
         append("}\n");
         decrAlign();
-    }
-
-    private String qualifiedName(ClassSourceBuilder builder) {
-        if (builder.isNested()) {
-            String prefix = qualifiedName((ClassSourceBuilder)builder.enclosing);
-            return prefix.isEmpty() ?
-                    builder.className() :
-                    prefix + "$" + builder.className();
-        } else {
-            return "";
-        }
-    }
-
-    private String layoutField() {
-        String suffix = (structLayout instanceof UnionLayout) ? "union" : "struct";
-        return qualifiedName(this) + "$" + suffix;
     }
 }

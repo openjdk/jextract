@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -34,7 +34,7 @@ import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
-import org.openjdk.jextract.impl.ConstantBuilder.Constant;
+import org.openjdk.jextract.impl.Constants.Constant;
 
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
@@ -74,30 +74,26 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         MemoryLayout layout, Optional<String> fiName) {
         String nativeName = varTree.name();
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
-            emitWithConstantClass(constantBuilder -> {
-                if (layout.byteSize() > 0) {
-                    emitDocComment(varTree);
-                    constantBuilder.addSegment(javaName, nativeName, layout)
-                        .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
-                }
-            });
+            if (layout.byteSize() > 0) {
+                emitDocComment(varTree);
+                constants().addSegment(nativeName, layout)
+                        .emitGetter(this, MEMBER_MODS, javaName, nativeName);
+            };
         } else if (layout instanceof ValueLayout valueLayout) {
-            emitWithConstantClass(constantBuilder -> {
-                constantBuilder.addLayout(javaName, valueLayout)
-                        .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
-                Constant vhConstant = constantBuilder.addGlobalVarHandle(javaName, nativeName, valueLayout)
-                        .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME);
-                Constant segmentConstant = constantBuilder.addSegment(javaName, nativeName, valueLayout)
-                        .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
-                emitDocComment(varTree, "Getter for variable:");
-                emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
-                emitDocComment(varTree, "Setter for variable:");
-                emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
+            constants().addLayout(valueLayout)
+                    .emitGetter(this, MEMBER_MODS, javaName);
+            Constant vhConstant = constants().addGlobalVarHandle(nativeName, valueLayout)
+                    .emitGetter(this, MEMBER_MODS, javaName);
+            Constant segmentConstant = constants().addSegment(nativeName, valueLayout)
+                    .emitGetter(this, MEMBER_MODS, javaName, nativeName);
+            emitDocComment(varTree, "Getter for variable:");
+            emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
+            emitDocComment(varTree, "Setter for variable:");
+            emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
 
-                if (fiName.isPresent()) {
-                    emitFunctionalInterfaceGetter(fiName.get(), javaName);
-                }
-            });
+            if (fiName.isPresent()) {
+                emitFunctionalInterfaceGetter(fiName.get(), javaName);
+            }
         }
     }
 
@@ -107,15 +103,13 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         String nativeName = funcTree.name();
         boolean isVarargs = funcTree.type().varargs();
 
-        emitWithConstantClass(constantBuilder -> {
-            Constant mhConstant = constantBuilder.addDowncallMethodHandle(javaName, nativeName, descriptor, isVarargs, false)
-                    .emitGetter(this, MEMBER_MODS, Constant.QUALIFIED_NAME, nativeName);
-            MethodType downcallType = descriptor.toMethodType();
-            boolean needsAllocator = descriptor.returnLayout().isPresent() &&
-                    descriptor.returnLayout().get() instanceof GroupLayout;
-            emitDocComment(funcTree);
-            emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, needsAllocator, isVarargs, parameterNames);
-        });
+        Constant mhConstant = constants().addDowncallMethodHandle(nativeName, descriptor, isVarargs, false)
+                .emitGetter(this, MEMBER_MODS, javaName, nativeName);
+        MethodType downcallType = descriptor.toMethodType();
+        boolean needsAllocator = descriptor.returnLayout().isPresent() &&
+                descriptor.returnLayout().get() instanceof GroupLayout;
+        emitDocComment(funcTree);
+        emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, needsAllocator, isVarargs, parameterNames);
     }
 
     @Override
@@ -123,10 +117,8 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         Object value = constantTree.value();
         emitDocComment(constantTree);
         if (javaType.equals(MemorySegment.class)) {
-            emitWithConstantClass(constantBuilder -> {
-                constantBuilder.addConstantDesc(javaName, javaType, value)
-                        .emitGetter(this, MEMBER_MODS, Constant.JAVA_NAME);
-            });
+            constants().addConstantDesc(javaType, value)
+                        .emitGetter(this, MEMBER_MODS, c -> javaName);
         } else {
             emitGetter(MEMBER_MODS, javaType, javaName, getConstantString(javaType, value));
         }
@@ -230,7 +222,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
             append(" " + Utils.layoutDeclarationType(primType.kind().layout().orElseThrow()).getSimpleName());
             append(" " + name);
             append(" = ");
-            append(toplevel().rootConstants().resolvePrimitiveLayout((ValueLayout)kind.layout().get()).accessExpression());
+            append(constants().addLayout(kind.layout().get()).accessExpression());
             append(";\n");
             decrAlign();
         }
@@ -251,7 +243,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         append(" AddressLayout ");
         append(name);
         append(" = ");
-        append(toplevel().rootConstants().resolvePrimitiveLayout(TypeImpl.PointerImpl.POINTER_LAYOUT).accessExpression());
+        append(constants().addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT).accessExpression());
         append(";\n");
         decrAlign();
     }
