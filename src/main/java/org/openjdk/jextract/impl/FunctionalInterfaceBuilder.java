@@ -173,19 +173,4 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         append("}\n");
         decrAlign();
     }
-
-    private String qualifiedName(ClassSourceBuilder builder) {
-        if (builder.isNested()) {
-            String prefix = qualifiedName((ClassSourceBuilder)builder.enclosing);
-            return prefix.isEmpty() ?
-                    builder.className() :
-                    prefix + "$" + builder.className();
-        } else {
-            return "";
-        }
-    }
-
-    private String prefixName() {
-        return qualifiedName(this) + "$FI";
-    }
 }

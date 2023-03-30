@@ -420,7 +420,7 @@ public class Constants {
             return descConstant;
         }
 
-        private Constant emitConstantSegment(Object value) {
+        private Constant emitConstantString(Object value) {
             incrAlign();
             indent();
             append(memberMods());
@@ -534,7 +534,7 @@ public class Constants {
         Constant constant = cache.get(key);
         if (constant == null) {
             if (value instanceof String) {
-                constant = builder().emitConstantSegment(value);
+                constant = builder().emitConstantString(value);
             } else if (type == MemorySegment.class) {
                 constant = builder().emitConstantAddress(value);
             } else {
