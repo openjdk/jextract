@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,19 +26,15 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.Type.Primitive;
-import org.openjdk.jextract.Type.Primitive.Kind;
 
 import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -50,34 +46,27 @@ class ToplevelBuilder extends JavaSourceBuilder {
     private int declCount;
     private final List<JavaSourceBuilder> builders = new ArrayList<>();
     private SplitHeader lastHeader;
-    private final RootConstants rootConstants;
     private int headersCount;
     private final ClassDesc headerDesc;
+
+    Constants constants;
 
     static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
 
     ToplevelBuilder(String packageName, String headerClassName) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
         SplitHeader first = lastHeader = new FirstHeader(headerClassName);
-        rootConstants = new RootConstants();
-        first.classBegin();
         builders.add(first);
-    }
-
-    public RootConstants rootConstants() {
-        return rootConstants;
+        constants = new Constants(this);
+        first.classBegin();
     }
 
     public List<JavaFileObject> toFiles() {
-        if (constantBuilder != null) {
-            constantBuilder.classEnd();
-        }
         lastHeader.classEnd();
-        builders.addAll(constantBuilders);
-        builders.add(rootConstants);
         List<JavaFileObject> files = new ArrayList<>();
         files.addAll(builders.stream()
                 .flatMap(b -> b.toFiles().stream()).toList());
+        files.addAll(constants.toFiles());
         return files;
     }
 
@@ -93,6 +82,11 @@ class ToplevelBuilder extends JavaSourceBuilder {
     @Override
     public String packageName() {
         return headerDesc.packageName();
+    }
+
+    @Override
+    protected Constants constants() {
+        return constants;
     }
 
     @Override
@@ -217,122 +211,4 @@ class ToplevelBuilder extends JavaSourceBuilder {
                     last != this ? "extends " + last.className() : "");
         }
     }
-
-    // constant support
-
-    class RootConstants extends ConstantBuilder {
-
-        private final Map<ValueLayout, Constant> primitiveLayouts = new HashMap<>();
-
-        public RootConstants() {
-            super(ToplevelBuilder.this, "Constants$root");
-            classBegin();
-            addPrimitiveLayout("C_BOOL", Type.Primitive.Kind.Bool);
-            addPrimitiveLayout("C_CHAR", Type.Primitive.Kind.Char);
-            addPrimitiveLayout("C_SHORT", Type.Primitive.Kind.Short);
-            addPrimitiveLayout("C_INT", Type.Primitive.Kind.Int);
-            addPrimitiveLayout("C_LONG", Type.Primitive.Kind.Long);
-            addPrimitiveLayout("C_LONG_LONG", Type.Primitive.Kind.LongLong);
-            addPrimitiveLayout("C_FLOAT", Type.Primitive.Kind.Float);
-            addPrimitiveLayout("C_DOUBLE", Type.Primitive.Kind.Double);
-            addPrimitiveLayout("C_POINTER", TypeImpl.PointerImpl.POINTER_LAYOUT);
-            classEnd();
-        }
-
-        @Override
-        String mods() {
-            return "final "; // Constants$root package-private!
-        }
-
-        @Override
-        protected String primitiveLayoutString(ValueLayout vl) {
-            if (vl.carrier() == boolean.class) {
-                return "JAVA_BOOLEAN";
-            } else if (vl.carrier() == char.class) {
-                return "JAVA_CHAR" + withBitAlignmentIfNeeded(ValueLayout.JAVA_CHAR, vl);
-            } else if (vl.carrier() == byte.class) {
-                return "JAVA_BYTE";
-            } else if (vl.carrier() == short.class) {
-                return "JAVA_SHORT" + withBitAlignmentIfNeeded(ValueLayout.JAVA_SHORT, vl);
-            } else if (vl.carrier() == int.class) {
-                return "JAVA_INT" + withBitAlignmentIfNeeded(ValueLayout.JAVA_INT, vl);
-            } else if (vl.carrier() == float.class) {
-                return "JAVA_FLOAT" + withBitAlignmentIfNeeded(ValueLayout.JAVA_FLOAT, vl);
-            } else if (vl.carrier() == long.class) {
-                return "JAVA_LONG" + withBitAlignmentIfNeeded(ValueLayout.JAVA_LONG, vl);
-            } else if (vl.carrier() == double.class) {
-                return "JAVA_DOUBLE" + withBitAlignmentIfNeeded(ValueLayout.JAVA_DOUBLE, vl);
-            } else if (vl.carrier() == MemorySegment.class) {
-                return "ADDRESS.withBitAlignment(" + vl.bitAlignment() + ")" +
-                ".withTargetLayout(MemoryLayout.sequenceLayout(" +
-                        resolvePrimitiveLayout((ValueLayout)Primitive.Kind.Char.layout().get()).accessExpression() + "))";
-            } else {
-                return "MemoryLayout.paddingLayout(" + vl.bitSize() +  ")";
-            }
-        }
-
-        String withBitAlignmentIfNeeded(ValueLayout original, ValueLayout actual) {
-            if (original.bitAlignment() == actual.bitAlignment()) {
-                return "";
-            }
-            return ".withBitAlignment(" + actual.bitAlignment() + ")";
-        }
-
-        private Constant addPrimitiveLayout(String javaName, ValueLayout layout) {
-            ValueLayout layoutNoName = normalize(layout);
-            Constant layoutConstant = super.addLayout(javaName, layoutNoName);
-            primitiveLayouts.put(layoutNoName, layoutConstant);
-            return layoutConstant;
-        }
-
-        private Constant addPrimitiveLayout(String javaName, Type.Primitive.Kind kind) {
-            return addPrimitiveLayout(javaName, (ValueLayout)kind.layout().orElseThrow());
-        }
-
-        public Constant resolvePrimitiveLayout(ValueLayout layout) {
-            return primitiveLayouts.get(normalize(layout));
-        }
-
-        public ValueLayout normalize(ValueLayout valueLayout) {
-            return valueLayout
-                    .withBitAlignment(valueLayout.bitSize()) // use natural alignment
-                    .withoutName(); // drop name
-        }
-    }
-
-    // other constants
-
-    int constant_counter = 0;
-    int constant_class_index = 0;
-    List<ConstantBuilder> constantBuilders = new ArrayList<>();
-
-    static final int CONSTANTS_PER_CLASS = Integer.getInteger("jextract.constants.per.class", 5);
-    ConstantBuilder constantBuilder;
-
-    protected void emitWithConstantClass(Consumer<ConstantBuilder> constantConsumer) {
-        if (constant_counter > CONSTANTS_PER_CLASS || constantBuilder == null) {
-            if (constantBuilder != null) {
-                constantBuilder.classEnd();
-            }
-            constant_counter = 0;
-            constantBuilder = new ConstantsSequelBuilder(this, "constants$" + constant_class_index++);
-            constantBuilders.add(constantBuilder);
-            constantBuilder.classBegin();
-        }
-        constantConsumer.accept(constantBuilder);
-        constant_counter++;
-    }
-
-    static final class ConstantsSequelBuilder extends ConstantBuilder {
-
-        ConstantsSequelBuilder(JavaSourceBuilder enclosing, String className) {
-            super(enclosing, className);
-        }
-
-        @Override
-        String mods() {
-            return "final "; // constants package-private!
-        }
-    }
-
 }

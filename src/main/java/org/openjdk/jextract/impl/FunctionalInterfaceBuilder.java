@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,13 +27,12 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.*;
 
-import org.openjdk.jextract.impl.ConstantBuilder.Constant;
+import org.openjdk.jextract.impl.Constants.Constant;
 import org.openjdk.jextract.Type;
 
 import java.lang.invoke.MethodType;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -95,93 +94,83 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactories() {
-        emitWithConstantClass(constantBuilder -> {
-            Constant functionDesc = constantBuilder.addFunctionDesc(className(), fiDesc);
-            Constant upcallHandle = constantBuilder.addLookupMethodHandle(className() + "_UP", className(), "apply", fiDesc);
-            incrAlign();
-            indent();
-            append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, Arena scope) {\n");
-            incrAlign();
-            indent();
-            append("return RuntimeHelper.upcallStub(" +
-                upcallHandle.accessExpression() + ", fi, " + functionDesc.accessExpression() + ", scope);\n");
-            decrAlign();
-            indent();
-            append("}\n");
-            decrAlign();
-        });
+        Constant functionDesc = constants().addFunctionDesc(fiDesc);
+        Constant upcallHandle = constants().addUpcallMethodHandle(fullName(), "apply", fiDesc);
+        incrAlign();
+        indent();
+        append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, Arena scope) {\n");
+        incrAlign();
+        indent();
+        append("return RuntimeHelper.upcallStub(" +
+            upcallHandle.accessExpression() + ", fi, " + functionDesc.accessExpression() + ", scope);\n");
+        decrAlign();
+        indent();
+        append("}\n");
+        decrAlign();
     }
 
     private void emitFunctionalFactoryForPointer() {
-        emitWithConstantClass(constantBuilder -> {
-            Constant mhConstant = constantBuilder.addDowncallMethodHandle(className() + "_DOWN", className(),
-                 fiDesc, false, true);
-            incrAlign();
-            indent();
-            append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena arena) {\n");
-            incrAlign();
-            indent();
-            append("MemorySegment symbol = addr.reinterpret(");
-            append("arena, null);\n");
-            indent();
-            append("return (");
-            String delim = "";
-            for (int i = 0 ; i < fiType.parameterCount(); i++) {
-                append(delim + fiType.parameterType(i).getName());
-                append(" ");
-                append("_" + parameterName(i));
-                delim = ", ";
+        Constant mhConstant = constants().addVirtualDowncallMethodHandle(fiDesc);
+        incrAlign();
+        indent();
+        append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena arena) {\n");
+        incrAlign();
+        indent();
+        append("MemorySegment symbol = addr.reinterpret(");
+        append("arena, null);\n");
+        indent();
+        append("return (");
+        String delim = "";
+        for (int i = 0 ; i < fiType.parameterCount(); i++) {
+            append(delim + fiType.parameterType(i).getName());
+            append(" ");
+            append("_" + parameterName(i));
+            delim = ", ";
+        }
+        append(") -> {\n");
+        incrAlign();
+        indent();
+        append("try {\n");
+        incrAlign();
+        indent();
+        if (!fiType.returnType().equals(void.class)) {
+            append("return (" + fiType.returnType().getName() + ")");
+            if (fiType.returnType() != downcallType.returnType()) {
+                // add cast for invokeExact
+                append("(" + downcallType.returnType().getName() + ")");
             }
-            append(") -> {\n");
-            incrAlign();
-            indent();
-            append("try {\n");
-            incrAlign();
-            indent();
-            if (!fiType.returnType().equals(void.class)) {
-                append("return (" + fiType.returnType().getName() + ")");
-                if (fiType.returnType() != downcallType.returnType()) {
-                    // add cast for invokeExact
-                    append("(" + downcallType.returnType().getName() + ")");
-                }
-            }
-            append(mhConstant.accessExpression() + ".invokeExact(symbol");
-            if (fiType.parameterCount() > 0) {
-                String params = IntStream.range(0, fiType.parameterCount())
-                        .mapToObj(i -> {
-                            String paramExpr = "_" + parameterName(i);
-                            if (fiType.parameterType(i) != downcallType.parameterType(i)) {
-                                // add cast for invokeExact
-                                return "(" + downcallType.parameterType(i).getName() + ")" + paramExpr;
-                            } else {
-                                return paramExpr;
-                            }
-                        })
-                        .collect(Collectors.joining(", "));
-                append(", " + params);
-            }
-            append(");\n");
-            decrAlign();
-            indent();
-            append("} catch (Throwable ex$) {\n");
-            incrAlign();
-            indent();
-            append("throw new AssertionError(\"should not reach here\", ex$);\n");
-            decrAlign();
-            indent();
-            append("}\n");
-            decrAlign();
-            indent();
-            append("};\n");
-            decrAlign();
-            indent();
-            append("}\n");
-            decrAlign();
-        });
-    }
-
-    @Override
-    protected void emitWithConstantClass(Consumer<ConstantBuilder> constantConsumer) {
-        enclosing.emitWithConstantClass(constantConsumer);
+        }
+        append(mhConstant.accessExpression() + ".invokeExact(symbol");
+        if (fiType.parameterCount() > 0) {
+            String params = IntStream.range(0, fiType.parameterCount())
+                    .mapToObj(i -> {
+                        String paramExpr = "_" + parameterName(i);
+                        if (fiType.parameterType(i) != downcallType.parameterType(i)) {
+                            // add cast for invokeExact
+                            return "(" + downcallType.parameterType(i).getName() + ")" + paramExpr;
+                        } else {
+                            return paramExpr;
+                        }
+                    })
+                    .collect(Collectors.joining(", "));
+            append(", " + params);
+        }
+        append(");\n");
+        decrAlign();
+        indent();
+        append("} catch (Throwable ex$) {\n");
+        incrAlign();
+        indent();
+        append("throw new AssertionError(\"should not reach here\", ex$);\n");
+        decrAlign();
+        indent();
+        append("}\n");
+        decrAlign();
+        indent();
+        append("};\n");
+        decrAlign();
+        indent();
+        append("}\n");
+        decrAlign();
     }
 }
