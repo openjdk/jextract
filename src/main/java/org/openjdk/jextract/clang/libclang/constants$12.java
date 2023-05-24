@@ -39,7 +39,7 @@ final class constants$12 {
     static final FunctionDescriptor clang_getNumElements$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
@@ -49,12 +49,12 @@ final class constants$12 {
     );
     static final FunctionDescriptor clang_getArrayElementType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
+        MemoryLayout.paddingLayout(4),
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
@@ -65,7 +65,7 @@ final class constants$12 {
     static final FunctionDescriptor clang_getArraySize$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
@@ -76,7 +76,7 @@ final class constants$12 {
     static final FunctionDescriptor clang_Type_getSizeOf$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
@@ -87,7 +87,7 @@ final class constants$12 {
     static final FunctionDescriptor clang_Type_getOffsetOf$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         ),
         Constants$root.C_POINTER$LAYOUT

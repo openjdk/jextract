@@ -45,7 +45,7 @@ public class CXString {
     static final StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     );
     public static MemoryLayout $LAYOUT() {
         return CXString.$struct$LAYOUT;

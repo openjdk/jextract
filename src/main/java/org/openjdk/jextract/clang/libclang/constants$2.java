@@ -40,7 +40,7 @@ final class constants$2 {
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
             Constants$root.C_INT$LAYOUT.withName("int_data"),
-            MemoryLayout.paddingLayout(32)
+            MemoryLayout.paddingLayout(4)
         ),
         Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -55,7 +55,7 @@ final class constants$2 {
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
             Constants$root.C_INT$LAYOUT.withName("int_data"),
-            MemoryLayout.paddingLayout(32)
+            MemoryLayout.paddingLayout(4)
         ),
         Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -70,7 +70,7 @@ final class constants$2 {
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
             Constants$root.C_INT$LAYOUT.withName("int_data"),
-            MemoryLayout.paddingLayout(32)
+            MemoryLayout.paddingLayout(4)
         ),
         Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -84,7 +84,7 @@ final class constants$2 {
     static final FunctionDescriptor clang_getRangeStart$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
         Constants$root.C_INT$LAYOUT.withName("int_data"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
@@ -99,7 +99,7 @@ final class constants$2 {
     static final FunctionDescriptor clang_getRangeEnd$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
         Constants$root.C_INT$LAYOUT.withName("int_data"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),

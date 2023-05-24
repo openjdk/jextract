@@ -75,7 +75,7 @@ abstract class RecordLayoutComputer {
     }
 
     static final org.openjdk.jextract.Type.Declared ERRONEOUS = org.openjdk.jextract.Type.declared(
-            Declaration.struct(TreeMaker.CursorPosition.NO_POSITION, "", MemoryLayout.paddingLayout(64)));
+            Declaration.struct(TreeMaker.CursorPosition.NO_POSITION, "", MemoryLayout.paddingLayout(8)));
 
     private static org.openjdk.jextract.Type computeInternal(TypeMaker typeMaker, long offsetInParent, Type parent, Type type, String name) {
         Cursor cursor = type.getDeclarationCursor().getDefinition();
@@ -130,8 +130,8 @@ abstract class RecordLayoutComputer {
             layout = org.openjdk.jextract.Type.layoutFor(var.type()).orElse(null);
         }
         if (layout != null) {
-            if ((offset % layout.bitAlignment()) != 0) {
-                long maxAlign = Long.lowestOneBit(offset);
+            if ((offset % (layout.byteAlignment() * 8) != 0)) {
+                long maxAlign = Long.lowestOneBit(offset) / 8;
                 layout = forceAlign(layout, maxAlign);
             }
             fieldLayouts.add(declaration.name().isEmpty() ? layout : layout.withName(declaration.name()));
@@ -139,7 +139,7 @@ abstract class RecordLayoutComputer {
     }
 
     void addPadding(long bits) {
-        fieldLayouts.add(MemoryLayout.paddingLayout(bits));
+        fieldLayouts.add(MemoryLayout.paddingLayout(bits / 8));
     }
 
     void addField(long offset, Type parent, Cursor c) {
@@ -204,8 +204,8 @@ abstract class RecordLayoutComputer {
             return MemoryLayout.sequenceLayout(sequenceLayout.elementCount(),
                     forceAlign(sequenceLayout.elementLayout(), maxAlign));
         } else {
-            return layout.bitAlignment() > maxAlign ?
-                    layout.withBitAlignment(maxAlign) : layout;
+            return layout.byteAlignment() > maxAlign ?
+                    layout.withByteAlignment(maxAlign) : layout;
         }
     }
 }

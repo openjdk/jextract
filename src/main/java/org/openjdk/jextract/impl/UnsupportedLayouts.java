@@ -37,30 +37,30 @@ import java.nio.ByteOrder;
 public final class UnsupportedLayouts {
     private UnsupportedLayouts() {}
 
-    public static final MemoryLayout __INT128 = makeUnsupportedLayout(128, "__int128");
+    public static final MemoryLayout __INT128 = makeUnsupportedLayout(16, "__int128");
 
-    public static final MemoryLayout LONG_DOUBLE = makeUnsupportedLayout(128, "long double");
+    public static final MemoryLayout LONG_DOUBLE = makeUnsupportedLayout(16, "long double");
 
-    public static final MemoryLayout _FLOAT128 = makeUnsupportedLayout(128, "_float128");
+    public static final MemoryLayout _FLOAT128 = makeUnsupportedLayout(16, "_float128");
 
-    public static final MemoryLayout __FP16 = makeUnsupportedLayout(16, "__fp16");
+    public static final MemoryLayout __FP16 = makeUnsupportedLayout(2, "__fp16");
 
-    public static final MemoryLayout CHAR16 = makeUnsupportedLayout(16, "char16");
+    public static final MemoryLayout CHAR16 = makeUnsupportedLayout(2, "char16");
 
-    public static final MemoryLayout WCHAR_T = makeUnsupportedLayout(16, "wchar_t");
+    public static final MemoryLayout WCHAR_T = makeUnsupportedLayout(2, "wchar_t");
 
     static String firstUnsupportedType(Type type) {
         return type.accept(unsupportedVisitor, null);
     }
 
     private static MemoryLayout makeUnsupportedLayout(long size, String name) {
-        return MemoryLayout.paddingLayout(size).withBitAlignment(size).withName(name);
+        return MemoryLayout.paddingLayout(size).withByteAlignment(size).withName(name);
     }
 
     static Type.Visitor<String, Void> unsupportedVisitor = new Type.Visitor<>() {
         @Override
         public String visitPrimitive(Type.Primitive t, Void unused) {
-            MemoryLayout layout = t.kind().layout().orElse(MemoryLayout.paddingLayout(64));
+            MemoryLayout layout = t.kind().layout().orElse(MemoryLayout.paddingLayout(8));
             if (layout.equals(__INT128) || layout.equals(LONG_DOUBLE) || layout.equals(_FLOAT128) || layout.equals(__FP16)) {
                 return layout.name().get();
             } else {
