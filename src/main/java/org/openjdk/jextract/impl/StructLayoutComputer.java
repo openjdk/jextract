@@ -133,8 +133,8 @@ final class StructLayoutComputer extends RecordLayoutComputer {
          */
         handleBitfields();
 
-        MemoryLayout[] fields = fieldLayouts.toArray(new MemoryLayout[0]);
-        GroupLayout g = MemoryLayout.structLayout(fields);
+        GroupLayout g = MemoryLayout.structLayout(alignFields());
+        checkSize(g);
         if (!cursor.spelling().isEmpty()) {
             g = g.withName(cursor.spelling());
         } else if (anonName != null) {
