@@ -129,11 +129,11 @@ public interface Type {
             /**
              * {@code float} type.
              */
-            Float("float", ValueLayout.JAVA_FLOAT.withBitAlignment(32)),
+            Float("float", ValueLayout.JAVA_FLOAT),
             /**
              * {@code double} type.
              */
-            Double("double", ValueLayout.JAVA_DOUBLE.withBitAlignment(64)),
+            Double("double", ValueLayout.JAVA_DOUBLE),
             /**
               * {@code long double} type.
               */

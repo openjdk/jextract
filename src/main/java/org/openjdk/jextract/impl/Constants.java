@@ -346,9 +346,9 @@ public class Constants {
         private void emitLayoutString(MemoryLayout l) {
             if (l instanceof ValueLayout val) {
                 append(ImmediateConstant.ofPrimitiveLayout(val).accessExpression());
-                if (l.bitAlignment() != l.bitSize()) {
-                    append(".withBitAlignment(");
-                    append(l.bitAlignment());
+                if (l.byteAlignment() != l.byteSize()) {
+                    append(".withByteAlignment(");
+                    append(l.byteAlignment());
                     append(")");
                 }
             } else if (l instanceof SequenceLayout seq) {
@@ -376,7 +376,7 @@ public class Constants {
                 append(")");
             } else {
                 // padding (or unsupported)
-                append("MemoryLayout.paddingLayout(" + l.bitSize() + ")");
+                append("MemoryLayout.paddingLayout(" + l.byteSize() + ")");
             }
             if (l.name().isPresent()) {
                 append(".withName(\"" +  l.name().get() + "\")");

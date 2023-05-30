@@ -38,12 +38,12 @@ final class constants$11 {
     private constants$11() {}
     static final FunctionDescriptor clang_getResultType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
+        MemoryLayout.paddingLayout(4),
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
@@ -54,7 +54,7 @@ final class constants$11 {
     static final FunctionDescriptor clang_getNumArgTypes$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
@@ -64,12 +64,12 @@ final class constants$11 {
     );
     static final FunctionDescriptor clang_getArgType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
+        MemoryLayout.paddingLayout(4),
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         ),
         Constants$root.C_INT$LAYOUT
@@ -81,7 +81,7 @@ final class constants$11 {
     static final FunctionDescriptor clang_isFunctionTypeVariadic$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
@@ -91,7 +91,7 @@ final class constants$11 {
     );
     static final FunctionDescriptor clang_getCursorResultType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
+        MemoryLayout.paddingLayout(4),
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
@@ -106,12 +106,12 @@ final class constants$11 {
     );
     static final FunctionDescriptor clang_getElementType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
+        MemoryLayout.paddingLayout(4),
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );

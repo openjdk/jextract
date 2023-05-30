@@ -55,12 +55,12 @@ final class constants$9 {
     static final FunctionDescriptor clang_equalTypes$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         ),
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
@@ -70,12 +70,12 @@ final class constants$9 {
     );
     static final FunctionDescriptor clang_getCanonicalType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
+        MemoryLayout.paddingLayout(4),
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );
@@ -86,7 +86,7 @@ final class constants$9 {
     static final FunctionDescriptor clang_isConstQualifiedType$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );

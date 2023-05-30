@@ -44,7 +44,7 @@ public class TestPackedStructs extends JextractApiTestBase {
         for (String name : NAMES) {
             Declaration.Scoped scoped = checkStruct(d, name, "first", "second");
             GroupLayout groupLayout = (GroupLayout)scoped.layout().get();
-            assertEquals(groupLayout.memberLayouts().get(1).bitAlignment(), 8);
+            assertEquals(groupLayout.memberLayouts().get(1).byteAlignment(), 1);
         }
     }
 }

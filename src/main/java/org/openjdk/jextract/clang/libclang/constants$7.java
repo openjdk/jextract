@@ -61,7 +61,7 @@ final class constants$7 {
     static final FunctionDescriptor clang_getCursorLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
         Constants$root.C_INT$LAYOUT.withName("int_data"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
@@ -90,7 +90,7 @@ final class constants$7 {
     );
     static final FunctionDescriptor clang_getCursorType$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_INT$LAYOUT.withName("kind"),
-        MemoryLayout.paddingLayout(32),
+        MemoryLayout.paddingLayout(4),
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
     ),
         MemoryLayout.structLayout(
@@ -106,11 +106,11 @@ final class constants$7 {
     static final FunctionDescriptor clang_getTypeSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),
-            MemoryLayout.paddingLayout(32),
+            MemoryLayout.paddingLayout(4),
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
         )
     );

@@ -61,7 +61,7 @@ final class constants$3 {
     static final FunctionDescriptor clang_formatDiagnostic$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_INT$LAYOUT

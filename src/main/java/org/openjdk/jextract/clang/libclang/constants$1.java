@@ -40,12 +40,12 @@ final class constants$1 {
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
             Constants$root.C_INT$LAYOUT.withName("int_data"),
-            MemoryLayout.paddingLayout(32)
+            MemoryLayout.paddingLayout(4)
         ),
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
             Constants$root.C_INT$LAYOUT.withName("int_data"),
-            MemoryLayout.paddingLayout(32)
+            MemoryLayout.paddingLayout(4)
         )
     );
     static final MethodHandle clang_equalLocations$MH = RuntimeHelper.downcallHandle(
@@ -55,7 +55,7 @@ final class constants$1 {
     static final FunctionDescriptor clang_getLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
         Constants$root.C_INT$LAYOUT.withName("int_data"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -69,7 +69,7 @@ final class constants$1 {
     static final FunctionDescriptor clang_getLocationForOffset$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
         Constants$root.C_INT$LAYOUT.withName("int_data"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         Constants$root.C_POINTER$LAYOUT,
         Constants$root.C_POINTER$LAYOUT,
@@ -83,7 +83,7 @@ final class constants$1 {
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
             Constants$root.C_INT$LAYOUT.withName("int_data"),
-            MemoryLayout.paddingLayout(32)
+            MemoryLayout.paddingLayout(4)
         )
     );
     static final MethodHandle clang_Location_isInSystemHeader$MH = RuntimeHelper.downcallHandle(
@@ -94,7 +94,7 @@ final class constants$1 {
         MemoryLayout.structLayout(
             MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
             Constants$root.C_INT$LAYOUT.withName("int_data"),
-            MemoryLayout.paddingLayout(32)
+            MemoryLayout.paddingLayout(4)
         )
     );
     static final MethodHandle clang_Location_isFromMainFile$MH = RuntimeHelper.downcallHandle(

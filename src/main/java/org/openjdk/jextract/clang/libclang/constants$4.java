@@ -39,7 +39,7 @@ final class constants$4 {
     static final FunctionDescriptor clang_getDiagnosticLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
         Constants$root.C_INT$LAYOUT.withName("int_data"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         Constants$root.C_POINTER$LAYOUT
     );
@@ -50,7 +50,7 @@ final class constants$4 {
     static final FunctionDescriptor clang_getDiagnosticSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         Constants$root.C_POINTER$LAYOUT
     );
