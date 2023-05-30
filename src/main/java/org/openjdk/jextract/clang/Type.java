@@ -164,8 +164,20 @@ public final class Type extends ClangDisposable.Owned {
         return Index_h.clang_Type_getSizeOf(segment);
     }
 
+    private long align0() {
+        return Index_h.clang_Type_getAlignOf(segment);
+    }
+
     public long size() {
         long res = size0();
+        if(TypeLayoutError.isError(res)) {
+            throw new TypeLayoutError(res, String.format("segment: %s", this));
+        }
+        return res;
+    }
+
+    public long align() {
+        long res = align0();
         if(TypeLayoutError.isError(res)) {
             throw new TypeLayoutError(res, String.format("segment: %s", this));
         }

@@ -26,6 +26,7 @@
 
 package org.openjdk.jextract.impl;
 
+import java.lang.foreign.AddressLayout;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
@@ -130,10 +131,6 @@ abstract class RecordLayoutComputer {
             layout = org.openjdk.jextract.Type.layoutFor(var.type()).orElse(null);
         }
         if (layout != null) {
-            if ((offset % (layout.byteAlignment() * 8) != 0)) {
-                long maxAlign = Long.lowestOneBit(offset) / 8;
-                layout = forceAlign(layout, maxAlign);
-            }
             fieldLayouts.add(declaration.name().isEmpty() ? layout : layout.withName(declaration.name()));
         }
     }
@@ -193,19 +190,46 @@ abstract class RecordLayoutComputer {
         }
     }
 
-    MemoryLayout forceAlign(MemoryLayout layout, long maxAlign) {
-        if (layout instanceof GroupLayout groupLayout) {
-            MemoryLayout[] newMembers = groupLayout.memberLayouts()
-                    .stream().map(l -> forceAlign(l, maxAlign)).toArray(MemoryLayout[]::new);
-            return groupLayout instanceof StructLayout ?
-                    MemoryLayout.structLayout(newMembers) :
-                    MemoryLayout.unionLayout(newMembers);
-        } else if (layout instanceof SequenceLayout sequenceLayout) {
-            return MemoryLayout.sequenceLayout(sequenceLayout.elementCount(),
-                    forceAlign(sequenceLayout.elementLayout(), maxAlign));
-        } else {
-            return layout.byteAlignment() > maxAlign ?
-                    layout.withByteAlignment(maxAlign) : layout;
+    void checkSize(GroupLayout layout) {
+        // sanity check
+        if (cursor.type().size() != layout.byteSize()) {
+            throw new AssertionError(
+                    String.format("Unexpected size for layout %s. Found %d ; expected %d",
+                            layout, layout.byteSize(), cursor.type().size()));
         }
+    }
+
+    MemoryLayout[] alignFields() {
+        long align = cursor.type().align();
+        return fieldLayouts.stream()
+                .map(l -> forceAlign(l, align))
+                .toArray(MemoryLayout[]::new);
+    }
+
+    private static MemoryLayout forceAlign(MemoryLayout layout, long align) {
+        if (align >= layout.byteAlignment()) {
+            return layout; // fast-path
+        }
+        MemoryLayout res = switch (layout) {
+            case GroupLayout groupLayout -> {
+                MemoryLayout[] newMembers = groupLayout.memberLayouts()
+                        .stream().map(l -> forceAlign(l, align)).toArray(MemoryLayout[]::new);
+                yield groupLayout instanceof StructLayout ?
+                        MemoryLayout.structLayout(newMembers) :
+                        MemoryLayout.unionLayout(newMembers);
+            }
+            case SequenceLayout sequenceLayout ->
+                MemoryLayout.sequenceLayout(sequenceLayout.elementCount(),
+                        forceAlign(sequenceLayout.elementLayout(), align));
+            default -> layout.withByteAlignment(align);
+        };
+        // copy name and target layout, if present
+        if (layout.name().isPresent()) {
+            res = res.withName(layout.name().get());
+        }
+        if (layout instanceof AddressLayout addressLayout && addressLayout.targetLayout().isPresent()) {
+            ((AddressLayout)res).withTargetLayout(addressLayout.targetLayout().get());
+        }
+        return res;
     }
 }

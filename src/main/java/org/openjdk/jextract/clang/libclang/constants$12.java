@@ -84,6 +84,17 @@ final class constants$12 {
         "clang_Type_getSizeOf",
         constants$12.clang_Type_getSizeOf$FUNC
     );
+    static final FunctionDescriptor clang_Type_getAlignOf$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
+            MemoryLayout.structLayout(
+                    Constants$root.C_INT$LAYOUT.withName("kind"),
+                    MemoryLayout.paddingLayout(4),
+                    MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
+            )
+    );
+    static final MethodHandle clang_Type_getAlignOf$MH = RuntimeHelper.downcallHandle(
+            "clang_Type_getAlignOf",
+            constants$12.clang_Type_getAlignOf$FUNC
+    );
     static final FunctionDescriptor clang_Type_getOffsetOf$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
         MemoryLayout.structLayout(
             Constants$root.C_INT$LAYOUT.withName("kind"),

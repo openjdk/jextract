@@ -4990,6 +4990,22 @@ public class Index_h  {
             throw new AssertionError("should not reach here", ex$);
         }
     }
+    public static MethodHandle clang_Type_getAlignOf$MH() {
+        return RuntimeHelper.requireNonNull(constants$12.clang_Type_getAlignOf$MH,"clang_Type_getAlignOf");
+    }
+    /**
+     * {@snippet :
+     * long long clang_Type_getAlignOf(CXType T);
+     * }
+     */
+    public static long clang_Type_getAlignOf(MemorySegment T) {
+        var mh$ = clang_Type_getAlignOf$MH();
+        try {
+            return (long)mh$.invokeExact(T);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
+    }
     public static MethodHandle clang_Type_getOffsetOf$MH() {
         return RuntimeHelper.requireNonNull(constants$12.clang_Type_getOffsetOf$MH,"clang_Type_getOffsetOf");
     }
