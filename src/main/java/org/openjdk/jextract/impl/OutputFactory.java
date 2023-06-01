@@ -208,15 +208,15 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     private boolean generateFunctionalInterface(Type.Function func, String javaName) {
-        FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
-        if (descriptor == null) {
-            return false;
-        }
-
         String unsupportedType = UnsupportedLayouts.firstUnsupportedType(func);
         if (unsupportedType != null) {
             warn("skipping " + javaName + " because of unsupported type usage: " +
                     unsupportedType);
+            return false;
+        }
+
+        FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
+        if (descriptor == null) {
             return false;
         }
 
@@ -233,16 +233,16 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitFunction(Declaration.Function funcTree, Declaration parent) {
-        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
-        if (descriptor == null) {
-            return null;
-        }
-
         //generate static wrapper for function
         String unsupportedType = UnsupportedLayouts.firstUnsupportedType(funcTree.type());
         if (unsupportedType != null) {
             warn("skipping " + funcTree.name() + " because of unsupported type usage: " +
                     unsupportedType);
+            return null;
+        }
+
+        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
+        if (descriptor == null) {
             return null;
         }
 
