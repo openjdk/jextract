@@ -85,7 +85,7 @@ final class UnionLayoutComputer extends RecordLayoutComputer {
     }
 
     @Override
-    Declaration.Scoped finishRecord(String anonName) {
+    Declaration.Scoped finishRecord(String layoutName, String declName) {
         // size mismatch indicates use of bitfields in union
         long expectedSize = type.size() * 8;
         if (actualSize < expectedSize) {
@@ -95,11 +95,7 @@ final class UnionLayoutComputer extends RecordLayoutComputer {
 
         GroupLayout g = MemoryLayout.unionLayout(alignFields());
         checkSize(g);
-        if (!cursor.spelling().isEmpty()) {
-            g = g.withName(cursor.spelling());
-        } else if (anonName != null) {
-            g = g.withName(anonName);
-        }
-        return Declaration.union(TreeMaker.CursorPosition.of(cursor), cursor.spelling(), g, fieldDecls.stream().toArray(Declaration[]::new));
+        g = g.withName(layoutName);
+        return Declaration.union(TreeMaker.CursorPosition.of(cursor), declName, g, fieldDecls.stream().toArray(Declaration[]::new));
     }
 }

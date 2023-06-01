@@ -222,7 +222,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
         //generate functional interface
         if (func.varargs() && !func.argumentTypes().isEmpty()) {
-            warn("varargs in callbacks is not supported: " + func);
+            warn("varargs in callbacks is not supported: " + CDeclarationPrinter.declaration(func, javaName));
             return false;
         }
 
