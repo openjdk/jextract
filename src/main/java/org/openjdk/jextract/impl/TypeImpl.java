@@ -373,7 +373,7 @@ public abstract class TypeImpl implements Type {
     public static Optional<MemoryLayout> getLayout(org.openjdk.jextract.Type t) {
         try {
             return Optional.of(getLayoutInternal(t));
-        } catch (UnsupportedOperationException ex) {
+        } catch (Throwable ex) {
             return Optional.empty();
         }
     }
@@ -389,7 +389,7 @@ public abstract class TypeImpl implements Type {
             } else {
                 return Optional.of(FunctionDescriptor.of(getLayoutInternal(retType), args));
             }
-        } catch (UnsupportedOperationException ex) {
+        } catch (Throwable ex) {
             return Optional.empty();
         }
     }
