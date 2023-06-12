@@ -110,7 +110,8 @@ abstract class RecordLayoutComputer {
             }
         });
 
-        Declaration.Scoped declaration = finishRecord(anonName);
+        String declName = recordName();
+        Declaration.Scoped declaration = finishRecord(anonName != null ? anonName : declName, declName);
         if (cursor.isAnonymousStruct()) {
             // record this with a declaration attribute, so we don't have to rely on the cursor again later
             declaration = (Declaration.Scoped)declaration.withAttribute("ANONYMOUS", true);
@@ -120,7 +121,7 @@ abstract class RecordLayoutComputer {
 
     abstract void startBitfield();
     abstract void processField(Cursor c);
-    abstract Declaration.Scoped finishRecord(String anonName);
+    abstract Declaration.Scoped finishRecord(String layoutName, String declName);
 
     void addField(long offset, Declaration declaration) {
         fieldDecls.add(declaration);
@@ -196,6 +197,14 @@ abstract class RecordLayoutComputer {
             throw new AssertionError(
                     String.format("Unexpected size for layout %s. Found %d ; expected %d",
                             layout, layout.byteSize(), cursor.type().size()));
+        }
+    }
+
+    private String recordName() {
+        if (cursor.isAnonymous()) {
+            return "";
+        } else {
+            return cursor.spelling();
         }
     }
 

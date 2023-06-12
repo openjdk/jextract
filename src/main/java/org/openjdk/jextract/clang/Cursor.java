@@ -64,6 +64,10 @@ public final class Cursor extends ClangDisposable.Owned {
         return Index_h.clang_Cursor_isAnonymousRecordDecl(segment) != 0;
     }
 
+    public boolean isAnonymous() {
+        return Index_h.clang_Cursor_isAnonymous(segment) != 0;
+    }
+
     public boolean isMacroFunctionLike() {
         return Index_h.clang_Cursor_isMacroFunctionLike(segment) != 0;
     }

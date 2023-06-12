@@ -137,7 +137,9 @@ public interface Type {
             /**
               * {@code long double} type.
               */
-            LongDouble("long double", UnsupportedLayouts.LONG_DOUBLE),
+            LongDouble("long double", TypeImpl.IS_WINDOWS ?
+                    ValueLayout.JAVA_DOUBLE :
+                    UnsupportedLayouts.LONG_DOUBLE),
             /**
              * {@code float128} type.
              */

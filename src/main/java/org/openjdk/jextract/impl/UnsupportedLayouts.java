@@ -25,7 +25,6 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 

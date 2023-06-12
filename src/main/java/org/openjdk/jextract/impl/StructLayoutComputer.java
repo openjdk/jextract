@@ -86,6 +86,11 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     void processField(Cursor c) {
         boolean isBitfield = c.isBitField();
         long expectedOffset = offsetOf(parent, c);
+        if (offset > expectedOffset) {
+            // out-of-order field, skip
+            System.err.println("WARNING: ignoring field: " + c.spelling() + " in struct " + type.spelling());
+            return;
+        }
         if (expectedOffset > offset) {
             addPadding(expectedOffset - offset);
             actualSize += (expectedOffset - offset);
@@ -115,7 +120,7 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     }
 
     @Override
-    Declaration.Scoped finishRecord(String anonName) {
+    Declaration.Scoped finishRecord(String layoutName, String declName) {
         // pad at the end, if any
         long expectedSize = type.size() * 8;
         if (actualSize < expectedSize) {
@@ -135,12 +140,8 @@ final class StructLayoutComputer extends RecordLayoutComputer {
 
         GroupLayout g = MemoryLayout.structLayout(alignFields());
         checkSize(g);
-        if (!cursor.spelling().isEmpty()) {
-            g = g.withName(cursor.spelling());
-        } else if (anonName != null) {
-            g = g.withName(anonName);
-        }
-        Declaration.Scoped declaration = Declaration.struct(TreeMaker.CursorPosition.of(cursor), cursor.spelling(),
+        g = g.withName(layoutName);
+        Declaration.Scoped declaration = Declaration.struct(TreeMaker.CursorPosition.of(cursor), declName,
                 g, fieldDecls.stream().toArray(Declaration[]::new));
         return declaration;
     }
