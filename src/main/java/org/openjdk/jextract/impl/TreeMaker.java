@@ -231,12 +231,7 @@ class TreeMaker {
             MemoryLayout layout = TypeMaker.valueLayoutForSize(c.type().size() * 8).layout().orElseThrow();
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), layout, decls.toArray(new Declaration[0]));
         } else {
-            //just a declaration
-            //if there's a real definition somewhere else, skip this redundant declaration
-            if (!c.getDefinition().isInvalid()) {
-                return null;
-            }
-            return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
+            return null;
         }
     }
 

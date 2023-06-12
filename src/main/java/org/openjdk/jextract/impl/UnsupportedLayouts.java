@@ -25,7 +25,6 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
@@ -37,11 +36,9 @@ import java.nio.ByteOrder;
 public final class UnsupportedLayouts {
     private UnsupportedLayouts() {}
 
-    private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
-
     public static final MemoryLayout __INT128 = makeUnsupportedLayout(16, "__int128");
 
-    public static final MemoryLayout LONG_DOUBLE = makeUnsupportedLayout(IS_WINDOWS ? 8 : 16, "long double");
+    public static final MemoryLayout LONG_DOUBLE = makeUnsupportedLayout(16, "long double");
 
     public static final MemoryLayout _FLOAT128 = makeUnsupportedLayout(16, "_float128");
 

@@ -88,6 +88,7 @@ final class StructLayoutComputer extends RecordLayoutComputer {
         long expectedOffset = offsetOf(parent, c);
         if (offset > expectedOffset) {
             // out-of-order field, skip
+            System.err.println("WARNING: ignoring field: " + c.spelling() + " in struct " + type.spelling());
             return;
         }
         if (expectedOffset > offset) {
