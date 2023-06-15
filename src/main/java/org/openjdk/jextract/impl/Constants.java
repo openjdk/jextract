@@ -65,7 +65,7 @@ public class Constants {
             });
         }
         AddressLayout pointerLayout = ValueLayout.ADDRESS.withTargetLayout(
-                MemoryLayout.sequenceLayout(ValueLayout.JAVA_BYTE));
+                MemoryLayout.sequenceLayout(Long.MAX_VALUE, ValueLayout.JAVA_BYTE));
         cache.put(pointerLayout, ImmediateConstant.ofPrimitiveLayout(pointerLayout));
     }
 
@@ -427,7 +427,7 @@ public class Constants {
             append("MemorySegment ");
             NamedConstant segConstant = new NamedConstant(MemorySegment.class);
             append(segConstant.constantName);
-            append(" = RuntimeHelper.CONSTANT_ALLOCATOR.allocateUtf8String(\"");
+            append(" = RuntimeHelper.CONSTANT_ALLOCATOR.allocateString(\"");
             append(Utils.quote(Objects.toString(value)));
             append("\");\n");
             decrAlign();

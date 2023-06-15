@@ -44,7 +44,7 @@ import static test.jextract.test8253390.test8253390_h.*;
 public class LibTest8253390Test {
     @Test
     public void testSquare() {
-        assertEquals(GREETING().getUtf8String(0), "hello\nworld");
-        assertEquals(GREETING2().getUtf8String(0), "hello\tworld");
+        assertEquals(GREETING().getString(0), "hello\nworld");
+        assertEquals(GREETING2().getString(0), "hello\tworld");
     }
 }

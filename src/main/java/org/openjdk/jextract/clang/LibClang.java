@@ -47,7 +47,7 @@ public class LibClang {
     private static final SegmentAllocator IMPLICIT_ALLOCATOR = (size, align) -> Arena.ofAuto().allocate(size, align);
 
     private final static MemorySegment disableCrashRecovery =
-            IMPLICIT_ALLOCATOR.allocateUtf8String("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
+            IMPLICIT_ALLOCATOR.allocateString("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
 
     static {
         if (!CRASH_RECOVERY) {
@@ -75,7 +75,7 @@ public class LibClang {
 
     public static String CXStrToString(MemorySegment cxstr) {
         MemorySegment buf = Index_h.clang_getCString(cxstr);
-        String str = buf.getUtf8String(0);
+        String str = buf.getString(0);
         Index_h.clang_disposeString(cxstr);
         return str;
     }

@@ -106,7 +106,7 @@ public final class Type extends ClangDisposable.Owned {
     // Struct/RecordType
     private long getOffsetOf0(String fieldName) {
         try (Arena arena = Arena.ofConfined()) {
-            MemorySegment cfname = arena.allocateUtf8String(fieldName);
+            MemorySegment cfname = arena.allocateString(fieldName);
             return Index_h.clang_Type_getOffsetOf(segment, cfname);
         }
     }

@@ -106,7 +106,7 @@ public class ConstantsTest extends JextractToolRunner {
     }
 
     static Consumer<MemorySegment> equalsToJavaStr(String expected) {
-        return actual -> assertEquals(actual.getUtf8String(0), expected);
+        return actual -> assertEquals(actual.getString(0), expected);
     }
 
     static Consumer<MemorySegment> equalsPtrContents(long expected) {
