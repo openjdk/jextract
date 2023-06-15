@@ -86,8 +86,8 @@ import org.jextract.Point2d;
 
 class TestPoint {
     public static void main(String[] args) {
-        try (var session = MemorySession.openConfined()) {
-           MemorySegment point = MemorySegment.allocateNative(Point2d.$LAYOUT(), session);
+        try (Arena arena = Arena.ofConfined()) {
+           MemorySegment point = arena.allocate(Point2d.$LAYOUT());
            Point2d.x$set(point, 3d);
            Point2d.y$set(point, 4d);
            distance(point);
