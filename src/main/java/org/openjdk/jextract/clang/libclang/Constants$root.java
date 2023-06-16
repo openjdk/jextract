@@ -45,7 +45,7 @@ final class Constants$root {
     static final OfFloat C_FLOAT$LAYOUT = JAVA_FLOAT;
     static final OfDouble C_DOUBLE$LAYOUT = JAVA_DOUBLE;
     static final AddressLayout C_POINTER$LAYOUT = ADDRESS
-            .withTargetLayout(MemoryLayout.sequenceLayout(C_CHAR$LAYOUT));
+            .withTargetLayout(MemoryLayout.sequenceLayout(Long.MAX_VALUE, C_CHAR$LAYOUT));
 }
 
 

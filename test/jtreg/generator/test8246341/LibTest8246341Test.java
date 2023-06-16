@@ -53,10 +53,10 @@ public class LibTest8246341Test {
             var callback = func$callback.allocate((argc, argv) -> {
                 callbackCalled[0] = true;
                 assertEquals(argc, 4);
-                assertEquals(argv.getAtIndex(C_POINTER, 0).getUtf8String(0), "java");
-                assertEquals(argv.getAtIndex(C_POINTER, 1).getUtf8String(0), "python");
-                assertEquals(argv.getAtIndex(C_POINTER, 2).getUtf8String(0), "javascript");
-                assertEquals(argv.getAtIndex(C_POINTER, 3).getUtf8String(0), "c++");
+                assertEquals(argv.getAtIndex(C_POINTER, 0).getString(0), "java");
+                assertEquals(argv.getAtIndex(C_POINTER, 1).getString(0), "python");
+                assertEquals(argv.getAtIndex(C_POINTER, 2).getString(0), "javascript");
+                assertEquals(argv.getAtIndex(C_POINTER, 3).getString(0), "c++");
             }, arena);
             func(callback);
         }
@@ -69,7 +69,7 @@ public class LibTest8246341Test {
             var addr = arena.allocate(C_POINTER);
             addr.set(C_POINTER, 0, MemorySegment.NULL);
             fillin(addr);
-            assertEquals(addr.get(C_POINTER, 0).getUtf8String(0), "hello world");
+            assertEquals(addr.get(C_POINTER, 0).getString(0), "hello world");
         }
     }
 }

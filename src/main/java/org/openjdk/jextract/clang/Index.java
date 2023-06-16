@@ -71,10 +71,10 @@ public class Index extends ClangDisposable {
     public TranslationUnit parseTU(String file, Consumer<Diagnostic> dh, int options, String... args)
             throws ParsingFailedException {
         try (Arena arena = Arena.ofConfined()) {
-            MemorySegment src = arena.allocateUtf8String(file);
+            MemorySegment src = arena.allocateString(file);
             MemorySegment cargs = args.length == 0 ? null : arena.allocateArray(C_POINTER, args.length);
             for (int i = 0 ; i < args.length ; i++) {
-                cargs.set(C_POINTER, i * C_POINTER.byteSize(), arena.allocateUtf8String(args[i]));
+                cargs.set(C_POINTER, i * C_POINTER.byteSize(), arena.allocateString(args[i]));
             }
             MemorySegment outAddress = arena.allocate(C_POINTER);
             ErrorCode code = ErrorCode.valueOf(Index_h.clang_parseTranslationUnit2(

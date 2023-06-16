@@ -181,7 +181,7 @@ public abstract class TypeImpl implements Type {
 
     public static final class PointerImpl extends DelegatedBase {
         public static final AddressLayout POINTER_LAYOUT = ADDRESS
-                .withTargetLayout(MemoryLayout.sequenceLayout(ValueLayout.JAVA_BYTE));
+                .withTargetLayout(MemoryLayout.sequenceLayout(Long.MAX_VALUE, ValueLayout.JAVA_BYTE));
 
         private final Supplier<Type> pointeeFactory;
 

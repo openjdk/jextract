@@ -63,7 +63,7 @@ public class JextractToolRunner {
     public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT;
     public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
     public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
-            .withTargetLayout(MemoryLayout.sequenceLayout(C_CHAR));
+            .withTargetLayout(MemoryLayout.sequenceLayout(Long.MAX_VALUE, C_CHAR));
 
     // (private) exit codes from jextract tool. Copied from JextractTool.
     protected static final int SUCCESS       = 0;

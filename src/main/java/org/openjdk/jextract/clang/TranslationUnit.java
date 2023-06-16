@@ -57,7 +57,7 @@ public class TranslationUnit extends ClangDisposable {
 
     public final void save(Path path) throws TranslationUnitSaveException {
         try (Arena arena = Arena.ofConfined()) {
-            MemorySegment pathStr = arena.allocateUtf8String(path.toAbsolutePath().toString());
+            MemorySegment pathStr = arena.allocateString(path.toAbsolutePath().toString());
             SaveError res = SaveError.valueOf(Index_h.clang_saveTranslationUnit(ptr, pathStr, 0));
             if (res != SaveError.None) {
                 throw new TranslationUnitSaveException(path, res);
@@ -85,8 +85,8 @@ public class TranslationUnit extends ClangDisposable {
                     arena.allocateArray(CXUnsavedFile.$LAYOUT(), inMemoryFiles.length);
             for (int i = 0; i < inMemoryFiles.length; i++) {
                 MemorySegment start = files.asSlice(i * CXUnsavedFile.$LAYOUT().byteSize());
-                start.set(C_POINTER, FILENAME_OFFSET, arena.allocateUtf8String(inMemoryFiles[i].file));
-                start.set(C_POINTER, CONTENTS_OFFSET, arena.allocateUtf8String(inMemoryFiles[i].contents));
+                start.set(C_POINTER, FILENAME_OFFSET, arena.allocateString(inMemoryFiles[i].file));
+                start.set(C_POINTER, CONTENTS_OFFSET, arena.allocateString(inMemoryFiles[i].contents));
                 start.set(C_INT, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
             }
             ErrorCode code;

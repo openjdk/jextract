@@ -44,7 +44,7 @@ import static org.testng.Assert.assertNotNull;
 
 public class TestClassGeneration extends JextractToolRunner {
 
-    private static final VarHandle VH_bytes = MemoryLayout.sequenceLayout(C_CHAR).varHandle(sequenceElement());
+    private static final VarHandle VH_bytes = C_CHAR.arrayElementVarHandle();
 
     private Path outputDir;
     private TestUtils.Loader loader;
