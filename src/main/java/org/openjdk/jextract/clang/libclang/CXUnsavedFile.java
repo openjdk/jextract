@@ -62,7 +62,7 @@ public class CXUnsavedFile {
      * }
      */
     public static MemorySegment Filename$get(MemorySegment seg) {
-        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Filename$VH.get(seg);
+        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Filename$VH.get(seg, 0L);
     }
     /**
      * Setter for field:
@@ -71,7 +71,7 @@ public class CXUnsavedFile {
      * }
      */
     public static void Filename$set(MemorySegment seg, MemorySegment x) {
-        CXUnsavedFile.Filename$VH.set(seg, x);
+        CXUnsavedFile.Filename$VH.set(seg, 0L, x);
     }
     public static MemorySegment Filename$get(MemorySegment seg, long index) {
         return (java.lang.foreign.MemorySegment)CXUnsavedFile.Filename$VH.get(seg.asSlice(index*sizeof()));
@@ -90,7 +90,7 @@ public class CXUnsavedFile {
      * }
      */
     public static MemorySegment Contents$get(MemorySegment seg) {
-        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Contents$VH.get(seg);
+        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Contents$VH.get(seg, 0L);
     }
     /**
      * Setter for field:
@@ -99,7 +99,7 @@ public class CXUnsavedFile {
      * }
      */
     public static void Contents$set(MemorySegment seg, MemorySegment x) {
-        CXUnsavedFile.Contents$VH.set(seg, x);
+        CXUnsavedFile.Contents$VH.set(seg, 0L, x);
     }
     public static MemorySegment Contents$get(MemorySegment seg, long index) {
         return (java.lang.foreign.MemorySegment)CXUnsavedFile.Contents$VH.get(seg.asSlice(index*sizeof()));
@@ -118,7 +118,7 @@ public class CXUnsavedFile {
      * }
      */
     public static long Length$get(MemorySegment seg) {
-        return (long)CXUnsavedFile.Length$VH.get(seg);
+        return (long)CXUnsavedFile.Length$VH.get(seg, 0L);
     }
     /**
      * Setter for field:
@@ -127,7 +127,7 @@ public class CXUnsavedFile {
      * }
      */
     public static void Length$set(MemorySegment seg, long x) {
-        CXUnsavedFile.Length$VH.set(seg, x);
+        CXUnsavedFile.Length$VH.set(seg, 0L, x);
     }
     public static long Length$get(MemorySegment seg, long index) {
         return (long)CXUnsavedFile.Length$VH.get(seg.asSlice(index*sizeof()));

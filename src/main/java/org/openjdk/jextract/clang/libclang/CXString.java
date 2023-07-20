@@ -61,7 +61,7 @@ public class CXString {
      * }
      */
     public static MemorySegment data$get(MemorySegment seg) {
-        return (java.lang.foreign.MemorySegment)CXString.data$VH.get(seg);
+        return (java.lang.foreign.MemorySegment)CXString.data$VH.get(seg, 0L);
     }
     /**
      * Setter for field:
@@ -70,7 +70,7 @@ public class CXString {
      * }
      */
     public static void data$set(MemorySegment seg, MemorySegment x) {
-        CXString.data$VH.set(seg, x);
+        CXString.data$VH.set(seg, 0L, x);
     }
     public static MemorySegment data$get(MemorySegment seg, long index) {
         return (java.lang.foreign.MemorySegment)CXString.data$VH.get(seg.asSlice(index*sizeof()));
@@ -89,7 +89,7 @@ public class CXString {
      * }
      */
     public static int private_flags$get(MemorySegment seg) {
-        return (int)CXString.private_flags$VH.get(seg);
+        return (int)CXString.private_flags$VH.get(seg, 0L);
     }
     /**
      * Setter for field:
@@ -98,7 +98,7 @@ public class CXString {
      * }
      */
     public static void private_flags$set(MemorySegment seg, int x) {
-        CXString.private_flags$VH.set(seg, x);
+        CXString.private_flags$VH.set(seg, 0L, x);
     }
     public static int private_flags$get(MemorySegment seg, long index) {
         return (int)CXString.private_flags$VH.get(seg.asSlice(index*sizeof()));

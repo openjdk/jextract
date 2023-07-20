@@ -427,7 +427,7 @@ public class Constants {
             append("MemorySegment ");
             NamedConstant segConstant = new NamedConstant(MemorySegment.class);
             append(segConstant.constantName);
-            append(" = RuntimeHelper.CONSTANT_ALLOCATOR.allocateString(\"");
+            append(" = RuntimeHelper.CONSTANT_ALLOCATOR.allocateFrom(\"");
             append(Utils.quote(Objects.toString(value)));
             append("\");\n");
             decrAlign();

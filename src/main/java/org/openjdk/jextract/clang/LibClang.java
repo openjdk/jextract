@@ -47,7 +47,7 @@ public class LibClang {
     private static final SegmentAllocator IMPLICIT_ALLOCATOR = (size, align) -> Arena.ofAuto().allocate(size, align);
 
     private final static MemorySegment disableCrashRecovery =
-            IMPLICIT_ALLOCATOR.allocateString("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
+            IMPLICIT_ALLOCATOR.allocateFrom("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
 
     static {
         if (!CRASH_RECOVERY) {

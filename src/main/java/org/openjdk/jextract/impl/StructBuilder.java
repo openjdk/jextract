@@ -195,7 +195,7 @@ class StructBuilder extends ClassSourceBuilder {
         incrAlign();
         indent();
         append("return (" + type.getName() + ")"
-                + vhConstant.accessExpression() + ".get(" + seg + ");\n");
+                + vhConstant.accessExpression() + ".get(" + seg + ", 0L);\n");
         decrAlign();
         indent();
         append("}\n");
@@ -211,7 +211,7 @@ class StructBuilder extends ClassSourceBuilder {
         append(MEMBER_MODS + " void " + javaName + "$set(" + param + ", " + type.getSimpleName() + " " + x + ") {\n");
         incrAlign();
         indent();
-        append(vhConstant.accessExpression() + ".set(" + seg + ", " + x + ");\n");
+        append(vhConstant.accessExpression() + ".set(" + seg + ", 0L, " + x + ");\n");
         decrAlign();
         indent();
         append("}\n");
@@ -297,10 +297,8 @@ class StructBuilder extends ClassSourceBuilder {
         append("return (" + type.getName() + ")");
         append(vhConstant.accessExpression());
         append(".get(");
-        append(seg);
-        append(".asSlice(");
-        append(index);
-        append("*sizeof()));\n");
+        append(seg + ", ");
+        append(index + " * sizeof());");
         decrAlign();
         indent();
         append("}\n");
@@ -320,10 +318,8 @@ class StructBuilder extends ClassSourceBuilder {
         indent();
         append(vhConstant.accessExpression());
         append(".set(");
-        append(seg);
-        append(".asSlice(");
-        append(index);
-        append("*sizeof()), ");
+        append(seg + ", ");
+        append(index + " * sizeof(), ");
         append(x);
         append(");\n");
         decrAlign();

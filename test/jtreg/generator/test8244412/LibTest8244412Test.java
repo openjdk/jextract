@@ -52,7 +52,7 @@ public class LibTest8244412Test {
     @Test
     public void test() {
         try (var arena = Arena.ofConfined()) {
-            var addr = arena.allocate(mysize_t, 0L);
+            var addr = arena.allocateFrom(mysize_t, 0L);
             assertEquals(addr.get(C_LONG_LONG, 0), 0L);
             addr.set(C_LONG_LONG, 0, 13455566L);
             assertEquals(addr.get(C_LONG_LONG, 0), 13455566L);

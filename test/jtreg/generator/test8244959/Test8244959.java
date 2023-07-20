@@ -52,7 +52,7 @@ public class Test8244959 {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment s = arena.allocate(1024);
             my_sprintf(s,
-                    arena.allocateString("%hhd %c %.2f %.2f %lld %lld %d %hd %d %d %lld %c"), 12,
+                    arena.allocateFrom("%hhd %c %.2f %.2f %lld %lld %d %hd %d %d %lld %c"), 12,
                     (byte) 1, 'b', -1.25f, 5.5d, -200L, Long.MAX_VALUE, (byte) -2, (short) 2, 3, (short) -4, 5L, 'a');
             String str = s.getString(0);
             assertEquals(str, "1 b -1.25 5.50 -200 " + Long.MAX_VALUE + " -2 2 3 -4 5 a");

@@ -44,7 +44,7 @@ import static org.testng.Assert.assertNotNull;
 
 public class TestClassGeneration extends JextractToolRunner {
 
-    private static final VarHandle VH_bytes = C_CHAR.arrayElementVarHandle();
+    private static final VarHandle VH_bytes = C_CHAR.varHandle();
 
     private Path outputDir;
     private TestUtils.Loader loader;
@@ -171,7 +171,7 @@ public class TestClassGeneration extends JextractToolRunner {
         Method vh_getter = checkMethod(cls, name + "$VH", VarHandle.class);
         VarHandle vh = (VarHandle) vh_getter.invoke(null);
         assertEquals(vh.varType(), expectedType);
-        assertEquals(vh.get(segment), expectedValue);
+        assertEquals(vh.get(segment, 0L), expectedValue);
 
         checkMethod(cls, name + "$get", expectedType);
         checkMethod(cls, name + "$set", void.class, expectedType);
