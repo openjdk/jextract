@@ -63,7 +63,7 @@ public class CXToken {
      * }
      */
     public static MemorySegment ptr_data$get(MemorySegment seg) {
-        return (java.lang.foreign.MemorySegment)CXToken.ptr_data$VH.get(seg);
+        return (java.lang.foreign.MemorySegment)CXToken.ptr_data$VH.get(seg, 0L);
     }
     /**
      * Setter for field:
@@ -72,7 +72,7 @@ public class CXToken {
      * }
      */
     public static void ptr_data$set(MemorySegment seg, MemorySegment x) {
-        CXToken.ptr_data$VH.set(seg, x);
+        CXToken.ptr_data$VH.set(seg, 0L, x);
     }
     public static MemorySegment ptr_data$get(MemorySegment seg, long index) {
         return (java.lang.foreign.MemorySegment)CXToken.ptr_data$VH.get(seg.asSlice(index*sizeof()));

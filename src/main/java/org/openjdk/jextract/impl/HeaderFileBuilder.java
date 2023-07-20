@@ -263,7 +263,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         append(segmentConstant.accessExpression());
         append(", \"");
         append(nativeName);
-        append("\"));\n");
+        append("\"), 0L);\n");
         decrAlign();
         indent();
         append("}\n");
@@ -281,7 +281,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         append(segmentConstant.accessExpression());
         append(", \"");
         append(nativeName);
-        append("\"), x);\n");
+        append("\"), 0L, x);\n");
         decrAlign();
         indent();
         append("}\n");

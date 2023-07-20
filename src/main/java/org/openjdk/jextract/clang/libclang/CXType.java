@@ -61,7 +61,7 @@ public class CXType {
      * }
      */
     public static int kind$get(MemorySegment seg) {
-        return (int)CXType.kind$VH.get(seg);
+        return (int)CXType.kind$VH.get(seg, 0L);
     }
     /**
      * Setter for field:
@@ -70,7 +70,7 @@ public class CXType {
      * }
      */
     public static void kind$set(MemorySegment seg, int x) {
-        CXType.kind$VH.set(seg, x);
+        CXType.kind$VH.set(seg, 0L, x);
     }
     public static int kind$get(MemorySegment seg, long index) {
         return (int)CXType.kind$VH.get(seg.asSlice(index*sizeof()));
