@@ -1,5 +1,5 @@
 
 java --enable-native-access=ALL-UNNAMED \
-    --enable-preview --source=21 \
+    --enable-preview --source=22 \
     PanamaTime.java
 

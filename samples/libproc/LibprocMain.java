@@ -44,18 +44,18 @@ public class LibprocMain {
             // get the number of processes
             int numPids = proc_listallpids(NULL, 0);
             // allocate an array
-            var pids = arena.allocateArray(C_INT, numPids);
+            var pids = arena.allocate(C_INT, numPids);
             // list all the pids into the native array
             proc_listallpids(pids, numPids);
             // convert native array to java array
             int[] jpids = pids.toArray(C_INT);
             // buffer for process name
-            var nameBuf = arena.allocateArray(C_CHAR, NAME_BUF_MAX);
+            var nameBuf = arena.allocate(C_CHAR, NAME_BUF_MAX);
             for (int i = 0; i < jpids.length; i++) {
                 int pid = jpids[i];
                 // get the process name
                 proc_name(pid, nameBuf, NAME_BUF_MAX);
-                String procName = nameBuf.getUtf8String(0);
+                String procName = nameBuf.getString(0);
                 // print pid and process name
                 System.out.printf("%d %s\n", pid, procName);
             }

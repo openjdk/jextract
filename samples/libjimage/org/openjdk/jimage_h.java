@@ -9,14 +9,14 @@ import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
 public class jimage_h  {
 
-    public static final OfByte C_CHAR = Constants$root.C_CHAR$LAYOUT;
-    public static final OfShort C_SHORT = Constants$root.C_SHORT$LAYOUT;
-    public static final OfInt C_INT = Constants$root.C_INT$LAYOUT;
-    public static final OfLong C_LONG = Constants$root.C_LONG_LONG$LAYOUT;
-    public static final OfLong C_LONG_LONG = Constants$root.C_LONG_LONG$LAYOUT;
-    public static final OfFloat C_FLOAT = Constants$root.C_FLOAT$LAYOUT;
-    public static final OfDouble C_DOUBLE = Constants$root.C_DOUBLE$LAYOUT;
-    public static final OfAddress C_POINTER = Constants$root.C_POINTER$LAYOUT;
+    public static final OfByte C_CHAR = JAVA_BYTE;
+    public static final OfShort C_SHORT = JAVA_SHORT;
+    public static final OfInt C_INT = JAVA_INT;
+    public static final OfLong C_LONG = JAVA_LONG;
+    public static final OfLong C_LONG_LONG = JAVA_LONG;
+    public static final OfFloat C_FLOAT = JAVA_FLOAT;
+    public static final OfDouble C_DOUBLE = JAVA_DOUBLE;
+    public static final AddressLayout C_POINTER = RuntimeHelper.POINTER;
     /**
      * {@snippet :
      * #define JIMAGE_MAX_PATH 4096
@@ -30,21 +30,21 @@ public class jimage_h  {
      * typedef long long jlong;
      * }
      */
-    public static final OfLong jlong = Constants$root.C_LONG_LONG$LAYOUT;
+    public static final OfLong jlong = JAVA_LONG;
     /**
      * {@snippet :
      * typedef int jint;
      * }
      */
-    public static final OfInt jint = Constants$root.C_INT$LAYOUT;
+    public static final OfInt jint = JAVA_INT;
     /**
      * {@snippet :
      * typedef long long JImageLocationRef;
      * }
      */
-    public static final OfLong JImageLocationRef = Constants$root.C_LONG_LONG$LAYOUT;
+    public static final OfLong JImageLocationRef = JAVA_LONG;
     public static MethodHandle JIMAGE_Open$MH() {
-        return RuntimeHelper.requireNonNull(constants$0.JIMAGE_Open$MH,"JIMAGE_Open");
+        return RuntimeHelper.requireNonNull(constants$0.const$1,"JIMAGE_Open");
     }
     /**
      * {@snippet :
@@ -60,7 +60,7 @@ public class jimage_h  {
         }
     }
     public static MethodHandle JIMAGE_Close$MH() {
-        return RuntimeHelper.requireNonNull(constants$0.JIMAGE_Close$MH,"JIMAGE_Close");
+        return RuntimeHelper.requireNonNull(constants$0.const$5,"JIMAGE_Close");
     }
     /**
      * {@snippet :
@@ -76,7 +76,7 @@ public class jimage_h  {
         }
     }
     public static MethodHandle JIMAGE_PackageToModule$MH() {
-        return RuntimeHelper.requireNonNull(constants$1.JIMAGE_PackageToModule$MH,"JIMAGE_PackageToModule");
+        return RuntimeHelper.requireNonNull(constants$1.const$2,"JIMAGE_PackageToModule");
     }
     /**
      * {@snippet :
@@ -92,7 +92,7 @@ public class jimage_h  {
         }
     }
     public static MethodHandle JIMAGE_FindResource$MH() {
-        return RuntimeHelper.requireNonNull(constants$1.JIMAGE_FindResource$MH,"JIMAGE_FindResource");
+        return RuntimeHelper.requireNonNull(constants$1.const$5,"JIMAGE_FindResource");
     }
     /**
      * {@snippet :
@@ -108,7 +108,7 @@ public class jimage_h  {
         }
     }
     public static MethodHandle JIMAGE_GetResource$MH() {
-        return RuntimeHelper.requireNonNull(constants$2.JIMAGE_GetResource$MH,"JIMAGE_GetResource");
+        return RuntimeHelper.requireNonNull(constants$2.const$3,"JIMAGE_GetResource");
     }
     /**
      * {@snippet :
@@ -124,7 +124,7 @@ public class jimage_h  {
         }
     }
     public static MethodHandle JIMAGE_ResourceIterator$MH() {
-        return RuntimeHelper.requireNonNull(constants$2.JIMAGE_ResourceIterator$MH,"JIMAGE_ResourceIterator");
+        return RuntimeHelper.requireNonNull(constants$3.const$4,"JIMAGE_ResourceIterator");
     }
     /**
      * {@snippet :

@@ -11,41 +11,25 @@ final class constants$1 {
 
     // Suppresses default constructor, ensuring non-instantiability.
     private constants$1() {}
-    static final FunctionDescriptor JIMAGE_PackageToModule$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
+    static final MethodHandle const$0 = RuntimeHelper.upcallHandle(JImageClose_t.class, "apply", constants$0.const$4);
+    static final MethodHandle const$1 = RuntimeHelper.downcallHandle(
+        constants$0.const$4
     );
-    static final MethodHandle JIMAGE_PackageToModule$MH = RuntimeHelper.downcallHandle(
+    static final MethodHandle const$2 = RuntimeHelper.downcallHandle(
         "JIMAGE_PackageToModule",
-        constants$1.JIMAGE_PackageToModule$FUNC
+        constants$0.const$0
     );
-    static final FunctionDescriptor JImagePackageToModule_t$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
+    static final MethodHandle const$3 = RuntimeHelper.upcallHandle(JImagePackageToModule_t.class, "apply", constants$0.const$0);
+    static final FunctionDescriptor const$4 = FunctionDescriptor.of(JAVA_LONG,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER
     );
-    static final MethodHandle JImagePackageToModule_t$MH = RuntimeHelper.downcallHandle(
-        constants$1.JImagePackageToModule_t$FUNC
-    );
-    static final FunctionDescriptor JIMAGE_FindResource$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
-    );
-    static final MethodHandle JIMAGE_FindResource$MH = RuntimeHelper.downcallHandle(
+    static final MethodHandle const$5 = RuntimeHelper.downcallHandle(
         "JIMAGE_FindResource",
-        constants$1.JIMAGE_FindResource$FUNC
-    );
-    static final FunctionDescriptor JImageFindResource_t$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
-    );
-    static final MethodHandle JImageFindResource_t$MH = RuntimeHelper.downcallHandle(
-        constants$1.JImageFindResource_t$FUNC
+        constants$1.const$4
     );
 }
 

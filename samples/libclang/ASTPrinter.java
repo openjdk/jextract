@@ -36,7 +36,7 @@ import org.llvm.clang.*;
 
 public class ASTPrinter {
     private static String asJavaString(MemorySegment clangStr) {
-        String str = clang_getCString(clangStr).getUtf8String(0);
+        String str = clang_getCString(clangStr).getString(0);
         clang_disposeString(clangStr);
         return str;
     }
@@ -50,7 +50,7 @@ public class ASTPrinter {
         try (var arena = Arena.ofConfined()) {
             // parse the C header/source passed from the command line
             var index = clang_createIndex(0, 0);
-            var tu = clang_parseTranslationUnit(index, arena.allocateUtf8String(args[0]),
+            var tu = clang_parseTranslationUnit(index, arena.allocateFrom(args[0]),
                     NULL, 0, NULL, 0, CXTranslationUnit_None());
             // array trick to update within lambda
             var level = new int[1];

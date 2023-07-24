@@ -37,7 +37,7 @@ import org.unix.*;
 public class Readline {
     public static void main(String[] args) {
        try (var arena = Arena.ofConfined()) {
-            var url = arena.allocateUtf8String("name? ");
+            var url = arena.allocateFrom("name? ");
 
             // call "readline" API
             var p = readline(url);
@@ -45,7 +45,7 @@ public class Readline {
             // print char* as is
             System.out.println(p);
             // convert char* ptr from readline as Java String & print it
-            System.out.println("Hello, " + p.getUtf8String(0));
+            System.out.println("Hello, " + p.getString(0));
 
             // pointer returned by readline has to be 'free'd
             free(p);

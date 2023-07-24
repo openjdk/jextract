@@ -5,6 +5,6 @@ param(
 
 java `
   --enable-native-access=ALL-UNNAMED `
-  --enable-preview --source=19 `
+  --enable-preview --source=22 `
   -D"java.library.path=$pythonPath" `
   PythonMain.java
