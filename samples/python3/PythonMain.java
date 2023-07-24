@@ -42,7 +42,7 @@ public class PythonMain {
 
         Py_Initialize();
         try (var arena = Arena.ofConfined()) {
-            var str = arena.allocateUtf8String(script);
+            var str = arena.allocateFrom(script);
             PyRun_SimpleStringFlags(str, NULL);
             Py_Finalize();
         }

@@ -2,4 +2,4 @@ jextract --source -t opengl -lGL -l/System/Library/Frameworks/GLUT.framework/Ver
   -I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/GLUT.framework/Headers/glut.h
 
-javac --enable-preview --source=21 opengl/*.java
+javac --enable-preview --source=22 opengl/*.java

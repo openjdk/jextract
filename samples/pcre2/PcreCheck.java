@@ -42,7 +42,7 @@ class PcreCheck {
 
     try (var arena = Arena.ofConfined()) {
       // given regex to C string
-      var pattern = arena.allocateUtf8String(args[0]);
+      var pattern = arena.allocateFrom(args[0]);
       var patternSize = args[0].length();
 
       // output params from pcre2_compile_8
@@ -55,18 +55,18 @@ class PcreCheck {
 
       // if compilation failed, report error and exit
       if (re.equals(NULL)) {
-        var buffer = arena.allocateArray(C_CHAR, 128L);
+        var buffer = arena.allocate(C_CHAR, 128L);
         pcre2_get_error_message_8(errcodePtr.get(C_INT, 0),
             buffer, 127);
         System.err.printf("regex compilation failed: %s\n",
-            buffer.getUtf8String(0));
+            buffer.getString(0));
         System.exit(2);
       }
 
       var ovecsize = 64;
       var matchData = pcre2_match_data_create_8(ovecsize, NULL);
 
-      var subject = arena.allocateUtf8String(args[1]);
+      var subject = arena.allocateFrom(args[1]);
       var subjectSize = args[1].length();
       var rc = pcre2_match_8(re, subject, subjectSize, 0, 0, matchData, NULL);
       if (rc == 0) {

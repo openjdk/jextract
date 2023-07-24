@@ -16,13 +16,13 @@ public interface JImageFindResource_t {
 
     long apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment module_name, java.lang.foreign.MemorySegment version, java.lang.foreign.MemorySegment name, java.lang.foreign.MemorySegment size);
     static MemorySegment allocate(JImageFindResource_t fi, Arena scope) {
-        return RuntimeHelper.upcallStub(JImageFindResource_t.class, fi, constants$1.JImageFindResource_t$FUNC, scope);
+        return RuntimeHelper.upcallStub(constants$2.const$0, fi, constants$1.const$4, scope);
     }
     static JImageFindResource_t ofAddress(MemorySegment addr, Arena arena) {
         MemorySegment symbol = addr.reinterpret(arena, null);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _module_name, java.lang.foreign.MemorySegment _version, java.lang.foreign.MemorySegment _name, java.lang.foreign.MemorySegment _size) -> {
             try {
-                return (long)constants$1.JImageFindResource_t$MH.invokeExact(symbol, _jimage, _module_name, _version, _name, _size);
+                return (long)constants$2.const$1.invokeExact(symbol, _jimage, _module_name, _version, _name, _size);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

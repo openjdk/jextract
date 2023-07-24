@@ -20,8 +20,12 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import java.lang.foreign.AddressLayout;
+import java.lang.foreign.MemoryLayout;
+
 import static java.lang.foreign.Linker.*;
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.Long.MAX_VALUE;
 
 final class RuntimeHelper {
 
@@ -30,6 +34,7 @@ final class RuntimeHelper {
     private static final MethodHandles.Lookup MH_LOOKUP = MethodHandles.lookup();
     private static final SymbolLookup SYMBOL_LOOKUP;
     private static final SegmentAllocator THROWING_ALLOCATOR = (x, y) -> { throw new AssertionError("should not reach here"); };
+    static final AddressLayout POINTER = ValueLayout.ADDRESS.withTargetLayout(MemoryLayout.sequenceLayout(MAX_VALUE, JAVA_BYTE));
 
     final static SegmentAllocator CONSTANT_ALLOCATOR =
             (size, align) -> Arena.ofAuto().allocate(size, align);
@@ -81,18 +86,25 @@ final class RuntimeHelper {
                 orElse(null);
     }
 
-    static <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, Arena scope) {
+    static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
         try {
-            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", fdesc.toMethodType());
-            handle = handle.bindTo(z);
-            return LINKER.upcallStub(handle, fdesc, scope);
+            return MH_LOOKUP.findVirtual(fi, name, fdesc.toMethodType());
+        } catch (Throwable ex) {
+            throw new AssertionError(ex);
+        }
+    }
+
+    static <Z> MemorySegment upcallStub(MethodHandle fiHandle, Z z, FunctionDescriptor fdesc, Arena scope) {
+        try {
+            fiHandle = fiHandle.bindTo(z);
+            return LINKER.upcallStub(fiHandle, fdesc, scope);
         } catch (Throwable ex) {
             throw new AssertionError(ex);
         }
     }
 
     static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena arena) {
-         return addr.reinterpret(numElements * layout.byteSize(), arena.scope(), null);
+         return addr.reinterpret(numElements * layout.byteSize(), arena, null);
     }
 
     // Internals only below this point

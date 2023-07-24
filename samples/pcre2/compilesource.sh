@@ -6,4 +6,4 @@ jextract -t org.pcre \
   --source \
   /usr/local/opt/pcre2/include/pcre2.h
 
-javac --enable-preview --source=21 org/pcre/*.java
+javac --enable-preview --source=22 org/pcre/*.java

@@ -45,7 +45,7 @@ public class SqliteMain {
             // sqlite3** dbPtrPtr;
             var dbPtrPtr = arena.allocate(C_POINTER);
 
-            int rc = sqlite3_open(arena.allocateUtf8String("employee.db"), dbPtrPtr);
+            int rc = sqlite3_open(arena.allocateFrom("employee.db"), dbPtrPtr);
             if (rc != 0) {
                 System.err.println("sqlite3_open failed: " + rc);
                 return;
@@ -57,7 +57,7 @@ public class SqliteMain {
             var dbPtr = dbPtrPtr.get(C_POINTER, 0);
 
             // create a new table
-            var sql = arena.allocateUtf8String(
+            var sql = arena.allocateFrom(
                 "CREATE TABLE EMPLOYEE ("  +
                 "  ID INT PRIMARY KEY NOT NULL," +
                 "  NAME TEXT NOT NULL,"    +
@@ -67,14 +67,14 @@ public class SqliteMain {
 
             if (rc != 0) {
                 System.err.println("sqlite3_exec failed: " + rc);
-                System.err.println("SQL error: " + errMsgPtrPtr.get(C_POINTER, 0).getUtf8String(0));
+                System.err.println("SQL error: " + errMsgPtrPtr.get(C_POINTER, 0).getString(0));
                 sqlite3_free(errMsgPtrPtr.get(C_POINTER, 0));
             } else {
                 System.out.println("employee table created");
             }
 
             // insert two rows
-            sql = arena.allocateUtf8String(
+            sql = arena.allocateFrom(
                 "INSERT INTO EMPLOYEE (ID,NAME,SALARY) " +
                     "VALUES (134, 'Xyz', 200000.0); " +
                 "INSERT INTO EMPLOYEE (ID,NAME,SALARY) " +
@@ -84,7 +84,7 @@ public class SqliteMain {
 
             if (rc != 0) {
                 System.err.println("sqlite3_exec failed: " + rc);
-                System.err.println("SQL error: " + errMsgPtrPtr.get(C_POINTER, 0).getUtf8String(0));
+                System.err.println("SQL error: " + errMsgPtrPtr.get(C_POINTER, 0).getString(0));
                 sqlite3_free(errMsgPtrPtr.get(C_POINTER, 0));
             } else {
                 System.out.println("rows inserted");
@@ -98,8 +98,8 @@ public class SqliteMain {
                 argv = argv.reinterpret(C_POINTER.byteSize() * argc, arena, null);
                 columnNames = columnNames.reinterpret(C_POINTER.byteSize() * argc, arena, null);
                 for (int i = 0; i < argc; i++) {
-                     String name = columnNames.getAtIndex(C_POINTER, i).getUtf8String(0);
-                     String value = argv.getAtIndex(C_POINTER, i).getUtf8String(0);
+                     String name = columnNames.getAtIndex(C_POINTER, i).getString(0);
+                     String value = argv.getAtIndex(C_POINTER, i).getString(0);
 
                      System.out.printf("%s = %s\n", name, value);
                 }
@@ -107,12 +107,12 @@ public class SqliteMain {
             }, arena);
 
             // select query
-            sql = arena.allocateUtf8String("SELECT * FROM EMPLOYEE");
+            sql = arena.allocateFrom("SELECT * FROM EMPLOYEE");
             rc = sqlite3_exec(dbPtr, sql, callback, NULL, errMsgPtrPtr);
 
             if (rc != 0) {
                 System.err.println("sqlite3_exec failed: " + rc);
-                System.err.println("SQL error: " + errMsgPtrPtr.get(C_POINTER, 0).getUtf8String(0));
+                System.err.println("SQL error: " + errMsgPtrPtr.get(C_POINTER, 0).getString(0));
                 sqlite3_free(errMsgPtrPtr.get(C_POINTER, 0));
             } else {
                 System.out.println("done");
