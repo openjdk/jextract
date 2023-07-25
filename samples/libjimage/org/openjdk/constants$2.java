@@ -11,45 +11,23 @@ final class constants$2 {
 
     // Suppresses default constructor, ensuring non-instantiability.
     private constants$2() {}
-    static final FunctionDescriptor JIMAGE_GetResource$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_LONG_LONG$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_LONG_LONG$LAYOUT
+    static final MethodHandle const$0 = RuntimeHelper.upcallHandle(JImageFindResource_t.class, "apply", constants$1.const$4);
+    static final MethodHandle const$1 = RuntimeHelper.downcallHandle(
+        constants$1.const$4
     );
-    static final MethodHandle JIMAGE_GetResource$MH = RuntimeHelper.downcallHandle(
+    static final FunctionDescriptor const$2 = FunctionDescriptor.of(JAVA_LONG,
+        RuntimeHelper.POINTER,
+        JAVA_LONG,
+        RuntimeHelper.POINTER,
+        JAVA_LONG
+    );
+    static final MethodHandle const$3 = RuntimeHelper.downcallHandle(
         "JIMAGE_GetResource",
-        constants$2.JIMAGE_GetResource$FUNC
+        constants$2.const$2
     );
-    static final FunctionDescriptor JImageGetResource_t$FUNC = FunctionDescriptor.of(Constants$root.C_LONG_LONG$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_LONG_LONG$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_LONG_LONG$LAYOUT
-    );
-    static final MethodHandle JImageGetResource_t$MH = RuntimeHelper.downcallHandle(
-        constants$2.JImageGetResource_t$FUNC
-    );
-    static final FunctionDescriptor JImageResourceVisitor_t$FUNC = FunctionDescriptor.of(Constants$root.C_INT$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
-    );
-    static final MethodHandle JImageResourceVisitor_t$MH = RuntimeHelper.downcallHandle(
-        constants$2.JImageResourceVisitor_t$FUNC
-    );
-    static final FunctionDescriptor JIMAGE_ResourceIterator$FUNC = FunctionDescriptor.ofVoid(
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
-    );
-    static final MethodHandle JIMAGE_ResourceIterator$MH = RuntimeHelper.downcallHandle(
-        "JIMAGE_ResourceIterator",
-        constants$2.JIMAGE_ResourceIterator$FUNC
+    static final MethodHandle const$4 = RuntimeHelper.upcallHandle(JImageGetResource_t.class, "apply", constants$2.const$2);
+    static final MethodHandle const$5 = RuntimeHelper.downcallHandle(
+        constants$2.const$2
     );
 }
 

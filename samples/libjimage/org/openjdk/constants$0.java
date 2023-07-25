@@ -11,33 +11,24 @@ final class constants$0 {
 
     // Suppresses default constructor, ensuring non-instantiability.
     private constants$0() {}
-    static final FunctionDescriptor JIMAGE_Open$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
+    static final FunctionDescriptor const$0 = FunctionDescriptor.of(RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER
     );
-    static final MethodHandle JIMAGE_Open$MH = RuntimeHelper.downcallHandle(
+    static final MethodHandle const$1 = RuntimeHelper.downcallHandle(
         "JIMAGE_Open",
-        constants$0.JIMAGE_Open$FUNC
+        constants$0.const$0
     );
-    static final FunctionDescriptor JImageOpen_t$FUNC = FunctionDescriptor.of(Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
+    static final MethodHandle const$2 = RuntimeHelper.upcallHandle(JImageOpen_t.class, "apply", constants$0.const$0);
+    static final MethodHandle const$3 = RuntimeHelper.downcallHandle(
+        constants$0.const$0
     );
-    static final MethodHandle JImageOpen_t$MH = RuntimeHelper.downcallHandle(
-        constants$0.JImageOpen_t$FUNC
+    static final FunctionDescriptor const$4 = FunctionDescriptor.ofVoid(
+        RuntimeHelper.POINTER
     );
-    static final FunctionDescriptor JIMAGE_Close$FUNC = FunctionDescriptor.ofVoid(
-        Constants$root.C_POINTER$LAYOUT
-    );
-    static final MethodHandle JIMAGE_Close$MH = RuntimeHelper.downcallHandle(
+    static final MethodHandle const$5 = RuntimeHelper.downcallHandle(
         "JIMAGE_Close",
-        constants$0.JIMAGE_Close$FUNC
-    );
-    static final FunctionDescriptor JImageClose_t$FUNC = FunctionDescriptor.ofVoid(
-        Constants$root.C_POINTER$LAYOUT
-    );
-    static final MethodHandle JImageClose_t$MH = RuntimeHelper.downcallHandle(
-        constants$0.JImageClose_t$FUNC
+        constants$0.const$4
     );
 }
 

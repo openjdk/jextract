@@ -1,7 +1,7 @@
 jextract --source -t libzstd \
-  -I /usr/local/Cellar/zstd/1.5.2/include \
+  -I /usr/local/Cellar/zstd/1.5.5/include \
   -l zstd \
   --header-class-name Libzstd \
-  /usr/local/Cellar/zstd/1.5.2/include/zstd.h
+  /usr/local/Cellar/zstd/1.5.5/include/zstd.h
 
 javac --enable-preview --source=21 libzstd/*.java
