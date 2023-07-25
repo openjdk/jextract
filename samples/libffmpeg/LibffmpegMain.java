@@ -291,7 +291,7 @@ public class LibffmpegMain {
             for (int y = 0; y < height; y++) {
                 // frameRGB.data[0] + y*frameRGB.linesize[0] is the pointer. And 3*width size of data
                 var pixelArray = pdata.asSlice(y * linesize)
-                                      .reinterpret(3*width, arena.scope(), null);
+                                      .reinterpret(3*width, arena, null);
                 // dump the pixel byte buffer to file
                 os.write(pixelArray.toArray(C_CHAR));
             }

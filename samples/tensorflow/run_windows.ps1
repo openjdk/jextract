@@ -5,6 +5,6 @@ param(
 
 java `
   --enable-native-access=ALL-UNNAMED `
-  --enable-preview --source=19 `
+  --enable-preview --source=21 `
   -D"java.library.path=$tensorflowPath\lib" `
   TensorflowLoadSavedModel.java saved_mnist_model

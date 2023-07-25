@@ -16,13 +16,13 @@ public interface JImageClose_t {
 
     void apply(java.lang.foreign.MemorySegment jimage);
     static MemorySegment allocate(JImageClose_t fi, Arena scope) {
-        return RuntimeHelper.upcallStub(JImageClose_t.class, fi, constants$0.JImageClose_t$FUNC, scope);
+        return RuntimeHelper.upcallStub(constants$1.const$0, fi, constants$0.const$4, scope);
     }
     static JImageClose_t ofAddress(MemorySegment addr, Arena arena) {
         MemorySegment symbol = addr.reinterpret(arena, null);
         return (java.lang.foreign.MemorySegment _jimage) -> {
             try {
-                constants$0.JImageClose_t$MH.invokeExact(symbol, _jimage);
+                constants$1.const$1.invokeExact(symbol, _jimage);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
