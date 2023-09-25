@@ -112,7 +112,7 @@ public class JextractToolRunner {
         }
 
         public JextractResult checkSuccess() {
-            assertEquals(exitCode, SUCCESS, "Sucess expected, failed: " + exitCode);
+            assertEquals(exitCode, SUCCESS, "Sucess expected, failed: " + exitCode + ", Output: " + output);
             return this;
         }
 
