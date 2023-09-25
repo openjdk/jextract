@@ -49,7 +49,7 @@ import static java.lang.foreign.Linker.*;
 public class Test8244959 {
     @Test
     public void testsPrintf() {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             MemorySegment s = arena.allocate(1024);
             my_sprintf(s,
                     arena.allocateUtf8String("%hhd %c %.2f %.2f %lld %lld %d %hd %d %d %lld %c"), 12,

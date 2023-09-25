@@ -40,7 +40,7 @@ class PcreCheck {
       System.exit(1);
     }
 
-    try (var arena = Arena.openConfined()) {
+    try (var arena = Arena.ofConfined()) {
       // given regex to C string
       var pattern = arena.allocateUtf8String(args[0]);
       var patternSize = args[0].length();

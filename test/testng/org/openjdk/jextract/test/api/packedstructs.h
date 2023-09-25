@@ -56,3 +56,15 @@ struct S6 {
    char first;
    union { int x[2]; int y[2]; } second;
 };
+
+#pragma pack(1)
+struct S7 {
+   long long first;
+   int second;
+};
+
+#pragma pack(1)
+struct S8 {
+   struct S7 first[1];
+   struct S7 second[1];
+};

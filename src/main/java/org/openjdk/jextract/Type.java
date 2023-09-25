@@ -129,15 +129,17 @@ public interface Type {
             /**
              * {@code float} type.
              */
-            Float("float", ValueLayout.JAVA_FLOAT.withBitAlignment(32)),
+            Float("float", ValueLayout.JAVA_FLOAT),
             /**
              * {@code double} type.
              */
-            Double("double", ValueLayout.JAVA_DOUBLE.withBitAlignment(64)),
+            Double("double", ValueLayout.JAVA_DOUBLE),
             /**
               * {@code long double} type.
               */
-            LongDouble("long double", UnsupportedLayouts.LONG_DOUBLE),
+            LongDouble("long double", TypeImpl.IS_WINDOWS ?
+                    ValueLayout.JAVA_DOUBLE :
+                    UnsupportedLayouts.LONG_DOUBLE),
             /**
              * {@code float128} type.
              */

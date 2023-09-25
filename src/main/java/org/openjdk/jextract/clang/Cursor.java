@@ -28,7 +28,6 @@ package org.openjdk.jextract.clang;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.SegmentScope;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -63,6 +62,10 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public boolean isAnonymousStruct() {
         return Index_h.clang_Cursor_isAnonymousRecordDecl(segment) != 0;
+    }
+
+    public boolean isAnonymous() {
+        return Index_h.clang_Cursor_isAnonymous(segment) != 0;
     }
 
     public boolean isMacroFunctionLike() {
@@ -120,7 +123,7 @@ public final class Cursor extends ClangDisposable.Owned {
 
     public SourceLocation getSourceLocation() {
         MemorySegment loc = Index_h.clang_getCursorLocation(owner, segment);
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(arena)) != 0) {
                 return null;
             }
@@ -241,7 +244,7 @@ public final class Cursor extends ClangDisposable.Owned {
             } else {
                 return Index_h.CXChildVisit_Break();
             }
-        }, SegmentScope.global());
+        }, Arena.global());
 
         synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
             // everything is confined, no need to synchronize

@@ -34,7 +34,7 @@ import java.lang.foreign.GroupLayout;
 public class TestPackedStructs extends JextractApiTestBase {
 
     static final String[] NAMES = {
-            "S1", "S2", "S3", "S4", "S5", "S6"
+            "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"
     };
 
     @Test
@@ -44,7 +44,7 @@ public class TestPackedStructs extends JextractApiTestBase {
         for (String name : NAMES) {
             Declaration.Scoped scoped = checkStruct(d, name, "first", "second");
             GroupLayout groupLayout = (GroupLayout)scoped.layout().get();
-            assertEquals(groupLayout.memberLayouts().get(1).bitAlignment(), 8);
+            assertEquals(groupLayout.memberLayouts().get(1).byteAlignment(), 1);
         }
     }
 }

@@ -50,7 +50,7 @@ import static test.jextract.arrayparam.arrayparam_h.*;
 public class Test8252121 {
     @Test
     public void test() {
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             int[] array = { 3, 5, 89, 34, -33 };
             MemorySegment seg = arena.allocateArray(C_INT, array);
             assertEquals(IntStream.of(array).sum(), sum(seg));

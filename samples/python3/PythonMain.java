@@ -41,7 +41,7 @@ public class PythonMain {
         String script = "print(sum([33, 55, 66])); print('Hello from Python!')\n";
 
         Py_Initialize();
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             var str = arena.allocateUtf8String(script);
             PyRun_SimpleStringFlags(str, NULL);
             Py_Finalize();

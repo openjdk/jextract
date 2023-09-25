@@ -7,7 +7,7 @@ import java.lang.foreign.GroupLayout;
 import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.SegmentScope;
+import java.lang.foreign.Arena;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import java.lang.foreign.AddressLayout;
+import java.lang.foreign.MemoryLayout;
+
 import static java.lang.foreign.Linker.*;
 import static java.lang.foreign.ValueLayout.*;
 
@@ -30,9 +33,10 @@ final class RuntimeHelper {
     private static final MethodHandles.Lookup MH_LOOKUP = MethodHandles.lookup();
     private static final SymbolLookup SYMBOL_LOOKUP;
     private static final SegmentAllocator THROWING_ALLOCATOR = (x, y) -> { throw new AssertionError("should not reach here"); };
+    static final AddressLayout POINTER = ValueLayout.ADDRESS.withTargetLayout(MemoryLayout.sequenceLayout(JAVA_BYTE));
 
     final static SegmentAllocator CONSTANT_ALLOCATOR =
-            (size, align) -> MemorySegment.allocateNative(size, align, SegmentScope.auto());
+            (size, align) -> Arena.ofAuto().allocate(size, align);
 
     static {
         // manual change
@@ -45,7 +49,7 @@ final class RuntimeHelper {
         } else {
             libPath = "/lib/libjimage.so"; // some Unix
         }
-        SymbolLookup loaderLookup = SymbolLookup.libraryLookup(libPath, SegmentScope.global());
+        SymbolLookup loaderLookup = SymbolLookup.libraryLookup(libPath, Arena.global());
         SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> LINKER.defaultLookup().find(name));
     }
 
@@ -60,7 +64,9 @@ final class RuntimeHelper {
     }
 
     static MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
-        return SYMBOL_LOOKUP.find(name).map(symbol -> MemorySegment.ofAddress(symbol.address(), layout.byteSize(), symbol.scope())).orElse(null);
+        return SYMBOL_LOOKUP.find(name)
+                .map(s -> s.reinterpret(layout.byteSize()))
+                .orElse(null);
     }
 
     static MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {
@@ -79,18 +85,25 @@ final class RuntimeHelper {
                 orElse(null);
     }
 
-    static <Z> MemorySegment upcallStub(Class<Z> fi, Z z, FunctionDescriptor fdesc, SegmentScope scope) {
+    static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
         try {
-            MethodHandle handle = MH_LOOKUP.findVirtual(fi, "apply", fdesc.toMethodType());
-            handle = handle.bindTo(z);
-            return LINKER.upcallStub(handle, fdesc, scope);
+            return MH_LOOKUP.findVirtual(fi, name, fdesc.toMethodType());
         } catch (Throwable ex) {
             throw new AssertionError(ex);
         }
     }
 
-    static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, SegmentScope scope) {
-         return MemorySegment.ofAddress(addr.address(), numElements * layout.byteSize(), scope);
+    static <Z> MemorySegment upcallStub(MethodHandle fiHandle, Z z, FunctionDescriptor fdesc, Arena scope) {
+        try {
+            fiHandle = fiHandle.bindTo(z);
+            return LINKER.upcallStub(fiHandle, fdesc, scope);
+        } catch (Throwable ex) {
+            throw new AssertionError(ex);
+        }
+    }
+
+    static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena arena) {
+         return addr.reinterpret(numElements * layout.byteSize(), arena, null);
     }
 
     // Internals only below this point

@@ -62,7 +62,7 @@ public class LibffmpegMain {
     }
 
     private static class ArenaCleanup implements AutoCloseable {
-        private Arena arena = Arena.openConfined();
+        private Arena arena = Arena.ofConfined();
         private final List<Runnable> preCloseActions = new ArrayList<>();
 
         void addCleanup(Runnable runnable) {
@@ -88,6 +88,7 @@ public class LibffmpegMain {
 
         av_register_all();
 
+        int exitCode = 0;
         var pCodecCtxOrig = NULL;
         var pCodecCtx = NULL;
         var pFrame = NULL;
@@ -232,7 +233,7 @@ public class LibffmpegMain {
                         // Save the frame to disk
                         if (++i <= NUM_FRAMES_TO_CAPTURE) {
                             try {
-                                saveFrame(pFrameRGB, arena.scope(), width, height, i);
+                                saveFrame(pFrameRGB, arena, width, height, i);
                             } catch (Exception exp) {
                                 exp.printStackTrace();
                                 return new Exit("save frame failed for frame " + i, 1);
@@ -274,7 +275,7 @@ public class LibffmpegMain {
         return new Exit("Goodbye!", 0);
     }
 
-    private static void saveFrame(MemorySegment frameRGB, SegmentScope scope,
+    private static void saveFrame(MemorySegment frameRGB, Arena arena,
             int width, int height, int iFrame)
             throws IOException {
         var header = String.format("P6\n%d %d\n255\n", width, height);
@@ -290,7 +291,8 @@ public class LibffmpegMain {
             // Write pixel data
             for (int y = 0; y < height; y++) {
                 // frameRGB.data[0] + y*frameRGB.linesize[0] is the pointer. And 3*width size of data
-                var pixelArray = MemorySegment.ofAddress(pdata.address() + y*linesize, 3*width, scope);
+                var pixelArray = pdata.asSlice(y * linesize)
+                                      .reinterpret(3*width, arena, null);
                 // dump the pixel byte buffer to file
                 os.write(pixelArray.toArray(C_CHAR));
             }

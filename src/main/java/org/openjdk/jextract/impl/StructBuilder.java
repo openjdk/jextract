@@ -177,7 +177,7 @@ class StructBuilder extends ClassSourceBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + "(MemorySegment segment, SegmentScope scope) {\n");
+        append(fiName + " " + javaName + "(MemorySegment segment, Arena scope) {\n");
         incrAlign();
         indent();
         append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), scope);\n");
@@ -281,7 +281,7 @@ class StructBuilder extends ClassSourceBuilder {
         incrAlign();
         indent();
         append(MEMBER_MODS);
-        append(" MemorySegment ofAddress(MemorySegment addr, SegmentScope scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }\n");
+        append(" MemorySegment ofAddress(MemorySegment addr, Arena arena) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, arena); }\n");
         decrAlign();
     }
 

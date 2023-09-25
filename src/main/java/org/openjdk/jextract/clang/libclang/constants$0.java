@@ -40,7 +40,7 @@ final class constants$0 {
         MemoryLayout.structLayout(
             Constants$root.C_POINTER$LAYOUT.withName("data"),
             Constants$root.C_INT$LAYOUT.withName("private_flags"),
-            MemoryLayout.paddingLayout(32)
+            MemoryLayout.paddingLayout(4)
         )
     );
     static final MethodHandle clang_getCString$MH = RuntimeHelper.downcallHandle(
@@ -51,7 +51,7 @@ final class constants$0 {
         MemoryLayout.structLayout(
             Constants$root.C_POINTER$LAYOUT.withName("data"),
             Constants$root.C_INT$LAYOUT.withName("private_flags"),
-            MemoryLayout.paddingLayout(32)
+            MemoryLayout.paddingLayout(4)
         )
     );
     static final MethodHandle clang_disposeString$MH = RuntimeHelper.downcallHandle(
@@ -76,7 +76,7 @@ final class constants$0 {
     static final FunctionDescriptor clang_getFileName$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         Constants$root.C_POINTER$LAYOUT
     );
@@ -87,7 +87,7 @@ final class constants$0 {
     static final FunctionDescriptor clang_getNullLocation$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("ptr_data"),
         Constants$root.C_INT$LAYOUT.withName("int_data"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ));
     static final MethodHandle clang_getNullLocation$MH = RuntimeHelper.downcallHandle(
         "clang_getNullLocation",

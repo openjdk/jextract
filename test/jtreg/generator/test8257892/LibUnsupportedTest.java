@@ -28,6 +28,7 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.MemorySegment;
 import org.testng.annotations.Test;
+import org.testng.SkipException;
 
 import test.jextract.unsupported.unsupported_h;
 import static org.testng.Assert.assertEquals;
@@ -51,9 +52,12 @@ import test.jextract.unsupported.*;
  */
 
 public class LibUnsupportedTest {
+
+    private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+
     @Test
     public void testAllocateFoo() {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             var seg = Foo.allocate(arena);
             Foo.i$set(seg, 32);
             Foo.c$set(seg, (byte)'z');
@@ -64,8 +68,8 @@ public class LibUnsupportedTest {
 
     @Test
     public void testGetFoo() {
-        try (Arena arena = Arena.openConfined()) {
-            var seg = MemorySegment.ofAddress(getFoo().address(), Foo.sizeof(), arena.scope());
+        try (Arena arena = Arena.ofConfined()) {
+            var seg = Foo.ofAddress(getFoo(), arena);
             Foo.i$set(seg, 42);
             Foo.c$set(seg, (byte)'j');
             assertEquals(Foo.i$get(seg), 42);
@@ -86,6 +90,9 @@ public class LibUnsupportedTest {
 
     @Test
     public void testIgnoredMethods() {
+        if (IS_WINDOWS) {
+            throw new SkipException("long double works on Windows");
+        }
         assertNull(findMethod(unsupported_h.class, "func"));
         assertNull(findMethod(unsupported_h.class, "func2"));
         assertNull(findMethod(unsupported_h.class, "func3"));

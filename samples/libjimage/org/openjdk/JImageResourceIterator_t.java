@@ -15,14 +15,14 @@ import static java.lang.foreign.ValueLayout.*;
 public interface JImageResourceIterator_t {
 
     void apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment visitor, java.lang.foreign.MemorySegment arg);
-    static MemorySegment allocate(JImageResourceIterator_t fi, SegmentScope scope) {
-        return RuntimeHelper.upcallStub(JImageResourceIterator_t.class, fi, constants$3.JImageResourceIterator_t$FUNC, scope);
+    static MemorySegment allocate(JImageResourceIterator_t fi, Arena scope) {
+        return RuntimeHelper.upcallStub(constants$3.const$5, fi, constants$3.const$3, scope);
     }
-    static JImageResourceIterator_t ofAddress(MemorySegment addr, SegmentScope scope) {
-        MemorySegment symbol = MemorySegment.ofAddress(addr.address(), 0, scope);
+    static JImageResourceIterator_t ofAddress(MemorySegment addr, Arena arena) {
+        MemorySegment symbol = addr.reinterpret(arena, null);
         return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _visitor, java.lang.foreign.MemorySegment _arg) -> {
             try {
-                constants$3.JImageResourceIterator_t$MH.invokeExact(symbol, _jimage, _visitor, _arg);
+                constants$4.const$0.invokeExact(symbol, _jimage, _visitor, _arg);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

@@ -47,7 +47,7 @@ class LpSolveDemo {
              return;
         }
 
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             var colno = arena.allocateArray(C_INT, Ncol);
             var row = arena.allocateArray(C_DOUBLE, Ncol);
 

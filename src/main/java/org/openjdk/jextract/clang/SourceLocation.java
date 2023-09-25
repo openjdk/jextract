@@ -54,7 +54,7 @@ public class SourceLocation extends ClangDisposable.Owned {
 
     @SuppressWarnings("unchecked")
     private Location getLocation(LocationFactory fn) {
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
              MemorySegment file = arena.allocate(C_POINTER);
              MemorySegment line = arena.allocate(C_INT);
              MemorySegment col = arena.allocate(C_INT);

@@ -39,7 +39,7 @@ import org.jextract.Point2d;
 
 class TestPoint {
     public static void main(String[] args) {
-        try (var arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
            MemorySegment point = arena.allocate(Point2d.$LAYOUT());
            Point2d.x$set(point, 3d);
            Point2d.y$set(point, 4d);
@@ -138,9 +138,9 @@ It is easy to see how this mechanism allows developers to look into the set of s
 > <details><summary><strong>Building older jextract versions</strong></summary>
 >
 > The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by chercking out the appropriate branch.
-> For example, to build a jextract tool which works against JDK 18:
+> For example, to build a jextract tool which works against JDK 21:
 >
-> `git checkout jdk18`
+> `git checkout jdk21`
 >
 > Over time, new branches will be added, each targeting a specific JDK version.
 > </details>
@@ -148,12 +148,12 @@ It is easy to see how this mechanism allows developers to look into the set of s
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
 
 (**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
-supports JDK 18. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
+supports JDK 21. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
 
 
 
 ```sh
-$ sh ./gradlew -Pjdk20_home=<jdk20_home_dir> -Pllvm_home=<libclang_dir> clean verify
+$ sh ./gradlew -Pjdk21_home=<jdk21_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
 
@@ -183,7 +183,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk20_home=<jdk20_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+$ sh ./gradlew -Pjdk21_home=<jdk21_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
 
 Note: running `jtreg` task requires `cmake` to be available on the `PATH`.

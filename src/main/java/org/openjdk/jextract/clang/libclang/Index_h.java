@@ -41,7 +41,7 @@ public class Index_h  {
     public static final OfLong C_LONG_LONG = Constants$root.C_LONG_LONG$LAYOUT;
     public static final OfFloat C_FLOAT = Constants$root.C_FLOAT$LAYOUT;
     public static final OfDouble C_DOUBLE = Constants$root.C_DOUBLE$LAYOUT;
-    public static final OfAddress C_POINTER = Constants$root.C_POINTER$LAYOUT;
+    public static final AddressLayout C_POINTER = Constants$root.C_POINTER$LAYOUT;
     /**
      * {@snippet :
      * enum CXErrorCode.CXError_Success = 0;
@@ -119,13 +119,13 @@ public class Index_h  {
      * typedef void* CXIndex;
      * }
      */
-    public static final OfAddress CXIndex = Constants$root.C_POINTER$LAYOUT;
+    public static final AddressLayout CXIndex = Constants$root.C_POINTER$LAYOUT;
     /**
      * {@snippet :
      * typedef struct CXTranslationUnitImpl* CXTranslationUnit;
      * }
      */
-    public static final OfAddress CXTranslationUnit = Constants$root.C_POINTER$LAYOUT;
+    public static final AddressLayout CXTranslationUnit = Constants$root.C_POINTER$LAYOUT;
     /**
      * {@snippet :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_None = 0;
@@ -4984,6 +4984,22 @@ public class Index_h  {
      */
     public static long clang_Type_getSizeOf(MemorySegment T) {
         var mh$ = clang_Type_getSizeOf$MH();
+        try {
+            return (long)mh$.invokeExact(T);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
+    }
+    public static MethodHandle clang_Type_getAlignOf$MH() {
+        return RuntimeHelper.requireNonNull(constants$12.clang_Type_getAlignOf$MH,"clang_Type_getAlignOf");
+    }
+    /**
+     * {@snippet :
+     * long long clang_Type_getAlignOf(CXType T);
+     * }
+     */
+    public static long clang_Type_getAlignOf(MemorySegment T) {
+        var mh$ = clang_Type_getAlignOf$MH();
         try {
             return (long)mh$.invokeExact(T);
         } catch (Throwable ex$) {

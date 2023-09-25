@@ -11,14 +11,29 @@ final class constants$3 {
 
     // Suppresses default constructor, ensuring non-instantiability.
     private constants$3() {}
-    static final FunctionDescriptor JImageResourceIterator_t$FUNC = FunctionDescriptor.ofVoid(
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT,
-        Constants$root.C_POINTER$LAYOUT
+    static final FunctionDescriptor const$0 = FunctionDescriptor.of(JAVA_INT,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER
     );
-    static final MethodHandle JImageResourceIterator_t$MH = RuntimeHelper.downcallHandle(
-        constants$3.JImageResourceIterator_t$FUNC
+    static final MethodHandle const$1 = RuntimeHelper.upcallHandle(JImageResourceVisitor_t.class, "apply", constants$3.const$0);
+    static final MethodHandle const$2 = RuntimeHelper.downcallHandle(
+        constants$3.const$0
     );
+    static final FunctionDescriptor const$3 = FunctionDescriptor.ofVoid(
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER,
+        RuntimeHelper.POINTER
+    );
+    static final MethodHandle const$4 = RuntimeHelper.downcallHandle(
+        "JIMAGE_ResourceIterator",
+        constants$3.const$3
+    );
+    static final MethodHandle const$5 = RuntimeHelper.upcallHandle(JImageResourceIterator_t.class, "apply", constants$3.const$3);
 }
 
 

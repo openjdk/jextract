@@ -28,6 +28,7 @@ package org.openjdk.jextract.impl;
 import org.openjdk.jextract.Type;
 
 import javax.tools.JavaFileObject;
+import java.lang.foreign.AddressLayout;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
@@ -63,7 +64,8 @@ public class Constants {
                 }
             });
         }
-        ValueLayout.OfAddress pointerLayout = ValueLayout.ADDRESS.asUnbounded();
+        AddressLayout pointerLayout = ValueLayout.ADDRESS.withTargetLayout(
+                MemoryLayout.sequenceLayout(ValueLayout.JAVA_BYTE));
         cache.put(pointerLayout, ImmediateConstant.ofPrimitiveLayout(pointerLayout));
     }
 
@@ -344,9 +346,9 @@ public class Constants {
         private void emitLayoutString(MemoryLayout l) {
             if (l instanceof ValueLayout val) {
                 append(ImmediateConstant.ofPrimitiveLayout(val).accessExpression());
-                if (l.bitAlignment() != l.bitSize()) {
-                    append(".withBitAlignment(");
-                    append(l.bitAlignment());
+                if (l.byteAlignment() != l.byteSize()) {
+                    append(".withByteAlignment(");
+                    append(l.byteAlignment());
                     append(")");
                 }
             } else if (l instanceof SequenceLayout seq) {
@@ -374,7 +376,7 @@ public class Constants {
                 append(")");
             } else {
                 // padding (or unsupported)
-                append("MemoryLayout.paddingLayout(" + l.bitSize() + ")");
+                append("MemoryLayout.paddingLayout(" + l.byteSize() + ")");
             }
             if (l.name().isPresent()) {
                 append(".withName(\"" +  l.name().get() + "\")");
@@ -485,40 +487,13 @@ public class Constants {
 
     public Constant addGlobalVarHandle(ValueLayout valueLayout) {
         record VarHandleKey(ValueLayout valueLayout) { }
-        VarHandleKey key = new VarHandleKey(layoutNoName(valueLayout));
+        VarHandleKey key = new VarHandleKey(valueLayout.withoutName());
         Constant constant = cache.get(key);
         if (constant == null) {
             constant = builder().emitVarHandle(valueLayout);
             cache.put(key, constant);
         }
         return constant;
-    }
-
-    private static ValueLayout layoutNoName(ValueLayout layout) {
-        final ValueLayout newLayout;
-        if (layout.carrier() == boolean.class) {
-            newLayout = ValueLayout.JAVA_BOOLEAN;
-        } else if (layout.carrier() == byte.class) {
-            newLayout = ValueLayout.JAVA_BYTE;
-        } else if (layout.carrier() == char.class) {
-            newLayout = ValueLayout.JAVA_CHAR;
-        } else if (layout.carrier() == short.class) {
-            newLayout = ValueLayout.JAVA_SHORT;
-        } else if (layout.carrier() == int.class) {
-            newLayout = ValueLayout.JAVA_INT;
-        } else if (layout.carrier() == float.class) {
-            newLayout = ValueLayout.JAVA_FLOAT;
-        } else if (layout.carrier() == long.class) {
-            newLayout = ValueLayout.JAVA_LONG;
-        } else if (layout.carrier() == double.class) {
-            newLayout = ValueLayout.JAVA_DOUBLE;
-        } else if (layout.carrier() == MemorySegment.class) {
-            newLayout = ValueLayout.ADDRESS;
-        } else {
-            throw new AssertionError("Cannot get here");
-        }
-        // drop name if present
-        return newLayout.withOrder(layout.order()).withBitAlignment(layout.bitAlignment());
     }
 
     public Constant addDowncallMethodHandle(String nativeName, FunctionDescriptor descriptor, boolean isVarargs) {

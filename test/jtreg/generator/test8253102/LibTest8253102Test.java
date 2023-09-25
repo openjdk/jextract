@@ -49,9 +49,9 @@ import test.jextract.test8253102.*;
 public class LibTest8253102Test {
     @Test
     public void test() {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             MemorySegment addr = make(14, 99);
-            MemorySegment seg = Point.ofAddress(addr, arena.scope());
+            MemorySegment seg = Point.ofAddress(addr, arena);
             assertEquals(Point.x$get(seg), 14);
             assertEquals(Point.y$get(seg), 99);
             freePoint(addr);

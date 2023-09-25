@@ -98,7 +98,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         Constant upcallHandle = constants().addUpcallMethodHandle(fullName(), "apply", fiDesc);
         incrAlign();
         indent();
-        append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, SegmentScope scope) {\n");
+        append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, Arena scope) {\n");
         incrAlign();
         indent();
         append("return RuntimeHelper.upcallStub(" +
@@ -113,11 +113,11 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         Constant mhConstant = constants().addVirtualDowncallMethodHandle(fiDesc);
         incrAlign();
         indent();
-        append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, SegmentScope scope) {\n");
+        append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena arena) {\n");
         incrAlign();
         indent();
-        append("MemorySegment symbol = MemorySegment.ofAddress(");
-        append("addr.address(), 0, scope);\n");
+        append("MemorySegment symbol = addr.reinterpret(");
+        append("arena, null);\n");
         indent();
         append("return (");
         String delim = "";

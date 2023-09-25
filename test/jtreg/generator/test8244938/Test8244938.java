@@ -48,7 +48,7 @@ import test.jextract.test8244938.*;
 public class Test8244938 {
     @Test
     public void testNestedStructReturn() {
-         try (Arena arena = Arena.openConfined()) {
+         try (Arena arena = Arena.ofConfined()) {
              var seg = func(arena);
              assertEquals(seg.byteSize(), Point.sizeof());
              assertEquals(Point.k$get(seg), 44);

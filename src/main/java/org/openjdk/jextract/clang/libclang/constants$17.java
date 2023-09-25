@@ -39,7 +39,7 @@ final class constants$17 {
     static final FunctionDescriptor clang_getCursorKindSpelling$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ),
         Constants$root.C_INT$LAYOUT
     );
@@ -50,7 +50,7 @@ final class constants$17 {
     static final FunctionDescriptor clang_getClangVersion$FUNC = FunctionDescriptor.of(MemoryLayout.structLayout(
         Constants$root.C_POINTER$LAYOUT.withName("data"),
         Constants$root.C_INT$LAYOUT.withName("private_flags"),
-        MemoryLayout.paddingLayout(32)
+        MemoryLayout.paddingLayout(4)
     ));
     static final MethodHandle clang_getClangVersion$MH = RuntimeHelper.downcallHandle(
         "clang_getClangVersion",

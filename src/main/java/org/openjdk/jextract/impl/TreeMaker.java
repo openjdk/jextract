@@ -203,17 +203,18 @@ class TreeMaker {
 
     public Declaration.Scoped createRecord(Cursor c, Declaration.Scoped.Kind scopeKind) {
         Type.Declared t = (Type.Declared)RecordLayoutComputer.compute(typeMaker, 0, c.type(), c.type());
-        List<Declaration> decls = filterNestedDeclarations(t.tree().members());
         if (c.isDefinition()) {
+            Declaration.Scoped scoped = t.tree();
+            List<Declaration> decls = filterNestedDeclarations(scoped.members());
             //just a declaration AND definition, we have a layout
-            return Declaration.scoped(scopeKind, CursorPosition.of(c), c.spelling(),
-                                      t.tree().layout().get(), decls.toArray(new Declaration[0]));
+            return Declaration.scoped(scoped.kind(), scoped.pos(), scoped.name(),
+                                      scoped.layout().get(), decls.toArray(new Declaration[0]));
         } else {
             //if there's a real definition somewhere else, skip this redundant declaration
             if (!c.getDefinition().isInvalid()) {
                 return null;
             }
-            return Declaration.scoped(scopeKind, CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
+            return Declaration.scoped(scopeKind, CursorPosition.of(c), c.spelling());
         }
     }
 
@@ -230,12 +231,7 @@ class TreeMaker {
             MemoryLayout layout = TypeMaker.valueLayoutForSize(c.type().size() * 8).layout().orElseThrow();
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), layout, decls.toArray(new Declaration[0]));
         } else {
-            //just a declaration
-            //if there's a real definition somewhere else, skip this redundant declaration
-            if (!c.getDefinition().isInvalid()) {
-                return null;
-            }
-            return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
+            return null;
         }
     }
 

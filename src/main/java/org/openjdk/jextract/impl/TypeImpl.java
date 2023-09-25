@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Supplier;
 
+import java.lang.foreign.AddressLayout;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
@@ -179,7 +180,8 @@ public abstract class TypeImpl implements Type {
     }
 
     public static final class PointerImpl extends DelegatedBase {
-        public static final ValueLayout.OfAddress POINTER_LAYOUT = ADDRESS.withBitAlignment(64).asUnbounded();
+        public static final AddressLayout POINTER_LAYOUT = ADDRESS
+                .withTargetLayout(MemoryLayout.sequenceLayout(ValueLayout.JAVA_BYTE));
 
         private final Supplier<Type> pointeeFactory;
 
@@ -371,7 +373,7 @@ public abstract class TypeImpl implements Type {
     public static Optional<MemoryLayout> getLayout(org.openjdk.jextract.Type t) {
         try {
             return Optional.of(getLayoutInternal(t));
-        } catch (Throwable ex) {
+        } catch (UnsupportedOperationException ex) {
             return Optional.empty();
         }
     }
@@ -387,7 +389,7 @@ public abstract class TypeImpl implements Type {
             } else {
                 return Optional.of(FunctionDescriptor.of(getLayoutInternal(retType), args));
             }
-        } catch (Throwable ex) {
+        } catch (UnsupportedOperationException ex) {
             return Optional.empty();
         }
     }

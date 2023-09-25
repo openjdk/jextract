@@ -39,7 +39,7 @@ import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 public class Index extends ClangDisposable {
 
     Index(MemorySegment addr) {
-        super(addr, () -> Index_h.clang_disposeIndex(addr));
+        super(addr, Index_h::clang_disposeIndex);
     }
 
     public static class UnsavedFile {
@@ -70,7 +70,7 @@ public class Index extends ClangDisposable {
 
     public TranslationUnit parseTU(String file, Consumer<Diagnostic> dh, int options, String... args)
             throws ParsingFailedException {
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             MemorySegment src = arena.allocateUtf8String(file);
             MemorySegment cargs = args.length == 0 ? null : arena.allocateArray(C_POINTER, args.length);
             for (int i = 0 ; i < args.length ; i++) {

@@ -48,7 +48,7 @@ public class IncompleteArrayTest extends JextractToolRunner {
             MemoryLayout actualLayout = findLayout(cls);
             MemoryLayout expectedLayout = MemoryLayout.structLayout(
                 C_INT.withName("size"),
-                MemoryLayout.paddingLayout(32),
+                MemoryLayout.paddingLayout(4),
                 MemoryLayout.sequenceLayout(0, C_POINTER).withName("data")
             ).withName("Foo");
             assertEquals(actualLayout, expectedLayout);

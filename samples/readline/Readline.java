@@ -36,7 +36,7 @@ import org.unix.*;
 
 public class Readline {
     public static void main(String[] args) {
-       try (var arena = Arena.openConfined()) {
+       try (var arena = Arena.ofConfined()) {
             var url = arena.allocateUtf8String("name? ");
 
             // call "readline" API

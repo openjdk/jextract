@@ -86,6 +86,11 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     void processField(Cursor c) {
         boolean isBitfield = c.isBitField();
         long expectedOffset = offsetOf(parent, c);
+        if (offset > expectedOffset) {
+            // out-of-order field, skip
+            System.err.println("WARNING: ignoring field: " + c.spelling() + " in struct " + type.spelling());
+            return;
+        }
         if (expectedOffset > offset) {
             addPadding(expectedOffset - offset);
             actualSize += (expectedOffset - offset);
@@ -115,7 +120,7 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     }
 
     @Override
-    Declaration.Scoped finishRecord(String anonName) {
+    Declaration.Scoped finishRecord(String layoutName, String declName) {
         // pad at the end, if any
         long expectedSize = type.size() * 8;
         if (actualSize < expectedSize) {
@@ -133,14 +138,10 @@ final class StructLayoutComputer extends RecordLayoutComputer {
          */
         handleBitfields();
 
-        MemoryLayout[] fields = fieldLayouts.toArray(new MemoryLayout[0]);
-        GroupLayout g = MemoryLayout.structLayout(fields);
-        if (!cursor.spelling().isEmpty()) {
-            g = g.withName(cursor.spelling());
-        } else if (anonName != null) {
-            g = g.withName(anonName);
-        }
-        Declaration.Scoped declaration = Declaration.struct(TreeMaker.CursorPosition.of(cursor), cursor.spelling(),
+        GroupLayout g = MemoryLayout.structLayout(alignFields());
+        checkSize(g);
+        g = g.withName(layoutName);
+        Declaration.Scoped declaration = Declaration.struct(TreeMaker.CursorPosition.of(cursor), declName,
                 g, fieldDecls.stream().toArray(Declaration[]::new));
         return declaration;
     }
@@ -155,11 +156,12 @@ final class StructLayoutComputer extends RecordLayoutComputer {
             if (!prevBitfieldDecls.isEmpty()) {
                 addField(offset, bitfield(prevBitfieldDecls.toArray(new Declaration.Variable[0])));
             }
-            if (prevBitfieldSize == 0) {
-                // nothing to do
-                return;
+            if (prevBitfieldSize > 0) {
+                if (prevBitfieldSize % 8 != 0) {
+                    throw new IllegalStateException("Cannot get here: " + prevBitfieldSize);
+                }
+                fieldLayouts.add(MemoryLayout.paddingLayout(prevBitfieldSize / 8));
             }
-            fieldLayouts.add(MemoryLayout.paddingLayout(prevBitfieldSize));
         }
     }
 }

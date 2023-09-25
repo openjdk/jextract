@@ -47,7 +47,7 @@ public class ASTPrinter {
             System.exit(1);
         }
 
-        try (var arena = Arena.openConfined()) {
+        try (var arena = Arena.ofConfined()) {
             // parse the C header/source passed from the command line
             var index = clang_createIndex(0, 0);
             var tu = clang_parseTranslationUnit(index, arena.allocateUtf8String(args[0]),
@@ -75,7 +75,7 @@ public class ASTPrinter {
                 level[0]--;
 
                 return CXChildVisit_Continue();
-            }, arena.scope());
+            }, arena);
 
             // get the AST root and visit it
             var root = clang_getTranslationUnitCursor(arena, tu);
