@@ -224,7 +224,7 @@ final class RuntimeHelper {
             if (c.isPrimitive()) {
                 return promote(c);
             }
-            if (c == MemorySegment.class) {
+            if (MemorySegment.class.isAssignableFrom(c)) {
                 return MemorySegment.class;
             }
             throw new IllegalArgumentException("Invalid type for ABI: " + c.getTypeName());
