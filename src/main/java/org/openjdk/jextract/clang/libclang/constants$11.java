@@ -119,6 +119,11 @@ final class constants$11 {
         "clang_getElementType",
         constants$11.clang_getElementType$FUNC
     );
+
+    static final MethodHandle clang_getValueType$MH = RuntimeHelper.downcallHandle(
+            "clang_Type_getValueType",
+            constants$11.clang_getElementType$FUNC
+    );
 }
 
 
