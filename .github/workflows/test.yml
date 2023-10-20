@@ -21,10 +21,10 @@ jobs:
         include:
           - os: ubuntu-20.04
             TARGET: linux-gnu-ubuntu-20.04
-            JAVA19_HOME: /tmp/deps/jdk-19
+            JAVA22_HOME: /tmp/deps/jdk-22
           - os: macos-latest
             TARGET: apple-darwin
-            JAVA19_HOME: /tmp/deps/jdk-19/jdk-19.jdk/Contents/Home
+            JAVA22_HOME: /tmp/deps/jdk-22/jdk-22.jdk/Contents/Home
 
     steps:
     - name: 'Check out repository'
@@ -38,30 +38,30 @@ jobs:
         mkdir -p deps/jtreg
         mkdir -p /tmp/deps
 
-    - name: 'Download JDK 19'
-      id: download_jdk_19
+    - name: 'Download JDK 22'
+      id: download_jdk_22
       uses: oracle-actions/setup-java@v1.1.1
       with:
         website: jdk.java.net
-        release: 19
+        release: 22
         install: false
         
-    - name: 'Extract JDK 19'
+    - name: 'Extract JDK 22'
       shell: sh
       run: |
-        mkdir -p /tmp/deps/jdk-19
-        tar --strip-components=1 -xvf ${{ steps.download_jdk_19.outputs.archive }} -C /tmp/deps/jdk-19
-        ls -lah /tmp/deps/jdk-19
+        mkdir -p /tmp/deps/jdk-22
+        tar --strip-components=1 -xvf ${{ steps.download_jdk_22.outputs.archive }} -C /tmp/deps/jdk-22
+        ls -lah /tmp/deps/jdk-22
 
-    - name: 'Check Java 19 version'
+    - name: 'Check Java 22 version'
       shell: sh
       run: |
         ${{ matrix.JAVA19_HOME }}/bin/java --version
 
-    - name: 'Setup Java 18'
+    - name: 'Setup Java 17'
       uses: oracle-actions/setup-java@v1.1.1
       with:
-        release: 18
+        release: 17
 
     - name: 'Check default Java version'
       shell: sh
@@ -80,7 +80,7 @@ jobs:
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk19_home=${{ matrix.JAVA19_HOME }} -Pllvm_home=/tmp/deps/clang_llvm clean verify        
+        sh ./gradlew -Pjdk22_home=${{ matrix.JAVA22_HOME }} -Pllvm_home=/tmp/deps/clang_llvm clean verify        
 
     - name: 'Check out JTReg'
       uses: actions/checkout@v2
@@ -100,4 +100,4 @@ jobs:
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk19_home=${{ matrix.JAVA19_HOME }} -Pllvm_home=/tmp/deps/clang_llvm -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
+        sh ./gradlew -Pjdk22_home=${{ matrix.JAVA22_HOME }} -Pllvm_home=/tmp/deps/clang_llvm -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
