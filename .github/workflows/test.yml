@@ -40,7 +40,7 @@ jobs:
 
     - name: 'Download JDK 22'
       id: download_jdk_22
-      uses: oracle-actions/setup-java@v1.1.1
+      uses: oracle-actions/setup-java@v1.3.2
       with:
         website: jdk.java.net
         release: 22
@@ -56,7 +56,7 @@ jobs:
     - name: 'Check Java 22 version'
       shell: sh
       run: |
-        ${{ matrix.JAVA19_HOME }}/bin/java --version
+        ${{ matrix.JAVA22_HOME }}/bin/java --version
 
     - name: 'Setup Java 17'
       uses: oracle-actions/setup-java@v1.1.1
