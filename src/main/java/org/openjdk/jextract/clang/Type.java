@@ -98,6 +98,10 @@ public final class Type extends ClangDisposable.Owned {
         var elementType = Index_h.clang_getElementType(owner, segment);
         return new Type(elementType, owner);
     }
+    public Type getValueType() {
+        var valueType = Index_h.clang_getValueType(owner, segment);
+        return new Type(valueType, owner);
+    }
 
     public long getNumberOfElements() {
         return Index_h.clang_getNumElements(segment);
