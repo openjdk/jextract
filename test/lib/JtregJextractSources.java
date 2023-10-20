@@ -72,8 +72,6 @@ public class JtregJextractSources {
             System.err.println("compiling jextracted sources @ " + sourcePath.toAbsolutePath());
             List<String> commands = new ArrayList<>();
             commands.add("-parameters");
-            commands.add("--source=22");
-            commands.add("--enable-preview");
             commands.add("-d");
             commands.add(outputDir.toAbsolutePath().toString());
             commands.addAll(files);

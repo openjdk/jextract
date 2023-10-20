@@ -50,8 +50,6 @@ public final class Writer {
             return List.of();
         } else {
             return InMemoryJavaCompiler.compile(sources,
-                "--enable-preview",
-                "--source", "22",
                 "-d", dest.toAbsolutePath().toString(),
                 "-cp", dest.toAbsolutePath().toString());
         }
