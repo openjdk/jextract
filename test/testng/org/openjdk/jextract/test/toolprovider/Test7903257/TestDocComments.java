@@ -67,7 +67,7 @@ public class TestDocComments extends JextractToolRunner {
     public void testTypedefs() throws IOException {
         var comments = getDocComments("typedefs.h", "typedefs_h.java");
         assertEquals(comments, List.of(
-            "typedef unsigned long size_t;",
+            "typedef unsigned long long size_t;",
             "typedef int INT_32;",
             "typedef int* INT_PTR;",
             "typedef struct Foo* OPAQUE_PTR;"));
