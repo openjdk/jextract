@@ -29,7 +29,6 @@ package org.openjdk.jextract.impl;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.JextractTool;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.Diagnostic;
@@ -46,11 +45,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class MacroParserImpl implements AutoCloseable {
-
+    private static final Logger LOGGER = Logger.getLogger(MacroParserImpl.class.getSimpleName());
     private final ClangReparser reparser;
     private final TreeMaker treeMaker;
     final MacroTable macroTable;
@@ -125,16 +126,16 @@ class MacroParserImpl implements AutoCloseable {
                     // precompiled header
                     "-include-pch", precompiled.toAbsolutePath().toString()),
                 args.stream()).toArray(String[]::new);
+            LOGGER.log(Level.FINE, "Running macro parser");
             this.macroUnit = macroIndex.parse(macro.toAbsolutePath().toString(),
                     this::processDiagnostics,
                     false, //add serialization support (needed for macros)
                     patchedArgs);
+            LOGGER.log(Level.FINE, "Macro parser completed");
         }
 
         void processDiagnostics(Diagnostic diag) {
-            if (JextractTool.DEBUG) {
-                System.err.println("Error while processing macro: " + diag.spelling());
-            }
+            LOGGER.log(Level.FINE, "Error while processing macro: {0}", diag.spelling());
         }
 
         public Cursor reparse(String snippet) {

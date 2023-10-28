@@ -40,8 +40,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Parser {
+    private static final Logger LOGGER = Logger.getLogger(Parser.class.getSimpleName());
     private final TreeMaker treeMaker;
 
     public Parser() {
@@ -49,18 +52,21 @@ public class Parser {
     }
 
     public Declaration.Scoped parse(Path path, Collection<String> args) {
+        LOGGER.log(Level.FINER, "Parsing file: {0}", path);
         try (Index index = LibClang.createIndex(false) ;
              TranslationUnit tu = index.parse(path.toString(),
                 d -> {
                     if (d.severity() > Diagnostic.CXDiagnostic_Warning) {
+                        LOGGER.log(Level.FINER, "Parse error: {0}", d.toString());
                         throw new ClangException(d.toString());
                     }
                 },
-            true, args.toArray(new String[0])) ;
+            true, args.toArray(new String[0]));
             MacroParserImpl macroParser = MacroParserImpl.make(treeMaker, tu, args)) {
 
             List<Declaration> decls = new ArrayList<>();
             Cursor tuCursor = tu.getCursor();
+            LOGGER.log(Level.FINER, "Parsing file: {0}", path);
             tuCursor.forEach(c -> {
                 SourceLocation loc = c.getSourceLocation();
                 if (loc == null) {
@@ -71,7 +77,6 @@ public class Parser {
                 if (src == null) {
                     return;
                 }
-
 
                 if (c.isDeclaration()) {
                     if (c.kind() == CursorKind.UnexposedDecl ||
@@ -95,6 +100,8 @@ public class Parser {
                     if (constant.isPresent()) {
                         decls.add(constant.get());
                     }
+                } else {
+                    LOGGER.log(Level.FINER, "Parsing of cursor is not supported and will be ignored: {0}", ClangUtils.toString(c));
                 }
             });
 

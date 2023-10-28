@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -24,11 +24,30 @@
  *
  */
 
-module org.openjdk.jextract {
-    requires transitive java.compiler;
-    requires java.logging;
-    exports org.openjdk.jextract;
+package org.openjdk.jextract.impl;
 
-    provides java.util.spi.ToolProvider with
-        org.openjdk.jextract.JextractTool.JextractToolProvider;
+import java.util.Objects;
+import java.util.Optional;
+import org.openjdk.jextract.clang.Cursor;
+import org.openjdk.jextract.clang.SourceLocation;
+import org.openjdk.jextract.clang.Type;
+
+/**
+ * General utility functions for Clang
+ */
+class ClangUtils {
+
+    public static String toString(Cursor c) {
+        var str = String.format("name [%s], kind [%s]", c.displayName(), c.kind());
+        if (!Objects.equals(c.displayName(), c.spelling()))
+            str += ", spelling [" + c.spelling() + "]";
+        str += Optional.ofNullable(c.getSourceLocation()).map(SourceLocation::getFileLocation).map(loc -> {
+            return String.format(", file location %s(%s)", loc.path(), loc.line());
+        }).orElse("");
+        return "clang cursor[" + str + "]";
+    }
+
+    public static String toString(Type t) {
+        return String.format("clang type[type [%s], kind [%s], canonical type [%s]]", t.spelling(), t.kind(), t.canonicalType().spelling());
+    }
 }

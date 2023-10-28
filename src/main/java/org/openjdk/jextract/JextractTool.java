@@ -51,6 +51,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import java.util.spi.ToolProvider;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,6 +65,7 @@ import java.util.stream.Stream;
  * on top of the underlying memory access var handles. For each struct, a static layout field is generated.
  */
 public final class JextractTool {
+    private static final Logger LOGGER = Logger.getLogger(JextractTool.class.getSimpleName());
     private static final String MESSAGES_RESOURCE = "org.openjdk.jextract.impl.resources.Messages";
 
     private static final ResourceBundle MESSAGES_BUNDLE;
@@ -80,16 +84,8 @@ public final class JextractTool {
     private static final int RUNTIME_ERROR = 4;
     private static final int OUTPUT_ERROR  = 5;
 
-    private final PrintWriter out;
-    private final PrintWriter err;
-
     private static String format(String msgId, Object... args) {
         return new MessageFormat(MESSAGES_BUNDLE.getString(msgId)).format(args);
-    }
-
-    private JextractTool(PrintWriter out, PrintWriter err) {
-        this.out = out;
-        this.err = err;
     }
 
     private static Path generateTmpSource(List<Path> headers) {
@@ -141,22 +137,25 @@ public final class JextractTool {
     }
 
     private int printHelp(int exitCode) {
-        err.println(format("jextract.usage"));
+        LOGGER.log(Level.SEVERE, format("jextract.usage"));
         return exitCode;
     }
 
 
     private void printOptionError(Throwable throwable) {
-        printOptionError(throwable.getMessage());
-        if (DEBUG) {
-            throwable.printStackTrace(err);
-        }
+        LOGGER.log(Level.SEVERE, formatOptionError(throwable.getMessage()), throwable);
+    }
+
+    private String formatOptionError(String message) {
+        return """
+                OPTION ERROR: %s
+                Usage: jextract <options> <header file>
+                Use --help for a list of possible options
+                """.formatted(message);
     }
 
     private void printOptionError(String message) {
-        err.println("OPTION ERROR: " + message);
-        err.println("Usage: jextract <options> <header file>");
-        err.println("Use --help for a list of possible options");
+        LOGGER.log(Level.SEVERE, formatOptionError(message));
     }
 
     /**
@@ -169,11 +168,24 @@ public final class JextractTool {
             System.err.println("Expected a header file");
             return;
         }
-
-        JextractTool m = new JextractTool(new PrintWriter(System.out, true), new PrintWriter(System.err, true));
+        setupLogging();
+        JextractTool m = new JextractTool();
         System.exit(m.run(args));
     }
 
+
+    private static void setupLogging() {
+        var inputStream = ClassLoader.getSystemResourceAsStream(DEBUG? "logging-jextract-debug.properties": "logging-jextract.properties");
+        if (inputStream == null) return;
+        try {
+            LogManager.getLogManager().readConfiguration(inputStream);
+        } catch (SecurityException | IOException e) {
+            System.err.println("Failed to setup logging: " + e.getMessage());
+            if (DEBUG) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     // Option handling code
 
@@ -325,10 +337,7 @@ public final class JextractTool {
         try {
             args = CommandLine.parse(Arrays.asList(args)).toArray(new String[0]);
         } catch (IOException ioexp) {
-            err.println(format("argfile.read.error", ioexp));
-            if (JextractTool.DEBUG) {
-                ioexp.printStackTrace(err);
-            }
+            LOGGER.log(Level.SEVERE, format("argfile.read.error", ioexp), ioexp);
             return OPTION_ERROR;
         }
 
@@ -357,9 +366,11 @@ public final class JextractTool {
 
         if (optionSet.has("--version")) {
             var version = JextractTool.class.getModule().getDescriptor().version();
-            err.printf("%s %s\n", "jextract", version.get());
-            err.printf("%s %s\n", "JDK version", System.getProperty("java.runtime.version"));
-            err.printf("%s\n", LibClang.version());
+            LOGGER.log(Level.SEVERE, """
+                       jextract %s
+                       JDK version %s
+                       %s
+                       """.formatted(version.get(), System.getProperty("java.runtime.version"), LibClang.version()));
             return SUCCESS;
         }
 
@@ -377,12 +388,9 @@ public final class JextractTool {
         Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
         if (Files.exists(compileFlagsTxt)) {
             try {
-                Files.lines(compileFlagsTxt).forEach(opt -> builder.addClangArg(opt));
+                Files.lines(compileFlagsTxt).filter(s -> !s.startsWith("#")).forEach(opt -> builder.addClangArg(opt));
             } catch (IOException ioExp) {
-                err.println("compile_flags.txt reading failed " + ioExp);
-                if (JextractTool.DEBUG) {
-                    ioExp.printStackTrace(err);
-                }
+                LOGGER.log(Level.SEVERE, "compile_flags.txt reading failed: " + ioExp, ioExp);
                 return OPTION_ERROR;
             }
         }
@@ -439,7 +447,7 @@ public final class JextractTool {
                     if (libPath.isAbsolute() && Files.isRegularFile(libPath)) {
                         builder.addLibraryName(lib);
                     } else {
-                        err.println(format("l.option.value.invalid", lib));
+                        LOGGER.log(Level.SEVERE, format("l.option.value.invalid", lib));
                         return OPTION_ERROR;
                     }
                 }
@@ -453,11 +461,11 @@ public final class JextractTool {
 
         Path header = Paths.get(optionSet.nonOptionArguments().get(0));
         if (!Files.isReadable(header)) {
-            err.println(format("cannot.read.header.file", header));
+            LOGGER.log(Level.SEVERE, format("cannot.read.header.file", header));
             return INPUT_ERROR;
         }
         if (!(Files.isRegularFile(header))) {
-            err.println(format("not.a.file", header));
+            LOGGER.log(Level.SEVERE, format("not.a.file", header));
             return INPUT_ERROR;
         }
 
@@ -477,16 +485,10 @@ public final class JextractTool {
                 toplevel, headerName,
                 options.targetPackage, options.includeHelper, options.libraryNames);
         } catch (ClangException ce) {
-            err.println(ce.getMessage());
-            if (JextractTool.DEBUG) {
-                ce.printStackTrace(err);
-            }
+            LOGGER.log(Level.SEVERE, ce.getMessage(), ce);
             return CLANG_ERROR;
         } catch (RuntimeException re) {
-            err.println(re.getMessage());
-            if (JextractTool.DEBUG) {
-                re.printStackTrace(err);
-            }
+            LOGGER.log(Level.SEVERE, re.getMessage(), re);
             return RUNTIME_ERROR;
         }
 
@@ -498,16 +500,10 @@ public final class JextractTool {
                 write(output, !options.source, files);
             }
         } catch (UncheckedIOException uioe) {
-            err.println(uioe.getMessage());
-            if (JextractTool.DEBUG) {
-                uioe.printStackTrace(err);
-            }
+            LOGGER.log(Level.SEVERE, uioe.getMessage(), uioe);
             return OUTPUT_ERROR;
         } catch (RuntimeException re) {
-            err.println(re.getMessage());
-            if (JextractTool.DEBUG) {
-                re.printStackTrace(err);
-            }
+            LOGGER.log(Level.SEVERE, re.getMessage(), re);
             return RUNTIME_ERROR;
         }
 
@@ -527,7 +523,7 @@ public final class JextractTool {
 
         @Override
         public int run(PrintWriter out, PrintWriter err, String... args) {
-            JextractTool instance = new JextractTool(out, err);
+            JextractTool instance = new JextractTool();
             return instance.run(args);
         }
     }
