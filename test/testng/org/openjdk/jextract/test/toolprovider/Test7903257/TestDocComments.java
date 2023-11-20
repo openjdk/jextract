@@ -196,7 +196,7 @@ public class TestDocComments extends JextractToolRunner {
                 .replaceAll("\n\\s+\\*", "")
 
                 // get rid of "{@snippet :" prefix
-                .replaceAll("\\{@snippet :", "")
+                .replaceAll("\\{@snippet lang=c :", "")
 
                 // replace one or more whitespaces as single whitespace
                 .replaceAll("\\s+", " ")
