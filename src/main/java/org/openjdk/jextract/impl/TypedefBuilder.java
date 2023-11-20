@@ -31,9 +31,9 @@ public class TypedefBuilder extends ClassSourceBuilder {
     private final Declaration.Typedef typedefTree;
     private final String superClass;
 
-    public TypedefBuilder(JavaSourceBuilder enclosing,
+    public TypedefBuilder(SourceFileBuilder builder,
         Declaration.Typedef typedefTree, String name, String superClass) {
-        super(enclosing, Kind.CLASS, name);
+        super(builder, false, Kind.CLASS, name);
         this.typedefTree = typedefTree;
         this.superClass = superClass;
     }
@@ -49,7 +49,7 @@ public class TypedefBuilder extends ClassSourceBuilder {
     }
 
     @Override
-    JavaSourceBuilder classEnd() {
-        return super.classEnd();
+    void classEnd() {
+        super.classEnd();
     }
 }

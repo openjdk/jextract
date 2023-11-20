@@ -49,12 +49,14 @@ public class Constants {
 
     private final Map<Object, Constant> cache = new HashMap<>();
 
-    List<Builder> constantBuilders = new ArrayList<>();
-    Builder currentBuilder;
+    private final List<SourceFileBuilder> constantBuilders = new ArrayList<>();
+    private Builder currentBuilder;
 
-    public Constants(JavaSourceBuilder enclosing) {
-        currentBuilder = new Builder(enclosing, 0);
-        constantBuilders.add(currentBuilder);
+    private final String packageName;
+
+    public Constants(String packageName) {
+        this.packageName = packageName;
+        currentBuilder = newBuilder(packageName, 0);
         currentBuilder.classBegin();
         // prime the cache with basic primitive/pointer (immediate) layouts
         for (Type.Primitive.Kind kind : Type.Primitive.Kind.values()) {
@@ -71,13 +73,19 @@ public class Constants {
 
     static final int CONSTANTS_PER_CLASS = Integer.getInteger("jextract.constants.per.class", 5);
 
+    private Builder newBuilder(String packageName, int id) {
+        String builderClassName = "constants$" + id;
+        SourceFileBuilder sfb = new SourceFileBuilder(packageName, builderClassName);
+        sfb.emitPackagePrefix();
+        sfb.emitImportSection();
+        constantBuilders.add(sfb);
+        return new Builder(sfb, builderClassName);
+    }
+
     private Builder builder() {
-        if (currentBuilder.constantIndex > CONSTANTS_PER_CLASS || currentBuilder == null) {
-            if (currentBuilder != null) {
-                currentBuilder.classEnd();
-            }
-            currentBuilder = new Builder(currentBuilder.enclosing, constantBuilders.size());
-            constantBuilders.add(currentBuilder);
+        if (currentBuilder.constantIndex > CONSTANTS_PER_CLASS) {
+            currentBuilder.classEnd();
+            currentBuilder = newBuilder(packageName, constantBuilders.size());
             currentBuilder.classBegin();
         }
         return currentBuilder;
@@ -213,16 +221,14 @@ public class Constants {
 
     public List<JavaFileObject> toFiles() {
         currentBuilder.classEnd();
-        List<JavaFileObject> files = new ArrayList<>();
-        files.addAll(constantBuilders.stream()
-                .flatMap(b -> b.toFiles().stream()).toList());
-        return files;
+        return new ArrayList<>(constantBuilders.stream()
+                .map(SourceFileBuilder::toFile).toList());
     }
 
     class Builder extends ClassSourceBuilder {
 
-        Builder(JavaSourceBuilder encl, int id) {
-            super(encl, Kind.CLASS, "constants$" + id);
+        Builder(SourceFileBuilder builder, String className) {
+            super(builder, false, Kind.CLASS, className);
         }
 
         String memberMods() {

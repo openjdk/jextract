@@ -35,46 +35,26 @@ import javax.tools.JavaFileObject;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class JavaSourceBuilder {
+interface JavaSourceBuilder {
 
-    public void addVar(Declaration.Variable varTree, String javaName,
-        MemoryLayout layout, Optional<String> fiName) {
-        throw new UnsupportedOperationException();
-    }
+    void addVar(Declaration.Variable varTree, String javaName,
+        MemoryLayout layout, Optional<String> fiName);
 
-    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
-        String javaName, List<String> parameterNames) {
-        throw new UnsupportedOperationException();
-    }
+    void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
+        String javaName, List<String> parameterNames);
 
-    public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
-        throw new UnsupportedOperationException();
-    }
+    void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType);
 
-    public void addTypedef(Declaration.Typedef typedefTree, String javaName, String superClass) {
+    default void addTypedef(Declaration.Typedef typedefTree, String javaName, String superClass) {
         addTypedef(typedefTree, javaName, superClass, typedefTree.type());
     }
 
-    public void addTypedef(Declaration.Typedef typedefTree, String javaName,
-        String superClass, Type type) {
-        throw new UnsupportedOperationException();
-    }
+    void addTypedef(Declaration.Typedef typedefTree, String javaName,
+        String superClass, Type type);
 
-    public StructBuilder addStruct(Declaration.Scoped structTree, boolean isNestedAnonStruct,
-        String javaName, GroupLayout layout) {
-        throw new UnsupportedOperationException();
-    }
+    StructBuilder addStruct(Declaration.Scoped structTree, boolean isNestedAnonStruct,
+        String javaName, GroupLayout layout);
 
-    public void addFunctionalInterface(Type.Function funcType, String javaName,
-        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        throw new UnsupportedOperationException();
-    }
-
-    abstract public List<JavaFileObject> toFiles();
-
-    public abstract String packageName();
-
-    abstract boolean isEnclosedBySameName(String name);
-
-    abstract protected Constants constants();
+    void addFunctionalInterface(Type.Function funcType, String javaName,
+        FunctionDescriptor descriptor, Optional<List<String>> parameterNames);
 }

@@ -44,7 +44,7 @@ import java.util.Optional;
 /**
  * This class generates static utilities class for C structs, unions.
  */
-class StructBuilder extends ClassSourceBuilder {
+class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
 
     private static final String MEMBER_MODS = "public static";
 
@@ -52,15 +52,24 @@ class StructBuilder extends ClassSourceBuilder {
     private final GroupLayout structLayout;
     private final Type structType;
     private final Deque<String> prefixElementNames;
-    private Constant layoutConstant;
+    private final Constants constants;
+    private final StructBuilder enclosing;
 
-    StructBuilder(JavaSourceBuilder enclosing, Declaration.Scoped structTree,
+    StructBuilder(SourceFileBuilder builder, boolean isNested, Constants constants, StructBuilder enclosing, Declaration.Scoped structTree,
         String name, GroupLayout structLayout) {
-        super(enclosing, Kind.CLASS, name);
+        super(builder, isNested, Kind.CLASS, name);
         this.structTree = structTree;
         this.structLayout = structLayout;
         this.structType = Type.declared(structTree);
-        prefixElementNames = new ArrayDeque<>();
+        this.prefixElementNames = new ArrayDeque<>();
+        this.constants = constants;
+        this.enclosing = enclosing;
+    }
+
+    // is the name enclosed by a class of the same name?
+    private boolean isEnclosedBySameName(String name) {
+        return className().equals(name) ||
+                (isNested() && (enclosing != null && enclosing.isEnclosedBySameName(name)));
     }
 
     private String safeParameterName(String paramName) {
@@ -85,7 +94,7 @@ class StructBuilder extends ClassSourceBuilder {
     void classBegin() {
         if (!inAnonymousNested()) {
             super.classBegin();
-            layoutConstant = constants().addLayout(((Type.Declared) structType).tree().layout().orElseThrow());
+            Constant layoutConstant = constants.addLayout(((Type.Declared) structType).tree().layout().orElseThrow());
             layoutConstant.emitGetter(this, MEMBER_MODS, Constant::nameSuffix);
         }
     }
@@ -98,17 +107,16 @@ class StructBuilder extends ClassSourceBuilder {
     }
 
     @Override
-    JavaSourceBuilder classEnd() {
+    void classEnd() {
         if (!inAnonymousNested()) {
             emitSizeof();
             emitAllocatorAllocate();
             emitAllocatorAllocateArray();
             emitOfAddressScoped();
-            return super.classEnd();
+            super.classEnd();
         } else {
             // we're in an anonymous struct which got merged into this one, return this very builder and keep it open
             popPrefixElement();
-            return this;
         }
     }
 
@@ -125,14 +133,14 @@ class StructBuilder extends ClassSourceBuilder {
             pushPrefixElement(anonName);
             return this;
         } else {
-            return new StructBuilder(this, tree, name, layout);
+            return new StructBuilder(sb, true, constants, this, tree, name, layout);
         }
     }
 
     @Override
     public void addFunctionalInterface(Type.Function funcType, String javaName,
         FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, funcType, javaName, descriptor, parameterNames);
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sb, true, constants, funcType, javaName, descriptor, parameterNames);
         builder.classBegin();
         builder.classEnd();
     }
@@ -153,7 +161,7 @@ class StructBuilder extends ClassSourceBuilder {
                 emitSegmentGetter(javaName, nativeName, layout);
             }
         } else if (layout instanceof ValueLayout valueLayout) {
-            Constant vhConstant = constants().addFieldVarHandle(nativeName, structLayout, prefixNamesList())
+            Constant vhConstant = constants.addFieldVarHandle(nativeName, structLayout, prefixNamesList())
                     .emitGetter(this, MEMBER_MODS, javaName);
             emitFieldDocComment(varTree, "Getter for field:");
             emitFieldGetter(vhConstant, javaName, valueLayout.carrier());
@@ -165,6 +173,21 @@ class StructBuilder extends ClassSourceBuilder {
                 emitFunctionalInterfaceGetter(fiName.get(), javaName);
             }
         }
+    }
+
+    @Override
+    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor, String javaName, List<String> parameterNames) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public void addTypedef(Declaration.Typedef typedefTree, String javaName, String superClass, Type type) {
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     private void emitFieldDocComment(Declaration.Variable varTree, String header) {

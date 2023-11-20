@@ -45,15 +45,18 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
+    private final Constants constants;
 
-    FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, Type.Function funcType, String className,
+    FunctionalInterfaceBuilder(SourceFileBuilder builder, boolean isNested, Constants constants,
+                               Type.Function funcType, String className,
                                FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        super(enclosing, Kind.INTERFACE, className);
+        super(builder, isNested, Kind.INTERFACE, className);
         this.funcType = funcType;
         this.fiType = descriptor.toMethodType();
         this.downcallType = descriptor.toMethodType();
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
+        this.constants = constants;
     }
 
     @Override
@@ -62,11 +65,11 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     @Override
-    JavaSourceBuilder classEnd() {
+    void classEnd() {
         emitFunctionalInterfaceMethod();
         emitFunctionalFactories();
         emitFunctionalFactoryForPointer();
-        return super.classEnd();
+        super.classEnd();
     }
 
     // private generation
@@ -94,8 +97,8 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactories() {
-        Constant functionDesc = constants().addFunctionDesc(fiDesc);
-        Constant upcallHandle = constants().addUpcallMethodHandle(fullName(), "apply", fiDesc);
+        Constant functionDesc = constants.addFunctionDesc(fiDesc);
+        Constant upcallHandle = constants.addUpcallMethodHandle(fullName(), "apply", fiDesc);
         incrAlign();
         indent();
         append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, Arena scope) {\n");
@@ -110,7 +113,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactoryForPointer() {
-        Constant mhConstant = constants().addVirtualDowncallMethodHandle(fiDesc);
+        Constant mhConstant = constants.addVirtualDowncallMethodHandle(fiDesc);
         incrAlign();
         indent();
         append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena arena) {\n");

@@ -51,10 +51,12 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     static final String MEMBER_MODS = "public static";
 
     private final String superclass;
+    private final Constants constants;
 
-    HeaderFileBuilder(ToplevelBuilder enclosing, String name, String superclass) {
-        super(enclosing, Kind.CLASS, name);
+    HeaderFileBuilder(SourceFileBuilder builder, String name, String superclass, Constants constants) {
+        super(builder, false, Kind.CLASS, name);
         this.superclass = superclass;
+        this.constants = constants;
     }
 
     @Override
@@ -69,22 +71,21 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    @Override
     public void addVar(Declaration.Variable varTree, String javaName,
         MemoryLayout layout, Optional<String> fiName) {
         String nativeName = varTree.name();
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             if (layout.byteSize() > 0) {
                 emitDocComment(varTree);
-                constants().addSegment(nativeName, layout)
+                constants.addSegment(nativeName, layout)
                         .emitGetter(this, MEMBER_MODS, javaName, nativeName);
             };
         } else if (layout instanceof ValueLayout valueLayout) {
-            constants().addLayout(valueLayout)
+            constants.addLayout(valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName);
-            Constant vhConstant = constants().addGlobalVarHandle(valueLayout)
+            Constant vhConstant = constants.addGlobalVarHandle(valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName);
-            Constant segmentConstant = constants().addSegment(nativeName, valueLayout)
+            Constant segmentConstant = constants.addSegment(nativeName, valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName, nativeName);
             emitDocComment(varTree, "Getter for variable:");
             emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
@@ -97,13 +98,12 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         }
     }
 
-    @Override
     public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
             String javaName, List<String> parameterNames) {
         String nativeName = funcTree.name();
         boolean isVarargs = funcTree.type().varargs();
 
-        Constant mhConstant = constants().addDowncallMethodHandle(nativeName, descriptor, isVarargs)
+        Constant mhConstant = constants.addDowncallMethodHandle(nativeName, descriptor, isVarargs)
                 .emitGetter(this, MEMBER_MODS, javaName, nativeName);
         MethodType downcallType = descriptor.toMethodType();
         boolean needsAllocator = descriptor.returnLayout().isPresent() &&
@@ -112,11 +112,10 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, needsAllocator, isVarargs, parameterNames);
     }
 
-    @Override
     public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
         Object value = constantTree.value();
         emitDocComment(constantTree);
-        constants().addConstantDesc(javaType, value)
+        constants.addConstantDesc(javaType, value)
                     .emitGetter(this, MEMBER_MODS, c -> javaName);
     }
 
@@ -218,7 +217,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
             append(" " + Utils.layoutDeclarationType(primType.kind().layout().orElseThrow()).getSimpleName());
             append(" " + name);
             append(" = ");
-            append(constants().addLayout(kind.layout().get()).accessExpression());
+            append(constants.addLayout(kind.layout().get()).accessExpression());
             append(";\n");
             decrAlign();
         }
@@ -239,7 +238,7 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         append(" AddressLayout ");
         append(name);
         append(" = ");
-        append(constants().addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT).accessExpression());
+        append(constants.addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT).accessExpression());
         append(";\n");
         decrAlign();
     }

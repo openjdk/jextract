@@ -41,10 +41,11 @@ import java.util.Optional;
  * After aggregating various constituents of a .java source, build
  * method is called to get overall generated source string.
  */
-class ToplevelBuilder extends JavaSourceBuilder {
+class ToplevelBuilder implements JavaSourceBuilder {
 
     private int declCount;
-    private final List<JavaSourceBuilder> builders = new ArrayList<>();
+    private final List<SourceFileBuilder> builders = new ArrayList<>();
+    private final FirstHeader firstHeader;
     private SplitHeader lastHeader;
     private int headersCount;
     private final ClassDesc headerDesc;
@@ -55,38 +56,33 @@ class ToplevelBuilder extends JavaSourceBuilder {
 
     ToplevelBuilder(String packageName, String headerClassName) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
-        SplitHeader first = lastHeader = new FirstHeader(headerClassName);
-        builders.add(first);
-        constants = new Constants(this);
+        this.constants = new Constants(packageName);
+        SourceFileBuilder sfb = newSourceFile(packageName, headerClassName);
+        SplitHeader first = lastHeader = firstHeader = new FirstHeader(sfb, constants, headerClassName);
         first.classBegin();
+    }
+
+    private static SourceFileBuilder newSourceFile(String packageName, String className) {
+        SourceFileBuilder sfb = new SourceFileBuilder(packageName, className);
+        sfb.emitPackagePrefix();
+        sfb.emitImportSection();
+        return sfb;
     }
 
     public List<JavaFileObject> toFiles() {
         lastHeader.classEnd();
+
         List<JavaFileObject> files = new ArrayList<>();
+        files.add(firstHeader.sb.toFile(s -> s.replace("extends #{SUPER}",
+                lastHeader != firstHeader ? "extends " + lastHeader.className() : "")));
         files.addAll(builders.stream()
-                .flatMap(b -> b.toFiles().stream()).toList());
+                .map(SourceFileBuilder::toFile).toList());
         files.addAll(constants.toFiles());
         return files;
     }
 
-    public String headerClassName() {
-        return headerDesc.displayName();
-    }
-
-    @Override
-    boolean isEnclosedBySameName(String name) {
-        return false;
-    }
-
-    @Override
     public String packageName() {
         return headerDesc.packageName();
-    }
-
-    @Override
-    protected Constants constants() {
-        return constants;
     }
 
     @Override
@@ -116,8 +112,9 @@ class ToplevelBuilder extends JavaSourceBuilder {
             // pointer typedef
             nextHeader().emitPointerTypedef(typedefTree, javaName);
         } else {
-            TypedefBuilder builder = new TypedefBuilder(this, typedefTree, javaName, superClass);
-            builders.add(builder);
+            SourceFileBuilder sfb = newSourceFile(packageName(), javaName);
+            TypedefBuilder builder = new TypedefBuilder(sfb, typedefTree, javaName, superClass);
+            builders.add(sfb);
             builder.classBegin();
             builder.classEnd();
         }
@@ -126,7 +123,8 @@ class ToplevelBuilder extends JavaSourceBuilder {
     @Override
     public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
         String javaName, GroupLayout layout) {
-        StructBuilder structBuilder = new StructBuilder(this, tree, javaName, layout) {
+        SourceFileBuilder sfb = newSourceFile(packageName(), javaName);
+        StructBuilder structBuilder = new StructBuilder(sfb, false, constants, null, tree, javaName, layout) {
             @Override
             boolean isClassFinal() {
                 return false;
@@ -137,15 +135,16 @@ class ToplevelBuilder extends JavaSourceBuilder {
                 // None...
             }
         };
-        builders.add(structBuilder);
+        builders.add(sfb);
         return structBuilder;
     }
 
     @Override
     public void addFunctionalInterface(Type.Function funcType, String javaName,
         FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, funcType, javaName, descriptor, parameterNames);
-        builders.add(builder);
+        SourceFileBuilder sfb = newSourceFile(packageName(), javaName);
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sfb, false, constants, funcType, javaName, descriptor, parameterNames);
+        builders.add(sfb);
         builder.classBegin();
         builder.classEnd();
     }
@@ -153,11 +152,13 @@ class ToplevelBuilder extends JavaSourceBuilder {
     private SplitHeader nextHeader() {
         if (declCount == DECLS_PER_HEADER_CLASS) {
             boolean hasSuper = !(lastHeader instanceof FirstHeader);
-            SplitHeader headerFileBuilder = new SplitHeader(headerDesc.displayName() + "_" + ++headersCount,
+            String className = headerDesc.displayName() + "_" + ++headersCount;
+            SourceFileBuilder sfb = newSourceFile(packageName(), className);
+            SplitHeader headerFileBuilder = new SplitHeader(sfb, constants, className,
                     hasSuper ? lastHeader.className() : null);
             lastHeader.classEnd();
             headerFileBuilder.classBegin();
-            builders.add(headerFileBuilder);
+            builders.add(sfb);
             lastHeader = headerFileBuilder;
             declCount = 1;
             return headerFileBuilder;
@@ -167,9 +168,9 @@ class ToplevelBuilder extends JavaSourceBuilder {
         }
     }
 
-    class SplitHeader extends HeaderFileBuilder {
-        SplitHeader(String name, String superclass) {
-            super(ToplevelBuilder.this, name, superclass);
+    private static class SplitHeader extends HeaderFileBuilder {
+        SplitHeader(SourceFileBuilder builder, Constants constants, String name, String superclass) {
+            super(builder, name, superclass, constants);
         }
 
         @Override
@@ -183,10 +184,10 @@ class ToplevelBuilder extends JavaSourceBuilder {
         }
     }
 
-    class FirstHeader extends SplitHeader {
+    private static class FirstHeader extends SplitHeader {
 
-        FirstHeader(String name) {
-            super(name, "#{SUPER}");
+        FirstHeader(SourceFileBuilder builder, Constants constants, String name) {
+            super(builder, constants, name, "#{SUPER}");
         }
 
         @Override
@@ -202,13 +203,6 @@ class ToplevelBuilder extends JavaSourceBuilder {
             emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Float), "C_FLOAT");
             emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Double), "C_DOUBLE");
             emitPointerTypedef("C_POINTER");
-        }
-
-        @Override
-        String build() {
-            HeaderFileBuilder last = lastHeader;
-            return super.build().replace("extends #{SUPER}",
-                    last != this ? "extends " + last.className() : "");
         }
     }
 }

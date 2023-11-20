@@ -179,11 +179,13 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
 
         boolean isStructKind = Utils.isStructOrUnion(d);
+        JavaSourceBuilder prevBuilder = null;
         StructBuilder structBuilder = null;
         if (isStructKind) {
             GroupLayout layout = (GroupLayout) layoutFor(d);
             boolean isNestedAnonStruct = d.name().isEmpty() &&
                 (parent instanceof Declaration.Scoped);
+            prevBuilder = currentBuilder;
             currentBuilder = structBuilder = currentBuilder.addStruct(
                 d,
                 isNestedAnonStruct,
@@ -201,7 +203,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             d.members().forEach(fieldTree -> fieldTree.accept(this, d));
         } finally {
             if (isStructKind) {
-                currentBuilder = structBuilder.classEnd();
+                structBuilder.classEnd();
+                currentBuilder = prevBuilder;
             }
         }
         return null;
