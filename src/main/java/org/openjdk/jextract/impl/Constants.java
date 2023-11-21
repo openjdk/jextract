@@ -25,6 +25,7 @@
 
 package org.openjdk.jextract.impl;
 
+import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
 import javax.tools.JavaFileObject;
@@ -116,13 +117,30 @@ public class Constants {
             return emitGetter(builder, mods, symbolName, c -> c.getterName(javaName));
         }
 
+        Constant emitGetterWithComment(ClassSourceBuilder builder, String mods, String javaName, String symbolName,
+                                       Declaration decl) {
+            return emitGetterWithComment(builder, mods, symbolName, c -> c.getterName(javaName), decl);
+        }
+
         Constant emitGetter(ClassSourceBuilder builder, String mods, Function<Constant, String> getterNameFunc) {
-            builder.emitConstantGetter(mods, getterNameFunc.apply(this), false, null, this);
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), false, null, this, null);
+            return this;
+        }
+
+        Constant emitGetterWithComment(ClassSourceBuilder builder, String mods, Function<Constant, String> getterNameFunc,
+                                       Declaration decl) {
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), false, null, this, decl);
             return this;
         }
 
         Constant emitGetter(ClassSourceBuilder builder, String mods, String symbolName, Function<Constant, String> getterNameFunc) {
-            builder.emitConstantGetter(mods, getterNameFunc.apply(this), true, symbolName, this);
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), true, symbolName, this, null);
+            return this;
+        }
+
+        Constant emitGetterWithComment(ClassSourceBuilder builder, String mods, String symbolName,
+                                       Function<Constant, String> getterNameFunc, Declaration decl) {
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), true, symbolName, this, decl);
             return this;
         }
 

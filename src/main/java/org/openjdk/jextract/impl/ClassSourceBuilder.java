@@ -176,8 +176,11 @@ abstract class ClassSourceBuilder {
         append(" */\n");
     }
 
-    final void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant) {
+    final void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant, Declaration decl) {
         incrAlign();
+        if (decl != null) {
+            emitDocComment(decl);
+        }
         indent();
         append(mods + " " + constant.type().getSimpleName() + " " + getterName + "() {\n");
         incrAlign();

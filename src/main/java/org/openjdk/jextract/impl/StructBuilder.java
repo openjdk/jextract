@@ -90,11 +90,11 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
 
     void begin() {
         if (!inAnonymousNested()) {
-            emitDocComment(structTree);
             if (!enclosingClassNames().isEmpty()) {
                 // we are nested. Increase align
                 sourceFileBuilder().incrAlign();
             }
+            emitDocComment(structTree);
             classBegin();
             Constant layoutConstant = constants.addLayout(((Type.Declared) structType).tree().layout().orElseThrow());
             layoutConstant.emitGetter(this, MEMBER_MODS, Constant::nameSuffix);
