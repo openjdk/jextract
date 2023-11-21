@@ -24,9 +24,9 @@
  */
 package org.openjdk.jextract.impl;
 
-import javax.tools.JavaFileObject;
-import java.lang.constant.ClassDesc;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
@@ -47,124 +47,104 @@ abstract class ClassSourceBuilder {
         }
     }
 
-    protected final SourceFileBuilder sb;
-    private final boolean isNested;
-    final Kind kind;
-    final ClassDesc desc;
+    private final SourceFileBuilder sb;
+    private final List<String> enclosingClassNames;
+    private final String modifiers;
+    private final Kind kind;
+    private final String className;
+    private final String superName;
 
-    ClassSourceBuilder(SourceFileBuilder builder, boolean isNested, Kind kind, String name) {
+    ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName, List<String> enclosingClassNames) {
         this.sb = builder;
-        this.isNested = isNested;
+        this.modifiers = modifiers;
         this.kind = kind;
-        this.desc = ClassDesc.of(builder.packageName(), name);
+        this.className = className;
+        this.superName = superName;
+        this.enclosingClassNames = enclosingClassNames;
     }
 
-    boolean isNested() {
-        return isNested;
+    final String className() {
+        // for a (nested) class 'com.foo.package.A.B.C' this will return 'C'
+        return className;
     }
 
-    String className() {
-        return desc.displayName();
+    final String fullName() {
+        // for a (nested) class 'com.foo.package.A.B.C' this will return 'A.B.C'
+        return Stream.concat(enclosingClassNames.stream(), Stream.of(className)).collect(Collectors.joining("."));
     }
 
-    String fullName() {
-        return isNested() ?
-                sb.className() + "." + className() :
-                className();
+    final SourceFileBuilder sourceFileBuilder() {
+        return sb;
     }
 
-    String superClass() {
-        return null;
+    final List<String> enclosingClassNames() {
+        return enclosingClassNames;
     }
 
-    String mods() {
-        if (kind == Kind.INTERFACE) {
-            return "public ";
-        }
-        return (isNested() ? "public static " : "public ") +
-                (isClassFinal() ? "final " : "");
-    }
-
-    boolean isClassFinal() {
-        return true;
-    }
-
-    void classBegin() {
-        if (isNested()) {
-            incrAlign();
-        }
-
-        classDeclBegin();
+    final void classBegin() {
         indent();
-        append(mods());
-        append(kind.kindName + " " + className());
-        if (superClass() != null) {
+        append(modifiers);
+        append(" ");
+        append(kind.kindName + " " + className);
+        if (superName != null) {
             append(" extends ");
-            append(superClass());
+            append(superName);
         }
         append(" {\n\n");
-        if (kind != Kind.INTERFACE) {
-            emitConstructor();
-        }
     }
 
-    void classDeclBegin() {}
+    final void classEnd() {
+        indent();
+        append("}\n\n");
+    }
 
-    void emitConstructor() {
+    // Internal generation helpers (used by other builders)
+
+    final void append(String s) {
+        sb.append(s);
+    }
+
+    final void append(char c) {
+        sb.append(c);
+    }
+
+    final void append(long l) {
+        sb.append(l);
+    }
+
+    final void indent() {
+        sb.indent();
+    }
+
+    final void incrAlign() {
+        sb.incrAlign();
+    }
+
+    final void decrAlign() {
+        sb.decrAlign();
+    }
+
+    final int align() {
+        return sb.align();
+    }
+
+    final void emitPrivateDefaultConstructor() {
         incrAlign();
         indent();
         append("// Suppresses default constructor, ensuring non-instantiability.\n");
         indent();
         append("private ");
-        append(className());
+        append(className);
         append("() {}");
         append('\n');
         decrAlign();
     }
 
-    void classEnd() {
-        indent();
-        append("}\n\n");
-        if (isNested()) {
-            decrAlign();
-        }
-    }
-
-    // Internal generation helpers (used by other builders)
-
-    void append(String s) {
-        sb.append(s);
-    }
-
-    void append(char c) {
-        sb.append(c);
-    }
-
-    void append(long l) {
-        sb.append(l);
-    }
-
-    void indent() {
-        sb.indent();
-    }
-
-    void incrAlign() {
-        sb.incrAlign();
-    }
-
-    void decrAlign() {
-        sb.decrAlign();
-    }
-
-    int align() {
-        return sb.align();
-    }
-
-    void emitDocComment(Declaration decl) {
+    final void emitDocComment(Declaration decl) {
         emitDocComment(decl, "");
     }
 
-    void emitDocComment(Declaration decl, String header) {
+    final void emitDocComment(Declaration decl, String header) {
         indent();
         append("/**\n");
         if (!header.isEmpty()) {
@@ -182,7 +162,7 @@ abstract class ClassSourceBuilder {
         append(" */\n");
     }
 
-    void emitDocComment(Type.Function funcType, String name) {
+    final void emitDocComment(Type.Function funcType, String name) {
         indent();
         append("/**\n");
         indent();
@@ -196,7 +176,7 @@ abstract class ClassSourceBuilder {
         append(" */\n");
     }
 
-    void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant) {
+    final void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant) {
         incrAlign();
         indent();
         append(mods + " " + constant.type().getSimpleName() + " " + getterName + "() {\n");

@@ -191,7 +191,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                 isNestedAnonStruct,
                 isNestedAnonStruct? null : nameMangler.getJavaName(parent, d),
                 layout);
-            structBuilder.classBegin();
             if (!d.name().isEmpty()) {
                 addStructDefinition(d, structBuilder.fullName());
             }
@@ -203,7 +202,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             d.members().forEach(fieldTree -> fieldTree.accept(this, d));
         } finally {
             if (isStructKind) {
-                structBuilder.classEnd();
+                structBuilder.end();
                 currentBuilder = prevBuilder;
             }
         }

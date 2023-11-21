@@ -37,24 +37,36 @@ import java.util.Optional;
 
 interface JavaSourceBuilder {
 
-    void addVar(Declaration.Variable varTree, String javaName,
-        MemoryLayout layout, Optional<String> fiName);
+    default void addVar(Declaration.Variable varTree, String javaName,
+                        MemoryLayout layout, Optional<String> fiName) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-    void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
-        String javaName, List<String> parameterNames);
+    default void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
+                             String javaName, List<String> parameterNames) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-    void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType);
+    default void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
     default void addTypedef(Declaration.Typedef typedefTree, String javaName, String superClass) {
         addTypedef(typedefTree, javaName, superClass, typedefTree.type());
     }
 
-    void addTypedef(Declaration.Typedef typedefTree, String javaName,
-        String superClass, Type type);
+    default void addTypedef(Declaration.Typedef typedefTree, String javaName,
+                            String superClass, Type type) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-    StructBuilder addStruct(Declaration.Scoped structTree, boolean isNestedAnonStruct,
-        String javaName, GroupLayout layout);
+    default StructBuilder addStruct(Declaration.Scoped structTree, boolean isNestedAnonStruct,
+                                    String javaName, GroupLayout layout) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-    void addFunctionalInterface(Type.Function funcType, String javaName,
-        FunctionDescriptor descriptor, Optional<List<String>> parameterNames);
+    default void addFunctionalInterface(Type.Function funcType, String javaName,
+                                FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 }

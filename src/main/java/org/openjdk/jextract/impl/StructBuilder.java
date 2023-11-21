@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * This class generates static utilities class for C structs, unions.
@@ -53,34 +54,31 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
     private final Type structType;
     private final Deque<String> prefixElementNames;
     private final Constants constants;
-    private final StructBuilder enclosing;
 
-    StructBuilder(SourceFileBuilder builder, boolean isNested, Constants constants, StructBuilder enclosing, Declaration.Scoped structTree,
-        String name, GroupLayout structLayout) {
-        super(builder, isNested, Kind.CLASS, name);
+    StructBuilder(SourceFileBuilder builder, Constants constants, String modifiers, String className, List<String> enclosing,
+                  Declaration.Scoped structTree, GroupLayout structLayout) {
+        super(builder, modifiers, Kind.CLASS, className, null, enclosing);
         this.structTree = structTree;
         this.structLayout = structLayout;
         this.structType = Type.declared(structTree);
         this.prefixElementNames = new ArrayDeque<>();
         this.constants = constants;
-        this.enclosing = enclosing;
     }
 
     // is the name enclosed by a class of the same name?
     private boolean isEnclosedBySameName(String name) {
-        return className().equals(name) ||
-                (isNested() && (enclosing != null && enclosing.isEnclosedBySameName(name)));
+        return className().equals(name) || enclosingClassNames().contains(name);
     }
 
     private String safeParameterName(String paramName) {
         return isEnclosedBySameName(paramName)? paramName + "$" : paramName;
     }
 
-    void pushPrefixElement(String prefixElementName) {
+    private void pushPrefixElement(String prefixElementName) {
         prefixElementNames.push(prefixElementName);
     }
 
-    void popPrefixElement() {
+    private void popPrefixElement() {
         prefixElementNames.pop();
     }
 
@@ -90,59 +88,68 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
         return Collections.unmodifiableList(prefixes);
     }
 
-    @Override
-    void classBegin() {
+    void begin() {
         if (!inAnonymousNested()) {
-            super.classBegin();
+            emitDocComment(structTree);
+            if (!enclosingClassNames().isEmpty()) {
+                // we are nested. Increase align
+                sourceFileBuilder().incrAlign();
+            }
+            classBegin();
             Constant layoutConstant = constants.addLayout(((Type.Declared) structType).tree().layout().orElseThrow());
             layoutConstant.emitGetter(this, MEMBER_MODS, Constant::nameSuffix);
         }
     }
 
-    @Override
-    void classDeclBegin() {
-        if (!inAnonymousNested()) {
-            emitDocComment(structTree);
-        }
-    }
-
-    @Override
-    void classEnd() {
+    void end() {
         if (!inAnonymousNested()) {
             emitSizeof();
             emitAllocatorAllocate();
             emitAllocatorAllocateArray();
             emitOfAddressScoped();
-            super.classEnd();
+            classEnd();
+            if (!enclosingClassNames().isEmpty()) {
+                // we are nested. Decrease align
+                sourceFileBuilder().decrAlign();
+            }
         } else {
             // we're in an anonymous struct which got merged into this one, return this very builder and keep it open
             popPrefixElement();
         }
     }
 
-    boolean inAnonymousNested() {
+    private boolean inAnonymousNested() {
         return !prefixElementNames.isEmpty();
+    }
+
+    private List<String> enclosingForNested() {
+        return Stream.concat(enclosingClassNames().stream(), Stream.of(className())).toList();
     }
 
     @Override
     public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
-        String name, GroupLayout layout) {
+                                   String name, GroupLayout layout) {
         if (isNestedAnonStruct) {
             //nested anon struct - merge into this builder!
             String anonName = layout.name().orElseThrow();
             pushPrefixElement(anonName);
             return this;
         } else {
-            return new StructBuilder(sb, true, constants, this, tree, name, layout);
+            StructBuilder builder = new StructBuilder(sourceFileBuilder(), constants, "public static final", name, enclosingForNested(), tree, layout);
+            builder.begin();
+            builder.emitPrivateDefaultConstructor();
+            return builder;
         }
     }
 
     @Override
     public void addFunctionalInterface(Type.Function funcType, String javaName,
-        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sb, true, constants, funcType, javaName, descriptor, parameterNames);
-        builder.classBegin();
-        builder.classEnd();
+                                       FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        incrAlign();
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sourceFileBuilder(), constants, "public", javaName,
+                enclosingForNested(), funcType, descriptor, parameterNames);
+        builder.generate();
+        decrAlign();
     }
 
     @Override
@@ -169,25 +176,8 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
             emitFieldSetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldGetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldSetter(vhConstant, javaName, valueLayout.carrier());
-            if (fiName.isPresent()) {
-                emitFunctionalInterfaceGetter(fiName.get(), javaName);
-            }
+            fiName.ifPresent(s -> emitFunctionalInterfaceGetter(s, javaName));
         }
-    }
-
-    @Override
-    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor, String javaName, List<String> parameterNames) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void addTypedef(Declaration.Typedef typedefTree, String javaName, String superClass, Type type) {
-        throw new UnsupportedOperationException("Not implemented");
     }
 
     private void emitFieldDocComment(Declaration.Variable varTree, String header) {

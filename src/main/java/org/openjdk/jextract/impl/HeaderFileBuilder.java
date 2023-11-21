@@ -26,7 +26,6 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.SequenceLayout;
@@ -46,29 +45,15 @@ import java.util.Optional;
  * After aggregating various constituents of a .java source, build
  * method is called to get overall generated source string.
  */
-abstract class HeaderFileBuilder extends ClassSourceBuilder {
+class HeaderFileBuilder extends ClassSourceBuilder {
 
     static final String MEMBER_MODS = "public static";
 
-    private final String superclass;
     private final Constants constants;
 
-    HeaderFileBuilder(SourceFileBuilder builder, String name, String superclass, Constants constants) {
-        super(builder, false, Kind.CLASS, name);
-        this.superclass = superclass;
+    HeaderFileBuilder(SourceFileBuilder builder, Constants constants, String className, String superName) {
+        super(builder, "public", Kind.CLASS, className, superName, List.of());
         this.constants = constants;
-    }
-
-    @Override
-    String superClass() {
-        return superclass;
-    }
-
-    @Override
-    void emitDocComment(Declaration decl, String header) {
-        incrAlign();
-        super.emitDocComment(decl, header);
-        decrAlign();
     }
 
     public void addVar(Declaration.Variable varTree, String javaName,
