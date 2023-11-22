@@ -47,9 +47,9 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final Optional<List<String>> parameterNames;
     private final Constants constants;
 
-    FunctionalInterfaceBuilder(SourceFileBuilder builder, Constants constants, String modifiers, String className, List<String> enclosing,
+    FunctionalInterfaceBuilder(SourceFileBuilder builder, Constants constants, String className, List<String> enclosing,
                                Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        super(builder, modifiers, Kind.INTERFACE, className, null, enclosing);
+        super(builder, "public", Kind.INTERFACE, className, null, enclosing);
         this.funcType = funcType;
         this.fiType = descriptor.toMethodType();
         this.downcallType = descriptor.toMethodType();

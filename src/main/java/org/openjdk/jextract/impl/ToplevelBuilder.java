@@ -62,7 +62,6 @@ class ToplevelBuilder implements JavaSourceBuilder {
     private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, Constants constants) {
         HeaderFileBuilder first = new HeaderFileBuilder(sfb, constants, sfb.className(), "#{SUPER}");
         first.classBegin();
-        first.emitPrivateDefaultConstructor();
         // emit basic primitive types
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Bool), "C_BOOL");
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Char), "C_CHAR");
@@ -141,7 +140,7 @@ class ToplevelBuilder implements JavaSourceBuilder {
         FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
         builders.add(sfb);
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sfb, constants, "public", sfb.className(), List.of(),
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sfb, constants, sfb.className(), List.of(),
                 funcType, descriptor, parameterNames);
         builder.generate();
     }

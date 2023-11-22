@@ -149,7 +149,7 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
     public void addFunctionalInterface(Type.Function funcType, String javaName,
                                        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         incrAlign();
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sourceFileBuilder(), constants, "public", javaName,
+        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sourceFileBuilder(), constants, javaName,
                 enclosingForNested(), funcType, descriptor, parameterNames);
         builder.generate();
         decrAlign();
