@@ -55,7 +55,7 @@ class ToplevelBuilder implements JavaSourceBuilder {
     ToplevelBuilder(String packageName, String headerClassName) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
         this.constants = new Constants(packageName);
-        SourceFileBuilder sfb = newSourceFile(packageName, headerClassName);
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
         lastHeader = firstHeader = createFirstHeader(sfb, constants);
     }
 
@@ -74,13 +74,6 @@ class ToplevelBuilder implements JavaSourceBuilder {
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Double), "C_DOUBLE");
         first.emitPointerTypedef("C_POINTER");
         return first;
-    }
-
-    private static SourceFileBuilder newSourceFile(String packageName, String className) {
-        SourceFileBuilder sfb = new SourceFileBuilder(packageName, className);
-        sfb.emitPackagePrefix();
-        sfb.emitImportSection();
-        return sfb;
     }
 
     public List<JavaFileObject> toFiles() {
@@ -126,7 +119,7 @@ class ToplevelBuilder implements JavaSourceBuilder {
             // pointer typedef
             nextHeader().emitPointerTypedef(typedefTree, javaName);
         } else {
-            SourceFileBuilder sfb = newSourceFile(packageName(), javaName);
+            SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
             TypedefBuilder builder = new TypedefBuilder(sfb, sfb.className(), superClass, typedefTree);
             builders.add(sfb);
             builder.generate();
@@ -136,7 +129,7 @@ class ToplevelBuilder implements JavaSourceBuilder {
     @Override
     public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
         String javaName, GroupLayout layout) {
-        SourceFileBuilder sfb = newSourceFile(packageName(), javaName);
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
         builders.add(sfb);
         StructBuilder structBuilder = new StructBuilder(sfb, constants, "public", sfb.className(), List.of(), tree, layout);
         structBuilder.begin();
@@ -146,7 +139,7 @@ class ToplevelBuilder implements JavaSourceBuilder {
     @Override
     public void addFunctionalInterface(Type.Function funcType, String javaName,
         FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        SourceFileBuilder sfb = newSourceFile(packageName(), javaName);
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
         builders.add(sfb);
         FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sfb, constants, "public", sfb.className(), List.of(),
                 funcType, descriptor, parameterNames);
@@ -157,7 +150,7 @@ class ToplevelBuilder implements JavaSourceBuilder {
         if (declCount == DECLS_PER_HEADER_CLASS) {
             boolean hasSuper = lastHeader != firstHeader;
             String className = headerDesc.displayName() + "_" + ++headersCount;
-            SourceFileBuilder sfb = newSourceFile(packageName(), className);
+            SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), className);
             HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, constants, sfb.className(),
                     hasSuper ? lastHeader.className() : null);
             lastHeader.classEnd();

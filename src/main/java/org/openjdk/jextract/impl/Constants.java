@@ -75,9 +75,7 @@ public class Constants {
 
     private Builder startNewBuilder(String packageName, int id) {
         String builderClassName = "constants$" + id;
-        SourceFileBuilder sfb = new SourceFileBuilder(packageName, builderClassName);
-        sfb.emitPackagePrefix();
-        sfb.emitImportSection();
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, builderClassName);
         constantBuilders.add(sfb);
         Builder builder = new Builder(sfb, sfb.className());
         builder.classBegin();

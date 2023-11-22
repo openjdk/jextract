@@ -40,13 +40,20 @@ public class SourceFileBuilder {
     // current line alignment (number of 4-spaces)
     private int align;
 
-    public SourceFileBuilder(String packageName, String className) {
+    private SourceFileBuilder(String packageName, String className) {
         this.packageName = packageName;
         this.className = className;
     }
 
     public String className() {
         return className;
+    }
+
+    public static SourceFileBuilder newSourceFile(String packageName, String className) {
+        SourceFileBuilder sfb = new SourceFileBuilder(packageName, className);
+        sfb.emitPackagePrefix();
+        sfb.emitImportSection();
+        return sfb;
     }
 
     void emitPackagePrefix() {
