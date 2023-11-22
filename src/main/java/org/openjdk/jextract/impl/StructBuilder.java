@@ -179,7 +179,9 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
             emitFieldSetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldGetter(vhConstant, javaName, valueLayout.carrier());
             emitIndexedFieldSetter(vhConstant, javaName, valueLayout.carrier());
-            fiName.ifPresent(s -> emitFunctionalInterfaceGetter(s, javaName));
+            if (fiName.isPresent()) {
+                emitFunctionalInterfaceGetter(fiName.get(), javaName);
+            }
         }
     }
 
