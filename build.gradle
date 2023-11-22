@@ -154,6 +154,12 @@ task createRuntimeImageForTest(type: Exec) {
 }
 
 task cmakeConfigure(type: Exec) {
+    // note that we want to re-run this task if the set of files is different,
+    // not when one of the files has changed
+    inputs.property("libSources", fileTree(dir: "test", include: "**/*lib*.c").files)
+    inputs.file("test/test-support/CMakeLists.txt")
+    outputs.dir("$buildDir/testlib-build")
+
     executable = "cmake"
     args = [
         "-B", "$buildDir/testlib-build",
@@ -166,6 +172,9 @@ task cmakeConfigure(type: Exec) {
 
 task cmakeBuild(type: Exec) {
     dependsOn cmakeConfigure
+
+    inputs.files(fileTree(dir: "test", includes: ["**/*lib*.c", "**/*.h"]))
+    outputs.dir("$buildDir/testlib-install")
 
     executable = "cmake"
     args = [
