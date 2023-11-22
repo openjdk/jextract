@@ -88,10 +88,13 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
         return Collections.unmodifiableList(prefixes);
     }
 
+    private boolean isNested() {
+        return !enclosingClassNames().isEmpty();
+    }
+
     void begin() {
         if (!inAnonymousNested()) {
-            if (!enclosingClassNames().isEmpty()) {
-                // we are nested. Increase align
+            if (isNested()) {
                 sourceFileBuilder().incrAlign();
             }
             emitDocComment(structTree);
@@ -108,7 +111,7 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
             emitAllocatorAllocateArray();
             emitOfAddressScoped();
             classEnd();
-            if (!enclosingClassNames().isEmpty()) {
+            if (isNested()) {
                 // we are nested. Decrease align
                 sourceFileBuilder().decrAlign();
             }
