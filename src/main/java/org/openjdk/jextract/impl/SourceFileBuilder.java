@@ -121,4 +121,14 @@ final class SourceFileBuilder {
     public JavaFileObject toFile() {
         return toFile(s -> s);
     }
+
+    public void appendLines(String s) {
+        sb.append(s.indent(align * 4));
+    }
+
+    public void appendIndented(String s) {
+        incrAlign();
+        appendLines(s);
+        decrAlign();
+    }
 }

@@ -159,6 +159,11 @@ public class Constants {
         }
 
         abstract String accessExpression();
+
+        @Override
+        public String toString() {
+            return accessExpression();
+        }
     }
 
     final static class ImmediateConstant extends Constant {
