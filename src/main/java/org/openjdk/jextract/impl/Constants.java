@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.function.Function;
 
 public class Constants {
@@ -302,48 +303,37 @@ public class Constants {
 
         private Constant emitUpcallMethodHandleField(String className, String methodName, FunctionDescriptor descriptor) {
             Constant functionDesc = addFunctionDesc(descriptor);
-            incrAlign();
             NamedConstant mhConst = new NamedConstant(MethodHandle.class);
-            indent();
-            append(MEMBER_MODS + " MethodHandle ");
-            append(mhConst.constantName + " = RuntimeHelper.upcallHandle(");
-            append(className + ".class, ");
-            append("\"" + methodName + "\", ");
-            append(functionDesc.accessExpression());
-            append(");\n");
-            decrAlign();
+            appendIndentedLines(STR."""
+                static final MethodHandle \{mhConst.constantName} = RuntimeHelper.upcallHandle(\{className}.class, "\{methodName}", \{functionDesc});
+                """);
             return mhConst;
         }
 
         private Constant emitVarHandle(ValueLayout valueLayout) {
             Constant layoutConstant = addLayout(valueLayout);
-            incrAlign();
-            indent();
             NamedConstant vhConst = new NamedConstant(VarHandle.class);
-            append(MEMBER_MODS + " VarHandle " + vhConst.constantName + " = ");
-            append(layoutConstant.accessExpression());
-            append(".varHandle();\n");
-            decrAlign();
+            appendIndentedLines(STR."""
+                static final VarHandle \{vhConst.constantName} = \{layoutConstant}.varHandle();
+                """);
             return vhConst;
+        }
+
+        private static String pathElementStr(String nativeName, List<String> prefixElementNames) {
+            StringJoiner joiner = new StringJoiner(", ");
+            for (String prefixElementName : prefixElementNames) {
+                joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{prefixElementName}\")");
+            }
+            joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{nativeName}\")");
+            return joiner.toString();
         }
 
         private Constant emitFieldVarHandle(String nativeName, GroupLayout parentLayout, List<String> prefixElementNames) {
             Constant layoutConstant = addLayout(parentLayout);
-            incrAlign();
-            indent();
             NamedConstant vhConst = new NamedConstant(VarHandle.class);
-            append(MEMBER_MODS + " VarHandle " + vhConst.constantName + " = ");
-            append(layoutConstant.accessExpression());
-            append(".varHandle(");
-            String prefix = "";
-            for (String prefixElementName : prefixElementNames) {
-                append(prefix + "MemoryLayout.PathElement.groupElement(\"" + prefixElementName + "\")");
-                prefix = ", ";
-            }
-            append(prefix + "MemoryLayout.PathElement.groupElement(\"" + nativeName + "\")");
-            append(")");
-            append(";\n");
-            decrAlign();
+            appendIndentedLines(STR."""
+                static final VarHandle \{vhConst.constantName} = \{layoutConstant}.varHandle(\{pathElementStr(nativeName, prefixElementNames)});
+                """);
             return vhConst;
         }
 
@@ -437,47 +427,30 @@ public class Constants {
         }
 
         private Constant emitConstantString(Object value) {
-            incrAlign();
-            indent();
-            append(MEMBER_MODS);
-            append(" MemorySegment ");
             NamedConstant segConstant = new NamedConstant(MemorySegment.class);
-            append(segConstant.constantName);
-            append(" = RuntimeHelper.CONSTANT_ALLOCATOR.allocateFrom(\"");
-            append(Utils.quote(Objects.toString(value)));
-            append("\");\n");
-            decrAlign();
+            appendIndentedLines(STR."""
+                static final MemorySegment \{segConstant.constantName} =
+                        RuntimeHelper.CONSTANT_ALLOCATOR.allocateFrom("\{Utils.quote(Objects.toString(value))}");
+                """);
             return segConstant;
         }
 
         private Constant emitConstantAddress(Object value) {
-            incrAlign();
-            indent();
-            append(MEMBER_MODS);
-            append(" MemorySegment ");
             NamedConstant segConstant = new NamedConstant(MemorySegment.class);
-            append(segConstant.constantName);
-            append(" = MemorySegment.ofAddress(");
-            append(((Number)value).longValue());
-            append("L);\n");
-            decrAlign();
+            appendIndentedLines(STR."""
+                static final MemorySegment \{segConstant.constantName} =
+                        MemorySegment.ofAddress(\{((Number)value).longValue()}L);
+                """);
             return segConstant;
         }
 
         private Constant emitSegmentField(String nativeName, MemoryLayout layout) {
             Constant layoutConstant = addLayout(layout);
-            incrAlign();
-            indent();
-            append(MEMBER_MODS);
-            append(" MemorySegment ");
             NamedConstant segConstant = new NamedConstant(MemorySegment.class);
-            append(segConstant.constantName);
-            append(" = ");
-            append("RuntimeHelper.lookupGlobalVariable(");
-            append("\"" + nativeName + "\", ");
-            append(layoutConstant.accessExpression());
-            append(");\n");
-            decrAlign();
+            appendIndentedLines(STR."""
+                static final MemorySegment \{segConstant.constantName} =
+                        RuntimeHelper.lookupGlobalVariable("\{nativeName}", \{layoutConstant});
+                """);
             return segConstant;
         }
 
