@@ -26,30 +26,21 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Type;
 
-public class TypedefBuilder extends ClassSourceBuilder {
-    private final Declaration.Typedef typedefTree;
-    private final String superClass;
+import java.util.List;
 
-    public TypedefBuilder(JavaSourceBuilder enclosing,
-        Declaration.Typedef typedefTree, String name, String superClass) {
-        super(enclosing, Kind.CLASS, name);
-        this.typedefTree = typedefTree;
-        this.superClass = superClass;
+final class TypedefBuilder extends ClassSourceBuilder {
+    private TypedefBuilder(SourceFileBuilder builder, String className, String superClass) {
+        super(builder, "public", Kind.CLASS, className, superClass, null);
     }
 
-    @Override
-    String superClass() {
-        return superClass;
-    }
-
-    @Override
-    void classDeclBegin() {
-        emitDocComment(typedefTree);
-    }
-
-    @Override
-    JavaSourceBuilder classEnd() {
-        return super.classEnd();
+    public static void generate(SourceFileBuilder builder, String className, String superClass,
+                          Declaration.Typedef typedefTree) {
+        TypedefBuilder tdb = new TypedefBuilder(builder, className, superClass);
+        tdb.emitDocComment(typedefTree);
+        tdb.classBegin();
+        tdb.emitPrivateDefaultConstructor();
+        tdb.classEnd();
     }
 }

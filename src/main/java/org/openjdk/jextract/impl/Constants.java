@@ -25,6 +25,7 @@
 
 package org.openjdk.jextract.impl;
 
+import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
 import javax.tools.JavaFileObject;
@@ -49,13 +50,14 @@ public class Constants {
 
     private final Map<Object, Constant> cache = new HashMap<>();
 
-    List<Builder> constantBuilders = new ArrayList<>();
-    Builder currentBuilder;
+    private final List<SourceFileBuilder> constantBuilders = new ArrayList<>();
+    private Builder currentBuilder;
 
-    public Constants(JavaSourceBuilder enclosing) {
-        currentBuilder = new Builder(enclosing, 0);
-        constantBuilders.add(currentBuilder);
-        currentBuilder.classBegin();
+    private final String packageName;
+
+    public Constants(String packageName) {
+        this.packageName = packageName;
+        currentBuilder = startNewBuilder(packageName, 0);
         // prime the cache with basic primitive/pointer (immediate) layouts
         for (Type.Primitive.Kind kind : Type.Primitive.Kind.values()) {
             kind.layout().ifPresent(layout -> {
@@ -71,14 +73,20 @@ public class Constants {
 
     static final int CONSTANTS_PER_CLASS = Integer.getInteger("jextract.constants.per.class", 5);
 
+    private Builder startNewBuilder(String packageName, int id) {
+        String builderClassName = "constants$" + id;
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, builderClassName);
+        constantBuilders.add(sfb);
+        Builder builder = new Builder(sfb, sfb.className());
+        builder.classBegin();
+        builder.emitPrivateDefaultConstructor();
+        return builder;
+    }
+
     private Builder builder() {
-        if (currentBuilder.constantIndex > CONSTANTS_PER_CLASS || currentBuilder == null) {
-            if (currentBuilder != null) {
-                currentBuilder.classEnd();
-            }
-            currentBuilder = new Builder(currentBuilder.enclosing, constantBuilders.size());
-            constantBuilders.add(currentBuilder);
-            currentBuilder.classBegin();
+        if (currentBuilder.constantIndex > CONSTANTS_PER_CLASS) {
+            currentBuilder.classEnd();
+            currentBuilder = startNewBuilder(packageName, constantBuilders.size());
         }
         return currentBuilder;
     }
@@ -107,13 +115,30 @@ public class Constants {
             return emitGetter(builder, mods, symbolName, c -> c.getterName(javaName));
         }
 
+        Constant emitGetterWithComment(ClassSourceBuilder builder, String mods, String javaName, String symbolName,
+                                       Declaration decl) {
+            return emitGetterWithComment(builder, mods, symbolName, c -> c.getterName(javaName), decl);
+        }
+
         Constant emitGetter(ClassSourceBuilder builder, String mods, Function<Constant, String> getterNameFunc) {
-            builder.emitConstantGetter(mods, getterNameFunc.apply(this), false, null, this);
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), false, null, this, null);
+            return this;
+        }
+
+        Constant emitGetterWithComment(ClassSourceBuilder builder, String mods, Function<Constant, String> getterNameFunc,
+                                       Declaration decl) {
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), false, null, this, decl);
             return this;
         }
 
         Constant emitGetter(ClassSourceBuilder builder, String mods, String symbolName, Function<Constant, String> getterNameFunc) {
-            builder.emitConstantGetter(mods, getterNameFunc.apply(this), true, symbolName, this);
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), true, symbolName, this, null);
+            return this;
+        }
+
+        Constant emitGetterWithComment(ClassSourceBuilder builder, String mods, String symbolName,
+                                       Function<Constant, String> getterNameFunc, Declaration decl) {
+            builder.emitConstantGetter(mods, getterNameFunc.apply(this), true, symbolName, this, decl);
             return this;
         }
 
@@ -213,26 +238,16 @@ public class Constants {
 
     public List<JavaFileObject> toFiles() {
         currentBuilder.classEnd();
-        List<JavaFileObject> files = new ArrayList<>();
-        files.addAll(constantBuilders.stream()
-                .flatMap(b -> b.toFiles().stream()).toList());
-        return files;
+        return new ArrayList<>(constantBuilders.stream()
+                .map(SourceFileBuilder::toFile).toList());
     }
 
     class Builder extends ClassSourceBuilder {
 
-        Builder(JavaSourceBuilder encl, int id) {
-            super(encl, Kind.CLASS, "constants$" + id);
-        }
+        private static final String MEMBER_MODS = "static final";
 
-        String memberMods() {
-            return kind == ClassSourceBuilder.Kind.CLASS ?
-                    "static final " : "";
-        }
-
-        @Override
-        String mods() {
-            return "final "; // constants package-private!
+        Builder(SourceFileBuilder builder, String className) {
+            super(builder, "final", Kind.CLASS, className, null, null);
         }
 
         int constantIndex = 0;
@@ -243,10 +258,6 @@ public class Constants {
             NamedConstant(Class<?> type) {
                 super(type);
                 this.constantName = newConstantName();
-            }
-
-            String constantName() {
-                return constantName;
             }
 
             @Override
@@ -260,7 +271,7 @@ public class Constants {
             incrAlign();
             NamedConstant mhConst = new NamedConstant(MethodHandle.class);
             indent();
-            append(memberMods() + "MethodHandle ");
+            append(MEMBER_MODS + " MethodHandle ");
             append(mhConst.constantName + " = RuntimeHelper.");
             if (isVarargs) {
                 append("downcallHandleVariadic");
@@ -289,7 +300,7 @@ public class Constants {
             incrAlign();
             NamedConstant mhConst = new NamedConstant(MethodHandle.class);
             indent();
-            append(memberMods() + "MethodHandle ");
+            append(MEMBER_MODS + " MethodHandle ");
             append(mhConst.constantName + " = RuntimeHelper.upcallHandle(");
             append(className + ".class, ");
             append("\"" + methodName + "\", ");
@@ -304,7 +315,7 @@ public class Constants {
             incrAlign();
             indent();
             NamedConstant vhConst = new NamedConstant(VarHandle.class);
-            append(memberMods() + "VarHandle " + vhConst.constantName + " = ");
+            append(MEMBER_MODS + " VarHandle " + vhConst.constantName + " = ");
             append(layoutConstant.accessExpression());
             append(".varHandle();\n");
             decrAlign();
@@ -316,7 +327,7 @@ public class Constants {
             incrAlign();
             indent();
             NamedConstant vhConst = new NamedConstant(VarHandle.class);
-            append(memberMods() + "VarHandle " + vhConst.constantName + " = ");
+            append(MEMBER_MODS + " VarHandle " + vhConst.constantName + " = ");
             append(layoutConstant.accessExpression());
             append(".varHandle(");
             String prefix = "";
@@ -336,7 +347,7 @@ public class Constants {
             incrAlign();
             indent();
             String layoutClassName = Utils.layoutDeclarationType(layout).getSimpleName();
-            append(memberMods() + layoutClassName + " " + layoutConst.constantName + " = ");
+            append(MEMBER_MODS + " " + layoutClassName + " " + layoutConst.constantName + " = ");
             emitLayoutString(layout);
             append(";\n");
             decrAlign();
@@ -387,8 +398,8 @@ public class Constants {
             incrAlign();
             indent();
             final boolean noArgs = desc.argumentLayouts().isEmpty();
-            append(memberMods());
-            append("FunctionDescriptor ");
+            append(MEMBER_MODS);
+            append(" FunctionDescriptor ");
             NamedConstant descConstant = new NamedConstant(FunctionDescriptor.class);
             append(descConstant.constantName);
             append(" = ");
@@ -423,8 +434,8 @@ public class Constants {
         private Constant emitConstantString(Object value) {
             incrAlign();
             indent();
-            append(memberMods());
-            append("MemorySegment ");
+            append(MEMBER_MODS);
+            append(" MemorySegment ");
             NamedConstant segConstant = new NamedConstant(MemorySegment.class);
             append(segConstant.constantName);
             append(" = RuntimeHelper.CONSTANT_ALLOCATOR.allocateFrom(\"");
@@ -437,8 +448,8 @@ public class Constants {
         private Constant emitConstantAddress(Object value) {
             incrAlign();
             indent();
-            append(memberMods());
-            append("MemorySegment ");
+            append(MEMBER_MODS);
+            append(" MemorySegment ");
             NamedConstant segConstant = new NamedConstant(MemorySegment.class);
             append(segConstant.constantName);
             append(" = MemorySegment.ofAddress(");
@@ -452,8 +463,8 @@ public class Constants {
             Constant layoutConstant = addLayout(layout);
             incrAlign();
             indent();
-            append(memberMods());
-            append("MemorySegment ");
+            append(MEMBER_MODS);
+            append(" MemorySegment ");
             NamedConstant segConstant = new NamedConstant(MemorySegment.class);
             append(segConstant.constantName);
             append(" = ");

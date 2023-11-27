@@ -36,37 +36,36 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
+final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private static final String MEMBER_MODS = "static";
 
-    private final Type.Function funcType;
     private final MethodType fiType;
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
+    private final Constants constants;
 
-    FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, Type.Function funcType, String className,
-                               FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        super(enclosing, Kind.INTERFACE, className);
-        this.funcType = funcType;
+    private FunctionalInterfaceBuilder(SourceFileBuilder builder, Constants constants, String className, ClassSourceBuilder enclosing,
+                                       FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        super(builder, "public", Kind.INTERFACE, className, null, enclosing);
         this.fiType = descriptor.toMethodType();
         this.downcallType = descriptor.toMethodType();
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
+        this.constants = constants;
     }
 
-    @Override
-    void classDeclBegin() {
-        emitDocComment(funcType, className());
-    }
-
-    @Override
-    JavaSourceBuilder classEnd() {
-        emitFunctionalInterfaceMethod();
-        emitFunctionalFactories();
-        emitFunctionalFactoryForPointer();
-        return super.classEnd();
+    public static void generate(SourceFileBuilder builder, Constants constants, String className, ClassSourceBuilder enclosing,
+                               Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, constants, className, enclosing,
+                descriptor, parameterNames);
+        fib.emitDocComment(funcType, className);
+        fib.classBegin();
+        fib.emitFunctionalInterfaceMethod();
+        fib.emitFunctionalFactories();
+        fib.emitFunctionalFactoryForPointer();
+        fib.classEnd();
     }
 
     // private generation
@@ -94,8 +93,8 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactories() {
-        Constant functionDesc = constants().addFunctionDesc(fiDesc);
-        Constant upcallHandle = constants().addUpcallMethodHandle(fullName(), "apply", fiDesc);
+        Constant functionDesc = constants.addFunctionDesc(fiDesc);
+        Constant upcallHandle = constants.addUpcallMethodHandle(fullName(), "apply", fiDesc);
         incrAlign();
         indent();
         append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, Arena scope) {\n");
@@ -110,7 +109,7 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactoryForPointer() {
-        Constant mhConstant = constants().addVirtualDowncallMethodHandle(fiDesc);
+        Constant mhConstant = constants.addVirtualDowncallMethodHandle(fiDesc);
         incrAlign();
         indent();
         append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena arena) {\n");

@@ -41,52 +41,54 @@ import java.util.Optional;
  * After aggregating various constituents of a .java source, build
  * method is called to get overall generated source string.
  */
-class ToplevelBuilder extends JavaSourceBuilder {
+class ToplevelBuilder implements OutputFactory.Builder {
+    private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
 
     private int declCount;
-    private final List<JavaSourceBuilder> builders = new ArrayList<>();
-    private SplitHeader lastHeader;
+    private final List<SourceFileBuilder> builders = new ArrayList<>();
+    private final HeaderFileBuilder firstHeader;
+    private HeaderFileBuilder lastHeader;
     private int headersCount;
     private final ClassDesc headerDesc;
-
-    Constants constants;
-
-    static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
+    private final Constants constants;
 
     ToplevelBuilder(String packageName, String headerClassName) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
-        SplitHeader first = lastHeader = new FirstHeader(headerClassName);
-        builders.add(first);
-        constants = new Constants(this);
+        this.constants = new Constants(packageName);
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
+        lastHeader = firstHeader = createFirstHeader(sfb, constants);
+    }
+
+    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, Constants constants) {
+        HeaderFileBuilder first = new HeaderFileBuilder(sfb, constants, sfb.className(), "#{SUPER}");
         first.classBegin();
+        // emit basic primitive types
+        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Bool), "C_BOOL");
+        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Char), "C_CHAR");
+        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Short), "C_SHORT");
+        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Int), "C_INT");
+        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Long), "C_LONG");
+        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.LongLong), "C_LONG_LONG");
+        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Float), "C_FLOAT");
+        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Double), "C_DOUBLE");
+        first.emitPointerTypedef("C_POINTER");
+        return first;
     }
 
     public List<JavaFileObject> toFiles() {
         lastHeader.classEnd();
+
         List<JavaFileObject> files = new ArrayList<>();
+        files.add(firstHeader.sourceFileBuilder().toFile(s -> s.replace("extends #{SUPER}",
+                lastHeader != firstHeader ? "extends " + lastHeader.className() : "")));
         files.addAll(builders.stream()
-                .flatMap(b -> b.toFiles().stream()).toList());
+                .map(SourceFileBuilder::toFile).toList());
         files.addAll(constants.toFiles());
         return files;
     }
 
-    public String headerClassName() {
-        return headerDesc.displayName();
-    }
-
-    @Override
-    boolean isEnclosedBySameName(String name) {
-        return false;
-    }
-
-    @Override
     public String packageName() {
         return headerDesc.packageName();
-    }
-
-    @Override
-    protected Constants constants() {
-        return constants;
     }
 
     @Override
@@ -116,99 +118,46 @@ class ToplevelBuilder extends JavaSourceBuilder {
             // pointer typedef
             nextHeader().emitPointerTypedef(typedefTree, javaName);
         } else {
-            TypedefBuilder builder = new TypedefBuilder(this, typedefTree, javaName, superClass);
-            builders.add(builder);
-            builder.classBegin();
-            builder.classEnd();
+            SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
+            TypedefBuilder.generate(sfb, sfb.className(), superClass, typedefTree);
+            builders.add(sfb);
         }
     }
 
     @Override
     public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
         String javaName, GroupLayout layout) {
-        StructBuilder structBuilder = new StructBuilder(this, tree, javaName, layout) {
-            @Override
-            boolean isClassFinal() {
-                return false;
-            }
-
-            @Override
-            void emitConstructor() {
-                // None...
-            }
-        };
-        builders.add(structBuilder);
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
+        builders.add(sfb);
+        StructBuilder structBuilder = new StructBuilder(sfb, constants, "public", sfb.className(), null, tree, layout);
+        structBuilder.begin();
         return structBuilder;
     }
 
     @Override
     public void addFunctionalInterface(Type.Function funcType, String javaName,
         FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, funcType, javaName, descriptor, parameterNames);
-        builders.add(builder);
-        builder.classBegin();
-        builder.classEnd();
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
+        builders.add(sfb);
+        FunctionalInterfaceBuilder.generate(sfb, constants, sfb.className(), null, funcType, descriptor, parameterNames);
     }
 
-    private SplitHeader nextHeader() {
+    private HeaderFileBuilder nextHeader() {
         if (declCount == DECLS_PER_HEADER_CLASS) {
-            boolean hasSuper = !(lastHeader instanceof FirstHeader);
-            SplitHeader headerFileBuilder = new SplitHeader(headerDesc.displayName() + "_" + ++headersCount,
+            boolean hasSuper = lastHeader != firstHeader;
+            String className = headerDesc.displayName() + "_" + ++headersCount;
+            SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), className);
+            HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, constants, sfb.className(),
                     hasSuper ? lastHeader.className() : null);
             lastHeader.classEnd();
             headerFileBuilder.classBegin();
-            builders.add(headerFileBuilder);
+            builders.add(sfb);
             lastHeader = headerFileBuilder;
             declCount = 1;
             return headerFileBuilder;
         } else {
             declCount++;
             return lastHeader;
-        }
-    }
-
-    class SplitHeader extends HeaderFileBuilder {
-        SplitHeader(String name, String superclass) {
-            super(ToplevelBuilder.this, name, superclass);
-        }
-
-        @Override
-        boolean isClassFinal() {
-            return false;
-        }
-
-        @Override
-        void emitConstructor() {
-            // None...
-        }
-    }
-
-    class FirstHeader extends SplitHeader {
-
-        FirstHeader(String name) {
-            super(name, "#{SUPER}");
-        }
-
-        @Override
-        void classBegin() {
-            super.classBegin();
-            // emit basic primitive types
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Bool), "C_BOOL");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Char), "C_CHAR");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Short), "C_SHORT");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Int), "C_INT");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Long), "C_LONG");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.LongLong), "C_LONG_LONG");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Float), "C_FLOAT");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Double), "C_DOUBLE");
-            emitPointerTypedef("C_POINTER");
-        }
-
-        @Override
-        String build() {
-            HeaderFileBuilder last = lastHeader;
-            return super.build().replace("extends #{SUPER}",
-                    last != this ? "extends " + last.className() : "");
         }
     }
 }

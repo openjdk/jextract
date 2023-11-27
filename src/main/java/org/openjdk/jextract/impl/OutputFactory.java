@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  */
 public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     protected final ToplevelBuilder toplevelBuilder;
-    protected JavaSourceBuilder currentBuilder;
+    protected Builder currentBuilder;
     private final String pkgName;
     private final Map<Declaration.Scoped, String> structClassNames = new HashMap<>();
     private final Set<Declaration.Typedef> unresolvedStructTypedefs = new HashSet<>();
@@ -179,17 +179,18 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
 
         boolean isStructKind = Utils.isStructOrUnion(d);
+        Builder prevBuilder = null;
         StructBuilder structBuilder = null;
         if (isStructKind) {
             GroupLayout layout = (GroupLayout) layoutFor(d);
             boolean isNestedAnonStruct = d.name().isEmpty() &&
                 (parent instanceof Declaration.Scoped);
+            prevBuilder = currentBuilder;
             currentBuilder = structBuilder = currentBuilder.addStruct(
                 d,
                 isNestedAnonStruct,
                 isNestedAnonStruct? null : nameMangler.getJavaName(parent, d),
                 layout);
-            structBuilder.classBegin();
             if (!d.name().isEmpty()) {
                 addStructDefinition(d, structBuilder.fullName());
             }
@@ -201,7 +202,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             d.members().forEach(fieldTree -> fieldTree.accept(this, d));
         } finally {
             if (isStructKind) {
-                currentBuilder = structBuilder.classEnd();
+                structBuilder.end();
+                currentBuilder = prevBuilder;
             }
         }
         return null;
@@ -430,6 +432,42 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return valueLayout.carrier();
         } else {
             return null;
+        }
+    }
+
+    interface Builder {
+
+        default void addVar(Declaration.Variable varTree, String javaName,
+                            MemoryLayout layout, Optional<String> fiName) {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        default void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
+                                 String javaName, List<String> parameterNames) {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        default void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        default void addTypedef(Declaration.Typedef typedefTree, String javaName, String superClass) {
+            addTypedef(typedefTree, javaName, superClass, typedefTree.type());
+        }
+
+        default void addTypedef(Declaration.Typedef typedefTree, String javaName,
+                                String superClass, Type type) {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        default StructBuilder addStruct(Declaration.Scoped structTree, boolean isNestedAnonStruct,
+                                        String javaName, GroupLayout layout) {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        default void addFunctionalInterface(Type.Function funcType, String javaName,
+                                    FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+            throw new UnsupportedOperationException("Not implemented");
         }
     }
 }

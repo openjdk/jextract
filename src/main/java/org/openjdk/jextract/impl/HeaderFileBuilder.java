@@ -26,7 +26,6 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.SequenceLayout;
@@ -46,50 +45,34 @@ import java.util.Optional;
  * After aggregating various constituents of a .java source, build
  * method is called to get overall generated source string.
  */
-abstract class HeaderFileBuilder extends ClassSourceBuilder {
+class HeaderFileBuilder extends ClassSourceBuilder {
 
     static final String MEMBER_MODS = "public static";
 
-    private final String superclass;
+    private final Constants constants;
 
-    HeaderFileBuilder(ToplevelBuilder enclosing, String name, String superclass) {
-        super(enclosing, Kind.CLASS, name);
-        this.superclass = superclass;
+    HeaderFileBuilder(SourceFileBuilder builder, Constants constants, String className, String superName) {
+        super(builder, "public", Kind.CLASS, className, superName, null);
+        this.constants = constants;
     }
 
-    @Override
-    String superClass() {
-        return superclass;
-    }
-
-    @Override
-    void emitDocComment(Declaration decl, String header) {
-        incrAlign();
-        super.emitDocComment(decl, header);
-        decrAlign();
-    }
-
-    @Override
     public void addVar(Declaration.Variable varTree, String javaName,
         MemoryLayout layout, Optional<String> fiName) {
         String nativeName = varTree.name();
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             if (layout.byteSize() > 0) {
-                emitDocComment(varTree);
-                constants().addSegment(nativeName, layout)
-                        .emitGetter(this, MEMBER_MODS, javaName, nativeName);
+                constants.addSegment(nativeName, layout)
+                        .emitGetterWithComment(this, MEMBER_MODS, javaName, nativeName, varTree);
             };
         } else if (layout instanceof ValueLayout valueLayout) {
-            constants().addLayout(valueLayout)
+            constants.addLayout(valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName);
-            Constant vhConstant = constants().addGlobalVarHandle(valueLayout)
+            Constant vhConstant = constants.addGlobalVarHandle(valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName);
-            Constant segmentConstant = constants().addSegment(nativeName, valueLayout)
+            Constant segmentConstant = constants.addSegment(nativeName, valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName, nativeName);
-            emitDocComment(varTree, "Getter for variable:");
-            emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
-            emitDocComment(varTree, "Setter for variable:");
-            emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier());
+            emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Getter for variable:");
+            emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Setter for variable:");
 
             if (fiName.isPresent()) {
                 emitFunctionalInterfaceGetter(fiName.get(), javaName);
@@ -97,34 +80,31 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         }
     }
 
-    @Override
     public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
             String javaName, List<String> parameterNames) {
         String nativeName = funcTree.name();
         boolean isVarargs = funcTree.type().varargs();
 
-        Constant mhConstant = constants().addDowncallMethodHandle(nativeName, descriptor, isVarargs)
+        Constant mhConstant = constants.addDowncallMethodHandle(nativeName, descriptor, isVarargs)
                 .emitGetter(this, MEMBER_MODS, javaName, nativeName);
         MethodType downcallType = descriptor.toMethodType();
         boolean needsAllocator = descriptor.returnLayout().isPresent() &&
                 descriptor.returnLayout().get() instanceof GroupLayout;
-        emitDocComment(funcTree);
-        emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, needsAllocator, isVarargs, parameterNames);
+        emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, needsAllocator, isVarargs, parameterNames, funcTree);
     }
 
-    @Override
     public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
         Object value = constantTree.value();
-        emitDocComment(constantTree);
-        constants().addConstantDesc(javaType, value)
-                    .emitGetter(this, MEMBER_MODS, c -> javaName);
+        constants.addConstantDesc(javaType, value)
+                    .emitGetterWithComment(this, MEMBER_MODS, c -> javaName, constantTree);
     }
 
     // private generation
 
     private void emitFunctionWrapper(Constant mhConstant, String javaName, String nativeName, MethodType declType,
-                                     boolean needsAllocator, boolean isVarargs, List<String> parameterNames) {
+                                     boolean needsAllocator, boolean isVarargs, List<String> parameterNames, Declaration decl) {
         incrAlign();
+        emitDocComment(decl);
         indent();
         append(MEMBER_MODS + " ");
         if (needsAllocator) {
@@ -208,17 +188,17 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
         Type.Primitive.Kind kind = primType.kind();
         if (primitiveKindSupported(kind) && kind.layout().isPresent()) {
+            incrAlign();
             if (typedefTree != null) {
                 emitDocComment(typedefTree);
             }
-            incrAlign();
             indent();
             append(MEMBER_MODS);
             append(" final");
             append(" " + Utils.layoutDeclarationType(primType.kind().layout().orElseThrow()).getSimpleName());
             append(" " + name);
             append(" = ");
-            append(constants().addLayout(kind.layout().get()).accessExpression());
+            append(constants.addLayout(kind.layout().get()).accessExpression());
             append(";\n");
             decrAlign();
         }
@@ -229,17 +209,17 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
+        incrAlign();
         if (typedefTree != null) {
             emitDocComment(typedefTree);
         }
-        incrAlign();
         indent();
         append(MEMBER_MODS);
         append(" final");
         append(" AddressLayout ");
         append(name);
         append(" = ");
-        append(constants().addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT).accessExpression());
+        append(constants.addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT).accessExpression());
         append(";\n");
         decrAlign();
     }
@@ -251,8 +231,10 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         };
     }
 
-    private void emitGlobalGetter(Constant segmentConstant, Constant vhConstant, String javaName, String nativeName, Class<?> type) {
+    private void emitGlobalGetter(Constant segmentConstant, Constant vhConstant, String javaName, String nativeName,
+                                  Class<?> type, Declaration.Variable decl, String docHeader) {
         incrAlign();
+        emitDocComment(decl, docHeader);
         indent();
         append(MEMBER_MODS + " " + type.getSimpleName() + " " + javaName + "$get() {\n");
         incrAlign();
@@ -270,8 +252,10 @@ abstract class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    private void emitGlobalSetter(Constant segmentConstant, Constant vhConstant, String javaName, String nativeName, Class<?> type) {
+    private void emitGlobalSetter(Constant segmentConstant, Constant vhConstant, String javaName, String nativeName,
+                                  Class<?> type, Declaration.Variable decl, String docHeader) {
         incrAlign();
+        emitDocComment(decl, docHeader);
         indent();
         append(MEMBER_MODS + " void " + javaName + "$set(" + type.getSimpleName() + " x) {\n");
         incrAlign();

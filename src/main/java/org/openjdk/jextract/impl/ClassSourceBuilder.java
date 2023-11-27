@@ -24,9 +24,9 @@
  */
 package org.openjdk.jextract.impl;
 
-import javax.tools.JavaFileObject;
-import java.lang.constant.ClassDesc;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
@@ -35,10 +35,7 @@ import org.openjdk.jextract.impl.Constants.Constant;
 /**
  * Superclass for .java source generator classes.
  */
-abstract class ClassSourceBuilder extends JavaSourceBuilder {
-
-    private static final boolean SHOW_GENERATING_CLASS = Boolean.getBoolean("jextract.showGeneratingClass");
-
+abstract class ClassSourceBuilder {
     enum Kind {
         CLASS("class"),
         INTERFACE("interface");
@@ -50,160 +47,109 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         }
     }
 
-    final Kind kind;
-    final ClassDesc desc;
-    protected final JavaSourceBuilder enclosing;
+    private final SourceFileBuilder sb;
+    private final String modifiers;
+    private final Kind kind;
+    private final String className;
+    private final String superName;
+    private final ClassSourceBuilder enclosing;
 
-    // code buffer
-    private StringBuilder sb = new StringBuilder();
-    // current line alignment (number of 4-spaces)
-    private int align;
-
-    ClassSourceBuilder(JavaSourceBuilder enclosing, Kind kind, String name) {
-        this.enclosing = enclosing;
-        this.align = (enclosing instanceof ClassSourceBuilder classSourceBuilder)
-                ? classSourceBuilder.align : 0;
+    ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName, ClassSourceBuilder enclosing) {
+        this.sb = builder;
+        this.modifiers = modifiers;
         this.kind = kind;
-        this.desc = ClassDesc.of(enclosing.packageName(), name);
+        this.className = className;
+        this.superName = superName;
+        this.enclosing = enclosing;
     }
 
-    boolean isNested() {
-        return enclosing instanceof ClassSourceBuilder;
+    final String className() {
+        // for a (nested) class 'com.foo.package.A.B.C' this will return 'C'
+        return className;
     }
 
-    String className() {
-        return desc.displayName();
+    final String fullName() {
+        // for a (nested) class 'com.foo.package.A.B.C' this will return 'A.B.C'
+        return isNested() ? enclosing.fullName() + "." + className : className;
     }
 
-    String fullName() {
-        return isNested() ?
-                ((ClassSourceBuilder)enclosing).className() + "." + className() :
-                className();
+    // is the name enclosed by a class of the same name?
+    protected final boolean isEnclosedBySameName(String name) {
+        return className().equals(name) || (isNested() && enclosing.isEnclosedBySameName(name));
     }
 
-    @Override
-    public final String packageName() {
-        return desc.packageName();
+    protected final boolean isNested() {
+        return enclosing != null;
     }
 
-    String superClass() {
-        return null;
+    final SourceFileBuilder sourceFileBuilder() {
+        return sb;
     }
 
-    String mods() {
-        if (kind == Kind.INTERFACE) {
-            return "public ";
-        }
-        return (isNested() ? "public static " : "public ") +
-                (isClassFinal() ? "final " : "");
-    }
-
-    boolean isClassFinal() {
-        return true;
-    }
-
-    void classBegin() {
-        if (isNested()) {
-            incrAlign();
-        }
-        emitPackagePrefix();
-        emitImportSection();
-
-        classDeclBegin();
+    final void classBegin() {
         indent();
-        append(mods());
-        append(kind.kindName + " " + className());
-        if (superClass() != null) {
+        append(modifiers);
+        append(" ");
+        append(kind.kindName + " " + className);
+        if (superName != null) {
             append(" extends ");
-            append(superClass());
+            append(superName);
         }
         append(" {\n\n");
-        if (kind != Kind.INTERFACE) {
-            emitConstructor();
-        }
     }
 
-    void classDeclBegin() {}
+    final void classEnd() {
+        indent();
+        append("}\n\n");
+    }
 
-    void emitConstructor() {
+    // Internal generation helpers (used by other builders)
+
+    final void append(String s) {
+        sb.append(s);
+    }
+
+    final void append(char c) {
+        sb.append(c);
+    }
+
+    final void append(long l) {
+        sb.append(l);
+    }
+
+    final void indent() {
+        sb.indent();
+    }
+
+    final void incrAlign() {
+        sb.incrAlign();
+    }
+
+    final void decrAlign() {
+        sb.decrAlign();
+    }
+
+    final int align() {
+        return sb.align();
+    }
+
+    final void emitPrivateDefaultConstructor() {
         incrAlign();
         indent();
         append("// Suppresses default constructor, ensuring non-instantiability.\n");
         indent();
         append("private ");
-        append(className());
+        append(className);
         append("() {}");
         append('\n');
         decrAlign();
     }
 
-    JavaSourceBuilder classEnd() {
-        indent();
-        append("}\n\n");
-        if (isNested()) {
-            decrAlign();
-            ((ClassSourceBuilder)enclosing).append(build());
-            sb = null;
-        }
-        return enclosing;
-    }
-
-    @Override
-    public List<JavaFileObject> toFiles() {
-        if (isNested()) {
-            throw new UnsupportedOperationException("Nested builder!");
-        }
-        String res = build();
-        sb = null;
-        return List.of(Utils.fileFromString(packageName(), className(), res));
-    }
-
-    // Internal generation helpers (used by other builders)
-
-    void append(Object o) {
-        sb.append(o);
-    }
-
-    void append(String s) {
-        sb.append(s);
-    }
-
-    void append(char c) {
-        sb.append(c);
-    }
-
-    void append(boolean b) {
-        sb.append(b);
-    }
-
-    void append(long l) {
-        sb.append(l);
-    }
-
-    void indent() {
-        for (int i = 0; i < align; i++) {
-            append("    ");
-        }
-    }
-
-    void incrAlign() {
-        align++;
-    }
-
-    void decrAlign() {
-        align--;
-    }
-
-    String build() {
-        String s = sb.toString();
-        return s;
-    }
-
-    void emitDocComment(Declaration decl) {
+    final void emitDocComment(Declaration decl) {
         emitDocComment(decl, "");
     }
 
-    void emitDocComment(Declaration decl, String header) {
+    final void emitDocComment(Declaration decl, String header) {
         indent();
         append("/**\n");
         if (!header.isEmpty()) {
@@ -214,14 +160,14 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         }
         indent();
         append(" * {@snippet lang=c :\n");
-        append(CDeclarationPrinter.declaration(decl, " ".repeat(align*4) + " * "));
+        append(CDeclarationPrinter.declaration(decl, " ".repeat(align()*4) + " * "));
         indent();
         append(" * }\n");
         indent();
         append(" */\n");
     }
 
-    void emitDocComment(Type.Function funcType, String name) {
+    final void emitDocComment(Type.Function funcType, String name) {
         indent();
         append("/**\n");
         indent();
@@ -235,42 +181,11 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         append(" */\n");
     }
 
-    // is the name enclosed enclosed by a class of the same name?
-    boolean isEnclosedBySameName(String name) {
-        return className().equals(name) ||
-                (isNested() && enclosing.isEnclosedBySameName(name));
-    }
-
-    protected void emitPackagePrefix() {
-        if (!isNested()) {
-            assert packageName().indexOf('/') == -1 : "package name invalid: " + packageName();
-            append("// Generated by jextract");
-            if (SHOW_GENERATING_CLASS) {
-                append(" (via ");
-                append(getClass().getName());
-                append(")");
-            }
-            append("\n\n");
-            if (!packageName().isEmpty()) {
-                append("package ");
-                append(packageName());
-                append(";\n\n");
-            }
-        }
-    }
-
-    protected void emitImportSection() {
-        if (!isNested()) {
-            append("import java.lang.invoke.MethodHandle;\n");
-            append("import java.lang.invoke.VarHandle;\n");
-            append("import java.nio.ByteOrder;\n");
-            append("import java.lang.foreign.*;\n");
-            append("import static java.lang.foreign.ValueLayout.*;\n");
-        }
-    }
-
-    void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant) {
+    final void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant, Declaration decl) {
         incrAlign();
+        if (decl != null) {
+            emitDocComment(decl);
+        }
         indent();
         append(mods + " " + constant.type().getSimpleName() + " " + getterName + "() {\n");
         incrAlign();
@@ -290,10 +205,5 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         indent();
         append("}\n");
         decrAlign();
-    }
-
-    @Override
-    protected Constants constants() {
-        return enclosing.constants();
     }
 }
