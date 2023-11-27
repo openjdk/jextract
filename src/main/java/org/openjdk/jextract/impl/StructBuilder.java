@@ -40,12 +40,11 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * This class generates static utilities class for C structs, unions.
  */
-class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
+final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Builder {
 
     private static final String MEMBER_MODS = "public static";
 
@@ -55,19 +54,14 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
     private final Deque<String> prefixElementNames;
     private final Constants constants;
 
-    StructBuilder(SourceFileBuilder builder, Constants constants, String modifiers, String className, List<String> enclosing,
-                  Declaration.Scoped structTree, GroupLayout structLayout) {
+    StructBuilder(SourceFileBuilder builder, Constants constants, String modifiers, String className,
+                  ClassSourceBuilder enclosing, Declaration.Scoped structTree, GroupLayout structLayout) {
         super(builder, modifiers, Kind.CLASS, className, null, enclosing);
         this.structTree = structTree;
         this.structLayout = structLayout;
         this.structType = Type.declared(structTree);
         this.prefixElementNames = new ArrayDeque<>();
         this.constants = constants;
-    }
-
-    // is the name enclosed by a class of the same name?
-    private boolean isEnclosedBySameName(String name) {
-        return className().equals(name) || enclosingClassNames().contains(name);
     }
 
     private String safeParameterName(String paramName) {
@@ -86,10 +80,6 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
         List<String> prefixes = new ArrayList<>(prefixElementNames);
         Collections.reverse(prefixes);
         return Collections.unmodifiableList(prefixes);
-    }
-
-    private boolean isNested() {
-        return !enclosingClassNames().isEmpty();
     }
 
     void begin() {
@@ -125,10 +115,6 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
         return !prefixElementNames.isEmpty();
     }
 
-    private List<String> enclosingForNested() {
-        return Stream.concat(enclosingClassNames().stream(), Stream.of(className())).toList();
-    }
-
     @Override
     public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
                                    String name, GroupLayout layout) {
@@ -138,7 +124,7 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
             pushPrefixElement(anonName);
             return this;
         } else {
-            StructBuilder builder = new StructBuilder(sourceFileBuilder(), constants, "public static final", name, enclosingForNested(), tree, layout);
+            StructBuilder builder = new StructBuilder(sourceFileBuilder(), constants, "public static final", name, this, tree, layout);
             builder.begin();
             builder.emitPrivateDefaultConstructor();
             return builder;
@@ -149,9 +135,7 @@ class StructBuilder extends ClassSourceBuilder implements JavaSourceBuilder {
     public void addFunctionalInterface(Type.Function funcType, String javaName,
                                        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         incrAlign();
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sourceFileBuilder(), constants, javaName,
-                enclosingForNested(), funcType, descriptor, parameterNames);
-        builder.generate();
+        FunctionalInterfaceBuilder.generate(sourceFileBuilder(), constants, javaName, this, funcType, descriptor, parameterNames);
         decrAlign();
     }
 

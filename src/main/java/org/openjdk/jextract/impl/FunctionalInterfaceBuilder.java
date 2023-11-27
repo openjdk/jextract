@@ -36,21 +36,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
+final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private static final String MEMBER_MODS = "static";
 
-    private final Type.Function funcType;
     private final MethodType fiType;
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
     private final Constants constants;
 
-    FunctionalInterfaceBuilder(SourceFileBuilder builder, Constants constants, String className, List<String> enclosing,
-                               Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+    private FunctionalInterfaceBuilder(SourceFileBuilder builder, Constants constants, String className, ClassSourceBuilder enclosing,
+                                       FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(builder, "public", Kind.INTERFACE, className, null, enclosing);
-        this.funcType = funcType;
         this.fiType = descriptor.toMethodType();
         this.downcallType = descriptor.toMethodType();
         this.fiDesc = descriptor;
@@ -58,13 +56,16 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         this.constants = constants;
     }
 
-    void generate() {
-        emitDocComment(funcType, className());
-        classBegin();
-        emitFunctionalInterfaceMethod();
-        emitFunctionalFactories();
-        emitFunctionalFactoryForPointer();
-        classEnd();
+    public static void generate(SourceFileBuilder builder, Constants constants, String className, ClassSourceBuilder enclosing,
+                               Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, constants, className, enclosing,
+                descriptor, parameterNames);
+        fib.emitDocComment(funcType, className);
+        fib.classBegin();
+        fib.emitFunctionalInterfaceMethod();
+        fib.emitFunctionalFactories();
+        fib.emitFunctionalFactoryForPointer();
+        fib.classEnd();
     }
 
     // private generation

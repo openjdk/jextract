@@ -28,7 +28,7 @@ import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
 import java.util.function.Function;
 
-public class SourceFileBuilder {
+final class SourceFileBuilder {
 
     private static final boolean SHOW_GENERATING_CLASS = Boolean.getBoolean("jextract.showGeneratingClass");
 

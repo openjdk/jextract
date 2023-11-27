@@ -52,7 +52,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     private final Constants constants;
 
     HeaderFileBuilder(SourceFileBuilder builder, Constants constants, String className, String superName) {
-        super(builder, "public", Kind.CLASS, className, superName, List.of());
+        super(builder, "public", Kind.CLASS, className, superName, null);
         this.constants = constants;
     }
 

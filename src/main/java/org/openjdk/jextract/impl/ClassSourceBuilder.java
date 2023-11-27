@@ -48,19 +48,19 @@ abstract class ClassSourceBuilder {
     }
 
     private final SourceFileBuilder sb;
-    private final List<String> enclosingClassNames;
     private final String modifiers;
     private final Kind kind;
     private final String className;
     private final String superName;
+    private final ClassSourceBuilder enclosing;
 
-    ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName, List<String> enclosingClassNames) {
+    ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName, ClassSourceBuilder enclosing) {
         this.sb = builder;
         this.modifiers = modifiers;
         this.kind = kind;
         this.className = className;
         this.superName = superName;
-        this.enclosingClassNames = enclosingClassNames;
+        this.enclosing = enclosing;
     }
 
     final String className() {
@@ -70,15 +70,20 @@ abstract class ClassSourceBuilder {
 
     final String fullName() {
         // for a (nested) class 'com.foo.package.A.B.C' this will return 'A.B.C'
-        return Stream.concat(enclosingClassNames.stream(), Stream.of(className)).collect(Collectors.joining("."));
+        return isNested() ? enclosing.fullName() + "." + className : className;
+    }
+
+    // is the name enclosed by a class of the same name?
+    protected final boolean isEnclosedBySameName(String name) {
+        return className().equals(name) || (isNested() && enclosing.isEnclosedBySameName(name));
+    }
+
+    protected final boolean isNested() {
+        return enclosing != null;
     }
 
     final SourceFileBuilder sourceFileBuilder() {
         return sb;
-    }
-
-    final List<String> enclosingClassNames() {
-        return enclosingClassNames;
     }
 
     final void classBegin() {

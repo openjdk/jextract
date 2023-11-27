@@ -247,7 +247,7 @@ public class Constants {
         private static final String MEMBER_MODS = "static final";
 
         Builder(SourceFileBuilder builder, String className) {
-            super(builder, "final", Kind.CLASS, className, null, List.of());
+            super(builder, "final", Kind.CLASS, className, null, null);
         }
 
         int constantIndex = 0;

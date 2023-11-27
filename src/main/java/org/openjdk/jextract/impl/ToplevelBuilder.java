@@ -41,7 +41,7 @@ import java.util.Optional;
  * After aggregating various constituents of a .java source, build
  * method is called to get overall generated source string.
  */
-class ToplevelBuilder implements JavaSourceBuilder {
+class ToplevelBuilder implements OutputFactory.Builder {
     private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
 
     private int declCount;
@@ -119,9 +119,8 @@ class ToplevelBuilder implements JavaSourceBuilder {
             nextHeader().emitPointerTypedef(typedefTree, javaName);
         } else {
             SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
-            TypedefBuilder builder = new TypedefBuilder(sfb, sfb.className(), superClass, typedefTree);
+            TypedefBuilder.generate(sfb, sfb.className(), superClass, typedefTree);
             builders.add(sfb);
-            builder.generate();
         }
     }
 
@@ -130,7 +129,7 @@ class ToplevelBuilder implements JavaSourceBuilder {
         String javaName, GroupLayout layout) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
         builders.add(sfb);
-        StructBuilder structBuilder = new StructBuilder(sfb, constants, "public", sfb.className(), List.of(), tree, layout);
+        StructBuilder structBuilder = new StructBuilder(sfb, constants, "public", sfb.className(), null, tree, layout);
         structBuilder.begin();
         return structBuilder;
     }
@@ -140,9 +139,7 @@ class ToplevelBuilder implements JavaSourceBuilder {
         FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
         builders.add(sfb);
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(sfb, constants, sfb.className(), List.of(),
-                funcType, descriptor, parameterNames);
-        builder.generate();
+        FunctionalInterfaceBuilder.generate(sfb, constants, sfb.className(), null, funcType, descriptor, parameterNames);
     }
 
     private HeaderFileBuilder nextHeader() {
