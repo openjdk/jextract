@@ -342,7 +342,7 @@ public class Constants {
             incrAlign();
             indent();
             String layoutClassName = Utils.layoutDeclarationType(layout).getSimpleName();
-            append(MEMBER_MODS + " " + layoutClassName + " " + layoutConst.constantName + " = ");
+            append(STR."static final \{layoutClassName} \{layoutConst.constantName} = ");
             emitLayoutString(layout);
             append(";\n");
             decrAlign();
@@ -353,13 +353,10 @@ public class Constants {
             if (l instanceof ValueLayout val) {
                 append(ImmediateConstant.ofPrimitiveLayout(val).accessExpression());
                 if (l.byteAlignment() != l.byteSize()) {
-                    append(".withByteAlignment(");
-                    append(l.byteAlignment());
-                    append(")");
+                    append(STR.".withByteAlignment(\{l.byteAlignment()})");
                 }
             } else if (l instanceof SequenceLayout seq) {
-                append("MemoryLayout.sequenceLayout(");
-                append(seq.elementCount() + ", ");
+                append(STR."MemoryLayout.sequenceLayout(\{seq.elementCount()}, ");
                 emitLayoutString(seq.elementLayout());
                 append(")");
             } else if (l instanceof GroupLayout group) {
@@ -382,10 +379,10 @@ public class Constants {
                 append(")");
             } else {
                 // padding (or unsupported)
-                append("MemoryLayout.paddingLayout(" + l.byteSize() + ")");
+                append(STR."MemoryLayout.paddingLayout(\{l.byteSize()})");
             }
             if (l.name().isPresent()) {
-                append(".withName(\"" +  l.name().get() + "\")");
+                append(STR.".withName(\"\{l.name().get()}\")");
             }
         }
 
@@ -393,11 +390,8 @@ public class Constants {
             incrAlign();
             indent();
             final boolean noArgs = desc.argumentLayouts().isEmpty();
-            append(MEMBER_MODS);
-            append(" FunctionDescriptor ");
             NamedConstant descConstant = new NamedConstant(FunctionDescriptor.class);
-            append(descConstant.constantName);
-            append(" = ");
+            append(STR."static final FunctionDescriptor \{descConstant.constantName} =");
             if (desc.returnLayout().isPresent()) {
                 append("FunctionDescriptor.of(");
                 emitLayoutString(desc.returnLayout().get());
