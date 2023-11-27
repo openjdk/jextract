@@ -6,6 +6,21 @@ plugins {
     id "java"
 }
 
+sourceSets {
+    test {
+        java {
+            srcDirs = ['test/jtreg', file("test/jtreg/generator").listFiles(), 'test/lib', 'test/testng']
+            // exclude all test files from compilation. Jtreg compiles these for us when tests run
+            exclude "**/*"
+        }
+    }
+}
+
+dependencies {
+    // add jtreg jars as dependencies of tests
+    testImplementation fileTree(dir: findProperty("jtreg_home") + "/lib/", include: "*.jar")
+}
+
 def static checkPath(String p) {
     if (!Files.exists(Path.of(p))) {
         throw new IllegalArgumentException("Error: the path ${p} does not exist");
