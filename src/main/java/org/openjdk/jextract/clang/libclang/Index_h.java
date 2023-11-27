@@ -4833,6 +4833,7 @@ public class Index_h  {
     public static MethodHandle clang_getElementType$MH() {
         return RuntimeHelper.requireNonNull(constants$11.clang_getElementType$MH,"clang_getElementType");
     }
+
     /**
      * {@snippet :
      * CXType clang_getElementType(CXType T);
@@ -4840,6 +4841,24 @@ public class Index_h  {
      */
     public static MemorySegment clang_getElementType(SegmentAllocator allocator, MemorySegment T) {
         var mh$ = clang_getElementType$MH();
+        try {
+            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    public static MethodHandle clang_getValueType$MH() {
+        return RuntimeHelper.requireNonNull(constants$11.clang_getValueType$MH,"clang_Type_getValueType");
+    }
+
+    /**
+     * {@snippet :
+     * CXType clang_getValueType(CXType T);
+     * }
+     */
+    public static MemorySegment clang_getValueType(SegmentAllocator allocator, MemorySegment T) {
+        var mh$ = clang_getValueType$MH();
         try {
             return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
