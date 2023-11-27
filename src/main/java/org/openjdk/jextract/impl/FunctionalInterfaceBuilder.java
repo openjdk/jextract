@@ -67,7 +67,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalInterfaceMethod() {
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             \{fiRetType()} apply(\{paramExprs("")});
             """);
     }
@@ -75,7 +75,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private void emitFunctionalFactories() {
         Constant functionDesc = constants.addFunctionDesc(fiDesc);
         Constant upcallHandle = constants.addUpcallMethodHandle(fullName(), "apply", fiDesc);
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             static MemorySegment allocate(\{className()} fi, Arena scope) {
                 return RuntimeHelper.upcallStub(\{upcallHandle}, fi, \{functionDesc}, scope);
             }
@@ -84,7 +84,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalFactoryForPointer() {
         Constant mhConstant = constants.addVirtualDowncallMethodHandle(fiDesc);
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             static \{className()} ofAddress(MemorySegment addr, Arena arena) {
                 MemorySegment symbol = addr.reinterpret(arena, null);
                 return (\{paramExprs("_")}) -> {

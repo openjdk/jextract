@@ -25,7 +25,6 @@
 package org.openjdk.jextract.impl;
 
 import javax.tools.JavaFileObject;
-import java.lang.constant.ClassDesc;
 import java.util.function.Function;
 
 final class SourceFileBuilder {
@@ -126,7 +125,7 @@ final class SourceFileBuilder {
         sb.append(s.indent(align * 4));
     }
 
-    public void appendIndented(String s) {
+    public void appendIndentedLines(String s) {
         incrAlign();
         appendLines(s);
         decrAlign();

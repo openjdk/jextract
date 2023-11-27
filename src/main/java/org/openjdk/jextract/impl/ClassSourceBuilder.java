@@ -83,15 +83,14 @@ abstract class ClassSourceBuilder {
     }
 
     final void classBegin() {
-        indent();
-        append(modifiers);
-        append(" ");
-        append(kind.kindName + " " + className);
+        String extendsExpr = "";
         if (superName != null) {
-            append(" extends ");
-            append(superName);
+            extendsExpr = " extends " + superName;
         }
-        append(" {\n\n");
+        appendLines(STR."""
+            \{modifiers} \{kind.kindName} \{className}\{extendsExpr} {
+
+            """);
     }
 
     final void classEnd() {
@@ -129,24 +128,22 @@ abstract class ClassSourceBuilder {
         return sb.align();
     }
 
+    // append multiple lines (indentation is added automatically)
     void appendLines(String s) {
         sb.appendLines(s);
     }
 
-    void appendIndented(String s) {
-        sb.appendIndented(s);
+    // increase indentation before appending lines
+    // decrease afterwards
+    void appendIndentedLines(String s) {
+        sb.appendIndentedLines(s);
     }
 
     final void emitPrivateDefaultConstructor() {
-        incrAlign();
-        indent();
-        append("// Suppresses default constructor, ensuring non-instantiability.\n");
-        indent();
-        append("private ");
-        append(className);
-        append("() {}");
-        append('\n');
-        decrAlign();
+        appendLines(STR."""
+            // Suppresses default constructor, ensuring non-instantiability.
+            private \{className}() {}
+            """);
     }
 
     final void emitDocComment(Declaration decl) {

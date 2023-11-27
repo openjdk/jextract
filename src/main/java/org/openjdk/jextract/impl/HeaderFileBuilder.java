@@ -24,7 +24,6 @@
  */
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.AddressLayout;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
@@ -169,7 +168,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             public static \{fiName} \{javaName}() {
                 return \{fiName}.ofAddress(\{javaName}$get(), Arena.global());
             }

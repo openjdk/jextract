@@ -27,7 +27,6 @@ package org.openjdk.jextract.impl;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
@@ -176,7 +175,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             public static \{fiName} \{javaName}(MemorySegment segment, Arena scope) {
                 return \{fiName}.ofAddress(\{javaName}$get(segment), scope);
             }
@@ -185,7 +184,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     private void emitFieldGetter(Constant vhConstant, String javaName, Class<?> type) {
         String seg = safeParameterName("seg");
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}) {
                 return (\{type.getName()}) \{vhConstant}.get(\{seg}, 0L);
             }
@@ -195,7 +194,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private void emitFieldSetter(Constant vhConstant, String javaName, Class<?> type) {
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             public static void \{javaName}$set(MemorySegment \{seg}, \{type.getSimpleName()} \{x}) {
                 \{vhConstant}.set(\{seg}, 0L, \{x});
             }
@@ -215,7 +214,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     private void emitSegmentGetter(String javaName, String nativeName, MemoryLayout layout) {
         String seg = safeParameterName("seg");
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             public static MemorySegment \{javaName}$slice(MemorySegment \{seg}) {
                 return \{seg}.asSlice(\{structLayout.byteOffset(elementPaths(nativeName))}, \{layout.byteSize()});
             }
@@ -223,19 +222,19 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private void emitSizeof() {
-        appendIndented("""
+        appendIndentedLines("""
             public static long sizeof() { return $LAYOUT().byteSize(); }
             """);
     }
 
     private void emitAllocatorAllocate() {
-        appendIndented("""
+        appendIndentedLines("""
             public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
             """);
     }
 
     private void emitAllocatorAllocateArray() {
-        appendIndented("""
+        appendIndentedLines("""
             public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
                 return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
             }
@@ -243,7 +242,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private void emitOfAddressScoped() {
-        appendIndented("""
+        appendIndentedLines("""
             public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
                 return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope);
             }
@@ -253,7 +252,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private void emitIndexedFieldGetter(Constant vhConstant, String javaName, Class<?> type) {
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}, long \{index}) {
                 return (\{type.getName()}) \{vhConstant}.get(\{seg}, \{index} * sizeof());
             }
@@ -264,7 +263,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
-        appendIndented(STR."""
+        appendIndentedLines(STR."""
             public static void \{javaName}$set(MemorySegment \{seg}, long \{index}, \{type.getSimpleName()} \{x}) {
                 \{vhConstant}.set(\{seg}, \{index} * sizeof(), \{x});
             }
