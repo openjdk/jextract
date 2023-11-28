@@ -43,7 +43,6 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
-    private String funcDescField;
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
                                        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
@@ -60,15 +59,11 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                 descriptor, parameterNames);
         fib.emitDocComment(funcType, className);
         fib.classBegin();
-        fib.emitDesc();
+        fib.emitDescriptorDecl();
         fib.emitFunctionalInterfaceMethod();
         fib.emitFunctionalFactories();
         fib.emitFunctionalFactoryForPointer();
         fib.classEnd();
-    }
-
-    private void emitDesc() {
-        funcDescField = emitDescriptorConstantWithMangledName("fi", fiDesc, null);
     }
 
     private void emitFunctionalInterfaceMethod() {
@@ -79,17 +74,17 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalFactories() {
         appendIndentedLines(STR."""
-            MethodHandle UP$MH = RuntimeHelper.upcallHandle(\{className()}.class, \"apply\", \{funcDescField});
+            MethodHandle UP$MH = RuntimeHelper.upcallHandle(\{className()}.class, \"apply\", $DESC);
 
             static MemorySegment allocate(\{className()} fi, Arena scope) {
-                return RuntimeHelper.upcallStub(UP$MH, fi, \{funcDescField}, scope);
+                return RuntimeHelper.upcallStub(UP$MH, fi, $DESC, scope);
             }
             """);
     }
 
     private void emitFunctionalFactoryForPointer() {
         appendIndentedLines(STR."""
-            MethodHandle DOWN$MH = RuntimeHelper.downcallHandle(\{funcDescField});
+            MethodHandle DOWN$MH = RuntimeHelper.downcallHandle($DESC);
 
             static \{className()} ofAddress(MemorySegment addr, Arena arena) {
                 MemorySegment symbol = addr.reinterpret(arena, null);
@@ -161,5 +156,11 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                     .collect(Collectors.joining(", "));
         }
         return argsExprs;
+    }
+
+    private void emitDescriptorDecl() {
+        appendIndentedLines(STR."""
+            FunctionDescriptor $DESC = \{descriptorString(fiDesc)};
+            """);
     }
 }

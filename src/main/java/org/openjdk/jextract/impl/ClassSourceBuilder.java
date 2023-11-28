@@ -182,67 +182,6 @@ abstract class ClassSourceBuilder {
             """);
     }
 
-    final String emitField(String mods, Class<?> fieldType, String fieldName, String initExpr, Declaration decl) {
-        incrAlign();
-        if (decl != null) {
-            emitDocComment(decl);
-        }
-        appendLines(STR."""
-            \{mods} \{fieldType.getSimpleName()} \{fieldName} = \{initExpr};
-            """);
-        decrAlign();
-        return className() + "." + fieldName;
-    }
-
-    final String emitFieldWithMangledName(String mods, Class<?> fieldType, String fieldName, String initExpr, Declaration decl) {
-        return emitField(mods, fieldType, mangleName(fieldName, fieldType), initExpr, decl);
-    }
-
-    final String emitConstantWithMangledName(Class<?> constantType, String constantName, String constantValue, Declaration decl) {
-        return emitConstant(constantType, mangleName(constantName, constantType), constantValue, decl);
-    }
-
-    final String emitConstant(Class<?> constantType, String constantName, String constantValue, Declaration decl) {
-        return emitField("public static final", constantType, constantName, constantValue, decl);
-    }
-
-    final String emitLayoutConstant(String constantName, MemoryLayout layout, Declaration decl) {
-        return emitConstant(Utils.layoutDeclarationType(layout), constantName, layoutString(layout), decl);
-    }
-
-    final String emitLayoutConstantWithMangledName(String constantName, MemoryLayout layout, Declaration decl) {
-        return emitConstant(Utils.layoutDeclarationType(layout), mangleName(constantName, MemoryLayout.class), layoutString(layout), decl);
-    }
-
-    final String emitDescriptorConstant(String constantName, FunctionDescriptor descriptor, Declaration decl) {
-        return emitConstant(FunctionDescriptor.class, constantName, functionDescString(descriptor), decl);
-    }
-
-    final String emitDescriptorConstantWithMangledName(String constantName, FunctionDescriptor descriptor, Declaration decl) {
-        return emitConstant(FunctionDescriptor.class, mangleName(constantName, FunctionDescriptor.class), functionDescString(descriptor), decl);
-    }
-
-    final void emitGetter(String mods, Class<?> getterType, String getterName, String getterExpr, Declaration decl) {
-        incrAlign();
-        if (decl != null) {
-            emitDocComment(decl);
-        }
-        appendLines(STR."""
-            \{mods} \{getterType.getSimpleName()} \{getterName}() {
-                return \{checkNonNull(getterExpr, getterName)};
-            }
-            """);
-        decrAlign();
-    }
-
-    final void emitGetterWithMangledName(String mods, Class<?> getterType, String getterName, String getterExpr, Declaration decl) {
-        emitGetter(mods, getterType, mangleName(getterName, getterType), getterExpr, decl);
-    }
-
-    final String checkNonNull(String val, String msg) {
-        return STR."RuntimeHelper.requireNonNull(\{val}, \"\{msg}\")";
-    }
-
     public String mangleName(String javaName, Class<?> type) {
         return javaName + nameSuffix(type);
     }
@@ -302,7 +241,7 @@ abstract class ClassSourceBuilder {
         }
     }
 
-    static String valueLayoutString(ValueLayout vl) {
+    private static String valueLayoutString(ValueLayout vl) {
         if (vl.carrier() == boolean.class) {
             return "JAVA_BOOLEAN";
         } else if (vl.carrier() == char.class) {
@@ -326,24 +265,7 @@ abstract class ClassSourceBuilder {
         }
     }
 
-    public static String pathElementStr(String nativeName, List<String> prefixElementNames) {
-        StringJoiner joiner = new StringJoiner(", ");
-        for (String prefixElementName : prefixElementNames) {
-            joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{prefixElementName}\")");
-        }
-        joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{nativeName}\")");
-        return joiner.toString();
-    }
-
-    public static String fieldVarHandle(String layoutStr, String nativeName, List<String> prefixElementNames) {
-        return STR."\{layoutStr}.varHandle(\{pathElementStr(nativeName, prefixElementNames)});";
-    }
-
-    public static String segmentField(String nativeName, String layoutString) {
-        return STR."RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layoutString});";
-    }
-
-    public static String functionDescString(FunctionDescriptor desc) {
+    public static String descriptorString(FunctionDescriptor desc) {
         final boolean noArgs = desc.argumentLayouts().isEmpty();
         StringBuilder builder = new StringBuilder();
         if (desc.returnLayout().isPresent()) {
@@ -367,14 +289,5 @@ abstract class ClassSourceBuilder {
         }
         builder.append(");\n");
         return builder.toString();
-    }
-
-    public static String downcallHandleString(String nativeName, String functionDesc, boolean isVarargs, boolean virtual) {
-        String factoryName = isVarargs ?
-                "downcallHandleVariadic" :
-                "downcallHandle";
-        String firstParam = virtual ?
-                "" : STR."\"\{nativeName}\", ";
-        return STR."RuntimeHelper.\{factoryName}(\{firstParam}\{functionDesc});";
     }
 }

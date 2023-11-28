@@ -27,6 +27,7 @@ package org.openjdk.jextract.impl;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
@@ -39,6 +40,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 /**
  * This class generates static utilities class for C structs, unions.
@@ -51,7 +53,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private final GroupLayout structLayout;
     private final Type structType;
     private final Deque<String> prefixElementNames;
-    private String layoutField;
 
     StructBuilder(SourceFileBuilder builder, String modifiers, String className,
                   ClassSourceBuilder enclosing, Declaration.Scoped structTree, GroupLayout structLayout) {
@@ -87,9 +88,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             }
             emitDocComment(structTree);
             classBegin();
-            layoutField = emitLayoutConstantWithMangledName(className(),
-                    ((Type.Declared) structType).tree().layout().orElseThrow(), null);
-            emitGetter(MEMBER_MODS, MemoryLayout.class, nameSuffix(MemoryLayout.class), layoutField, null);
+            emitLayoutDecl();
         }
     }
 
@@ -154,9 +153,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 emitSegmentGetter(javaName, nativeName, layout);
             }
         } else if (layout instanceof ValueLayout valueLayout) {
-            String constantField = emitConstantWithMangledName(VarHandle.class, javaName,
-                    fieldVarHandle(layoutField, nativeName, prefixNamesList()), null);
-            emitGetterWithMangledName(MEMBER_MODS, VarHandle.class, javaName, constantField, null);
+            String constantField = emitFieldVarHandle(javaName, nativeName, prefixNamesList());
             emitFieldDocComment(varTree, "Getter for field:");
             emitFieldGetter(constantField, javaName, valueLayout.carrier());
             emitFieldDocComment(varTree, "Setter for field:");
@@ -269,5 +266,36 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 \{vhConstant}.set(\{seg}, \{index} * sizeof(), \{x});
             }
             """);
+    }
+
+    private void emitLayoutDecl() {
+        appendIndentedLines(STR."""
+            private static final MemoryLayout $LAYOUT = \{layoutString(structLayout)};
+
+            public static final MemoryLayout $LAYOUT() {
+                return $LAYOUT;
+            }
+            """);
+    }
+
+    private String emitFieldVarHandle(String javaName, String nativeName, List<String> prefixElementNames) {
+        String mangledName = mangleName(javaName, VarHandle.class);
+        appendIndentedLines(STR."""
+            private static final VarHandle \{mangledName} = $LAYOUT.varHandle(\{pathElementStr(nativeName, prefixElementNames)});
+
+            \{MEMBER_MODS} VarHandle \{mangledName}() {
+                return \{mangledName};
+            }
+            """);
+        return mangledName;
+    }
+
+    private static String pathElementStr(String nativeName, List<String> prefixElementNames) {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (String prefixElementName : prefixElementNames) {
+            joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{prefixElementName}\")");
+        }
+        joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{nativeName}\")");
+        return joiner.toString();
     }
 }
