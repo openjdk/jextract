@@ -24,10 +24,6 @@
  */
 package org.openjdk.jextract.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.Constants.Constant;
@@ -87,15 +83,14 @@ abstract class ClassSourceBuilder {
     }
 
     final void classBegin() {
-        indent();
-        append(modifiers);
-        append(" ");
-        append(kind.kindName + " " + className);
+        String extendsExpr = "";
         if (superName != null) {
-            append(" extends ");
-            append(superName);
+            extendsExpr = " extends " + superName;
         }
-        append(" {\n\n");
+        appendLines(STR."""
+            \{modifiers} \{kind.kindName} \{className}\{extendsExpr} {
+
+            """);
     }
 
     final void classEnd() {
@@ -133,16 +128,22 @@ abstract class ClassSourceBuilder {
         return sb.align();
     }
 
+    // append multiple lines (indentation is added automatically)
+    void appendLines(String s) {
+        sb.appendLines(s);
+    }
+
+    // increase indentation before appending lines
+    // decrease afterwards
+    void appendIndentedLines(String s) {
+        sb.appendIndentedLines(s);
+    }
+
     final void emitPrivateDefaultConstructor() {
-        incrAlign();
-        indent();
-        append("// Suppresses default constructor, ensuring non-instantiability.\n");
-        indent();
-        append("private ");
-        append(className);
-        append("() {}");
-        append('\n');
-        decrAlign();
+        appendLines(STR."""
+            // Suppresses default constructor, ensuring non-instantiability.
+            private \{className}() {}
+            """);
     }
 
     final void emitDocComment(Declaration decl) {
@@ -150,35 +151,24 @@ abstract class ClassSourceBuilder {
     }
 
     final void emitDocComment(Declaration decl, String header) {
-        indent();
-        append("/**\n");
-        if (!header.isEmpty()) {
-            indent();
-            append(" * ");
-            append(header);
-            append("\n");
-        }
-        indent();
-        append(" * {@snippet lang=c :\n");
-        append(CDeclarationPrinter.declaration(decl, " ".repeat(align()*4) + " * "));
-        indent();
-        append(" * }\n");
-        indent();
-        append(" */\n");
+        appendLines(STR."""
+            /**
+            \{!header.isEmpty() ? STR." * \{header}\n" : ""}\
+             * {@snippet lang=c :
+             \{CDeclarationPrinter.declaration(decl, " ".repeat(align()*4) + " * ")}
+             * }
+             */
+            """);
     }
 
     final void emitDocComment(Type.Function funcType, String name) {
-        indent();
-        append("/**\n");
-        indent();
-        append(" * {@snippet lang=c :\n");
-        append(" * ");
-        append(CDeclarationPrinter.declaration(funcType, name));
-        append(";\n");
-        indent();
-        append(" * }\n");
-        indent();
-        append(" */\n");
+        appendLines(STR."""
+            /**
+             * {@snippet lang=c :
+             * \{CDeclarationPrinter.declaration(funcType, name)};
+             * }
+             */
+            """);
     }
 
     final void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant, Declaration decl) {
@@ -186,24 +176,11 @@ abstract class ClassSourceBuilder {
         if (decl != null) {
             emitDocComment(decl);
         }
-        indent();
-        append(mods + " " + constant.type().getSimpleName() + " " + getterName + "() {\n");
-        incrAlign();
-        indent();
-        append("return ");
-        if (nullCheck) {
-            append("RuntimeHelper.requireNonNull(");
-        }
-        append(constant.accessExpression());
-        if (nullCheck) {
-            append(",\"");
-            append(symbolName);
-            append("\")");
-        }
-        append(";\n");
-        decrAlign();
-        indent();
-        append("}\n");
+        appendLines(STR."""
+            \{mods} \{constant.type().getSimpleName()} \{getterName}() {
+                return \{nullCheck ? STR."RuntimeHelper.requireNonNull(\{constant}, \"\{symbolName}\")" : constant};
+            }
+            """);
         decrAlign();
     }
 }

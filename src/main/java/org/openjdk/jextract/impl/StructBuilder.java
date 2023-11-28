@@ -27,7 +27,6 @@ package org.openjdk.jextract.impl;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
@@ -176,48 +175,30 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + "(MemorySegment segment, Arena scope) {\n");
-        incrAlign();
-        indent();
-        append("return " + fiName + ".ofAddress(" + javaName + "$get(segment), scope);\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        appendIndentedLines(STR."""
+            public static \{fiName} \{javaName}(MemorySegment segment, Arena scope) {
+                return \{fiName}.ofAddress(\{javaName}$get(segment), scope);
+            }
+            """);
     }
 
     private void emitFieldGetter(Constant vhConstant, String javaName, Class<?> type) {
-        incrAlign();
-        indent();
         String seg = safeParameterName("seg");
-        append(MEMBER_MODS + " " + type.getSimpleName() + " " + javaName + "$get(MemorySegment " + seg + ") {\n");
-        incrAlign();
-        indent();
-        append("return (" + type.getName() + ")"
-                + vhConstant.accessExpression() + ".get(" + seg + ", 0L);\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        appendIndentedLines(STR."""
+            public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}) {
+                return (\{type.getName()}) \{vhConstant}.get(\{seg}, 0L);
+            }
+            """);
     }
 
     private void emitFieldSetter(Constant vhConstant, String javaName, Class<?> type) {
-        incrAlign();
-        indent();
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
-        String param = MemorySegment.class.getSimpleName() + " " + seg;
-        append(MEMBER_MODS + " void " + javaName + "$set(" + param + ", " + type.getSimpleName() + " " + x + ") {\n");
-        incrAlign();
-        indent();
-        append(vhConstant.accessExpression() + ".set(" + seg + ", 0L, " + x + ");\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        appendIndentedLines(STR."""
+            public static void \{javaName}$set(MemorySegment \{seg}, \{type.getSimpleName()} \{x}) {
+                \{vhConstant}.set(\{seg}, 0L, \{x});
+            }
+            """);
     }
 
     private MemoryLayout.PathElement[] elementPaths(String nativeFieldName) {
@@ -232,101 +213,60 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private void emitSegmentGetter(String javaName, String nativeName, MemoryLayout layout) {
-        incrAlign();
-        indent();
         String seg = safeParameterName("seg");
-        append(MEMBER_MODS + " MemorySegment " + javaName + "$slice(MemorySegment " + seg + ") {\n");
-        incrAlign();
-        indent();
-        append("return " + seg + ".asSlice(");
-        append(structLayout.byteOffset(elementPaths(nativeName)));
-        append(", ");
-        append(layout.byteSize());
-        append(");\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        appendIndentedLines(STR."""
+            public static MemorySegment \{javaName}$slice(MemorySegment \{seg}) {
+                return \{seg}.asSlice(\{structLayout.byteOffset(elementPaths(nativeName))}, \{layout.byteSize()});
+            }
+            """);
     }
 
     private void emitSizeof() {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS);
-        append(" long sizeof() { return $LAYOUT().byteSize(); }\n");
-        decrAlign();
+        appendIndentedLines("""
+            public static long sizeof() { return $LAYOUT().byteSize(); }
+            """);
     }
 
     private void emitAllocatorAllocate() {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS);
-        append(" MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }\n");
-        decrAlign();
+        appendIndentedLines("""
+            public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
+            """);
     }
 
     private void emitAllocatorAllocateArray() {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS);
-        append(" MemorySegment allocateArray(long len, SegmentAllocator allocator) {\n");
-        incrAlign();
-        indent();
-        append("return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        appendIndentedLines("""
+            public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
+                return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
+            }
+            """);
     }
 
     private void emitOfAddressScoped() {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS);
-        append(" MemorySegment ofAddress(MemorySegment addr, Arena scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }\n");
-        decrAlign();
+        appendIndentedLines("""
+            public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
+                return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope);
+            }
+            """);
     }
 
     private void emitIndexedFieldGetter(Constant vhConstant, String javaName, Class<?> type) {
-        incrAlign();
-        indent();
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
-        String params = MemorySegment.class.getSimpleName() + " " + seg + ", long " + index;
-        append(MEMBER_MODS + " " + type.getSimpleName() + " " + javaName + "$get(" + params + ") {\n");
-        incrAlign();
-        indent();
-        append("return (" + type.getName() + ")");
-        append(vhConstant.accessExpression());
-        append(".get(");
-        append(seg + ", ");
-        append(index + " * sizeof());");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        appendIndentedLines(STR."""
+            public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}, long \{index}) {
+                return (\{type.getName()}) \{vhConstant}.get(\{seg}, \{index} * sizeof());
+            }
+            """);
     }
 
     private void emitIndexedFieldSetter(Constant vhConstant, String javaName, Class<?> type) {
-        incrAlign();
-        indent();
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
-        String params = MemorySegment.class.getSimpleName() + " " + seg +
-            ", long " + index + ", " + type.getSimpleName() + " " + x;
-        append(MEMBER_MODS + " void " + javaName + "$set(" + params + ") {\n");
-        incrAlign();
-        indent();
-        append(vhConstant.accessExpression());
-        append(".set(");
-        append(seg + ", ");
-        append(index + " * sizeof(), ");
-        append(x);
-        append(");\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        appendIndentedLines(STR."""
+            public static void \{javaName}$set(MemorySegment \{seg}, long \{index}, \{type.getSimpleName()} \{x}) {
+                \{vhConstant}.set(\{seg}, \{index} * sizeof(), \{x});
+            }
+            """);
     }
 }

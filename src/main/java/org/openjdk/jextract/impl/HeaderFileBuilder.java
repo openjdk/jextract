@@ -39,6 +39,7 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -90,7 +91,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         MethodType downcallType = descriptor.toMethodType();
         boolean needsAllocator = descriptor.returnLayout().isPresent() &&
                 descriptor.returnLayout().get() instanceof GroupLayout;
-        emitFunctionWrapper(mhConstant, javaName, nativeName, downcallType, needsAllocator, isVarargs, parameterNames, funcTree);
+        emitFunctionWrapper(mhConstant, javaName, downcallType, needsAllocator, isVarargs, parameterNames, funcTree);
     }
 
     public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
@@ -100,85 +101,78 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     // private generation
+    private static List<String> finalizeParameterNames(List<String> parameterNames, boolean needsAllocator, boolean isVarArg) {
+        List<String> result = new ArrayList<>();
 
-    private void emitFunctionWrapper(Constant mhConstant, String javaName, String nativeName, MethodType declType,
-                                     boolean needsAllocator, boolean isVarargs, List<String> parameterNames, Declaration decl) {
-        incrAlign();
-        emitDocComment(decl);
-        indent();
-        append(MEMBER_MODS + " ");
         if (needsAllocator) {
-            // needs allocator parameter
-            declType = declType.insertParameterTypes(0, SegmentAllocator.class);
-            parameterNames = new ArrayList<>(parameterNames);
-            parameterNames.add(0, "allocator");
+            result.add("allocator");
         }
-        List<String> pExprs = emitFunctionWrapperDecl(javaName, declType, isVarargs, parameterNames);
-        append(" {\n");
-        incrAlign();
-        indent();
-        append("var mh$ = ");
-        append(mhConstant.getterName(javaName));
-        append("();\n");
-        indent();
-        append("try {\n");
-        incrAlign();
-        indent();
-        if (!declType.returnType().equals(void.class)) {
-            append("return (" + declType.returnType().getName() + ")");
+
+        int i = 0;
+        for (; i < parameterNames.size(); i++) {
+            String name = parameterNames.get(i);
+            if (name.isEmpty()) {
+                name = "x" + i;
+            }
+            result.add(name);
         }
-        append("mh$.invokeExact(" + String.join(", ", pExprs) + ");\n");
-        decrAlign();
-        indent();
-        append("} catch (Throwable ex$) {\n");
-        incrAlign();
-        indent();
-        append("throw new AssertionError(\"should not reach here\", ex$);\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+
+        if (isVarArg) {
+            result.add("x" + i);
+        }
+
+        return result;
     }
 
-    private List<String> emitFunctionWrapperDecl(String javaName, MethodType methodType, boolean isVarargs, List<String> paramNames) {
-        append(methodType.returnType().getSimpleName() + " " + javaName + "(");
-        String delim = "";
-        List<String> pExprs = new ArrayList<>();
-        final int numParams = paramNames.size();
-        for (int i = 0 ; i < numParams; i++) {
-            String pName = paramNames.get(i);
-            if (pName.isEmpty()) {
-                pName = "x" + i;
+    private static String paramExprs(MethodType type, List<String> parameterNames, boolean isVarArg) {
+        assert parameterNames.size() >= type.parameterCount();
+        StringJoiner sb = new StringJoiner(", ");
+        int i = 0;
+        for (; i < type.parameterCount(); i++) {
+            String pName = parameterNames.get(i);
+            sb.add(type.parameterType(i).getSimpleName() + " " + pName);
+        }
+
+        if (isVarArg) {
+            sb.add("Object... " + parameterNames.get(i));
+        }
+
+        return sb.toString();
+    }
+
+    private void emitFunctionWrapper(Constant mhConstant, String javaName, MethodType declType, boolean needsAllocator,
+                                     boolean isVarArg, List<String> parameterNames, Declaration decl) {
+        List<String> finalParamNames = finalizeParameterNames(parameterNames, needsAllocator, isVarArg);
+        if (needsAllocator) {
+            declType = declType.insertParameterTypes(0, SegmentAllocator.class);
+        }
+
+        String retType = declType.returnType().getSimpleName();
+        String returnExpr = "";
+        if (!declType.returnType().equals(void.class)) {
+            returnExpr = STR."return (\{retType}) ";
+        }
+        incrAlign();
+        emitDocComment(decl);
+        appendLines(STR."""
+            public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
+                var mh$ = \{mhConstant.getterName(javaName)}();
+                try {
+                    \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
+                } catch (Throwable ex$) {
+                   throw new AssertionError("should not reach here", ex$);
+                }
             }
-            pExprs.add(pName);
-            Class<?> pType = methodType.parameterType(i);
-            append(delim + pType.getSimpleName() + " " + pName);
-            delim = ", ";
-        }
-        if (isVarargs) {
-            String lastArg = "x" + numParams;
-            append(delim + "Object... " + lastArg);
-            pExprs.add(lastArg);
-        }
-        append(")");
-        return pExprs;
+            """);
+        decrAlign();
     }
 
     private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        incrAlign();
-        indent();
-        append(MEMBER_MODS + " ");
-        append(fiName + " " + javaName + " () {\n");
-        incrAlign();
-        indent();
-        append("return " + fiName + ".ofAddress(" + javaName + "$get(), Arena.global());\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        appendIndentedLines(STR."""
+            public static \{fiName} \{javaName}() {
+                return \{fiName}.ofAddress(\{javaName}$get(), Arena.global());
+            }
+            """);
     }
 
     void emitPrimitiveTypedef(Type.Primitive primType, String name) {
@@ -188,18 +182,15 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
         Type.Primitive.Kind kind = primType.kind();
         if (primitiveKindSupported(kind) && kind.layout().isPresent()) {
+            String declType = Utils.layoutDeclarationType(primType.kind().layout().orElseThrow()).getSimpleName();
+            Constant layoutConstant = constants.addLayout(kind.layout().get());
             incrAlign();
             if (typedefTree != null) {
                 emitDocComment(typedefTree);
             }
-            indent();
-            append(MEMBER_MODS);
-            append(" final");
-            append(" " + Utils.layoutDeclarationType(primType.kind().layout().orElseThrow()).getSimpleName());
-            append(" " + name);
-            append(" = ");
-            append(constants.addLayout(kind.layout().get()).accessExpression());
-            append(";\n");
+            appendLines(STR."""
+                public static final \{declType} \{name} = \{layoutConstant};
+                """);
             decrAlign();
         }
     }
@@ -209,18 +200,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
+        Constant layoutConstant = constants.addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT);
         incrAlign();
         if (typedefTree != null) {
             emitDocComment(typedefTree);
         }
-        indent();
-        append(MEMBER_MODS);
-        append(" final");
-        append(" AddressLayout ");
-        append(name);
-        append(" = ");
-        append(constants.addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT).accessExpression());
-        append(";\n");
+        appendLines(STR."""
+            public static final AddressLayout \{name} = \{layoutConstant};
+            """);
         decrAlign();
     }
 
@@ -235,20 +222,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                   Class<?> type, Declaration.Variable decl, String docHeader) {
         incrAlign();
         emitDocComment(decl, docHeader);
-        indent();
-        append(MEMBER_MODS + " " + type.getSimpleName() + " " + javaName + "$get() {\n");
-        incrAlign();
-        indent();
-        append("return (" + type.getName() + ") ");
-        append(vhConstant.accessExpression());
-        append(".get(RuntimeHelper.requireNonNull(");
-        append(segmentConstant.accessExpression());
-        append(", \"");
-        append(nativeName);
-        append("\"), 0L);\n");
-        decrAlign();
-        indent();
-        append("}\n");
+        appendLines(STR."""
+            public static \{type.getSimpleName()} \{javaName}$get() {
+                return (\{type.getSimpleName()}) \{vhConstant}.get(RuntimeHelper.requireNonNull(\{segmentConstant}, "\{nativeName}"), 0L);
+            }
+            """);
         decrAlign();
     }
 
@@ -256,19 +234,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                   Class<?> type, Declaration.Variable decl, String docHeader) {
         incrAlign();
         emitDocComment(decl, docHeader);
-        indent();
-        append(MEMBER_MODS + " void " + javaName + "$set(" + type.getSimpleName() + " x) {\n");
-        incrAlign();
-        indent();
-        append(vhConstant.accessExpression());
-        append(".set(RuntimeHelper.requireNonNull(");
-        append(segmentConstant.accessExpression());
-        append(", \"");
-        append(nativeName);
-        append("\"), 0L, x);\n");
-        decrAlign();
-        indent();
-        append("}\n");
+        appendLines(STR."""
+            public static void \{javaName}$set(\{type.getSimpleName()} x) {
+                \{vhConstant}.set(RuntimeHelper.requireNonNull(\{segmentConstant}, "\{nativeName}"), 0L, x);
+            }
+            """);
         decrAlign();
     }
 }

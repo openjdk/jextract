@@ -38,8 +38,6 @@ import java.util.stream.IntStream;
 
 final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
-    private static final String MEMBER_MODS = "static";
-
     private final MethodType fiType;
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
@@ -68,6 +66,38 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         fib.classEnd();
     }
 
+    private void emitFunctionalInterfaceMethod() {
+        appendIndentedLines(STR."""
+            \{fiRetType()} apply(\{paramExprs("")});
+            """);
+    }
+
+    private void emitFunctionalFactories() {
+        Constant functionDesc = constants.addFunctionDesc(fiDesc);
+        Constant upcallHandle = constants.addUpcallMethodHandle(fullName(), "apply", fiDesc);
+        appendIndentedLines(STR."""
+            static MemorySegment allocate(\{className()} fi, Arena scope) {
+                return RuntimeHelper.upcallStub(\{upcallHandle}, fi, \{functionDesc}, scope);
+            }
+            """);
+    }
+
+    private void emitFunctionalFactoryForPointer() {
+        Constant mhConstant = constants.addVirtualDowncallMethodHandle(fiDesc);
+        appendIndentedLines(STR."""
+            static \{className()} ofAddress(MemorySegment addr, Arena arena) {
+                MemorySegment symbol = addr.reinterpret(arena, null);
+                return (\{paramExprs("_")}) -> {
+                    try {
+                        \{retExpr()} \{mhConstant}.invokeExact(symbol\{otherArgExprs()});
+                    } catch (Throwable ex$) {
+                        throw new AssertionError("should not reach here", ex$);
+                    }
+                };
+            }
+            """);
+    }
+
     // private generation
     private String parameterName(int i) {
         String name = "";
@@ -77,71 +107,42 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         return name.isEmpty()? "_x" + i : name;
     }
 
-    private void emitFunctionalInterfaceMethod() {
-        incrAlign();
-        indent();
-        append(fiType.returnType().getName() + " apply(");
+    private String paramExprs(String paramNamePrefix) {
+        StringBuilder result = new StringBuilder();
         String delim = "";
         for (int i = 0 ; i < fiType.parameterCount(); i++) {
-            append(delim + fiType.parameterType(i).getName());
-            append(" ");
-            append(parameterName(i));
+            result.append(delim).append(fiType.parameterType(i).getSimpleName());
+            result.append(" ");
+            result.append(paramNamePrefix).append(parameterName(i));
             delim = ", ";
         }
-        append(");\n");
-        decrAlign();
+        return result.toString();
     }
 
-    private void emitFunctionalFactories() {
-        Constant functionDesc = constants.addFunctionDesc(fiDesc);
-        Constant upcallHandle = constants.addUpcallMethodHandle(fullName(), "apply", fiDesc);
-        incrAlign();
-        indent();
-        append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, Arena scope) {\n");
-        incrAlign();
-        indent();
-        append("return RuntimeHelper.upcallStub(" +
-            upcallHandle.accessExpression() + ", fi, " + functionDesc.accessExpression() + ", scope);\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+    private String fiRetType() {
+        return fiType.returnType().getSimpleName();
     }
 
-    private void emitFunctionalFactoryForPointer() {
-        Constant mhConstant = constants.addVirtualDowncallMethodHandle(fiDesc);
-        incrAlign();
-        indent();
-        append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena arena) {\n");
-        incrAlign();
-        indent();
-        append("MemorySegment symbol = addr.reinterpret(");
-        append("arena, null);\n");
-        indent();
-        append("return (");
-        String delim = "";
-        for (int i = 0 ; i < fiType.parameterCount(); i++) {
-            append(delim + fiType.parameterType(i).getName());
-            append(" ");
-            append("_" + parameterName(i));
-            delim = ", ";
-        }
-        append(") -> {\n");
-        incrAlign();
-        indent();
-        append("try {\n");
-        incrAlign();
-        indent();
+    private String downcallRetType() {
+        return fiType.returnType().getSimpleName();
+    }
+
+    private String retExpr() {
+        String retExpr = "";
         if (!fiType.returnType().equals(void.class)) {
-            append("return (" + fiType.returnType().getName() + ")");
+            retExpr = STR."return (\{fiRetType()})";
             if (fiType.returnType() != downcallType.returnType()) {
                 // add cast for invokeExact
-                append("(" + downcallType.returnType().getName() + ")");
+                retExpr += STR." (\{downcallRetType()})";
             }
         }
-        append(mhConstant.accessExpression() + ".invokeExact(symbol");
+        return retExpr;
+    }
+
+    private String otherArgExprs() {
+        String argsExprs = "";
         if (fiType.parameterCount() > 0) {
-            String params = IntStream.range(0, fiType.parameterCount())
+            argsExprs += ", " + IntStream.range(0, fiType.parameterCount())
                     .mapToObj(i -> {
                         String paramExpr = "_" + parameterName(i);
                         if (fiType.parameterType(i) != downcallType.parameterType(i)) {
@@ -152,24 +153,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                         }
                     })
                     .collect(Collectors.joining(", "));
-            append(", " + params);
         }
-        append(");\n");
-        decrAlign();
-        indent();
-        append("} catch (Throwable ex$) {\n");
-        incrAlign();
-        indent();
-        append("throw new AssertionError(\"should not reach here\", ex$);\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
-        indent();
-        append("};\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        return argsExprs;
     }
 }
