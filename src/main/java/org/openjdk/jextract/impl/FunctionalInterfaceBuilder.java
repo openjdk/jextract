@@ -27,7 +27,7 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.*;
 
-import org.openjdk.jextract.impl.ConstantBuffer.Constant;
+import org.openjdk.jextract.impl.Constants.Constant;
 import org.openjdk.jextract.Type;
 
 import java.lang.invoke.MethodType;
@@ -44,6 +44,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
+    private Constant funcDescConstant;
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
                                        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
@@ -60,10 +61,15 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                 descriptor, parameterNames);
         fib.emitDocComment(funcType, className);
         fib.classBegin();
+        fib.emitDesc();
         fib.emitFunctionalInterfaceMethod();
         fib.emitFunctionalFactories();
         fib.emitFunctionalFactoryForPointer();
         fib.classEnd();
+    }
+
+    private void emitDesc() {
+        funcDescConstant = Constants.emitFunctionDesc(this, "fi", fiDesc);
     }
 
     private void emitFunctionalInterfaceMethod() {
@@ -73,17 +79,16 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactories() {
-        Constant functionDesc = constants().addFunctionDesc(fiDesc);
-        Constant upcallHandle = constants().addUpcallMethodHandle(fullName(), "apply", fiDesc);
+        Constant upcallHandle = Constants.emitUpcallMethodHandle(this, "UP", fullName(), "apply", funcDescConstant);
         appendIndentedLines(STR."""
             static MemorySegment allocate(\{className()} fi, Arena scope) {
-                return RuntimeHelper.upcallStub(\{upcallHandle}, fi, \{functionDesc}, scope);
+                return RuntimeHelper.upcallStub(\{upcallHandle}, fi, \{funcDescConstant}, scope);
             }
             """);
     }
 
     private void emitFunctionalFactoryForPointer() {
-        Constant mhConstant = constants().addVirtualDowncallMethodHandle(fiDesc);
+        Constant mhConstant = Constants.emitVirtualDowncallMethodHandle(this, "DOWN", funcDescConstant);
         appendIndentedLines(STR."""
             static \{className()} ofAddress(MemorySegment addr, Arena arena) {
                 MemorySegment symbol = addr.reinterpret(arena, null);

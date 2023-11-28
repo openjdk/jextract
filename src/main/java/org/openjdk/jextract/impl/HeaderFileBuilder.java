@@ -33,10 +33,11 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Function;
 import org.openjdk.jextract.Type;
 
-import org.openjdk.jextract.impl.ConstantBuffer.Constant;
-import org.openjdk.jextract.impl.ConstantBuffer.ImmediateConstant;
+import org.openjdk.jextract.impl.Constants.Constant;
+import org.openjdk.jextract.impl.Constants.ImmediateConstant;
 
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
@@ -60,17 +61,18 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     public void addVar(Declaration.Variable varTree, String javaName,
         MemoryLayout layout, Optional<String> fiName) {
         String nativeName = varTree.name();
+        Constant layoutConstant = Constants.emitLayout(this, javaName, layout);
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             if (layout.byteSize() > 0) {
-                constants().addSegment(nativeName, layout)
+                Constants.emitSegmentField(this, javaName, nativeName, layoutConstant)
                         .emitGetterWithComment(this, MEMBER_MODS, javaName, nativeName, varTree);
             };
         } else if (layout instanceof ValueLayout valueLayout) {
-            constants().addLayout(valueLayout)
+            layoutConstant
                     .emitGetter(this, MEMBER_MODS, javaName);
-            Constant vhConstant = constants().addGlobalVarHandle(valueLayout)
+            Constant vhConstant = Constants.emitVarHandle(this, javaName, layoutConstant)
                     .emitGetter(this, MEMBER_MODS, javaName);
-            Constant segmentConstant = constants().addSegment(nativeName, valueLayout)
+            Constant segmentConstant = Constants.emitSegmentField(this, javaName, nativeName, layoutConstant)
                     .emitGetter(this, MEMBER_MODS, javaName, nativeName);
             emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Getter for variable:");
             emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Setter for variable:");
@@ -98,10 +100,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         Constant dummyConstant = new ImmediateConstant(MethodHandle.class, null);
         append(MEMBER_MODS + " " + dummyConstant.type().getSimpleName() + " " + dummyConstant.getterName(javaName) + "() {\n");
         incrAlign();
-        ClassSourceBuilder localConstantClass = new LocalConstantClassHolder();
-        localConstantClass.classBegin();
-        Constant constant = localConstantClass.constants().addDowncallMethodHandle(nativeName, descriptor, isVarargs);
-        localConstantClass.classEnd();
+        Constant constant = addLocalDowncallHandle(nativeName, descriptor, isVarargs);
         indent();
         append("return ");
         append("RuntimeHelper.requireNonNull(");
@@ -117,15 +116,23 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         return constant;
     }
 
-    class LocalConstantClassHolder extends ClassSourceBuilder {
-        public LocalConstantClassHolder() {
-            super(HeaderFileBuilder.this.sourceFileBuilder(), "", Kind.CLASS, "Holder", null, HeaderFileBuilder.this);
+    Constant addLocalDowncallHandle(String nativeName, FunctionDescriptor descriptor, boolean isVarargs) {
+        class LocalConstantClassHolder extends ClassSourceBuilder {
+            public LocalConstantClassHolder() {
+                super(HeaderFileBuilder.this.sourceFileBuilder(), "", Kind.CLASS, "Holder", null, HeaderFileBuilder.this);
+            }
         }
+        ClassSourceBuilder localConstantClass = new LocalConstantClassHolder();
+        localConstantClass.classBegin();
+        Constant desc = Constants.emitFunctionDesc(localConstantClass, "func", descriptor);
+        Constant constant = Constants.emitDowncallMethodHandle(localConstantClass, "func", nativeName, desc, isVarargs, false);
+        localConstantClass.classEnd();
+        return constant;
     }
 
     public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
         Object value = constantTree.value();
-        constants().addConstantDesc(javaType, value)
+        Constants.emitConstant(this, javaName, javaType, value)
                     .emitGetterWithComment(this, MEMBER_MODS, c -> javaName, constantTree);
     }
 
@@ -213,9 +220,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         Type.Primitive.Kind kind = primType.kind();
         if (primitiveKindSupported(kind) && kind.layout().isPresent()) {
             if (typedefTree != null) {
+                incrAlign();
                 emitDocComment(typedefTree);
-            } // @@@ : this comment is in the wrong place!
-            constants().addLayoutWithName(kind.layout().get(), name);
+                decrAlign();
+            }
+            Constants.emitLayout(this, name, s -> s, kind.layout().get());
         }
     }
 
@@ -225,9 +234,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
         if (typedefTree != null) {
+            incrAlign();
             emitDocComment(typedefTree);
-        } // @@@ : this comment is in the wrong place!
-        constants().addLayoutWithName(TypeImpl.PointerImpl.POINTER_LAYOUT, name);
+            decrAlign();
+        }
+        Constants.emitLayout(this, name, s -> s, TypeImpl.PointerImpl.POINTER_LAYOUT);
     }
 
     private boolean primitiveKindSupported(Type.Primitive.Kind kind) {

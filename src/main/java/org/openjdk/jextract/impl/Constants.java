@@ -36,21 +36,12 @@ import java.lang.foreign.StructLayout;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class ConstantBuffer {
-
-    private final ClassSourceBuilder builder;
-    private List<Constant> constants = new ArrayList<>();
-
-    public ConstantBuffer(ClassSourceBuilder builder) {
-        this.builder = builder;
-    }
+public final class Constants {
 
     static final String MEMBER_MODS = "public static final";
 
@@ -105,8 +96,6 @@ public class ConstantBuffer {
             return this;
         }
 
-        abstract void emit();
-
         String nameSuffix() {
             if (type.equals(MemorySegment.class)) {
                 return "$SEGMENT";
@@ -142,11 +131,6 @@ public class ConstantBuffer {
         @Override
         String accessExpression() {
             return value;
-        }
-
-        @Override
-        void emit() {
-            // do nothing
         }
 
         static ImmediateConstant ofPrimitiveLayout(ValueLayout vl) {
@@ -211,79 +195,83 @@ public class ConstantBuffer {
         }
     }
 
-    final class NamedConstant extends Constant {
-        final String constantName;
-        final Consumer<String> emitterFunc;
+    final static class NamedConstant extends Constant {
 
-        NamedConstant(Class<?> type, Consumer<String> emitterFunc) {
-            this(type, newConstantName(), emitterFunc);
+        final String owner;
+        final String constantName;
+
+        NamedConstant(Class<?> type, String owner, String name) {
+            this(type, owner, name, null);
         }
 
-        NamedConstant(Class<?> type, String name, Consumer<String> emitterFunc) {
+        NamedConstant(Class<?> type, String owner, String name, Function<String, String> nameFunc) {
             super(type);
-            this.emitterFunc = emitterFunc;
-            this.constantName = name;
+            this.owner = owner;
+            this.constantName = nameFunc != null ?
+                    nameFunc.apply(name) :
+                    getterName(name);
+        }
+
+        String name() {
+            return constantName;
         }
 
         @Override
         String accessExpression() {
-            return builder.className() + "." + constantName;
-        }
-
-        @Override
-        void emit() {
-            emitterFunc.accept(constantName);
+            return owner + "." + constantName;
         }
     }
 
-    private Constant emitDowncallMethodHandleField(String nativeName, FunctionDescriptor descriptor, boolean isVarargs, boolean virtual) {
-        Constant functionDesc = addFunctionDesc(descriptor);
-        return new NamedConstant(MethodHandle.class, constantName -> {
-            builder.incrAlign();
+    public static Constant emitDowncallMethodHandle(ClassSourceBuilder builder, String constantName, String nativeName,
+                                                   Constant functionDesc, boolean isVarargs, boolean virtual) {
+        NamedConstant constant = new NamedConstant(MethodHandle.class, builder.className(), constantName);
+        builder.incrAlign();
+        builder.indent();
+        builder.append(MEMBER_MODS + " MethodHandle ");
+        builder.append(constant.name() + " = RuntimeHelper.");
+        if (isVarargs) {
+            builder.append("downcallHandleVariadic");
+        } else {
+            builder.append("downcallHandle");
+        }
+        builder.append("(\n");
+        builder.incrAlign();
+        builder.indent();
+        if (!virtual) {
+            builder.append("\"" + nativeName + "\"");
+            builder.append(",\n");
             builder.indent();
-            builder.append(MEMBER_MODS + " MethodHandle ");
-            builder.append(constantName + " = RuntimeHelper.");
-            if (isVarargs) {
-                builder.append("downcallHandleVariadic");
-            } else {
-                builder.append("downcallHandle");
-            }
-            builder.append("(\n");
-            builder.incrAlign();
-            builder.indent();
-            if (!virtual) {
-                builder.append("\"" + nativeName + "\"");
-                builder.append(",\n");
-                builder.indent();
-            }
-            builder.append(functionDesc.accessExpression());
-            builder.append("\n");
-            builder.decrAlign();
-            builder.indent();
-            builder.append(");\n");
-            builder.decrAlign();
-        });
+        }
+        builder.append(functionDesc.accessExpression());
+        builder.append("\n");
+        builder.decrAlign();
+        builder.indent();
+        builder.append(");\n");
+        builder.decrAlign();
+        return constant;
     }
 
-    private Constant emitUpcallMethodHandleField(String className, String methodName, FunctionDescriptor descriptor) {
-        Constant functionDesc = addFunctionDesc(descriptor);
-        return new NamedConstant(MethodHandle.class, constantName ->
-            builder.appendIndentedLines(STR."""
-                static final MethodHandle \{constantName} = RuntimeHelper.upcallHandle(\{className}.class, "\{methodName}", \{functionDesc});
-                """)
-        );
+    public static Constant emitVirtualDowncallMethodHandle(ClassSourceBuilder builder, String constantName, Constant functionDesc) {
+        return emitDowncallMethodHandle(builder, constantName, null, functionDesc, false, true);
     }
 
-    private Constant emitVarHandle(ValueLayout valueLayout) {
-        Constant layoutConstant = addLayout(valueLayout);
-        return new NamedConstant(VarHandle.class, constantName -> {
-            builder.appendIndentedLines(STR."""
-                public static final VarHandle \{constantName} = \{layoutConstant}.varHandle();
-                """);
-        });
+    public static Constant emitUpcallMethodHandle(ClassSourceBuilder builder, String constantName, String className, String methodName, Constant functionDesc) {
+        NamedConstant constant = new NamedConstant(MethodHandle.class, builder.className(), constantName);
+        builder.appendIndentedLines(STR."""
+            static final MethodHandle \{constant.name()} = RuntimeHelper.upcallHandle(\{className}.class, "\{methodName}", \{functionDesc});
+            """);
+        return constant;
     }
 
-    private static String pathElementStr(String nativeName, List<String> prefixElementNames) {
+    public static Constant emitVarHandle(ClassSourceBuilder builder, String constantName, Constant layoutConstant) {
+        NamedConstant constant = new NamedConstant(VarHandle.class, builder.className(), constantName);
+        builder.appendIndentedLines(STR."""
+            public static final VarHandle \{constant.name()} = \{layoutConstant}.varHandle();
+            """);
+        return constant;
+    }
+
+    public static String pathElementStr(String nativeName, List<String> prefixElementNames) {
         StringJoiner joiner = new StringJoiner(", ");
         for (String prefixElementName : prefixElementNames) {
             joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{prefixElementName}\")");
@@ -292,32 +280,32 @@ public class ConstantBuffer {
         return joiner.toString();
     }
 
-    private Constant emitFieldVarHandle(String nativeName, GroupLayout parentLayout, List<String> prefixElementNames) {
-        Constant layoutConstant = addLayout(parentLayout);
-        return new NamedConstant(VarHandle.class, constantName -> {
-            builder.appendIndentedLines(STR."""
-                public static final VarHandle \{constantName} = \{layoutConstant}.varHandle(\{pathElementStr(nativeName, prefixElementNames)});
-                """);
-        });
+    public static Constant emitFieldVarHandle(ClassSourceBuilder builder, String constantName, String nativeName,
+                                               Constant layoutConstant, List<String> prefixElementNames) {
+        NamedConstant constant = new NamedConstant(VarHandle.class, builder.className(), constantName);
+        builder.appendIndentedLines(STR."""
+            public static final VarHandle \{constant.name()} = \{layoutConstant}.varHandle(\{pathElementStr(nativeName, prefixElementNames)});
+            """);
+        return constant;
     }
 
-    private Constant emitLayoutField(MemoryLayout layout) {
-        return emitLayoutField(layout, newConstantName());
+    public static Constant emitLayout(ClassSourceBuilder builder, String constantName, MemoryLayout layout) {
+        return emitLayout(builder, constantName, null, layout);
     }
 
-    private Constant emitLayoutField(MemoryLayout layout, String name) {
-        return new NamedConstant(MemoryLayout.class, name, constantName -> {
-            builder.incrAlign();
-            builder.indent();
-            String layoutClassName = Utils.layoutDeclarationType(layout).getSimpleName();
-            builder.append(STR."public static final \{layoutClassName} \{constantName} = ");
-            emitLayoutString(layout);
-            builder.append(";\n");
-            builder.decrAlign();
-        });
+    public static Constant emitLayout(ClassSourceBuilder builder, String constantName, Function<String, String> nameFunc, MemoryLayout layout) {
+        NamedConstant constant = new NamedConstant(MemoryLayout.class, builder.className(), constantName, nameFunc);
+        builder.incrAlign();
+        builder.indent();
+        String layoutClassName = Utils.layoutDeclarationType(layout).getSimpleName();
+        builder.append(STR."public static final \{layoutClassName} \{constant.name()} = ");
+        emitLayoutString(builder, layout);
+        builder.append(";\n");
+        builder.decrAlign();
+        return constant;
     }
 
-    private void emitLayoutString(MemoryLayout l) {
+    private static void emitLayoutString(ClassSourceBuilder builder, MemoryLayout l) {
         if (l instanceof ValueLayout val) {
             builder.append(ImmediateConstant.ofPrimitiveLayout(val).accessExpression());
             if (l.byteAlignment() != l.byteSize()) {
@@ -325,7 +313,7 @@ public class ConstantBuffer {
             }
         } else if (l instanceof SequenceLayout seq) {
             builder.append(STR."MemoryLayout.sequenceLayout(\{seq.elementCount()}, ");
-            emitLayoutString(seq.elementLayout());
+            emitLayoutString(builder, seq.elementLayout());
             builder.append(")");
         } else if (l instanceof GroupLayout group) {
             if (group instanceof StructLayout) {
@@ -338,7 +326,7 @@ public class ConstantBuffer {
             for (MemoryLayout e : group.memberLayouts()) {
                 builder.append(delim);
                 builder.indent();
-                emitLayoutString(e);
+                emitLayoutString(builder, e);
                 delim = ",\n";
             }
             builder.append("\n");
@@ -354,144 +342,76 @@ public class ConstantBuffer {
         }
     }
 
-    private Constant emitFunctionDescField(FunctionDescriptor desc) {
+    public static Constant emitFunctionDesc(ClassSourceBuilder builder, String constantName, FunctionDescriptor desc) {
+        NamedConstant constant = new NamedConstant(FunctionDescriptor.class, builder.className(), constantName);
         final boolean noArgs = desc.argumentLayouts().isEmpty();
-        return new NamedConstant(FunctionDescriptor.class, constantName -> {
-            builder.incrAlign();
-            builder.indent();
-            builder.append(STR."public static final FunctionDescriptor \{constantName} =");
-            if (desc.returnLayout().isPresent()) {
-                builder.append("FunctionDescriptor.of(");
-                emitLayoutString(desc.returnLayout().get());
-                if (!noArgs) {
-                    builder.append(",");
-                }
-            } else {
-                builder.append("FunctionDescriptor.ofVoid(");
-            }
+        builder.incrAlign();
+        builder.indent();
+        builder.append(STR."public static final FunctionDescriptor \{constant.name()} =");
+        if (desc.returnLayout().isPresent()) {
+            builder.append("FunctionDescriptor.of(");
+            emitLayoutString(builder, desc.returnLayout().get());
             if (!noArgs) {
-                builder.append("\n");
-                builder.incrAlign();
-                String delim = "";
-                for (MemoryLayout e : desc.argumentLayouts()) {
-                    builder.append(delim);
-                    builder.indent();
-                    emitLayoutString(e);
-                    delim = ",\n";
-                }
-                builder.append("\n");
-                builder.decrAlign();
-                builder.indent();
+                builder.append(",");
             }
-            builder.append(");\n");
-            builder.decrAlign();
-        });
-    }
-
-    private Constant emitConstantString(Object value) {
-        return new NamedConstant(MemorySegment.class, constantName ->
-            builder.appendIndentedLines(STR."""
-                public static final MemorySegment \{constantName} =
-                        RuntimeHelper.CONSTANT_ALLOCATOR.allocateFrom("\{Utils.quote(Objects.toString(value))}");
-                """)
-        );
-    }
-
-    private Constant emitConstantAddress(Object value) {
-        return new NamedConstant(MemorySegment.class, constantName ->
-            builder.appendIndentedLines(STR."""
-                public static final MemorySegment \{constantName} =
-                        MemorySegment.ofAddress(\{((Number)value).longValue()}L);
-                """)
-        );
-    }
-
-    private Constant emitSegmentField(String nativeName, MemoryLayout layout) {
-        Constant layoutConstant = addLayout(layout);
-        return new NamedConstant(MemorySegment.class, constantName -> {
-            builder.appendIndentedLines(STR."""
-                public static final MemorySegment \{constantName} =
-                        RuntimeHelper.lookupGlobalVariable("\{nativeName}", \{layoutConstant});
-                """);
-        });
-    }
-
-    String newConstantName() {
-        return STR."const$\{constants.size()}";
-    }
-
-    // public API
-
-    public Constant addLayout(MemoryLayout layout) {
-        Constant layoutConstant = emitLayoutField(layout);
-        constants.add(layoutConstant);
-        return layoutConstant;
-    }
-
-    public Constant addLayoutWithName(MemoryLayout layout, String name) {
-        Constant layoutConstant = emitLayoutField(layout, name);
-        constants.add(layoutConstant);
-        return layoutConstant;
-    }
-
-    public Constant addFieldVarHandle(String nativeName, GroupLayout parentLayout, List<String> prefixElementNames) {
-        Constant varHandleConstant = emitFieldVarHandle(nativeName, parentLayout, prefixElementNames);
-        constants.add(varHandleConstant);
-        return varHandleConstant;
-    }
-
-    public Constant addGlobalVarHandle(ValueLayout valueLayout) {
-        Constant varHandleConstant = emitVarHandle(valueLayout);
-        constants.add(varHandleConstant);
-        return varHandleConstant;
-    }
-
-    public Constant addDowncallMethodHandle(String nativeName, FunctionDescriptor descriptor, boolean isVarargs) {
-        Constant downcallHandleConstant = emitDowncallMethodHandleField(nativeName, descriptor, isVarargs, false);
-        constants.add(downcallHandleConstant);
-        return downcallHandleConstant;
-    }
-
-    public Constant addVirtualDowncallMethodHandle(FunctionDescriptor descriptor) {
-        Constant downcallHandleConstant = emitDowncallMethodHandleField(null, descriptor, false, true);
-        constants.add(downcallHandleConstant);
-        return downcallHandleConstant;
-    }
-
-    public Constant addUpcallMethodHandle(String className, String name, FunctionDescriptor descriptor) {
-        Constant upcallHandleConstant = emitUpcallMethodHandleField(className, name, descriptor);
-        constants.add(upcallHandleConstant);
-        return upcallHandleConstant;
-    }
-
-    public Constant addSegment(String nativeName, MemoryLayout layout) {
-        Constant segmentConstant = emitSegmentField(nativeName, layout);
-        constants.add(segmentConstant);
-        return segmentConstant;
-    }
-
-    public Constant addFunctionDesc(FunctionDescriptor desc) {
-        Constant functionDescConstant = emitFunctionDescField(desc);
-        constants.add(functionDescConstant);
-        return functionDescConstant;
-    }
-
-    public Constant addConstantDesc(Class<?> type, Object value) {
-        Constant constant;
-        if (value instanceof String) {
-            constant = emitConstantString(value);
-        } else if (type == MemorySegment.class) {
-            constant = emitConstantAddress(value);
         } else {
-            constant = ImmediateConstant.ofLiteral(type, value);
+            builder.append("FunctionDescriptor.ofVoid(");
         }
-        constants.add(constant);
+        if (!noArgs) {
+            builder.append("\n");
+            builder.incrAlign();
+            String delim = "";
+            for (MemoryLayout e : desc.argumentLayouts()) {
+                builder.append(delim);
+                builder.indent();
+                emitLayoutString(builder, e);
+                delim = ",\n";
+            }
+            builder.append("\n");
+            builder.decrAlign();
+            builder.indent();
+        }
+        builder.append(");\n");
+        builder.decrAlign();
         return constant;
     }
 
-    void writeConstants() {
-        for (Constant c : constants) {
-            c.emit();
+    public static Constant emitConstant(ClassSourceBuilder builder, String constantName, Class<?> type, Object value) {
+        Constant constant;
+        if (value instanceof String) {
+            constant = emitConstantString(builder, constantName, value);
+        } else if (type == MemorySegment.class) {
+            constant = emitConstantAddress(builder, constantName, value);
+        } else {
+            constant = ImmediateConstant.ofLiteral(type, value);
         }
+        return constant;
+    }
+
+    private static Constant emitConstantString(ClassSourceBuilder builder, String constantName, Object value) {
+        NamedConstant constant = new NamedConstant(MemorySegment.class, builder.className(), constantName);
+        builder.appendIndentedLines(STR."""
+            public static final MemorySegment \{constant.name()} =
+                    RuntimeHelper.CONSTANT_ALLOCATOR.allocateFrom("\{Utils.quote(Objects.toString(value))}");
+            """);
+        return constant;
+    }
+
+    private static Constant emitConstantAddress(ClassSourceBuilder builder, String constantName, Object value) {
+        NamedConstant constant = new NamedConstant(MemorySegment.class, builder.className(), constantName);
+        builder.appendIndentedLines(STR."""
+            public static final MemorySegment \{constant.name()} =
+                    MemorySegment.ofAddress(\{((Number)value).longValue()}L);
+            """);
+        return constant;
+    }
+
+    public static Constant emitSegmentField(ClassSourceBuilder builder, String constantName, String nativeName, Constant layoutConstant) {
+        NamedConstant constant = new NamedConstant(MemorySegment.class, builder.className(), constantName);
+        builder.appendIndentedLines(STR."""
+            public static final MemorySegment \{constant.name()} =
+                    RuntimeHelper.lookupGlobalVariable("\{nativeName}", \{layoutConstant});
+            """);
+        return constant;
     }
 }

@@ -31,7 +31,7 @@ import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.ConstantBuffer.Constant;
+import org.openjdk.jextract.impl.Constants.Constant;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -51,6 +51,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private final GroupLayout structLayout;
     private final Type structType;
     private final Deque<String> prefixElementNames;
+    private Constant layoutConstant;
 
     StructBuilder(SourceFileBuilder builder, String modifiers, String className,
                   ClassSourceBuilder enclosing, Declaration.Scoped structTree, GroupLayout structLayout) {
@@ -86,7 +87,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             }
             emitDocComment(structTree);
             classBegin();
-            Constant layoutConstant = constants().addLayout(((Type.Declared) structType).tree().layout().orElseThrow());
+            layoutConstant = Constants.emitLayout(this, className(), ((Type.Declared) structType).tree().layout().orElseThrow());
             layoutConstant.emitGetter(this, MEMBER_MODS, Constant::nameSuffix);
         }
     }
@@ -152,7 +153,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 emitSegmentGetter(javaName, nativeName, layout);
             }
         } else if (layout instanceof ValueLayout valueLayout) {
-            Constant vhConstant = constants().addFieldVarHandle(nativeName, structLayout, prefixNamesList())
+            Constant vhConstant = Constants.emitFieldVarHandle(this, javaName, nativeName, layoutConstant, prefixNamesList())
                     .emitGetter(this, MEMBER_MODS, javaName);
             emitFieldDocComment(varTree, "Getter for field:");
             emitFieldGetter(vhConstant, javaName, valueLayout.carrier());
