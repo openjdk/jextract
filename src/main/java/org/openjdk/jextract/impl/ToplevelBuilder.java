@@ -50,17 +50,15 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private HeaderFileBuilder lastHeader;
     private int headersCount;
     private final ClassDesc headerDesc;
-    private final Constants constants;
 
     ToplevelBuilder(String packageName, String headerClassName) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
-        this.constants = new Constants(packageName);
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
-        lastHeader = firstHeader = createFirstHeader(sfb, constants);
+        lastHeader = firstHeader = createFirstHeader(sfb);
     }
 
-    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, Constants constants) {
-        HeaderFileBuilder first = new HeaderFileBuilder(sfb, constants, sfb.className(), "#{SUPER}");
+    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb) {
+        HeaderFileBuilder first = new HeaderFileBuilder(sfb, sfb.className(), "#{SUPER}");
         first.classBegin();
         // emit basic primitive types
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Bool), "C_BOOL");
@@ -83,7 +81,6 @@ class ToplevelBuilder implements OutputFactory.Builder {
                 lastHeader != firstHeader ? "extends " + lastHeader.className() : "")));
         files.addAll(builders.stream()
                 .map(SourceFileBuilder::toFile).toList());
-        files.addAll(constants.toFiles());
         return files;
     }
 
@@ -129,7 +126,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
         String javaName, GroupLayout layout) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
         builders.add(sfb);
-        StructBuilder structBuilder = new StructBuilder(sfb, constants, "public", sfb.className(), null, tree, layout);
+        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, tree, layout);
         structBuilder.begin();
         return structBuilder;
     }
@@ -139,7 +136,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
         FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
         builders.add(sfb);
-        FunctionalInterfaceBuilder.generate(sfb, constants, sfb.className(), null, funcType, descriptor, parameterNames);
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, funcType, descriptor, parameterNames);
     }
 
     private HeaderFileBuilder nextHeader() {
@@ -147,7 +144,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
             boolean hasSuper = lastHeader != firstHeader;
             String className = headerDesc.displayName() + "_" + ++headersCount;
             SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), className);
-            HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, constants, sfb.className(),
+            HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, sfb.className(),
                     hasSuper ? lastHeader.className() : null);
             lastHeader.classEnd();
             headerFileBuilder.classBegin();

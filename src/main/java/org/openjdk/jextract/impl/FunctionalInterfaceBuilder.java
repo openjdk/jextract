@@ -27,7 +27,7 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.*;
 
-import org.openjdk.jextract.impl.Constants.Constant;
+import org.openjdk.jextract.impl.ConstantBuffer.Constant;
 import org.openjdk.jextract.Type;
 
 import java.lang.invoke.MethodType;
@@ -38,25 +38,25 @@ import java.util.stream.IntStream;
 
 final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
+    private static final String MEMBER_MODS = "static";
+
     private final MethodType fiType;
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
-    private final Constants constants;
 
-    private FunctionalInterfaceBuilder(SourceFileBuilder builder, Constants constants, String className, ClassSourceBuilder enclosing,
+    private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
                                        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(builder, "public", Kind.INTERFACE, className, null, enclosing);
         this.fiType = descriptor.toMethodType();
         this.downcallType = descriptor.toMethodType();
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
-        this.constants = constants;
     }
 
-    public static void generate(SourceFileBuilder builder, Constants constants, String className, ClassSourceBuilder enclosing,
-                               Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, constants, className, enclosing,
+    public static void generate(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
+                                Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className, enclosing,
                 descriptor, parameterNames);
         fib.emitDocComment(funcType, className);
         fib.classBegin();
@@ -73,8 +73,8 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactories() {
-        Constant functionDesc = constants.addFunctionDesc(fiDesc);
-        Constant upcallHandle = constants.addUpcallMethodHandle(fullName(), "apply", fiDesc);
+        Constant functionDesc = constants().addFunctionDesc(fiDesc);
+        Constant upcallHandle = constants().addUpcallMethodHandle(fullName(), "apply", fiDesc);
         appendIndentedLines(STR."""
             static MemorySegment allocate(\{className()} fi, Arena scope) {
                 return RuntimeHelper.upcallStub(\{upcallHandle}, fi, \{functionDesc}, scope);
@@ -83,7 +83,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactoryForPointer() {
-        Constant mhConstant = constants.addVirtualDowncallMethodHandle(fiDesc);
+        Constant mhConstant = constants().addVirtualDowncallMethodHandle(fiDesc);
         appendIndentedLines(STR."""
             static \{className()} ofAddress(MemorySegment addr, Arena arena) {
                 MemorySegment symbol = addr.reinterpret(arena, null);

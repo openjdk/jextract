@@ -30,10 +30,13 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
-import org.openjdk.jextract.impl.Constants.Constant;
+import org.openjdk.jextract.impl.ConstantBuffer.Constant;
+import org.openjdk.jextract.impl.ConstantBuffer.ImmediateConstant;
 
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
@@ -50,11 +53,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     static final String MEMBER_MODS = "public static";
 
-    private final Constants constants;
-
-    HeaderFileBuilder(SourceFileBuilder builder, Constants constants, String className, String superName) {
+    HeaderFileBuilder(SourceFileBuilder builder, String className, String superName) {
         super(builder, "public", Kind.CLASS, className, superName, null);
-        this.constants = constants;
     }
 
     public void addVar(Declaration.Variable varTree, String javaName,
@@ -62,15 +62,15 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         String nativeName = varTree.name();
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             if (layout.byteSize() > 0) {
-                constants.addSegment(nativeName, layout)
+                constants().addSegment(nativeName, layout)
                         .emitGetterWithComment(this, MEMBER_MODS, javaName, nativeName, varTree);
             };
         } else if (layout instanceof ValueLayout valueLayout) {
-            constants.addLayout(valueLayout)
+            constants().addLayout(valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName);
-            Constant vhConstant = constants.addGlobalVarHandle(valueLayout)
+            Constant vhConstant = constants().addGlobalVarHandle(valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName);
-            Constant segmentConstant = constants.addSegment(nativeName, valueLayout)
+            Constant segmentConstant = constants().addSegment(nativeName, valueLayout)
                     .emitGetter(this, MEMBER_MODS, javaName, nativeName);
             emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Getter for variable:");
             emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Setter for variable:");
@@ -85,22 +85,52 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String javaName, List<String> parameterNames) {
         String nativeName = funcTree.name();
         boolean isVarargs = funcTree.type().varargs();
-
-        Constant mhConstant = constants.addDowncallMethodHandle(nativeName, descriptor, isVarargs)
-                .emitGetter(this, MEMBER_MODS, javaName, nativeName);
+        Constant mhConstant = emitDowncallGetter(javaName, nativeName, descriptor, isVarargs);
         MethodType downcallType = descriptor.toMethodType();
         boolean needsAllocator = descriptor.returnLayout().isPresent() &&
                 descriptor.returnLayout().get() instanceof GroupLayout;
         emitFunctionWrapper(mhConstant, javaName, downcallType, needsAllocator, isVarargs, parameterNames, funcTree);
     }
 
+    Constant emitDowncallGetter(String javaName, String nativeName, FunctionDescriptor descriptor, boolean isVarargs) {
+        incrAlign();
+        indent();
+        Constant dummyConstant = new ImmediateConstant(MethodHandle.class, null);
+        append(MEMBER_MODS + " " + dummyConstant.type().getSimpleName() + " " + dummyConstant.getterName(javaName) + "() {\n");
+        incrAlign();
+        ClassSourceBuilder localConstantClass = new LocalConstantClassHolder();
+        localConstantClass.classBegin();
+        Constant constant = localConstantClass.constants().addDowncallMethodHandle(nativeName, descriptor, isVarargs);
+        localConstantClass.classEnd();
+        indent();
+        append("return ");
+        append("RuntimeHelper.requireNonNull(");
+        append(constant.accessExpression());
+        append(",\"");
+        append(javaName);
+        append("\")");
+        append(";\n");
+        decrAlign();
+        indent();
+        append("}\n");
+        decrAlign();
+        return constant;
+    }
+
+    class LocalConstantClassHolder extends ClassSourceBuilder {
+        public LocalConstantClassHolder() {
+            super(HeaderFileBuilder.this.sourceFileBuilder(), "", Kind.CLASS, "Holder", null, HeaderFileBuilder.this);
+        }
+    }
+
     public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
         Object value = constantTree.value();
-        constants.addConstantDesc(javaType, value)
+        constants().addConstantDesc(javaType, value)
                     .emitGetterWithComment(this, MEMBER_MODS, c -> javaName, constantTree);
     }
 
     // private generation
+
     private static List<String> finalizeParameterNames(List<String> parameterNames, boolean needsAllocator, boolean isVarArg) {
         List<String> result = new ArrayList<>();
 
@@ -182,16 +212,10 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
         Type.Primitive.Kind kind = primType.kind();
         if (primitiveKindSupported(kind) && kind.layout().isPresent()) {
-            String declType = Utils.layoutDeclarationType(primType.kind().layout().orElseThrow()).getSimpleName();
-            Constant layoutConstant = constants.addLayout(kind.layout().get());
-            incrAlign();
             if (typedefTree != null) {
                 emitDocComment(typedefTree);
-            }
-            appendLines(STR."""
-                public static final \{declType} \{name} = \{layoutConstant};
-                """);
-            decrAlign();
+            } // @@@ : this comment is in the wrong place!
+            constants().addLayoutWithName(kind.layout().get(), name);
         }
     }
 
@@ -200,15 +224,10 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
-        Constant layoutConstant = constants.addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT);
-        incrAlign();
         if (typedefTree != null) {
             emitDocComment(typedefTree);
-        }
-        appendLines(STR."""
-            public static final AddressLayout \{name} = \{layoutConstant};
-            """);
-        decrAlign();
+        } // @@@ : this comment is in the wrong place!
+        constants().addLayoutWithName(TypeImpl.PointerImpl.POINTER_LAYOUT, name);
     }
 
     private boolean primitiveKindSupported(Type.Primitive.Kind kind) {

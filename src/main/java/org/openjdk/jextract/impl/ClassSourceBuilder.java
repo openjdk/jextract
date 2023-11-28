@@ -26,7 +26,7 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.Constants.Constant;
+import org.openjdk.jextract.impl.ConstantBuffer.Constant;
 
 /**
  * Superclass for .java source generator classes.
@@ -49,6 +49,7 @@ abstract class ClassSourceBuilder {
     private final String className;
     private final String superName;
     private final ClassSourceBuilder enclosing;
+    private final ConstantBuffer constantBuffer;
 
     ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName, ClassSourceBuilder enclosing) {
         this.sb = builder;
@@ -57,6 +58,7 @@ abstract class ClassSourceBuilder {
         this.className = className;
         this.superName = superName;
         this.enclosing = enclosing;
+        this.constantBuffer = new ConstantBuffer(this);
     }
 
     final String className() {
@@ -78,6 +80,10 @@ abstract class ClassSourceBuilder {
         return enclosing != null;
     }
 
+    protected final ConstantBuffer constants() {
+        return constantBuffer;
+    }
+
     final SourceFileBuilder sourceFileBuilder() {
         return sb;
     }
@@ -94,6 +100,7 @@ abstract class ClassSourceBuilder {
     }
 
     final void classEnd() {
+        constantBuffer.writeConstants();
         indent();
         append("}\n\n");
     }
