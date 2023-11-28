@@ -149,11 +149,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         String factoryName = isVarArg ?
                 "downcallHandleVariadic" :
                 "downcallHandle";
+        incrAlign();
         emitDocComment(decl);
-        appendIndentedLines(STR."""
+        appendLines(STR."""
             \{MEMBER_MODS} MethodHandle \{getterName}() {
                 class Holder {
-                    static final FunctionDescriptor DESC = \{descriptorString(descriptor)};
+                    static final FunctionDescriptor DESC = \{descriptorString("        ", descriptor)};
 
                     static final MethodHandle MH = RuntimeHelper.\{factoryName}(\"\{nativeName}\", DESC);
                 }
@@ -169,6 +170,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 }
             }
             """);
+        decrAlign();
     }
 
     private void emitFunctionalInterfaceGetter(String fiName, String javaName) {

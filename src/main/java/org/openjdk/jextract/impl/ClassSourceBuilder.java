@@ -166,7 +166,7 @@ abstract class ClassSourceBuilder {
             /**
             \{!header.isEmpty() ? STR." * \{header}\n" : ""}\
              * {@snippet lang=c :
-             \{CDeclarationPrinter.declaration(decl, " ".repeat(align()*4) + " * ")}
+            \{CDeclarationPrinter.declaration(decl, " * ")}
              * }
              */
             """);
@@ -202,39 +202,43 @@ abstract class ClassSourceBuilder {
         }
     }
 
-    static String layoutString(MemoryLayout l) {
+    String layoutString(MemoryLayout l) {
+        return layoutString(" ".repeat(align() * 4), l);
+    }
+
+    String layoutString(String indent, MemoryLayout l) {
         StringBuilder builder = new StringBuilder();
-        layoutString(builder, l);
+        layoutString(indent, builder, l);
         return builder.toString();
     }
 
-    private static void layoutString(StringBuilder builder, MemoryLayout l) {
+    private void layoutString(String indent, StringBuilder builder, MemoryLayout l) {
         if (l instanceof ValueLayout val) {
-            builder.append(valueLayoutString(val));
+            builder.append(STR."\{indent}\{valueLayoutString(val)}");
             if (l.byteAlignment() != l.byteSize()) {
-                builder.append(STR.".withByteAlignment(\{l.byteAlignment()})");
+                builder.append(STR."\{indent}.withByteAlignment(\{l.byteAlignment()})");
             }
         } else if (l instanceof SequenceLayout seq) {
-            builder.append(STR."MemoryLayout.sequenceLayout(\{seq.elementCount()}, ");
-            layoutString(builder, seq.elementLayout());
-            builder.append(")");
+            builder.append(STR."\{indent}MemoryLayout.sequenceLayout(\{seq.elementCount()}, ");
+            layoutString(STR."\{indent}    ", builder, seq.elementLayout());
+            builder.append(STR."\{indent})");
         } else if (l instanceof GroupLayout group) {
             if (group instanceof StructLayout) {
-                builder.append("MemoryLayout.structLayout(\n");
+                builder.append(STR."\{indent}MemoryLayout.structLayout(\n");
             } else {
-                builder.append("MemoryLayout.unionLayout(\n");
+                builder.append(STR."\{indent}MemoryLayout.unionLayout(\n");
             }
             String delim = "";
             for (MemoryLayout e : group.memberLayouts()) {
                 builder.append(delim);
-                layoutString(builder, e);
+                layoutString(STR."\{indent}    ", builder, e);
                 delim = ",\n";
             }
             builder.append("\n");
-            builder.append(")");
+            builder.append(STR."\{indent})");
         } else {
             // padding (or unsupported)
-            builder.append(STR."MemoryLayout.paddingLayout(\{l.byteSize()})");
+            builder.append(STR."\{indent}MemoryLayout.paddingLayout(\{l.byteSize()})");
         }
         if (l.name().isPresent()) {
             builder.append(STR.".withName(\"\{l.name().get()}\")");
@@ -265,12 +269,16 @@ abstract class ClassSourceBuilder {
         }
     }
 
-    public static String descriptorString(FunctionDescriptor desc) {
+    public String descriptorString(FunctionDescriptor desc) {
+        return descriptorString(" ".repeat(align() * 4), desc);
+    }
+
+    public String descriptorString(String indent, FunctionDescriptor desc) {
         final boolean noArgs = desc.argumentLayouts().isEmpty();
         StringBuilder builder = new StringBuilder();
         if (desc.returnLayout().isPresent()) {
             builder.append("FunctionDescriptor.of(");
-            layoutString(builder, desc.returnLayout().get());
+            layoutString("", builder, desc.returnLayout().get());
             if (!noArgs) {
                 builder.append(",");
             }
@@ -282,12 +290,12 @@ abstract class ClassSourceBuilder {
             String delim = "";
             for (MemoryLayout e : desc.argumentLayouts()) {
                 builder.append(delim);
-                layoutString(builder, e);
+                layoutString(STR."\{indent}    ", builder, e);
                 delim = ",\n";
             }
             builder.append("\n");
         }
-        builder.append(");\n");
+        builder.append(STR."\{indent})");
         return builder.toString();
     }
 }

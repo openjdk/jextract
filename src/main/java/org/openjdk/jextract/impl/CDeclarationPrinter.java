@@ -89,11 +89,14 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
             builder.append("\n");
             incr();
         }
-        d.members().forEach(m -> m.accept(this, null));
+        d.members().forEach(m -> {
+            m.accept(this, null);
+            builder.append("\n");
+        });
         if (!tag.isEmpty()) {
             decr();
             indent();
-            builder.append("};\n");
+            builder.append("};");
         }
         return null;
     }
@@ -124,7 +127,7 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
         String funcNameAndArgs = buf.toString();
         Type returnType = d.type().returnType();
         builder.append(nameAndType(returnType, funcNameAndArgs));
-        builder.append(";\n");
+        builder.append(";");
         return null;
     }
 
@@ -132,7 +135,7 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
     public Void visitVariable(Declaration.Variable d, Void ignored) {
         indent();
         builder.append(nameAndType(d.type(), d.name()));
-        builder.append(";\n");
+        builder.append(";");
         return null;
     }
 
@@ -144,7 +147,7 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
             builder.append("enum " + enumName.get() + "." + d.name());
             builder.append(" = ");
             builder.append(d.value());
-            builder.append(";\n");
+            builder.append(";");
         } else {
             builder.append("#define ");
             builder.append(d.name());
@@ -155,7 +158,6 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
             } else {
                 builder.append(value);
             }
-            builder.append("\n");
         }
         return null;
     }
@@ -165,7 +167,7 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
         indent();
         builder.append("typedef ");
         builder.append(nameAndType(d.type(), d.name()));
-        builder.append(";\n");
+        builder.append(";");
         return null;
     }
 
