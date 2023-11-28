@@ -26,7 +26,18 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.Constants.Constant;
+
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.StructLayout;
+import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.VarHandle;
+import java.util.List;
+import java.util.StringJoiner;
 
 /**
  * Superclass for .java source generator classes.
@@ -171,16 +182,199 @@ abstract class ClassSourceBuilder {
             """);
     }
 
-    final void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant, Declaration decl) {
+    final String emitField(String mods, Class<?> fieldType, String fieldName, String initExpr, Declaration decl) {
         incrAlign();
         if (decl != null) {
             emitDocComment(decl);
         }
         appendLines(STR."""
-            \{mods} \{constant.type().getSimpleName()} \{getterName}() {
-                return \{nullCheck ? STR."RuntimeHelper.requireNonNull(\{constant}, \"\{symbolName}\")" : constant};
+            \{mods} \{fieldType.getSimpleName()} \{fieldName} = \{initExpr};
+            """);
+        decrAlign();
+        return className() + "." + fieldName;
+    }
+
+    final String emitFieldWithMangledName(String mods, Class<?> fieldType, String fieldName, String initExpr, Declaration decl) {
+        return emitField(mods, fieldType, mangleName(fieldName, fieldType), initExpr, decl);
+    }
+
+    final String emitConstantWithMangledName(Class<?> constantType, String constantName, String constantValue, Declaration decl) {
+        return emitConstant(constantType, mangleName(constantName, constantType), constantValue, decl);
+    }
+
+    final String emitConstant(Class<?> constantType, String constantName, String constantValue, Declaration decl) {
+        return emitField("public static final", constantType, constantName, constantValue, decl);
+    }
+
+    final String emitLayoutConstant(String constantName, MemoryLayout layout, Declaration decl) {
+        return emitConstant(Utils.layoutDeclarationType(layout), constantName, layoutString(layout), decl);
+    }
+
+    final String emitLayoutConstantWithMangledName(String constantName, MemoryLayout layout, Declaration decl) {
+        return emitConstant(Utils.layoutDeclarationType(layout), mangleName(constantName, MemoryLayout.class), layoutString(layout), decl);
+    }
+
+    final String emitDescriptorConstant(String constantName, FunctionDescriptor descriptor, Declaration decl) {
+        return emitConstant(FunctionDescriptor.class, constantName, functionDescString(descriptor), decl);
+    }
+
+    final String emitDescriptorConstantWithMangledName(String constantName, FunctionDescriptor descriptor, Declaration decl) {
+        return emitConstant(FunctionDescriptor.class, mangleName(constantName, FunctionDescriptor.class), functionDescString(descriptor), decl);
+    }
+
+    final void emitGetter(String mods, Class<?> getterType, String getterName, String getterExpr, Declaration decl) {
+        incrAlign();
+        if (decl != null) {
+            emitDocComment(decl);
+        }
+        appendLines(STR."""
+            \{mods} \{getterType.getSimpleName()} \{getterName}() {
+                return \{checkNonNull(getterExpr, getterName)};
             }
             """);
         decrAlign();
+    }
+
+    final void emitGetterWithMangledName(String mods, Class<?> getterType, String getterName, String getterExpr, Declaration decl) {
+        emitGetter(mods, getterType, mangleName(getterName, getterType), getterExpr, decl);
+    }
+
+    final String checkNonNull(String val, String msg) {
+        return STR."RuntimeHelper.requireNonNull(\{val}, \"\{msg}\")";
+    }
+
+    public String mangleName(String javaName, Class<?> type) {
+        return javaName + nameSuffix(type);
+    }
+
+    String nameSuffix(Class<?> type) {
+        if (type.equals(MemorySegment.class)) {
+            return "$SEGMENT";
+        } else if (type.equals(MemoryLayout.class)) {
+            return "$LAYOUT";
+        } else if (type.equals(MethodHandle.class)) {
+            return "$MH";
+        } else if (type.equals(VarHandle.class)) {
+            return "$VH";
+        } else if (type.equals(FunctionDescriptor.class)) {
+            return "$DESC";
+        } else {
+            return "";
+        }
+    }
+
+    static String layoutString(MemoryLayout l) {
+        StringBuilder builder = new StringBuilder();
+        layoutString(builder, l);
+        return builder.toString();
+    }
+
+    private static void layoutString(StringBuilder builder, MemoryLayout l) {
+        if (l instanceof ValueLayout val) {
+            builder.append(valueLayoutString(val));
+            if (l.byteAlignment() != l.byteSize()) {
+                builder.append(STR.".withByteAlignment(\{l.byteAlignment()})");
+            }
+        } else if (l instanceof SequenceLayout seq) {
+            builder.append(STR."MemoryLayout.sequenceLayout(\{seq.elementCount()}, ");
+            layoutString(builder, seq.elementLayout());
+            builder.append(")");
+        } else if (l instanceof GroupLayout group) {
+            if (group instanceof StructLayout) {
+                builder.append("MemoryLayout.structLayout(\n");
+            } else {
+                builder.append("MemoryLayout.unionLayout(\n");
+            }
+            String delim = "";
+            for (MemoryLayout e : group.memberLayouts()) {
+                builder.append(delim);
+                layoutString(builder, e);
+                delim = ",\n";
+            }
+            builder.append("\n");
+            builder.append(")");
+        } else {
+            // padding (or unsupported)
+            builder.append(STR."MemoryLayout.paddingLayout(\{l.byteSize()})");
+        }
+        if (l.name().isPresent()) {
+            builder.append(STR.".withName(\"\{l.name().get()}\")");
+        }
+    }
+
+    static String valueLayoutString(ValueLayout vl) {
+        if (vl.carrier() == boolean.class) {
+            return "JAVA_BOOLEAN";
+        } else if (vl.carrier() == char.class) {
+            return "JAVA_CHAR";
+        } else if (vl.carrier() == byte.class) {
+            return "JAVA_BYTE";
+        } else if (vl.carrier() == short.class) {
+            return "JAVA_SHORT";
+        } else if (vl.carrier() == int.class) {
+            return "JAVA_INT";
+        } else if (vl.carrier() == float.class) {
+            return "JAVA_FLOAT";
+        } else if (vl.carrier() == long.class) {
+            return "JAVA_LONG";
+        } else if (vl.carrier() == double.class) {
+            return "JAVA_DOUBLE";
+        } else if (vl.carrier() == MemorySegment.class) {
+            return "RuntimeHelper.POINTER";
+        } else {
+            throw new UnsupportedOperationException("Unsupported layout: " + vl);
+        }
+    }
+
+    public static String pathElementStr(String nativeName, List<String> prefixElementNames) {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (String prefixElementName : prefixElementNames) {
+            joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{prefixElementName}\")");
+        }
+        joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{nativeName}\")");
+        return joiner.toString();
+    }
+
+    public static String fieldVarHandle(String layoutStr, String nativeName, List<String> prefixElementNames) {
+        return STR."\{layoutStr}.varHandle(\{pathElementStr(nativeName, prefixElementNames)});";
+    }
+
+    public static String segmentField(String nativeName, String layoutString) {
+        return STR."RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layoutString});";
+    }
+
+    public static String functionDescString(FunctionDescriptor desc) {
+        final boolean noArgs = desc.argumentLayouts().isEmpty();
+        StringBuilder builder = new StringBuilder();
+        if (desc.returnLayout().isPresent()) {
+            builder.append("FunctionDescriptor.of(");
+            layoutString(builder, desc.returnLayout().get());
+            if (!noArgs) {
+                builder.append(",");
+            }
+        } else {
+            builder.append("FunctionDescriptor.ofVoid(");
+        }
+        if (!noArgs) {
+            builder.append("\n");
+            String delim = "";
+            for (MemoryLayout e : desc.argumentLayouts()) {
+                builder.append(delim);
+                layoutString(builder, e);
+                delim = ",\n";
+            }
+            builder.append("\n");
+        }
+        builder.append(");\n");
+        return builder.toString();
+    }
+
+    public static String downcallHandleString(String nativeName, String functionDesc, boolean isVarargs, boolean virtual) {
+        String factoryName = isVarargs ?
+                "downcallHandleVariadic" :
+                "downcallHandle";
+        String firstParam = virtual ?
+                "" : STR."\"\{nativeName}\", ";
+        return STR."RuntimeHelper.\{factoryName}(\{firstParam}\{functionDesc});";
     }
 }

@@ -31,8 +31,8 @@ import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.Constants.Constant;
 
+import java.lang.invoke.VarHandle;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,7 +51,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private final GroupLayout structLayout;
     private final Type structType;
     private final Deque<String> prefixElementNames;
-    private Constant layoutConstant;
+    private String layoutField;
 
     StructBuilder(SourceFileBuilder builder, String modifiers, String className,
                   ClassSourceBuilder enclosing, Declaration.Scoped structTree, GroupLayout structLayout) {
@@ -87,8 +87,9 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             }
             emitDocComment(structTree);
             classBegin();
-            layoutConstant = Constants.emitLayout(this, className(), ((Type.Declared) structType).tree().layout().orElseThrow());
-            layoutConstant.emitGetter(this, MEMBER_MODS, Constant::nameSuffix);
+            layoutField = emitLayoutConstantWithMangledName(className(),
+                    ((Type.Declared) structType).tree().layout().orElseThrow(), null);
+            emitGetter(MEMBER_MODS, MemoryLayout.class, nameSuffix(MemoryLayout.class), layoutField, null);
         }
     }
 
@@ -153,14 +154,15 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 emitSegmentGetter(javaName, nativeName, layout);
             }
         } else if (layout instanceof ValueLayout valueLayout) {
-            Constant vhConstant = Constants.emitFieldVarHandle(this, javaName, nativeName, layoutConstant, prefixNamesList())
-                    .emitGetter(this, MEMBER_MODS, javaName);
+            String constantField = emitConstantWithMangledName(VarHandle.class, javaName,
+                    fieldVarHandle(layoutField, nativeName, prefixNamesList()), null);
+            emitGetterWithMangledName(MEMBER_MODS, VarHandle.class, javaName, constantField, null);
             emitFieldDocComment(varTree, "Getter for field:");
-            emitFieldGetter(vhConstant, javaName, valueLayout.carrier());
+            emitFieldGetter(constantField, javaName, valueLayout.carrier());
             emitFieldDocComment(varTree, "Setter for field:");
-            emitFieldSetter(vhConstant, javaName, valueLayout.carrier());
-            emitIndexedFieldGetter(vhConstant, javaName, valueLayout.carrier());
-            emitIndexedFieldSetter(vhConstant, javaName, valueLayout.carrier());
+            emitFieldSetter(constantField, javaName, valueLayout.carrier());
+            emitIndexedFieldGetter(constantField, javaName, valueLayout.carrier());
+            emitIndexedFieldSetter(constantField, javaName, valueLayout.carrier());
             if (fiName.isPresent()) {
                 emitFunctionalInterfaceGetter(fiName.get(), javaName);
             }
@@ -181,7 +183,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitFieldGetter(Constant vhConstant, String javaName, Class<?> type) {
+    private void emitFieldGetter(String vhConstant, String javaName, Class<?> type) {
         String seg = safeParameterName("seg");
         appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}) {
@@ -190,7 +192,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitFieldSetter(Constant vhConstant, String javaName, Class<?> type) {
+    private void emitFieldSetter(String vhConstant, String javaName, Class<?> type) {
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
         appendIndentedLines(STR."""
@@ -248,7 +250,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitIndexedFieldGetter(Constant vhConstant, String javaName, Class<?> type) {
+    private void emitIndexedFieldGetter(String vhConstant, String javaName, Class<?> type) {
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
         appendIndentedLines(STR."""
@@ -258,7 +260,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitIndexedFieldSetter(Constant vhConstant, String javaName, Class<?> type) {
+    private void emitIndexedFieldSetter(String vhConstant, String javaName, Class<?> type) {
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");

@@ -27,7 +27,6 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.*;
 
-import org.openjdk.jextract.impl.Constants.Constant;
 import org.openjdk.jextract.Type;
 
 import java.lang.invoke.MethodType;
@@ -44,7 +43,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
-    private Constant funcDescConstant;
+    private String funcDescField;
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
                                        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
@@ -69,7 +68,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitDesc() {
-        funcDescConstant = Constants.emitFunctionDesc(this, "fi", fiDesc);
+        funcDescField = emitDescriptorConstantWithMangledName("fi", fiDesc, null);
     }
 
     private void emitFunctionalInterfaceMethod() {
@@ -79,22 +78,24 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactories() {
-        Constant upcallHandle = Constants.emitUpcallMethodHandle(this, "UP", fullName(), "apply", funcDescConstant);
         appendIndentedLines(STR."""
+            MethodHandle UP$MH = RuntimeHelper.upcallHandle(\{className()}.class, \"apply\", \{funcDescField});
+
             static MemorySegment allocate(\{className()} fi, Arena scope) {
-                return RuntimeHelper.upcallStub(\{upcallHandle}, fi, \{funcDescConstant}, scope);
+                return RuntimeHelper.upcallStub(UP$MH, fi, \{funcDescField}, scope);
             }
             """);
     }
 
     private void emitFunctionalFactoryForPointer() {
-        Constant mhConstant = Constants.emitVirtualDowncallMethodHandle(this, "DOWN", funcDescConstant);
         appendIndentedLines(STR."""
+            MethodHandle DOWN$MH = RuntimeHelper.downcallHandle(\{funcDescField});
+
             static \{className()} ofAddress(MemorySegment addr, Arena arena) {
                 MemorySegment symbol = addr.reinterpret(arena, null);
                 return (\{paramExprs("_")}) -> {
                     try {
-                        \{retExpr()} \{mhConstant}.invokeExact(symbol\{otherArgExprs()});
+                        \{retExpr()} DOWN$MH.invokeExact(symbol\{otherArgExprs()});
                     } catch (Throwable ex$) {
                         throw new AssertionError("should not reach here", ex$);
                     }
