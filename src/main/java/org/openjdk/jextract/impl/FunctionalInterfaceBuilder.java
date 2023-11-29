@@ -160,7 +160,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitDescriptorDecl() {
         appendIndentedLines(STR."""
-            FunctionDescriptor $DESC = \{descriptorString("    ", fiDesc)};
+            FunctionDescriptor $DESC = \{descriptorString(0, fiDesc)};
             """);
     }
 }

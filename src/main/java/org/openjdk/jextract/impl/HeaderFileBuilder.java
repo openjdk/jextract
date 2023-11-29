@@ -154,7 +154,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         appendLines(STR."""
             \{MEMBER_MODS} MethodHandle \{getterName}() {
                 class Holder {
-                    static final FunctionDescriptor DESC = \{descriptorString("        ", descriptor)};
+                    static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
 
                     static final MethodHandle MH = RuntimeHelper.\{factoryName}(\"\{nativeName}\", DESC);
                 }
@@ -234,7 +234,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     public String emitGlobalSegment(MemoryLayout layout, String javaName, String nativeName, Declaration declaration) {
         String mangledName = mangleName(javaName, MemorySegment.class);
         appendIndentedLines(STR."""
-            private static final MemorySegment \{mangledName} = RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layoutString(layout)});
+            private static final MemorySegment \{mangledName} = RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layoutString(0, layout)});
 
             """);
         if (declaration != null) {
@@ -251,7 +251,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     private String emitVarLayout(MemoryLayout layout, String javaName) {
         String mangledName = mangleName(javaName, MemoryLayout.class);
         appendIndentedLines(STR."""
-            private static final MemoryLayout \{mangledName} = \{layoutString(layout)};
+            private static final MemoryLayout \{mangledName} = \{layoutString(0, layout)};
 
             \{MEMBER_MODS} MemoryLayout \{mangledName}() {
                 return \{mangledName};
@@ -333,7 +333,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             emitDocComment(declaration);
         }
         appendIndentedLines(STR."""
-        public static final \{Utils.layoutDeclarationType(layout).getSimpleName()} \{javaName} = \{layoutString(layout)};
+        public static final \{Utils.layoutDeclarationType(layout).getSimpleName()} \{javaName} = \{layoutString(0, layout)};
         """);
     }
 }

@@ -202,17 +202,14 @@ abstract class ClassSourceBuilder {
         }
     }
 
-    String layoutString(MemoryLayout l) {
-        return layoutString(" ".repeat(align() * 4), l);
-    }
-
-    String layoutString(String indent, MemoryLayout l) {
+    String layoutString(int textBoxIndent, MemoryLayout l) {
         StringBuilder builder = new StringBuilder();
-        layoutString(indent, builder, l);
+        layoutString(textBoxIndent, builder, l);
         return builder.toString();
     }
 
-    private void layoutString(String indent, StringBuilder builder, MemoryLayout l) {
+    private void layoutString(int textBoxIndent, StringBuilder builder, MemoryLayout l) {
+        String indent = indentString(textBoxIndent);
         if (l instanceof ValueLayout val) {
             builder.append(STR."\{indent}\{valueLayoutString(val)}");
             if (l.byteAlignment() != l.byteSize()) {
@@ -220,7 +217,7 @@ abstract class ClassSourceBuilder {
             }
         } else if (l instanceof SequenceLayout seq) {
             builder.append(STR."\{indent}MemoryLayout.sequenceLayout(\{seq.elementCount()}, ");
-            layoutString(STR."\{indent}    ", builder, seq.elementLayout());
+            layoutString(textBoxIndent + 1, builder, seq.elementLayout());
             builder.append(STR."\{indent})");
         } else if (l instanceof GroupLayout group) {
             if (group instanceof StructLayout) {
@@ -231,7 +228,7 @@ abstract class ClassSourceBuilder {
             String delim = "";
             for (MemoryLayout e : group.memberLayouts()) {
                 builder.append(delim);
-                layoutString(STR."\{indent}    ", builder, e);
+                layoutString(textBoxIndent + 1, builder, e);
                 delim = ",\n";
             }
             builder.append("\n");
@@ -243,6 +240,10 @@ abstract class ClassSourceBuilder {
         if (l.name().isPresent()) {
             builder.append(STR.".withName(\"\{l.name().get()}\")");
         }
+    }
+
+    private static String indentString(int size) {
+        return " ".repeat(size * 4);
     }
 
     private static String valueLayoutString(ValueLayout vl) {
@@ -269,16 +270,13 @@ abstract class ClassSourceBuilder {
         }
     }
 
-    public String descriptorString(FunctionDescriptor desc) {
-        return descriptorString(" ".repeat(align() * 4), desc);
-    }
-
-    public String descriptorString(String indent, FunctionDescriptor desc) {
+    public String descriptorString(int textBoxIndent, FunctionDescriptor desc) {
         final boolean noArgs = desc.argumentLayouts().isEmpty();
         StringBuilder builder = new StringBuilder();
         if (desc.returnLayout().isPresent()) {
             builder.append("FunctionDescriptor.of(");
-            layoutString("", builder, desc.returnLayout().get());
+            builder.append("\n");
+            layoutString(textBoxIndent + 1, builder, desc.returnLayout().get());
             if (!noArgs) {
                 builder.append(",");
             }
@@ -290,12 +288,12 @@ abstract class ClassSourceBuilder {
             String delim = "";
             for (MemoryLayout e : desc.argumentLayouts()) {
                 builder.append(delim);
-                layoutString(STR."\{indent}    ", builder, e);
+                layoutString(textBoxIndent + 1, builder, e);
                 delim = ",\n";
             }
             builder.append("\n");
         }
-        builder.append(STR."\{indent})");
+        builder.append(STR."\{indentString(textBoxIndent)})");
         return builder.toString();
     }
 }
