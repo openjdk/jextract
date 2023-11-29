@@ -27,17 +27,20 @@ package org.openjdk.jextract.impl;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
-import org.openjdk.jextract.impl.Constants.Constant;
-
 import java.lang.invoke.MethodType;
+import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 
@@ -50,28 +53,21 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     static final String MEMBER_MODS = "public static";
 
-    private final Constants constants;
-
-    HeaderFileBuilder(SourceFileBuilder builder, Constants constants, String className, String superName) {
+    HeaderFileBuilder(SourceFileBuilder builder, String className, String superName) {
         super(builder, "public", Kind.CLASS, className, superName, null);
-        this.constants = constants;
     }
 
     public void addVar(Declaration.Variable varTree, String javaName,
         MemoryLayout layout, Optional<String> fiName) {
         String nativeName = varTree.name();
+        String layoutVar = emitVarLayout(layout, javaName);
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             if (layout.byteSize() > 0) {
-                constants.addSegment(nativeName, layout)
-                        .emitGetterWithComment(this, MEMBER_MODS, javaName, nativeName, varTree);
+                emitGlobalSegment(layoutVar, javaName, nativeName, varTree);
             };
         } else if (layout instanceof ValueLayout valueLayout) {
-            constants.addLayout(valueLayout)
-                    .emitGetter(this, MEMBER_MODS, javaName);
-            Constant vhConstant = constants.addGlobalVarHandle(valueLayout)
-                    .emitGetter(this, MEMBER_MODS, javaName);
-            Constant segmentConstant = constants.addSegment(nativeName, valueLayout)
-                    .emitGetter(this, MEMBER_MODS, javaName, nativeName);
+            String vhConstant = emitGlobalVarHandle(javaName, layoutVar);
+            String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName, null);
             emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Getter for variable:");
             emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Setter for variable:");
 
@@ -85,22 +81,18 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String javaName, List<String> parameterNames) {
         String nativeName = funcTree.name();
         boolean isVarargs = funcTree.type().varargs();
-
-        Constant mhConstant = constants.addDowncallMethodHandle(nativeName, descriptor, isVarargs)
-                .emitGetter(this, MEMBER_MODS, javaName, nativeName);
-        MethodType downcallType = descriptor.toMethodType();
         boolean needsAllocator = descriptor.returnLayout().isPresent() &&
                 descriptor.returnLayout().get() instanceof GroupLayout;
-        emitFunctionWrapper(mhConstant, javaName, downcallType, needsAllocator, isVarargs, parameterNames, funcTree);
+        emitFunctionWrapper(javaName, nativeName, descriptor, needsAllocator, isVarargs, parameterNames, funcTree);
     }
 
     public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
         Object value = constantTree.value();
-        constants.addConstantDesc(javaType, value)
-                    .emitGetterWithComment(this, MEMBER_MODS, c -> javaName, constantTree);
+        emitConstant(javaType, javaName, value, constantTree);
     }
 
     // private generation
+
     private static List<String> finalizeParameterNames(List<String> parameterNames, boolean needsAllocator, boolean isVarArg) {
         List<String> result = new ArrayList<>();
 
@@ -140,8 +132,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         return sb.toString();
     }
 
-    private void emitFunctionWrapper(Constant mhConstant, String javaName, MethodType declType, boolean needsAllocator,
+    private void emitFunctionWrapper(String javaName, String nativeName, FunctionDescriptor descriptor, boolean needsAllocator,
                                      boolean isVarArg, List<String> parameterNames, Declaration decl) {
+        MethodType declType = descriptor.toMethodType();
         List<String> finalParamNames = finalizeParameterNames(parameterNames, needsAllocator, isVarArg);
         if (needsAllocator) {
             declType = declType.insertParameterTypes(0, SegmentAllocator.class);
@@ -152,11 +145,24 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         if (!declType.returnType().equals(void.class)) {
             returnExpr = STR."return (\{retType}) ";
         }
+        String getterName = mangleName(javaName, MethodHandle.class);
+        String factoryName = isVarArg ?
+                "downcallHandleVariadic" :
+                "downcallHandle";
         incrAlign();
         emitDocComment(decl);
         appendLines(STR."""
+            \{MEMBER_MODS} MethodHandle \{getterName}() {
+                class Holder {
+                    static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
+
+                    static final MethodHandle MH = RuntimeHelper.\{factoryName}(\"\{nativeName}\", DESC);
+                }
+                return RuntimeHelper.requireNonNull(Holder.MH, \"\{javaName}\");
+            }
+
             public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
-                var mh$ = \{mhConstant.getterName(javaName)}();
+                var mh$ = \{getterName}();
                 try {
                     \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
                 } catch (Throwable ex$) {
@@ -182,16 +188,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
         Type.Primitive.Kind kind = primType.kind();
         if (primitiveKindSupported(kind) && kind.layout().isPresent()) {
-            String declType = Utils.layoutDeclarationType(primType.kind().layout().orElseThrow()).getSimpleName();
-            Constant layoutConstant = constants.addLayout(kind.layout().get());
-            incrAlign();
-            if (typedefTree != null) {
-                emitDocComment(typedefTree);
-            }
-            appendLines(STR."""
-                public static final \{declType} \{name} = \{layoutConstant};
-                """);
-            decrAlign();
+            emitPrimitiveTypedefLayout(name, kind.layout().get(), typedefTree);
         }
     }
 
@@ -200,15 +197,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
-        Constant layoutConstant = constants.addLayout(TypeImpl.PointerImpl.POINTER_LAYOUT);
-        incrAlign();
-        if (typedefTree != null) {
-            emitDocComment(typedefTree);
-        }
-        appendLines(STR."""
-            public static final AddressLayout \{name} = \{layoutConstant};
-            """);
-        decrAlign();
+        emitPrimitiveTypedefLayout(name, TypeImpl.PointerImpl.POINTER_LAYOUT, typedefTree);
     }
 
     private boolean primitiveKindSupported(Type.Primitive.Kind kind) {
@@ -218,7 +207,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         };
     }
 
-    private void emitGlobalGetter(Constant segmentConstant, Constant vhConstant, String javaName, String nativeName,
+    private void emitGlobalGetter(String segmentConstant, String vhConstant, String javaName, String nativeName,
                                   Class<?> type, Declaration.Variable decl, String docHeader) {
         incrAlign();
         emitDocComment(decl, docHeader);
@@ -230,7 +219,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    private void emitGlobalSetter(Constant segmentConstant, Constant vhConstant, String javaName, String nativeName,
+    private void emitGlobalSetter(String segmentConstant, String vhConstant, String javaName, String nativeName,
                                   Class<?> type, Declaration.Variable decl, String docHeader) {
         incrAlign();
         emitDocComment(decl, docHeader);
@@ -239,6 +228,118 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 \{vhConstant}.set(RuntimeHelper.requireNonNull(\{segmentConstant}, "\{nativeName}"), 0L, x);
             }
             """);
+        decrAlign();
+    }
+
+    public String emitGlobalSegment(String layout, String javaName, String nativeName, Declaration declaration) {
+        String mangledName = mangleName(javaName, MemorySegment.class);
+        incrAlign();
+        appendLines(STR."""
+            private static final MemorySegment \{mangledName} = RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layout});
+
+            """);
+        if (declaration != null) {
+            emitDocComment(declaration);
+        }
+        appendLines(STR."""
+            \{MEMBER_MODS} MemorySegment \{mangledName}() {
+                return RuntimeHelper.requireNonNull(\{mangledName}, \"\{javaName}\");
+            }
+            """);
+        decrAlign();
+        return mangledName;
+    }
+
+    private String emitVarLayout(MemoryLayout layout, String javaName) {
+        String mangledName = mangleName(javaName, MemoryLayout.class);
+        appendIndentedLines(STR."""
+            private static final MemoryLayout \{mangledName} = \{layoutString(0, layout)};
+
+            \{MEMBER_MODS} MemoryLayout \{mangledName}() {
+                return \{mangledName};
+            }
+            """);
+        return mangledName;
+    }
+
+    private String emitGlobalVarHandle(String javaName, String layoutVar) {
+        String mangledName = mangleName(javaName, VarHandle.class);
+        appendIndentedLines(STR."""
+            private static final VarHandle \{mangledName} = \{layoutVar}.varHandle();
+
+            \{MEMBER_MODS} VarHandle \{mangledName}() {
+                return \{mangledName};
+            }
+            """);
+        return mangledName;
+    }
+
+    private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {
+        incrAlign();
+        appendLines(STR."""
+            private static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
+
+            """);
+        if (declaration != null) {
+            emitDocComment(declaration);
+        }
+        appendLines(STR."""
+            \{MEMBER_MODS} \{javaType.getSimpleName()} \{constantName}() {
+                return \{constantName};
+            }
+            """);
+        decrAlign();
+    }
+
+    private String constantValue(Class<?> type, Object value) {
+        if (value instanceof String) {
+            return STR."RuntimeHelper.CONSTANT_ALLOCATOR.allocateFrom(\"\{Utils.quote(Objects.toString(value))}\");";
+        } else if (type == MemorySegment.class) {
+            return STR."MemorySegment.ofAddress(\{((Number)value).longValue()}L);";
+        } else {
+            StringBuilder buf = new StringBuilder();
+            if (type == float.class) {
+                float f = ((Number)value).floatValue();
+                if (Float.isFinite(f)) {
+                    buf.append(value);
+                    buf.append("f");
+                } else {
+                    buf.append("Float.valueOf(\"");
+                    buf.append(value);
+                    buf.append("\")");
+                }
+            } else if (type == long.class) {
+                buf.append(value.toString());
+                buf.append("L");
+            } else if (type == double.class) {
+                double d = ((Number)value).doubleValue();
+                if (Double.isFinite(d)) {
+                    buf.append(value);
+                    buf.append("d");
+                } else {
+                    buf.append("Double.valueOf(\"");
+                    buf.append(value);
+                    buf.append("\")");
+                }
+            } else if (type == boolean.class) {
+                boolean booleanValue = ((Number)value).byteValue() != 0;
+                buf.append(booleanValue);
+            } else {
+                buf.append("(" + type.getName() + ")");
+                buf.append(value + "L");
+            }
+            return buf.toString();
+        }
+    }
+
+    private void emitPrimitiveTypedefLayout(String javaName, MemoryLayout layout, Declaration declaration) {
+        incrAlign();
+        if (declaration != null) {
+            emitDocComment(declaration);
+        }
+        appendLines(STR."""
+        public static final \{Utils.layoutDeclarationType(layout).getSimpleName()} \{javaName} = \{layoutString(0, layout)};
+        """);
         decrAlign();
     }
 }

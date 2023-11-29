@@ -26,7 +26,16 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.Constants.Constant;
+
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.StructLayout;
+import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.VarHandle;
 
 /**
  * Superclass for .java source generator classes.
@@ -155,7 +164,7 @@ abstract class ClassSourceBuilder {
             /**
             \{!header.isEmpty() ? STR." * \{header}\n" : ""}\
              * {@snippet lang=c :
-             \{CDeclarationPrinter.declaration(decl, " ".repeat(align()*4) + " * ")}
+            \{CDeclarationPrinter.declaration(decl, " * ")}
              * }
              */
             """);
@@ -171,16 +180,118 @@ abstract class ClassSourceBuilder {
             """);
     }
 
-    final void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant, Declaration decl) {
-        incrAlign();
-        if (decl != null) {
-            emitDocComment(decl);
+    public String mangleName(String javaName, Class<?> type) {
+        return javaName + nameSuffix(type);
+    }
+
+    String nameSuffix(Class<?> type) {
+        if (type.equals(MemorySegment.class)) {
+            return "$SEGMENT";
+        } else if (type.equals(MemoryLayout.class)) {
+            return "$LAYOUT";
+        } else if (type.equals(MethodHandle.class)) {
+            return "$MH";
+        } else if (type.equals(VarHandle.class)) {
+            return "$VH";
+        } else if (type.equals(FunctionDescriptor.class)) {
+            return "$DESC";
+        } else {
+            return "";
         }
-        appendLines(STR."""
-            \{mods} \{constant.type().getSimpleName()} \{getterName}() {
-                return \{nullCheck ? STR."RuntimeHelper.requireNonNull(\{constant}, \"\{symbolName}\")" : constant};
+    }
+
+    String layoutString(int textBoxIndent, MemoryLayout l) {
+        StringBuilder builder = new StringBuilder();
+        layoutString(textBoxIndent, builder, l);
+        return builder.toString();
+    }
+
+    private void layoutString(int textBoxIndent, StringBuilder builder, MemoryLayout l) {
+        String indent = indentString(textBoxIndent);
+        if (l instanceof ValueLayout val) {
+            builder.append(STR."\{indent}\{valueLayoutString(val)}");
+            if (l.byteAlignment() != l.byteSize()) {
+                builder.append(STR."\{indent}.withByteAlignment(\{l.byteAlignment()})");
             }
-            """);
-        decrAlign();
+        } else if (l instanceof SequenceLayout seq) {
+            builder.append(STR."\{indent}MemoryLayout.sequenceLayout(\{seq.elementCount()}, ");
+            layoutString(textBoxIndent + 1, builder, seq.elementLayout());
+            builder.append(STR."\{indent})");
+        } else if (l instanceof GroupLayout group) {
+            if (group instanceof StructLayout) {
+                builder.append(STR."\{indent}MemoryLayout.structLayout(\n");
+            } else {
+                builder.append(STR."\{indent}MemoryLayout.unionLayout(\n");
+            }
+            String delim = "";
+            for (MemoryLayout e : group.memberLayouts()) {
+                builder.append(delim);
+                layoutString(textBoxIndent + 1, builder, e);
+                delim = ",\n";
+            }
+            builder.append("\n");
+            builder.append(STR."\{indent})");
+        } else {
+            // padding (or unsupported)
+            builder.append(STR."\{indent}MemoryLayout.paddingLayout(\{l.byteSize()})");
+        }
+        if (l.name().isPresent()) {
+            builder.append(STR.".withName(\"\{l.name().get()}\")");
+        }
+    }
+
+    private static String indentString(int size) {
+        return " ".repeat(size * 4);
+    }
+
+    private static String valueLayoutString(ValueLayout vl) {
+        if (vl.carrier() == boolean.class) {
+            return "JAVA_BOOLEAN";
+        } else if (vl.carrier() == char.class) {
+            return "JAVA_CHAR";
+        } else if (vl.carrier() == byte.class) {
+            return "JAVA_BYTE";
+        } else if (vl.carrier() == short.class) {
+            return "JAVA_SHORT";
+        } else if (vl.carrier() == int.class) {
+            return "JAVA_INT";
+        } else if (vl.carrier() == float.class) {
+            return "JAVA_FLOAT";
+        } else if (vl.carrier() == long.class) {
+            return "JAVA_LONG";
+        } else if (vl.carrier() == double.class) {
+            return "JAVA_DOUBLE";
+        } else if (vl.carrier() == MemorySegment.class) {
+            return "RuntimeHelper.POINTER";
+        } else {
+            throw new UnsupportedOperationException("Unsupported layout: " + vl);
+        }
+    }
+
+    public String descriptorString(int textBoxIndent, FunctionDescriptor desc) {
+        final boolean noArgs = desc.argumentLayouts().isEmpty();
+        StringBuilder builder = new StringBuilder();
+        if (desc.returnLayout().isPresent()) {
+            builder.append("FunctionDescriptor.of(");
+            builder.append("\n");
+            layoutString(textBoxIndent + 1, builder, desc.returnLayout().get());
+            if (!noArgs) {
+                builder.append(",");
+            }
+        } else {
+            builder.append("FunctionDescriptor.ofVoid(");
+        }
+        if (!noArgs) {
+            builder.append("\n");
+            String delim = "";
+            for (MemoryLayout e : desc.argumentLayouts()) {
+                builder.append(delim);
+                layoutString(textBoxIndent + 1, builder, e);
+                delim = ",\n";
+            }
+            builder.append("\n");
+        }
+        builder.append(STR."\{indentString(textBoxIndent)})");
+        return builder.toString();
     }
 }

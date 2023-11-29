@@ -27,7 +27,6 @@ package org.openjdk.jextract.impl;
 
 import java.lang.foreign.*;
 
-import org.openjdk.jextract.impl.Constants.Constant;
 import org.openjdk.jextract.Type;
 
 import java.lang.invoke.MethodType;
@@ -42,24 +41,23 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
     private final Optional<List<String>> parameterNames;
-    private final Constants constants;
 
-    private FunctionalInterfaceBuilder(SourceFileBuilder builder, Constants constants, String className, ClassSourceBuilder enclosing,
+    private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
                                        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
         super(builder, "public", Kind.INTERFACE, className, null, enclosing);
         this.fiType = descriptor.toMethodType();
         this.downcallType = descriptor.toMethodType();
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
-        this.constants = constants;
     }
 
-    public static void generate(SourceFileBuilder builder, Constants constants, String className, ClassSourceBuilder enclosing,
-                               Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, constants, className, enclosing,
+    public static void generate(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
+                                Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className, enclosing,
                 descriptor, parameterNames);
         fib.emitDocComment(funcType, className);
         fib.classBegin();
+        fib.emitDescriptorDecl();
         fib.emitFunctionalInterfaceMethod();
         fib.emitFunctionalFactories();
         fib.emitFunctionalFactoryForPointer();
@@ -73,23 +71,24 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactories() {
-        Constant functionDesc = constants.addFunctionDesc(fiDesc);
-        Constant upcallHandle = constants.addUpcallMethodHandle(fullName(), "apply", fiDesc);
         appendIndentedLines(STR."""
+            MethodHandle UP$MH = RuntimeHelper.upcallHandle(\{className()}.class, \"apply\", $DESC);
+
             static MemorySegment allocate(\{className()} fi, Arena scope) {
-                return RuntimeHelper.upcallStub(\{upcallHandle}, fi, \{functionDesc}, scope);
+                return RuntimeHelper.upcallStub(UP$MH, fi, $DESC, scope);
             }
             """);
     }
 
     private void emitFunctionalFactoryForPointer() {
-        Constant mhConstant = constants.addVirtualDowncallMethodHandle(fiDesc);
         appendIndentedLines(STR."""
+            MethodHandle DOWN$MH = RuntimeHelper.downcallHandle($DESC);
+
             static \{className()} ofAddress(MemorySegment addr, Arena arena) {
                 MemorySegment symbol = addr.reinterpret(arena, null);
                 return (\{paramExprs("_")}) -> {
                     try {
-                        \{retExpr()} \{mhConstant}.invokeExact(symbol\{otherArgExprs()});
+                        \{retExpr()} DOWN$MH.invokeExact(symbol\{otherArgExprs()});
                     } catch (Throwable ex$) {
                         throw new AssertionError("should not reach here", ex$);
                     }
@@ -155,5 +154,11 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                     .collect(Collectors.joining(", "));
         }
         return argsExprs;
+    }
+
+    private void emitDescriptorDecl() {
+        appendIndentedLines(STR."""
+            FunctionDescriptor $DESC = \{descriptorString(0, fiDesc)};
+            """);
     }
 }
