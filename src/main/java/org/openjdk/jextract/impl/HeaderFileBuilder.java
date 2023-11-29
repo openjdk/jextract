@@ -63,11 +63,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         String layoutVar = emitVarLayout(layout, javaName);
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             if (layout.byteSize() > 0) {
-                emitGlobalSegment(layout, javaName, nativeName, varTree);
+                emitGlobalSegment(layoutVar, javaName, nativeName, varTree);
             };
         } else if (layout instanceof ValueLayout valueLayout) {
             String vhConstant = emitGlobalVarHandle(javaName, layoutVar);
-            String segmentConstant = emitGlobalSegment(layout, javaName, nativeName, null);
+            String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName, null);
             emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Getter for variable:");
             emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Setter for variable:");
 
@@ -231,11 +231,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    public String emitGlobalSegment(MemoryLayout layout, String javaName, String nativeName, Declaration declaration) {
+    public String emitGlobalSegment(String layout, String javaName, String nativeName, Declaration declaration) {
         String mangledName = mangleName(javaName, MemorySegment.class);
         incrAlign();
         appendLines(STR."""
-            private static final MemorySegment \{mangledName} = RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layoutString(0, layout)});
+            private static final MemorySegment \{mangledName} = RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layout});
 
             """);
         if (declaration != null) {

@@ -37,8 +37,6 @@ import java.util.stream.IntStream;
 
 final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
-    private static final String MEMBER_MODS = "static";
-
     private final MethodType fiType;
     private final MethodType downcallType;
     private final FunctionDescriptor fiDesc;
