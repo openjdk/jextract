@@ -26,6 +26,8 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.EnumConstant;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +43,7 @@ final class EnumConstantLifter implements TreeTransformer, Declaration.Visitor<V
     }
 
     static Optional<String> enumName(Declaration.Constant constant) {
-        return constant.getAttribute(ENUM_NAME).map(attrs -> attrs.get(0).toString());
+        return constant.getAttribute(EnumConstant.class).map(ec -> ec.enumParent().name());
     }
 
     @Override
@@ -84,9 +86,10 @@ final class EnumConstantLifter implements TreeTransformer, Declaration.Visitor<V
         boolean isEnum = scoped.kind() == Declaration.Scoped.Kind.ENUM;
         if (isEnum) {
             // add the name of the enum as an attribute.
-            scoped.members().forEach(fieldTree -> fieldTree
-                .withAttribute(ENUM_NAME, scoped.name())
-                .accept(this, null));
+            scoped.members().forEach(fieldTree -> {
+                fieldTree.addAttribute(new EnumConstant(scoped));
+                fieldTree.accept(this, null);
+            });
         }
         return isEnum;
     }

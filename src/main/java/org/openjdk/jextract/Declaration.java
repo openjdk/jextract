@@ -27,7 +27,9 @@
 package org.openjdk.jextract;
 
 import java.lang.constant.Constable;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.lang.foreign.MemoryLayout;
@@ -39,7 +41,7 @@ import org.openjdk.jextract.impl.DeclarationImpl;
  * support the <em>visitor</em> pattern (see {@link Declaration#accept(Visitor, Object)} and
  * {@link Visitor}).
  */
-public interface Declaration {
+public interface Declaration extends Attributed {
 
     /**
      * The position associated with this declaration.
@@ -52,36 +54,6 @@ public interface Declaration {
      * @return The name associated with this declaration.
      */
     String name();
-
-    /**
-     * Get a declaration with specified attribute.
-     * Set the values to the specified attribute while other attributes remains unchanged. If the specified attribute
-     * already exist, the new values are replacing the old ones. By not specifying any value, the attribute will become
-     * empty as {@link #getAttribute(String) getAttribute(name).isEmpty()} will return true.
-     * @param name The attribute name
-     * @param values More attribute values
-     * @return the Declaration with attributes
-     */
-    Declaration withAttribute(String name, Constable... values);
-
-    /**
-     * Get a declaration without current attributes
-     * @return the Declatation without any attributes
-     */
-    Declaration stripAttributes();
-
-    /**
-     * The values of the specified attribute.
-     * @param name The attribute to retrieve
-     * @return The list of values associate with this attribute
-     */
-    Optional<List<Constable>> getAttribute(String name);
-
-    /**
-     * The attributes associated with this declaration
-     * @return The attributes associated with this declaration
-     */
-    Set<String> attributeNames();
 
     /**
      * Entry point for visiting declaration instances.
@@ -583,4 +555,10 @@ public interface Declaration {
     static Declaration.Typedef typedef(Position pos, String name, Type type) {
         return new DeclarationImpl.TypedefImpl(type, name, pos, null);
     }
+
+    /**
+     * A record used to capture clang attributes attached to a declaration.
+     * @param attributes a map from attribute name to attribute values.
+     */
+    record ClangAttributes(Map<String, List<String>> attributes) { }
 }

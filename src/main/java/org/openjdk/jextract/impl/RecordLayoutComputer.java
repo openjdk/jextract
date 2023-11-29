@@ -34,6 +34,7 @@ import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.Type;
 import org.openjdk.jextract.clang.TypeKind;
+import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.StructLayout;
@@ -114,7 +115,7 @@ abstract class RecordLayoutComputer {
         Declaration.Scoped declaration = finishRecord(anonName != null ? anonName : declName, declName);
         if (cursor.isAnonymousStruct()) {
             // record this with a declaration attribute, so we don't have to rely on the cursor again later
-            declaration = (Declaration.Scoped)declaration.withAttribute("ANONYMOUS", true);
+            declaration.addAttribute(new AnonymousStruct());
         }
         return org.openjdk.jextract.Type.declared(declaration);
     }

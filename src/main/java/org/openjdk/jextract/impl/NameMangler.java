@@ -373,4 +373,6 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
             default -> false;
         };
     }
+
+    static final String JAVA_NAME = "java.name";
 }

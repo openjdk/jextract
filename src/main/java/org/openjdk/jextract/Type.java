@@ -44,7 +44,7 @@ import java.util.stream.Stream;
  * Instances of this class support the <em>visitor</em> pattern (see {@link Type#accept(Type.Visitor, Object)} and
  * {@link Type.Visitor}).
  */
-public interface Type {
+public interface Type extends Attributed {
 
     /**
      * Is this type the erroneous type?
