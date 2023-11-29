@@ -36,8 +36,6 @@ import java.lang.foreign.StructLayout;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.VarHandle;
-import java.util.List;
-import java.util.StringJoiner;
 
 /**
  * Superclass for .java source generator classes.
