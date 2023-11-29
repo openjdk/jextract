@@ -35,6 +35,7 @@ import test.jextract.test8252465.*;
  * @summary jextract generates wrong layout and varhandle when different structs have same named field
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.test8252465 test8252465.h
+ * @build LibTest8252465Test
  * @run testng/othervm -Dforeign.restricted=permit LibTest8252465Test
  */
 /*
@@ -43,6 +44,7 @@ import test.jextract.test8252465.*;
  * @summary jextract generates wrong layout and varhandle when different structs have same named field
  * @library /lib
  * @run main/othervm JtregJextractSources -t test.jextract.test8252465 test8252465.h
+ * @build LibTest8252465Test
  * @run testng/othervm -Dforeign.restricted=permit LibTest8252465Test
  */
 public class LibTest8252465Test {

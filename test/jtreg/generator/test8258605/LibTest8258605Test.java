@@ -35,6 +35,7 @@ import static test.jextract.test8258605.funcParam_h.*;
  * @summary regression: jextract can not handle function prototypes as function arguments
  * @library /lib
  * @run main/othervm JtregJextract -l FuncParam -t test.jextract.test8258605 funcParam.h
+ * @build LibTest8258605Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8258605Test
  */
 /*
@@ -43,6 +44,7 @@ import static test.jextract.test8258605.funcParam_h.*;
  * @summary regression: jextract can not handle function prototypes as function arguments
  * @library /lib
  * @run main/othervm JtregJextractSources -l FuncParam -t test.jextract.test8258605 funcParam.h
+ * @build LibTest8258605Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8258605Test
  */
 public class LibTest8258605Test {

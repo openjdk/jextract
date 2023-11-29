@@ -31,6 +31,7 @@ import test.jextract.test8281764.*;
  * @summary jextract does not generate parameter names for function pointer typedefs
  * @library /lib
  * @run main/othervm JtregJextractSources -l Test8281764 -t test.jextract.test8281764 test8281764.h
+ * @build Test8281764
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8281764
  */
 public class Test8281764 {

@@ -35,6 +35,7 @@ import static java.lang.foreign.Linker.*;
  * @summary jextract does not generate accessor for MemorySegement typed values
  * @library /lib
  * @run main/othervm JtregJextract -l Test8245003 -t test.jextract.test8245003 test8245003.h
+ * @build Test8245003
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8245003
  */
 /*
@@ -43,6 +44,7 @@ import static java.lang.foreign.Linker.*;
  * @summary jextract does not generate accessor for MemorySegement typed values
  * @library /lib
  * @run main/othervm JtregJextractSources -l Test8245003 -t test.jextract.test8245003 test8245003.h
+ * @build Test8245003
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8245003
  */
 public class Test8245003 {

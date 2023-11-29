@@ -146,17 +146,15 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             returnExpr = STR."return (\{retType}) ";
         }
         String getterName = mangleName(javaName, MethodHandle.class);
-        String factoryName = isVarArg ?
-                "downcallHandleVariadic" :
-                "downcallHandle";
         incrAlign();
+        if (!isVarArg) {
         emitDocComment(decl);
         appendLines(STR."""
             \{MEMBER_MODS} MethodHandle \{getterName}() {
                 class Holder {
                     static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
 
-                    static final MethodHandle MH = RuntimeHelper.\{factoryName}(\"\{nativeName}\", DESC);
+                    static final MethodHandle MH = RuntimeHelper.downcallHandle(\"\{nativeName}\", DESC);
                 }
                 return RuntimeHelper.requireNonNull(Holder.MH, \"\{javaName}\");
             }
@@ -170,6 +168,33 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 }
             }
             """);
+        } else {
+            String invokerName = javaName + "$invoker";
+            String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
+            appendLines(STR."""
+                public interface \{invokerName} {
+                    \{retType} \{javaName}(\{paramExprs});
+                }
+
+                """);
+            emitDocComment(decl);
+            appendLines(STR."""
+                public static \{invokerName} \{invokerName}(MemoryLayout... layouts) {
+                    class Holder {
+                        static final FunctionDescriptor BASE_DESC = \{descriptorString(2, descriptor)};
+                    }
+                    var mh$ = RuntimeHelper.downcallHandleVariadic("\{nativeName}", Holder.BASE_DESC, layouts);
+                    return (\{paramExprs}) -> {
+                        try {
+                            \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
+                        } catch (Throwable ex$) {
+                           throw new AssertionError("should not reach here", ex$);
+                        }
+                    };
+                }
+
+                """);
+        }
         decrAlign();
     }
 

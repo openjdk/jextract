@@ -38,6 +38,7 @@ import static test.jextract.test8244412.test8244412_h.*;
  * @bug 8244412
  * @summary jextract should generate static utils class for primitive typedefs
  * @run main/othervm JtregJextract -t test.jextract.test8244412 test8244412.h
+ * @build LibTest8244412Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8244412Test
  */
 /*
@@ -46,6 +47,7 @@ import static test.jextract.test8244412.test8244412_h.*;
  * @bug 8244412
  * @summary jextract should generate static utils class for primitive typedefs
  * @run main/othervm JtregJextractSources -t test.jextract.test8244412 test8244412.h
+ * @build LibTest8244412Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8244412Test
  */
 public class LibTest8244412Test {
