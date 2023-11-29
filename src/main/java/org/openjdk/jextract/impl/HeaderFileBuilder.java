@@ -233,18 +233,20 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     public String emitGlobalSegment(MemoryLayout layout, String javaName, String nativeName, Declaration declaration) {
         String mangledName = mangleName(javaName, MemorySegment.class);
-        appendIndentedLines(STR."""
+        incrAlign();
+        appendLines(STR."""
             private static final MemorySegment \{mangledName} = RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layoutString(0, layout)});
 
             """);
         if (declaration != null) {
             emitDocComment(declaration);
         }
-        appendIndentedLines(STR."""
+        appendLines(STR."""
             \{MEMBER_MODS} MemorySegment \{mangledName}() {
                 return RuntimeHelper.requireNonNull(\{mangledName}, \"\{javaName}\");
             }
             """);
+        decrAlign();
         return mangledName;
     }
 
@@ -273,18 +275,20 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {
-        appendIndentedLines(STR."""
+        incrAlign();
+        appendLines(STR."""
             private static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
 
             """);
         if (declaration != null) {
             emitDocComment(declaration);
         }
-        appendIndentedLines(STR."""
+        appendLines(STR."""
             \{MEMBER_MODS} \{javaType.getSimpleName()} \{constantName}() {
                 return \{constantName};
             }
             """);
+        decrAlign();
     }
 
     private String constantValue(Class<?> type, Object value) {
@@ -329,11 +333,13 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     private void emitPrimitiveTypedefLayout(String javaName, MemoryLayout layout, Declaration declaration) {
+        incrAlign();
         if (declaration != null) {
             emitDocComment(declaration);
         }
-        appendIndentedLines(STR."""
+        appendLines(STR."""
         public static final \{Utils.layoutDeclarationType(layout).getSimpleName()} \{javaName} = \{layoutString(0, layout)};
         """);
+        decrAlign();
     }
 }
