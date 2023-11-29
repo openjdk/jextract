@@ -77,7 +77,15 @@ final class RuntimeHelper {
                 .map(addr -> LINKER.downcallHandle(addr, variadicDesc, fva)
                         .asSpreader(Object[].class, variadicLayouts.length))
                 .orElse(null);
-     }
+    }
+
+    static MemoryLayout[] inferVariadicLayouts(Object[] varargs) {
+        MemoryLayout[] result = new MemoryLayout[varargs.length];
+        for (int i = 0; i < varargs.length; i++) {
+            result[i] = variadicLayout(normalize(varargs[i].getClass()));
+        }
+        return result;
+    }
 
     static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
         try {
@@ -98,5 +106,64 @@ final class RuntimeHelper {
 
     static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena arena) {
          return addr.reinterpret(numElements * layout.byteSize(), arena, null);
+    }
+
+    // Internals only below this point
+
+    private static Class<?> unboxIfNeeded(Class<?> clazz) {
+        if (clazz == Boolean.class) {
+            return boolean.class;
+        } else if (clazz == Void.class) {
+            return void.class;
+        } else if (clazz == Byte.class) {
+            return byte.class;
+        } else if (clazz == Character.class) {
+            return char.class;
+        } else if (clazz == Short.class) {
+            return short.class;
+        } else if (clazz == Integer.class) {
+            return int.class;
+        } else if (clazz == Long.class) {
+            return long.class;
+        } else if (clazz == Float.class) {
+            return float.class;
+        } else if (clazz == Double.class) {
+            return double.class;
+        } else {
+            return clazz;
+        }
+    }
+
+    private static Class<?> promote(Class<?> c) {
+        if (c == byte.class || c == char.class || c == short.class || c == int.class) {
+            return long.class;
+        } else if (c == float.class) {
+            return double.class;
+        } else {
+            return c;
+        }
+    }
+
+    private static Class<?> normalize(Class<?> c) {
+        c = unboxIfNeeded(c);
+        if (c.isPrimitive()) {
+            return promote(c);
+        }
+        if (MemorySegment.class.isAssignableFrom(c)) {
+            return MemorySegment.class;
+        }
+        throw new IllegalArgumentException("Invalid type for ABI: " + c.getTypeName());
+    }
+
+    private static MemoryLayout variadicLayout(Class<?> c) {
+        if (c == long.class) {
+            return JAVA_LONG;
+        } else if (c == double.class) {
+            return JAVA_DOUBLE;
+        } else if (c == MemorySegment.class) {
+            return ADDRESS;
+        } else {
+            throw new IllegalArgumentException("Unhandled variadic argument class: " + c);
+        }
     }
 }

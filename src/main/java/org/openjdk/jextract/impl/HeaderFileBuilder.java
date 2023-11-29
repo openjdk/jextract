@@ -194,6 +194,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 }
 
                 """);
+            emitDocComment(decl);
+            String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
+            appendLines(STR."""
+                public static \{retType} \{javaName}(\{paramExprs}) {
+                    MemoryLayout[] inferredLayouts$ = RuntimeHelper.inferVariadicLayouts(\{varargsParam});
+                    \{returnExpr}\{invokerName}(inferredLayouts$).\{javaName}(\{String.join(", ", finalParamNames)});
+                }
+                """);
         }
         decrAlign();
     }
