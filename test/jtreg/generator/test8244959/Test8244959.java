@@ -54,8 +54,8 @@ public class Test8244959 {
     public void testsPrintf() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment s = arena.allocate(1024);
-            my_sprintf$invoker(C_INT, C_INT, C_DOUBLE, C_DOUBLE, C_LONG_LONG,
-                               C_LONG_LONG, C_INT, C_INT, C_INT, C_INT, C_LONG_LONG, C_INT)
+            my_sprintf$makeInvoker(C_INT, C_INT, C_DOUBLE, C_DOUBLE, C_LONG_LONG,
+                                    C_LONG_LONG, C_INT, C_INT, C_INT, C_INT, C_LONG_LONG, C_INT)
                 .my_sprintf(s,
                         arena.allocateFrom("%hhd %c %.2f %.2f %lld %lld %d %hd %d %d %lld %c"), 12,
                         (byte) 1, 'b', -1.25f, 5.5d, -200L, Long.MAX_VALUE, (byte) -2, (short) 2, 3, (short) -4, 5L, 'a');

@@ -179,7 +179,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 """);
             emitDocComment(decl);
             appendLines(STR."""
-                public static \{invokerName} \{invokerName}(MemoryLayout... layouts) {
+                public static \{invokerName} \{javaName}$makeInvoker(MemoryLayout... layouts) {
                     class Holder {
                         static final FunctionDescriptor BASE_DESC = \{descriptorString(2, descriptor)};
                     }

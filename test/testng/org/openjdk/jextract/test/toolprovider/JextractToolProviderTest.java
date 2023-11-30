@@ -115,8 +115,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "func", int.class));
             // check an interface for printf$invoker
             assertNotNull(findNestedClass(cls, "printf$invoker"));
-            // check a method for "printf$invoker printf$invoker(MemoryLayout...)"
-            assertNotNull(findMethod(cls, "printf$invoker", MemoryLayout[].class));
+            // check a method for "printf$makeInvoker printf$makeInvoker(MemoryLayout...)"
+            assertNotNull(findMethod(cls, "printf$makeInvoker", MemoryLayout[].class));
         } finally {
             TestUtils.deleteDir(helloOutput);
         }
@@ -147,8 +147,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "func", int.class));
             // check an interface for printf$invoker
             assertNotNull(findNestedClass(cls, "printf$invoker"));
-            // check a method for "printf$invoker printf$invoker(MemoryLayout...)"
-            assertNotNull(findMethod(cls, "printf$invoker", MemoryLayout[].class));
+            // check a method for "printf$makeInvoker printf$makeInvoker(MemoryLayout...)"
+            assertNotNull(findMethod(cls, "printf$makeInvoker", MemoryLayout[].class));
         } finally {
             TestUtils.deleteDir(helloOutput);
         }
@@ -176,8 +176,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "func", int.class));
             // check an interface for printf$invoker
             assertNotNull(findNestedClass(cls, "printf$invoker"));
-            // check a method for "printf$invoker printf$invoker(MemoryLayout...)"
-            assertNotNull(findMethod(cls, "printf$invoker", MemoryLayout[].class));
+            // check a method for "printf$makeInvoker printf$makeInvoker(MemoryLayout...)"
+            assertNotNull(findMethod(cls, "printf$makeInvoker", MemoryLayout[].class));
         } finally {
             TestUtils.deleteDir(helloOutput);
         }
