@@ -50,7 +50,7 @@ jobs:
       shell: sh
       run: |
         mkdir -p /tmp/deps/jdk-toolchain
-        tar --strip-components=1 -xvf ${{ steps.download_jdk_22.outputs.archive }} -C /tmp/deps/jdk-toolchain
+        tar --strip-components=1 -xvf ${{ steps.download_toolchain_jdk.outputs.archive }} -C /tmp/deps/jdk-toolchain
         ls -lah /tmp/deps/jdk-toolchain
 
     - name: 'Check toolchain Java version'
