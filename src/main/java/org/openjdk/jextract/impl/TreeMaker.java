@@ -28,6 +28,8 @@ package org.openjdk.jextract.impl;
 import java.lang.constant.Constable;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
 
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.ClangAttributes;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.clang.Cursor;
@@ -43,6 +46,7 @@ import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.CursorLanguage;
 import org.openjdk.jextract.clang.LinkageKind;
 import org.openjdk.jextract.clang.SourceLocation;
+import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 
 class TreeMaker {
     public TreeMaker() {}
@@ -53,15 +57,19 @@ class TreeMaker {
         typeMaker.resolveTypeReferences();
     }
 
-    Map<String, List<Constable>> collectAttributes(Cursor c) {
-        Map<String, List<Constable>> attributeMap = new HashMap<>();
+    Declaration addAttributes(Declaration d, Cursor c) {
+        if (d == null) return null;
+        Map<String, List<String>> attributes = new HashMap<>();
         c.forEach(child -> {
             if (child.isAttribute()) {
-                List<Constable> attrs = attributeMap.computeIfAbsent(child.kind().name(), _unused -> new ArrayList<>());
+                List<String> attrs = attributes.computeIfAbsent(child.kind().name(), _unused -> new ArrayList<>());
                 attrs.add(child.spelling());
             }
         });
-        return attributeMap;
+        if (!attributes.isEmpty()) {
+            d.addAttribute(new ClangAttributes(Collections.unmodifiableMap(attributes)));
+        }
+        return d;
     }
 
     public Declaration createTree(Cursor c) {
@@ -91,7 +99,7 @@ class TreeMaker {
             return null;
         }
         var rv = (DeclarationImpl) createTreeInternal(c);
-        return (rv == null) ? null : rv.withAttributes(collectAttributes(c));
+        return addAttributes(rv, c);
     }
 
     private Declaration createTreeInternal(Cursor c) {
@@ -246,7 +254,7 @@ class TreeMaker {
     }
 
     private static boolean isAnonymousStruct(Declaration declaration) {
-        return declaration.getAttribute("ANONYMOUS").isPresent();
+        return declaration.getAttribute(AnonymousStruct.class).isPresent();
     }
 
     private List<Declaration> filterNestedDeclarations(List<Declaration> declarations) {

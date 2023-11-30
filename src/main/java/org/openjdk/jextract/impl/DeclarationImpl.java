@@ -27,6 +27,7 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.constant.Constable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,16 +40,14 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 
-public abstract class DeclarationImpl implements Declaration {
+public abstract class DeclarationImpl extends AttributedImpl implements Declaration {
 
     private final String name;
     private final Position pos;
-    private final Optional<Map<String, List<Constable>>> attributes;
 
     public DeclarationImpl(String name, Position pos, Map<String, List<Constable>> attrs) {
         this.name = name;
         this.pos = pos;
-        this.attributes = Optional.ofNullable(attrs);
     }
 
     public String toString() {
@@ -63,28 +62,6 @@ public abstract class DeclarationImpl implements Declaration {
     public Position pos() {
         return pos;
     }
-
-    @Override
-    public Optional<List<Constable>> getAttribute(String name) {
-        return attributes.map(attrs -> attrs.get(name));
-    }
-
-    @Override
-    public Set<String> attributeNames() { return Collections.unmodifiableSet(
-            attributes.map(Map::keySet).orElse(Collections.emptySet()));
-    }
-
-    @Override
-    public Declaration withAttribute(String name, Constable... values) {
-        if (values == null || values.length == 0) {
-            return withAttributes(null);
-        }
-        var attrs = attributes.map(HashMap::new).orElseGet(HashMap::new);
-        attrs.put(name, List.of(values));
-        return withAttributes(attrs);
-    }
-
-    abstract protected Declaration withAttributes(Map<String, List<Constable>> attrs);
 
     @Override
     public boolean equals(Object o) {
@@ -115,16 +92,6 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public Type type() {
             return type;
-        }
-
-        @Override
-        public Typedef withAttributes(Map<String, List<Constable>> attrs) {
-            return new TypedefImpl(type, name(), pos(), attrs);
-        }
-
-        @Override
-        public Typedef stripAttributes() {
-            return new TypedefImpl(type, name(), pos(), null);
         }
 
         @Override
@@ -178,16 +145,6 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Variable withAttributes(Map<String, List<Constable>> attrs) {
-            return new VariableImpl(type, layout, kind, name(), pos(), attrs);
-        }
-
-        @Override
-        public Variable stripAttributes() {
-            return new VariableImpl(type, layout, kind, name(), pos(), null);
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof Declaration.Variable variable)) return false;
@@ -225,16 +182,6 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public long width() {
             return width;
-        }
-
-        @Override
-        public Variable withAttributes(Map<String, List<Constable>> attrs) {
-            return new BitfieldImpl(type, offset, width, name(), pos(), attrs);
-        }
-
-        @Override
-        public Variable stripAttributes() {
-            return new BitfieldImpl(type, offset, width, name(), pos(), null);
         }
 
         @Override
@@ -280,16 +227,6 @@ public abstract class DeclarationImpl implements Declaration {
         @Override
         public Type.Function type() {
             return type;
-        }
-
-        @Override
-        public Function withAttributes(Map<String, List<Constable>> attrs) {
-            return new FunctionImpl(type, params, name(), pos(), attrs);
-        }
-
-        @Override
-        public Function stripAttributes() {
-            return new FunctionImpl(type, params, name(), pos(), null);
         }
 
         @Override
@@ -349,16 +286,6 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Scoped withAttributes(Map<String, List<Constable>> attrs) {
-            return new ScopedImpl(kind, optLayout, declarations, name(), pos(), attrs);
-        }
-
-        @Override
-        public Scoped stripAttributes() {
-            return new ScopedImpl(kind, optLayout, declarations, name(), pos(), null);
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof Declaration.Scoped scoped)) return false;
@@ -404,16 +331,6 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Constant withAttributes(Map<String, List<Constable>> attrs) {
-            return new ConstantImpl(type, value, name(), pos(), attrs);
-        }
-
-        @Override
-        public Constant stripAttributes() {
-            return new ConstantImpl(type, value, name(), pos(), null);
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof Declaration.Constant constant)) return false;
@@ -427,4 +344,14 @@ public abstract class DeclarationImpl implements Declaration {
             return Objects.hash(super.hashCode(), value, type);
         }
     }
+
+    /**
+     * An attribute to mark anonymous struct declarations.
+     */
+    record AnonymousStruct() { }
+
+    /**
+     * An attribute to mark enum constants, with a link to the name of their parent enum.
+     */
+    record EnumConstant(String enumName) { }
 }
