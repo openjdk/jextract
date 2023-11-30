@@ -26,23 +26,17 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.lang.model.SourceVersion;
 
 /*
- * This visitor handles java safe names for identifiers, type names. This visitor
- * stores java safe names in maps. Subsequent code generation steps can check for
- * java safe names via lookup methods.
- *
- * NOTE: Unlike other transforming tree visitors, this visitor collects name
- * mappings as it visits tree nodes. Subsequent code generation steps can check
- * the collected names using getters.
+ * This visitor handles java safe names for identifiers, type names and stores such names
+ * in the corresponding declaration. The mangled name is later retrieved by
+ * OutputFactory via the lookup methods provided by this class.
  */
 final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     private final String headerName;
@@ -94,99 +88,36 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
 
     private Scope curScope;
 
-    private static record NameAndDecl(String name, Declaration decl) {}
-    // key is either Declaration or NameAndDecl
-    private final Map<Object, String> declJavaNames = new HashMap<>();
-
-    private static record DeclPair(Declaration parent, Declaration decl) {}
-    // key is either Declaration or NameAndDecl or DeclPair
-    private final Map<Object, String> declFiNames = new HashMap<>();
-    private final Map<Type.Function, List<String>> parameterNames = new HashMap<>();
-
     NameMangler(String headerName) {
         this.headerName = headerName;
     }
 
     // package private name lookup API
-    String getJavaName(Declaration parent, Declaration decl) {
+    static String getJavaName(Declaration decl) {
+        return decl.getAttribute(JavaName.class).get().name;
+    }
+
+    static Optional<List<String>> getParameterNames(Type.Function func) {
+        return func.getAttribute(JavaParameterNames.class).map(JavaParameterNames::names);
+    }
+
+    static String getFiName(Declaration decl) {
         Objects.requireNonNull(decl);
-        if (declJavaNames.containsKey(decl)) {
-            return Objects.requireNonNull(declJavaNames.get(decl));
-        } else {
-            var name = decl.name().isEmpty()? parent.name() : decl.name();
-            var nameAndDecl = new NameAndDecl(name, decl);
-            return Objects.requireNonNull(declJavaNames.get(nameAndDecl));
-        }
-    }
-
-    Optional<List<String>> getParameterNames(Type.Function func) {
-        return Optional.ofNullable(parameterNames.get(func));
-    }
-
-    String getFiName(Declaration.Function func, int paramNum, Declaration.Variable param) {
-        Objects.requireNonNull(func);
-        Objects.requireNonNull(param);
-        var nameAndDecl = new NameAndDecl(funcParamID(func, paramNum), param);
-        return Objects.requireNonNull(declFiNames.get(nameAndDecl));
-    }
-
-    String getReturnFiName(Declaration.Function func) {
-        Objects.requireNonNull(func);
-        return funcReturnID(func);
-    }
-
-    String getFiName(Declaration parent, Declaration decl) {
-        Objects.requireNonNull(decl);
-        if (declFiNames.containsKey(decl)) {
-            return Objects.requireNonNull(declFiNames.get(decl));
-        } else {
-            Objects.requireNonNull(parent);
-            var declPair = new DeclPair(parent, decl);
-            return Objects.requireNonNull(declFiNames.get(declPair));
-        }
+        return decl.getAttribute(JavaFunctionalInterfaceName.class).get().name;
     }
 
     // Internals below this point
 
-    private static String funcReturnID(Declaration.Function func) {
-        return func.name() + "$return";
-    }
-
-    private static String funcParamID(Declaration.Function func, int paramNum) {
-        return func.name() + "$" + paramNum;
-    }
-
     private void putJavaName(Declaration decl, String javaName) {
-        assert decl != null;
-        assert javaName != null;
-        declJavaNames.put(decl, javaName);
-    }
-
-    private void putJavaName(String name, Declaration decl, String javaName) {
-        assert name != null;
-        assert decl != null;
-        assert javaName != null;
-        declJavaNames.put(new NameAndDecl(name, decl), javaName);
+        Objects.requireNonNull(decl);
+        Objects.requireNonNull(javaName);
+        decl.addAttribute(new JavaName(javaName));
     }
 
     private void putFiName(Declaration decl, String javaName) {
-        assert decl != null;
-        assert javaName != null;
-        declFiNames.put(decl, javaName);
-    }
-
-    private void putFiName(Declaration parent, Declaration.Variable variable, String javaName) {
-        assert parent != null;
-        assert variable != null;
-        assert javaName != null;
-        declFiNames.put(new DeclPair(parent, variable), javaName);
-    }
-
-    private void putFiName(String name, Declaration decl, String javaName) {
-        assert name != null;
-        assert decl != null;
-        assert javaName != null;
-        declFiNames.put(new NameAndDecl(name, decl), javaName);
+        Objects.requireNonNull(decl);
+        Objects.requireNonNull(javaName);
+        decl.addAttribute(new JavaFunctionalInterfaceName(javaName));
     }
 
     // entry point for this visitor
@@ -213,10 +144,14 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
                 String declFiName = func.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
-                putFiName(funcParamID(func, i), param, declFiName);
+                putFiName(param, declFiName);
                 i++;
             }
             putJavaName(param, makeJavaName(param));
+        }
+        Type.Function returnFunc = Utils.getAsFunctionPointer(func.type().returnType());
+        if (returnFunc != null) {
+            putFiName(func, func.name() + "$return");
         }
 
         return null;
@@ -224,14 +159,12 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitScoped(Declaration.Scoped scoped, Declaration parent) {
-        String name = scoped.name().isEmpty()? parent.name() : scoped.name();
-        if (declJavaNames.containsKey(new NameAndDecl(name, scoped))) {
-            //skip struct that's seen already
-            return null;
+        String name = scoped.name();
+        if (name.isEmpty() && parent != null) {
+            name = parent.name();
         }
-
-        boolean isStruct = Utils.isStructOrUnion(scoped);
-        if (!isStruct) {
+        if (scoped.getAttribute(JavaName.class).isPresent()) {
+            //skip struct that's seen already
             return null;
         }
 
@@ -240,7 +173,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
             (parent instanceof Declaration.Scoped);
         if (!isNestedAnonStruct) {
             this.curScope = Scope.newStruct(oldScope, name);
-            putJavaName(name, scoped, curScope.className());
+            putJavaName(scoped, curScope.className());
         }
         try {
             scoped.members().forEach(fieldTree -> fieldTree.accept(this, scoped));
@@ -253,7 +186,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitTypedef(Declaration.Typedef typedef, Declaration parent) {
-        if (declJavaNames.containsKey(typedef)) {
+        if (typedef.getAttribute(JavaName.class).isPresent()) {
             //skip typedef that's seen already
             return null;
         }
@@ -271,13 +204,13 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         if (func != null) {
            var paramNamesOpt = func.parameterNames();
            if (paramNamesOpt.isPresent()) {
-               parameterNames.put(func,
+               func.addAttribute(new JavaParameterNames(
                    paramNamesOpt.
                       get().
                       stream().
                       map(NameMangler::javaSafeIdentifier).
                       toList()
-               );
+               ));
            }
            putFiName(typedef, javaName);
         }
@@ -295,11 +228,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         Type.Function func = Utils.getAsFunctionPointer(type);
         if (func != null) {
             String fiName = curScope.uniqueNestedClassName(variable.name());
-            if (parent != null) {
-                putFiName(parent, variable, fiName);
-            } else {
-                putFiName(variable, fiName);
-            }
+            putFiName(variable, fiName);
         }
         return null;
     }
@@ -307,12 +236,6 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     @Override
     public Void visitDeclaration(Declaration decl, Declaration parent) {
         return null;
-    }
-
-    private List<String> javaSafeNameList(List<String> names) {
-        return names.stream().
-            map(n -> n.isEmpty()? n : javaSafeIdentifier(n)).
-            toList();
     }
 
     private String makeJavaName(Declaration decl) {
@@ -373,4 +296,10 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
             default -> false;
         };
     }
+
+    record JavaName(String name) { }
+
+    record JavaParameterNames(List<String> names) { }
+
+    record JavaFunctionalInterfaceName(String name) { }
 }

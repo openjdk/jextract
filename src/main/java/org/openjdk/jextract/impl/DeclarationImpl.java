@@ -27,14 +27,10 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.constant.Constable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
@@ -354,4 +350,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
      * An attribute to mark enum constants, with a link to the name of their parent enum.
      */
     record EnumConstant(String enumName) { }
+
+    /**
+     * An attribute to mark declaration for which no code should be generated.
+     */
+    record Skip() { }
 }

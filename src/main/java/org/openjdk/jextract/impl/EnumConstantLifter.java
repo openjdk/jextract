@@ -25,63 +25,32 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.EnumConstant;
+import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /*
  * This visitor lifts enum constants to the top level and removes enum Trees.
  */
-final class EnumConstantLifter implements TreeTransformer, Declaration.Visitor<Void, Void> {
-
-    private final List<Declaration> decls = new ArrayList<>();
-    EnumConstantLifter() {
-    }
+final class EnumConstantLifter implements Declaration.Visitor<Void, Void> {
 
     static Optional<String> enumName(Declaration.Constant constant) {
         return constant.getAttribute(EnumConstant.class).map(EnumConstant::enumName);
     }
 
-    @Override
     public Declaration.Scoped transform(Declaration.Scoped header) {
         // Process all header declarations are collect potential
         // declarations that will go into transformed HeaderTree
         // into the this.decls field.
         header.members().forEach(fieldTree -> fieldTree.accept(this, null));
-        return createHeader(header, decls);
+        return header;
     }
 
     @Override
     public Void visitScoped(Declaration.Scoped scoped, Void ignored) {
-        if (liftEnumConstants(scoped)) {
-            return null;
-        }
-        decls.add(scoped);
-        return null;
-    }
-
-    @Override
-    public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
-        Type type = tree.type();
-        if (type instanceof Type.Declared declared) {
-            if (liftEnumConstants(declared.tree())) {
-                return null;
-            }
-        }
-        decls.add(tree);
-        return null;
-    }
-
-    @Override
-    public Void visitDeclaration(Declaration decl, Void ignored) {
-        decls.add(decl);
-        return null;
-    }
-
-    private boolean liftEnumConstants(Declaration.Scoped scoped) {
         boolean isEnum = scoped.kind() == Declaration.Scoped.Kind.ENUM;
         if (isEnum) {
             // add the name of the enum as an attribute.
@@ -90,6 +59,24 @@ final class EnumConstantLifter implements TreeTransformer, Declaration.Visitor<V
                 fieldTree.accept(this, null);
             });
         }
-        return isEnum;
+        return null;
+    }
+
+    @Override
+    public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
+        Type type = tree.type();
+        if (type instanceof Type.Declared declared) {
+            if (declared.tree().kind() == Kind.ENUM) {
+                // no need to do anything for a typedef enum, as the IR always
+                // lifts the enum tree before the typedef.
+                tree.addAttribute(new Skip());
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitDeclaration(Declaration decl, Void ignored) {
+        return null;
     }
 }

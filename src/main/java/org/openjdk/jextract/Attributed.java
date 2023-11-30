@@ -52,8 +52,7 @@ public interface Attributed {
     <R extends Record> Optional<R> getAttribute(Class<R> attributeClass);
 
     /**
-     * Adds a new attribute to this entity. This method is idempotent, that is, it allows adding an attribute
-     * that is identical to the one already stored.
+     * Adds a new attribute to this entity.
      * @param attribute the attribute to be added.
      * @param <R> the attribute's type.
      */
