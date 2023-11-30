@@ -50,7 +50,8 @@ public abstract class AttributedImpl implements Attributed {
 
     @Override
     public <R extends Record> void addAttribute(R attribute) {
-        if (attributes.containsKey(attribute.getClass())) {
+        Record attr = attributes.get(attribute.getClass());
+        if (attr != null && !attr.equals(attribute)) {
             throw new IllegalStateException("Attribute already exists: " + attribute.getClass().getSimpleName());
         }
         attributes.put(attribute.getClass(), attribute);

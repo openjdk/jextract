@@ -36,14 +36,13 @@ import java.util.Optional;
  * This visitor lifts enum constants to the top level and removes enum Trees.
  */
 final class EnumConstantLifter implements TreeTransformer, Declaration.Visitor<Void, Void> {
-    private static final String ENUM_NAME = "enum-name";
 
     private final List<Declaration> decls = new ArrayList<>();
     EnumConstantLifter() {
     }
 
     static Optional<String> enumName(Declaration.Constant constant) {
-        return constant.getAttribute(EnumConstant.class).map(ec -> ec.enumParent().name());
+        return constant.getAttribute(EnumConstant.class).map(EnumConstant::enumName);
     }
 
     @Override
@@ -87,7 +86,7 @@ final class EnumConstantLifter implements TreeTransformer, Declaration.Visitor<V
         if (isEnum) {
             // add the name of the enum as an attribute.
             scoped.members().forEach(fieldTree -> {
-                fieldTree.addAttribute(new EnumConstant(scoped));
+                fieldTree.addAttribute(new EnumConstant(scoped.name()));
                 fieldTree.accept(this, null);
             });
         }

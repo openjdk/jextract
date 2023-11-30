@@ -345,7 +345,13 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
+    /**
+     * An attribute to mark anonymous struct declarations.
+     */
     record AnonymousStruct() { }
 
-    record EnumConstant(Scoped enumParent) { }
+    /**
+     * An attribute to mark enum constants, with a link to the name of their parent enum.
+     */
+    record EnumConstant(String enumName) { }
 }
