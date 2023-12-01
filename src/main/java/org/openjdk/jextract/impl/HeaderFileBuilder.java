@@ -270,7 +270,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         appendLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get() {
-                return (\{type.getSimpleName()}) \{vhConstant}.get(RuntimeHelper.requireNonNull(\{segmentConstant}, "\{nativeName}"), 0L);
+                return (\{type.getSimpleName()}) \{vhConstant}.get(\{segmentConstant}(), 0L);
             }
             """);
         decrAlign();
@@ -282,7 +282,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         appendLines(STR."""
             public static void \{javaName}$set(\{type.getSimpleName()} x) {
-                \{vhConstant}.set(RuntimeHelper.requireNonNull(\{segmentConstant}, "\{nativeName}"), 0L, x);
+                \{vhConstant}.set(\{segmentConstant}(), 0L, x);
             }
             """);
         decrAlign();
@@ -291,18 +291,16 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     public String emitGlobalSegment(String layout, String javaName, String nativeName, Declaration declaration) {
         String mangledName = mangleName(javaName, MemorySegment.class);
         incrAlign();
-        appendLines(STR."""
-            private static final MemorySegment \{mangledName} = RuntimeHelper.SYMBOL_LOOKUP.find("\{nativeName}")
-                .map(s -> s.reinterpret(\{layout}.byteSize()))
-                .orElse(null);
-
-            """);
         if (declaration != null) {
             emitDocComment(declaration);
         }
         appendLines(STR."""
             \{MEMBER_MODS} MemorySegment \{mangledName}() {
-                return RuntimeHelper.requireNonNull(\{mangledName}, \"\{javaName}\");
+                class Holder {
+                    static final MemorySegment SEGMENT = RuntimeHelper.findOrThrow("\{nativeName}")
+                        .reinterpret(\{layout}.byteSize());
+                }
+                return Holder.SEGMENT;
             }
             """);
         decrAlign();
@@ -352,7 +350,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private String constantValue(Class<?> type, Object value) {
         if (value instanceof String) {
-            return STR."RuntimeHelper.CONSTANT_ALLOCATOR.allocateFrom(\"\{Utils.quote(Objects.toString(value))}\");";
+            return STR."Arena.ofAuto().allocateFrom(\"\{Utils.quote(Objects.toString(value))}\");";
         } else if (type == MemorySegment.class) {
             return STR."MemorySegment.ofAddress(\{((Number)value).longValue()}L);";
         } else {
