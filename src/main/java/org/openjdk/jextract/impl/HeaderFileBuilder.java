@@ -170,6 +170,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             """);
         } else {
             String invokerName = javaName + "$invoker";
+            String invokerFactoryName = javaName + "$makeInvoker";
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
             appendLines(STR."""
                 public interface \{invokerName} {
@@ -179,7 +180,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 """);
             emitDocComment(decl);
             appendLines(STR."""
-                public static \{invokerName} \{javaName}$makeInvoker(MemoryLayout... layouts) {
+                public static \{invokerName} \{invokerFactoryName}(MemoryLayout... layouts) {
                     class Holder {
                         static final FunctionDescriptor BASE_DESC = \{descriptorString(2, descriptor)};
                     }
@@ -199,7 +200,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendLines(STR."""
                 public static \{retType} \{javaName}(\{paramExprs}) {
                     MemoryLayout[] inferredLayouts$ = RuntimeHelper.inferVariadicLayouts(\{varargsParam});
-                    \{returnExpr}\{invokerName}(inferredLayouts$).\{javaName}(\{String.join(", ", finalParamNames)});
+                    \{returnExpr}\{invokerFactoryName}(inferredLayouts$).\{javaName}(\{String.join(", ", finalParamNames)});
                 }
                 """);
         }

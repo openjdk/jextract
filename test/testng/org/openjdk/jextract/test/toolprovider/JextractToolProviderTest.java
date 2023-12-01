@@ -113,6 +113,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
             Class<?> cls = loader.loadClass("hello_h");
             // check a method for "void func(int)"
             assertNotNull(findMethod(cls, "func", int.class));
+            // check a method for "int printf(MemorySegment, Object[])"
+            assertNotNull(findMethod(cls, "printf", MemorySegment.class, Object[].class));
             // check an interface for printf$invoker
             assertNotNull(findNestedClass(cls, "printf$invoker"));
             // check a method for "printf$makeInvoker printf$makeInvoker(MemoryLayout...)"
@@ -145,6 +147,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
             Class<?> cls = loader.loadClass("com.acme.hello_h");
             // check a method for "void func(int)"
             assertNotNull(findMethod(cls, "func", int.class));
+            // check a method for "int printf(MemorySegment, Object[])"
+            assertNotNull(findMethod(cls, "printf", MemorySegment.class, Object[].class));
             // check an interface for printf$invoker
             assertNotNull(findNestedClass(cls, "printf$invoker"));
             // check a method for "printf$makeInvoker printf$makeInvoker(MemoryLayout...)"
@@ -174,6 +178,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
             Class<?> cls = loader.loadClass("com.acme.MyHello");
             // check a method for "void func(int)"
             assertNotNull(findMethod(cls, "func", int.class));
+            // check a method for "int printf(MemorySegment, Object[])"
+            assertNotNull(findMethod(cls, "printf", MemorySegment.class, Object[].class));
             // check an interface for printf$invoker
             assertNotNull(findNestedClass(cls, "printf$invoker"));
             // check a method for "printf$makeInvoker printf$makeInvoker(MemoryLayout...)"
