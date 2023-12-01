@@ -245,7 +245,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitPrimitiveTypedefLayout(name, TypeImpl.PointerImpl.POINTER_LAYOUT, typedefTree);
     }
 
-    void emitLoadLibrary(List<String> libraries) {
+    void emitLoadLibraries(List<String> libraries) {
         incrAlign();
         appendLines("static {");
         for (String lib : libraries) {

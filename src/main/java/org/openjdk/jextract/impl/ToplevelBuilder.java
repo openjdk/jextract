@@ -63,7 +63,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<String> libraries) {
         HeaderFileBuilder first = new HeaderFileBuilder(sfb, sfb.className(), "#{SUPER}");
         first.classBegin();
-        first.emitLoadLibrary(libraries);
+        first.emitLoadLibraries(libraries);
         // emit basic primitive types
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Bool), "C_BOOL");
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Char), "C_CHAR");
