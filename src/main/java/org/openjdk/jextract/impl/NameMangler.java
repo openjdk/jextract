@@ -26,11 +26,16 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaParameterNames;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.lang.model.SourceVersion;
 
@@ -42,6 +47,12 @@ import javax.lang.model.SourceVersion;
 final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     private final String headerName;
 
+    /*
+     * This map is needed because there is no way to share attributes between a typedef declaration
+     * and the typedef type pointing to that declaration. As such, we need to store typedef names in a map
+     * so that we can recover them later when we see a variable decl whose type is a typedef.
+     */
+    private final Map<Type, String> functionTypeDefNames = new HashMap<>();
     private static class Scope {
          private Scope parent;
          private String className;
@@ -85,6 +96,16 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
          String className() {
              return className;
          }
+
+         List<String> fullName() {
+             List<String> names = new ArrayList<>();
+             Scope current = this;
+             while (current != null && current.isStruct) {
+                 names.add(0, current.className);
+                 current = current.parent;
+             }
+             return names;
+         }
     }
 
     private Scope curScope;
@@ -97,7 +118,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     Declaration.Scoped scan(Declaration.Scoped header) {
         String javaName = javaSafeIdentifier(headerName.replace(".h", "_h"), true);
         curScope = Scope.newHeader(javaName);
-        JavaName.with(header, javaName);
+        JavaName.with(header, List.of(javaName));
         // Process all header declarations are collect java name mappings
         header.members().forEach(fieldTree -> fieldTree.accept(this, null));
         return header;
@@ -146,7 +167,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
             (parent instanceof Declaration.Scoped);
         if (!isNestedAnonStruct) {
             this.curScope = Scope.newStruct(oldScope, name);
-            JavaName.with(scoped, curScope.className());
+            JavaName.with(scoped, curScope.fullName());
         }
         try {
             scoped.members().forEach(fieldTree -> fieldTree.accept(this, scoped));
@@ -172,7 +193,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         // We may potentially generate a class for a typedef. Make sure
         // class name is unique in the current nesting context.
         String javaName = curScope.uniqueNestedClassName(typedef.name());
-        JavaName.with(typedef, javaName);
+        JavaName.with(typedef, List.of(javaName));
         Type.Function func = Utils.getAsFunctionPointer(typedef.type());
         if (func != null) {
            var paramNamesOpt = func.parameterNames();
@@ -186,6 +207,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
                );
            }
            JavaFunctionalInterfaceName.with(typedef, javaName);
+           functionTypeDefNames.put(typedef.type(), javaName);
         }
         return null;
     }
@@ -202,6 +224,11 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         if (func != null) {
             String fiName = curScope.uniqueNestedClassName(variable.name());
             JavaFunctionalInterfaceName.with(variable, fiName);
+        } else if (variable.type() instanceof Delegated delegatedType) {
+            String typedefName = functionTypeDefNames.get(delegatedType.type());
+            if (typedefName != null) {
+                JavaFunctionalInterfaceName.with(variable, typedefName);
+            }
         }
         return null;
     }
@@ -211,8 +238,10 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         return null;
     }
 
-    private String makeJavaName(Declaration decl) {
-        return decl.name().isEmpty()? decl.name() : javaSafeIdentifier(decl.name());
+    private List<String> makeJavaName(Declaration decl) {
+        return decl.name().isEmpty() ?
+                List.of(decl.name()) :
+                List.of(javaSafeIdentifier(decl.name()));
     }
 
     // Java identifier handling helpers

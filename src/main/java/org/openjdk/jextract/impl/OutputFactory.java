@@ -27,6 +27,7 @@ package org.openjdk.jextract.impl;
 import java.lang.foreign.*;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
@@ -41,9 +42,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -56,19 +55,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     protected final ToplevelBuilder toplevelBuilder;
     protected Builder currentBuilder;
     private final String pkgName;
-    private final Map<Type.Delegated, String> functionTypeDefNames = new HashMap<>();
-
-    private void addFunctionTypedef(Declaration declaration, Type.Delegated typedef) {
-        functionTypeDefNames.put(typedef, JavaFunctionalInterfaceName.getOrThrow(declaration));
-    }
-
-    private boolean functionTypedefSeen(Type.Delegated typedef) {
-        return functionTypeDefNames.containsKey(typedef);
-    }
-
-    private String functionTypedefName(Type.Delegated decl) {
-        return functionTypeDefNames.get(decl);
-    }
 
     static JavaFileObject[] generateWrapped(Declaration.Scoped decl,
                 String pkgName, List<String> libraryNames) {
@@ -170,10 +156,10 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         return null;
     }
 
-    private boolean generateFunctionalInterface(Declaration decl, Type.Function func) {
+    private boolean generateFunctionalInterface(String name, Type.Function func) {
         if (Skip.isPresent(func)) return false;
         FunctionDescriptor descriptor = Type.descriptorFor(func).get();
-        currentBuilder.addFunctionalInterface(decl, func, descriptor);
+        currentBuilder.addFunctionalInterface(name, func, descriptor);
         return true;
     }
 
@@ -187,7 +173,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
-                if (! generateFunctionalInterface(param, f)) {
+                if (! generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(param), f)) {
                     return null;
                 }
             }
@@ -196,7 +182,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         // return type could be a function pointer type
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
         if (returnFunc != null) {
-             if (! generateFunctionalInterface(funcTree, returnFunc)) {
+             if (! generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(funcTree), returnFunc)) {
                  return null;
              }
         }
@@ -206,13 +192,12 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         return null;
     }
 
-    Optional<String> getAsFunctionPointerTypedef(Type type) {
+    Function getAsFunctionPointerTypedef(Type type) {
         if (type instanceof Type.Delegated delegated &&
-                delegated.kind() == Type.Delegated.Kind.TYPEDEF &&
-                functionTypedefSeen(delegated)) {
-            return Optional.of(functionTypedefName(delegated));
+                delegated.kind() == Type.Delegated.Kind.TYPEDEF) {
+            return Utils.getAsFunctionPointer(delegated.type());
         } else {
-            return Optional.empty();
+            return null;
         }
     }
 
@@ -241,7 +226,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                              *     int x, y;
                              * };
                              */
-                            toplevelBuilder.addTypedef(tree, s.layout().isEmpty() ? null : JavaName.getOrThrow(s));
+                            toplevelBuilder.addTypedef(tree, s.layout().isEmpty() ? null : JavaName.getFullNameOrThrow(s));
                         }
                     }
                     default -> visitScoped(s, tree);
@@ -252,10 +237,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         } else {
             Type.Function func = Utils.getAsFunctionPointer(type);
             if (func != null) {
-                boolean funcIntfGen = generateFunctionalInterface(tree, func);
-                if (funcIntfGen) {
-                    addFunctionTypedef(tree, Type.typedef(tree.name(), tree.type()));
-                }
+                generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(tree), func);
             } else if (((TypeImpl)type).isPointer()) {
                 toplevelBuilder.addTypedef(tree, null);
             } else {
@@ -283,22 +265,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         final String fieldName = tree.name();
         assert !fieldName.isEmpty();
 
+        Optional<String> fiName = JavaFunctionalInterfaceName.get(tree);
         Type.Function func = Utils.getAsFunctionPointer(type);
-        String fiName = null;
         if (func != null) {
-            fiName = JavaFunctionalInterfaceName.getOrThrow(tree);
-            if (! generateFunctionalInterface(tree, func)) {
-                fiName = null;
-            }
-        } else {
-            Optional<String> funcTypedef = getAsFunctionPointerTypedef(type);
-            if (funcTypedef.isPresent()) {
-                fiName = funcTypedef.get();
-            }
+            generateFunctionalInterface(fiName.get(), func);
         }
 
         MemoryLayout layout = Type.layoutFor(type).get();
-        currentBuilder.addVar(tree, layout, Optional.ofNullable(fiName));
+        currentBuilder.addVar(tree, layout, fiName);
         return null;
     }
 
@@ -351,7 +325,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addFunctionalInterface(Declaration declaration, Type.Function funcType, FunctionDescriptor descriptor) {
+        default void addFunctionalInterface(String name, Type.Function funcType, FunctionDescriptor descriptor) {
             throw new UnsupportedOperationException("Not implemented");
         }
     }
