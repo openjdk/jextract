@@ -262,7 +262,7 @@ class TreeMaker {
     }
 
     private static boolean isAnonymousStruct(Declaration declaration) {
-        return declaration instanceof Scoped scoped && AnonymousStruct.is(scoped);
+        return declaration instanceof Scoped scoped && AnonymousStruct.isPresent(scoped);
     }
 
     private List<Declaration> filterNestedDeclarations(List<Declaration> declarations) {

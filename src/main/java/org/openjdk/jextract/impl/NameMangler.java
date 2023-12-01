@@ -136,7 +136,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         if (name.isEmpty() && parent != null) {
             name = parent.name();
         }
-        if (scoped.getAttribute(JavaName.class).isPresent()) {
+        if (JavaName.isPresent(scoped)) {
             //skip struct that's seen already
             return null;
         }
@@ -159,7 +159,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitTypedef(Declaration.Typedef typedef, Declaration parent) {
-        if (typedef.getAttribute(JavaName.class).isPresent()) {
+        if (JavaName.isPresent(typedef)) {
             //skip typedef that's seen already
             return null;
         }

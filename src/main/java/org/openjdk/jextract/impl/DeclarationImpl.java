@@ -353,7 +353,7 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             scoped.addAttribute(INSTANCE);
         }
 
-        public static boolean is(Scoped scoped) {
+        public static boolean isPresent(Scoped scoped) {
             return scoped.getAttribute(AnonymousStruct.class).isPresent();
         }
     }
@@ -382,7 +382,7 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             declaration.addAttribute(INSTANCE);
         }
 
-        public static boolean is(Declaration declaration) {
+        public static boolean isPresent(Declaration declaration) {
             return declaration.getAttribute(Skip.class).isPresent();
         }
     }
@@ -398,6 +398,10 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         public static String getOrThrow(Declaration declaration) {
             return declaration.getAttribute(JavaName.class)
                     .map(JavaName::name).get();
+        }
+
+        public static boolean isPresent(Declaration declaration) {
+            return declaration.getAttribute(JavaName.class).isPresent();
         }
     }
 

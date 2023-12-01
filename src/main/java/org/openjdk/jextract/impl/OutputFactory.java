@@ -155,7 +155,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitConstant(Declaration.Constant constant, Declaration parent) {
-        if (constant.getAttribute(Skip.class).isPresent()) {
+        if (Skip.isPresent(constant)) {
             return null;
         }
 
@@ -170,7 +170,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitScoped(Declaration.Scoped d, Declaration parent) {
-        if (d.getAttribute(Skip.class).isPresent()) {
+        if (Skip.isPresent(d)) {
             return null;
         }
         if (d.layout().isEmpty() || structDefinitionSeen(d)) {
@@ -235,7 +235,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitFunction(Declaration.Function funcTree, Declaration parent) {
-        if (funcTree.getAttribute(Skip.class).isPresent()) {
+        if (Skip.isPresent(funcTree)) {
             return null;
         }
         //generate static wrapper for function
@@ -293,7 +293,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
-        if (tree.getAttribute(Skip.class).isPresent()) {
+        if (Skip.isPresent(tree)) {
             return null;
         }
         Type type = tree.type();
@@ -355,7 +355,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     @Override
     public Void visitVariable(Declaration.Variable tree, Declaration parent) {
-        if (tree.getAttribute(Skip.class).isPresent()) {
+        if (Skip.isPresent(tree)) {
             return null;
         }
         Type type = tree.type();
