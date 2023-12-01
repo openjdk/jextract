@@ -181,10 +181,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             emitDocComment(decl);
             appendLines(STR."""
                 public static \{invokerName} \{invokerFactoryName}(MemoryLayout... layouts) {
-                    class Holder {
-                        static final FunctionDescriptor BASE_DESC = \{descriptorString(2, descriptor)};
-                    }
-                    var mh$ = RuntimeHelper.downcallHandleVariadic("\{nativeName}", Holder.BASE_DESC, layouts);
+                    FunctionDescriptor baseDesc$ = \{descriptorString(2, descriptor)};
+                    var mh$ = RuntimeHelper.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
                     return (\{paramExprs}) -> {
                         try {
                             \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
