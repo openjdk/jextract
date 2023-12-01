@@ -41,7 +41,6 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     private final Set<String> variables = new HashSet<>();
     private final Set<Declaration.Typedef> typedefs = new HashSet<>();
     private final Set<Declaration.Function> functions = new HashSet<>();
-    private final List<Declaration> decls = new ArrayList<>();
 
     // have we seen this Constant earlier?
     private boolean constantSeen(Declaration.Constant tree) {
@@ -80,8 +79,6 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
             //skip
             Skip.with(constant);
         }
-
-        decls.add(constant);
         return null;
     }
 
@@ -91,8 +88,6 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
             //skip
             Skip.with(funcTree);
         }
-
-        decls.add(funcTree);
         return null;
     }
 
@@ -102,8 +97,6 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
             //skip
             Skip.with(tree);
         }
-
-        decls.add(tree);
         return null;
     }
 
@@ -113,14 +106,11 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
             //skip
             Skip.with(tree);
         }
-
-        decls.add(tree);
         return null;
     }
 
     @Override
     public Void visitDeclaration(Declaration decl, Void ignored) {
-        decls.add(decl);
         return null;
     }
 }
