@@ -382,8 +382,16 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             declaration.addAttribute(INSTANCE);
         }
 
+        public static void with(Type type) {
+            type.addAttribute(INSTANCE);
+        }
+
         public static boolean isPresent(Declaration declaration) {
             return declaration.getAttribute(Skip.class).isPresent();
+        }
+
+        public static boolean isPresent(Type type) {
+            return type.getAttribute(Skip.class).isPresent();
         }
     }
 

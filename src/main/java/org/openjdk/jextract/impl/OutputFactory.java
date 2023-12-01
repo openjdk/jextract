@@ -205,24 +205,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     private boolean generateFunctionalInterface(Declaration decl, Type.Function func) {
-        String unsupportedType = UnsupportedLayouts.firstUnsupportedType(func);
-        if (unsupportedType != null) {
-            warn("skipping " + JavaName.getOrThrow(decl) + " because of unsupported type usage: " +
-                    unsupportedType);
-            return false;
-        }
-
-        FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
-        if (descriptor == null) {
-            return false;
-        }
-
-        //generate functional interface
-        if (func.varargs() && !func.argumentTypes().isEmpty()) {
-            warn("varargs in callbacks is not supported: " + CDeclarationPrinter.declaration(func, JavaName.getOrThrow(decl)));
-            return false;
-        }
-
+        if (Skip.isPresent(func)) return false;
+        FunctionDescriptor descriptor = Type.descriptorFor(func).get();
         currentBuilder.addFunctionalInterface(decl, func, descriptor);
         return true;
     }
@@ -232,28 +216,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         if (Skip.isPresent(funcTree)) {
             return null;
         }
-        //generate static wrapper for function
-        String unsupportedType = UnsupportedLayouts.firstUnsupportedType(funcTree.type());
-        if (unsupportedType != null) {
-            warn("skipping " + funcTree.name() + " because of unsupported type usage: " +
-                    unsupportedType);
-            return null;
-        }
-
-        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
-        if (descriptor == null) {
-            return null;
-        }
 
         // check for function pointer type arguments
-        int i = 0;
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
                 if (! generateFunctionalInterface(param, f)) {
                     return null;
                 }
-                i++;
             }
         }
 
@@ -265,6 +235,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
              }
         }
 
+        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).get();
         toplevelBuilder.addFunction(funcTree, descriptor);
         return null;
     }
@@ -351,38 +322,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             declared.tree().accept(this, tree);
         }
 
-        MemoryLayout layout = Type.layoutFor(type).orElse(null);
-        if (layout == null) {
-            //no layout - abort
-            return null;
-        }
-
-        if (tree.kind() == Declaration.Variable.Kind.BITFIELD ||
-                (layout instanceof ValueLayout && layout.byteSize() > 8)) {
-            //skip
-            return null;
-        }
-
         final String fieldName = tree.name();
         assert !fieldName.isEmpty();
-
-        String unsupportedType = UnsupportedLayouts.firstUnsupportedType(type);
-        if (unsupportedType != null) {
-            String name = parent != null? parent.name() + "." : "";
-            name += fieldName;
-            warn("skipping " + name + " because of unsupported type usage: " +
-                    unsupportedType);
-            return null;
-        }
-
-        Class<?> clazz = getJavaType(type);
-        if (clazz == null) {
-            String name = parent != null? parent.name() + "." : "";
-            name += fieldName;
-            warn("skipping " + name + " because of unsupported type usage");
-            return null;
-        }
-
 
         Type.Function func = Utils.getAsFunctionPointer(type);
         String fiName = null;
@@ -398,8 +339,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             }
         }
 
+        MemoryLayout layout = Type.layoutFor(type).get();
         currentBuilder.addVar(tree, layout, Optional.ofNullable(fiName));
-
         return null;
     }
 

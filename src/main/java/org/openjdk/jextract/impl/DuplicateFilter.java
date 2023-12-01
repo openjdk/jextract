@@ -27,9 +27,7 @@ package org.openjdk.jextract.impl;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /*
@@ -65,7 +63,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     DuplicateFilter() {
     }
 
-    public Declaration.Scoped transform(Declaration.Scoped header) {
+    public Declaration.Scoped scan(Declaration.Scoped header) {
         // Process all header declarations are collect potential
         // declarations that will go into transformed HeaderTree
         // into the this.decls field.

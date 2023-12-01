@@ -26,6 +26,7 @@
 
 package org.openjdk.jextract.impl;
 
+import java.lang.foreign.PaddingLayout;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,6 +39,7 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
 
@@ -75,6 +77,10 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
 
         public PrimitiveImpl(Kind kind) {
             this.kind = Objects.requireNonNull(kind);
+            if (kind.layout().isPresent() && kind.layout().get() instanceof PaddingLayout) {
+                // this type is unsupported, add a Skip attribute
+                Skip.with(this);
+            }
         }
 
         @Override
