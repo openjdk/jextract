@@ -42,11 +42,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /*
@@ -58,21 +56,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     protected final ToplevelBuilder toplevelBuilder;
     protected Builder currentBuilder;
     private final String pkgName;
-    private final Map<Declaration.Scoped, String> structClassNames = new HashMap<>();
-    private final Set<Declaration.Typedef> unresolvedStructTypedefs = new HashSet<>();
     private final Map<Type.Delegated, String> functionTypeDefNames = new HashMap<>();
-
-    private void addStructDefinition(Declaration.Scoped decl, String name) {
-        structClassNames.put(decl, name);
-    }
-
-    private boolean structDefinitionSeen(Declaration.Scoped decl) {
-        return structClassNames.containsKey(decl);
-    }
-
-    private String structDefinitionName(Declaration.Scoped decl) {
-        return structClassNames.get(decl);
-    }
 
     private void addFunctionTypedef(Declaration declaration, Type.Delegated typedef) {
         functionTypeDefNames.put(typedef, JavaFunctionalInterfaceName.getOrThrow(declaration));
@@ -103,11 +87,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     JavaFileObject[] generate(Declaration.Scoped decl, String[] libs) {
         //generate all decls
         decl.members().forEach(this::generateDecl);
-        // check if unresolved typedefs can be resolved now!
-        for (Declaration.Typedef td : unresolvedStructTypedefs) {
-            Declaration.Scoped structDef = ((Type.Declared) td.type()).tree();
-            toplevelBuilder.addTypedef(td, structDefinitionName(structDef));
-        }
         try {
             List<JavaFileObject> files = new ArrayList<>(toplevelBuilder.toFiles());
             files.add(jfoFromString(pkgName,"RuntimeHelper", getRuntimeHelperSource(libs)));
@@ -159,10 +138,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
 
         Class<?> clazz = getJavaType(constant.type());
-        if (clazz == null) {
-            warn("skipping " + constant.name() + " because of unsupported type usage");
-            return null;
-        }
         toplevelBuilder.addConstant(constant, clazz);
         return null;
     }
@@ -172,11 +147,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         if (Skip.isPresent(d)) {
             return null;
         }
-        if (d.layout().isEmpty() || structDefinitionSeen(d)) {
-            //skip decl
-            return null;
-        }
 
+        Skip.with(d); // do not generate twice
         boolean isStructKind = Utils.isStructOrUnion(d);
         Builder prevBuilder = null;
         StructBuilder structBuilder = null;
@@ -186,12 +158,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             currentBuilder = structBuilder = currentBuilder.addStruct(
                 d,
                 layout);
-            if (!d.name().isEmpty()) {
-                addStructDefinition(d, structBuilder.fullName());
-            }
-            if (parent instanceof Declaration.Typedef) {
-                addStructDefinition(d, structBuilder.fullName());
-            }
         }
         try {
             d.members().forEach(fieldTree -> fieldTree.accept(this, d));
@@ -275,15 +241,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                              *     int x, y;
                              * };
                              */
-                            if (structDefinitionSeen(s)) {
-                                toplevelBuilder.addTypedef(tree, structDefinitionName(s));
-                            } else {
-                                /*
-                                 * Definition of typedef'ed struct/union not seen yet. May be the definition comes later.
-                                 * Save it to visit at the end of all declarations.
-                                 */
-                                unresolvedStructTypedefs.add(tree);
-                            }
+                            toplevelBuilder.addTypedef(tree, s.layout().isEmpty() ? null : JavaName.getOrThrow(s));
                         }
                     }
                     default -> visitScoped(s, tree);
@@ -353,10 +311,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             throw new IllegalArgumentException("Unexpected parent declaration");
         }
         // case like `typedef struct { ... } Foo`
-    }
-
-    static void warn(String msg) {
-        System.err.println("WARNING: " + msg);
     }
 
     private Class<?> getJavaType(Type type) {

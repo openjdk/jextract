@@ -144,13 +144,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     public void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
         String nativeName = varTree.name();
         String javaName = JavaName.getOrThrow(varTree);
-        try {
-            structLayout.byteOffset(elementPaths(nativeName));
-        } catch (UnsupportedOperationException uoe) {
-            // bad layout - do nothing
-            OutputFactory.warn("skipping '" + className() + "." + nativeName + "' : " + uoe.toString());
-            return;
-        }
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             if (layout.byteSize() > 0) {
                 emitSegmentGetter(javaName, nativeName, layout);

@@ -8,6 +8,7 @@ import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Declaration.Visitor;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
@@ -91,6 +92,10 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitScoped(Scoped scoped, Declaration declaration) {
+        if (scoped.layout().isEmpty()) {
+            // skip
+            Skip.with(scoped);
+        }
         // propagate
         scoped.members().forEach(fieldTree -> {
             fieldTree.accept(this, scoped);
@@ -103,6 +108,10 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         Type.Function func = Utils.getAsFunctionPointer(typedefTree.type());
         if (func != null) {
             checkFunctionType(typedefTree, func);
+        }
+        // propagate
+        if (typedefTree.type() instanceof Declared declared) {
+            visitScoped(declared.tree(), null);
         }
         return null;
     }
