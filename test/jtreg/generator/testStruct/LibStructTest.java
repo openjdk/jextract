@@ -35,6 +35,7 @@ import test.jextract.struct.*;
  * @test id=classes
  * @library /lib
  * @run main/othervm JtregJextract -l Struct -t test.jextract.struct struct.h
+ * @build LibStructTest
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibStructTest
  */
 
@@ -43,6 +44,7 @@ import test.jextract.struct.*;
  * @library /lib
  *
  * @run main/othervm JtregJextractSources -l Struct -t test.jextract.struct struct.h
+ * @build LibStructTest
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibStructTest
  */
 

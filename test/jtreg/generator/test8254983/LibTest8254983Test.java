@@ -35,6 +35,7 @@ import test.jextract.test8254983.*;
  * @bug 8254983
  * @summary jextract fails to hande layout paths nested structs/union
  * @run main/othervm JtregJextract -t test.jextract.test8254983 test8254983.h
+ * @build LibTest8254983Test
  * @run testng/othervm -Dforeign.restricted=permit LibTest8254983Test
  */
 /*
@@ -43,6 +44,7 @@ import test.jextract.test8254983.*;
  * @bug 8254983
  * @summary jextract fails to hande layout paths nested structs/union
  * @run main/othervm JtregJextractSources -t test.jextract.test8254983 test8254983.h
+ * @build LibTest8254983Test
  * @run testng/othervm -Dforeign.restricted=permit LibTest8254983Test
  */
 public class LibTest8254983Test {

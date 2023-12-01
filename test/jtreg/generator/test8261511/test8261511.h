@@ -35,7 +35,7 @@ struct Foo {
     int (*sum)(int x, int y);
 };
 
-EXPORT struct Foo get_foo();
+EXPORT struct Foo get_foo(void);
 EXPORT double sum(double x, double y);
 
 #ifdef __cplusplus

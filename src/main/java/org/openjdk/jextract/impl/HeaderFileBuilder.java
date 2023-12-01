@@ -150,17 +150,15 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             returnExpr = STR."return (\{retType}) ";
         }
         String getterName = mangleName(javaName, MethodHandle.class);
-        String factoryName = isVarArg ?
-                "downcallHandleVariadic" :
-                "downcallHandle";
         incrAlign();
+        if (!isVarArg) {
         emitDocComment(decl);
         appendLines(STR."""
             \{MEMBER_MODS} MethodHandle \{getterName}() {
                 class Holder {
                     static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
 
-                    static final MethodHandle MH = RuntimeHelper.\{factoryName}(\"\{nativeName}\", DESC);
+                    static final MethodHandle MH = RuntimeHelper.downcallHandle(\"\{nativeName}\", DESC);
                 }
                 return RuntimeHelper.requireNonNull(Holder.MH, \"\{javaName}\");
             }
@@ -174,6 +172,42 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 }
             }
             """);
+        } else {
+            String invokerName = javaName + "$invoker";
+            String invokerFactoryName = javaName + "$makeInvoker";
+            String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
+            appendLines(STR."""
+                public interface \{invokerName} {
+                    \{retType} \{javaName}(\{paramExprs});
+                }
+
+                """);
+            emitDocComment(decl);
+            appendLines(STR."""
+                public static \{invokerName} \{invokerFactoryName}(MemoryLayout... layouts) {
+                    FunctionDescriptor baseDesc$ = \{descriptorString(2, descriptor)};
+                    var mh$ = RuntimeHelper.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
+                    return (\{paramExprs}) -> {
+                        try {
+                            \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
+                        } catch(IllegalArgumentException ex$)  {
+                            throw ex$; // rethrow IAE from passing wrong number/type of args
+                        } catch (Throwable ex$) {
+                           throw new AssertionError("should not reach here", ex$);
+                        }
+                    };
+                }
+
+                """);
+            emitDocComment(decl);
+            String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
+            appendLines(STR."""
+                public static \{retType} \{javaName}(\{paramExprs}) {
+                    MemoryLayout[] inferredLayouts$ = RuntimeHelper.inferVariadicLayouts(\{varargsParam});
+                    \{returnExpr}\{invokerFactoryName}(inferredLayouts$).\{javaName}(\{String.join(", ", finalParamNames)});
+                }
+                """);
+        }
         decrAlign();
     }
 
@@ -206,7 +240,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private boolean primitiveKindSupported(Type.Primitive.Kind kind) {
         return switch(kind) {
-            case Short, Int, Long, LongLong, Float, Double, Char -> true;
+            case Bool, Short, Int, Long, LongLong, Float, Double, Char -> true;
             default -> false;
         };
     }

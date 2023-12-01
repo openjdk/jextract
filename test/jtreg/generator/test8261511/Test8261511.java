@@ -34,6 +34,7 @@ import static test.jextract.test8261511.test8261511_h.*;
  * @summary jextract does not generate accessor for MemorySegement typed values
  * @library /lib
  * @run main/othervm JtregJextract -l Test8261511 -t test.jextract.test8261511 test8261511.h
+ * @build Test8261511
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8261511
  */
 /*
@@ -42,6 +43,7 @@ import static test.jextract.test8261511.test8261511_h.*;
  * @summary jextract does not generate accessor for MemorySegement typed values
  * @library /lib
  * @run main/othervm JtregJextractSources -l Test8261511 -t test.jextract.test8261511 test8261511.h
+ * @build Test8261511
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8261511
  */
 public class Test8261511 {

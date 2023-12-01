@@ -31,6 +31,7 @@ import static test.jextract.test8249757.test8249757_h.*;
  * @bug 8249757
  * @summary jextract should expose a way to load library from a given absolute path
  * @run main/othervm JtregJextract -libpath Test8249757 -t test.jextract.test8249757 test8249757.h
+ * @build LibTest8249757Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8249757Test
  */
 /*
@@ -39,6 +40,7 @@ import static test.jextract.test8249757.test8249757_h.*;
  * @bug 8249757
  * @summary jextract should expose a way to load library from a given absolute path
  * @run main/othervm JtregJextractSources -libpath Test8249757 -t test.jextract.test8249757 test8249757.h
+ * @build LibTest8249757Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8249757Test
  */
 public class LibTest8249757Test {

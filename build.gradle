@@ -210,6 +210,7 @@ task jtreg(type: JavaExec) {
             "-javaoption:--enable-preview",
             "-javaoption:--enable-native-access=org.openjdk.jextract,ALL-UNNAMED",
             "-avm", "-conc:auto", "-verbose:summary",
+            "-retain:fail,error",
             "../test"
     ]
 }

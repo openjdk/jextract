@@ -31,7 +31,7 @@ extern "C" {
 #define EXPORT
 #endif
 
-void func();
+void func(void);
 extern int x;
 extern int y[10];
 

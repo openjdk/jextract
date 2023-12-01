@@ -41,8 +41,8 @@ EXPORT void func(long double ll);
 EXPORT void func2(void (*f)(long double l));
 EXPORT void func3(long double (*f)());
 EXPORT void func4(void (*f)(Foo f));
-EXPORT Foo* getFoo();
-EXPORT Foo makeFoo();
+EXPORT Foo* getFoo(void);
+EXPORT Foo makeFoo(void);
 EXPORT void copyFoo(Foo f1, Foo f2);
 
 long double ld;

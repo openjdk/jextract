@@ -23,6 +23,7 @@
 package org.openjdk.jextract.test.toolprovider;
 
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.MemoryLayout;
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
@@ -114,6 +115,10 @@ public class JextractToolProviderTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "func", int.class));
             // check a method for "int printf(MemorySegment, Object[])"
             assertNotNull(findMethod(cls, "printf", MemorySegment.class, Object[].class));
+            // check an interface for printf$invoker
+            assertNotNull(findNestedClass(cls, "printf$invoker"));
+            // check a method for "printf$makeInvoker printf$makeInvoker(MemoryLayout...)"
+            assertNotNull(findMethod(cls, "printf$makeInvoker", MemoryLayout[].class));
         } finally {
             TestUtils.deleteDir(helloOutput);
         }
@@ -144,6 +149,10 @@ public class JextractToolProviderTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "func", int.class));
             // check a method for "int printf(MemorySegment, Object[])"
             assertNotNull(findMethod(cls, "printf", MemorySegment.class, Object[].class));
+            // check an interface for printf$invoker
+            assertNotNull(findNestedClass(cls, "printf$invoker"));
+            // check a method for "printf$makeInvoker printf$makeInvoker(MemoryLayout...)"
+            assertNotNull(findMethod(cls, "printf$makeInvoker", MemoryLayout[].class));
         } finally {
             TestUtils.deleteDir(helloOutput);
         }
@@ -171,6 +180,10 @@ public class JextractToolProviderTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "func", int.class));
             // check a method for "int printf(MemorySegment, Object[])"
             assertNotNull(findMethod(cls, "printf", MemorySegment.class, Object[].class));
+            // check an interface for printf$invoker
+            assertNotNull(findNestedClass(cls, "printf$invoker"));
+            // check a method for "printf$makeInvoker printf$makeInvoker(MemoryLayout...)"
+            assertNotNull(findMethod(cls, "printf$makeInvoker", MemoryLayout[].class));
         } finally {
             TestUtils.deleteDir(helloOutput);
         }

@@ -90,6 +90,7 @@ public class TestDocComments extends JextractToolRunner {
         assertEquals(comments, List.of(
             "int func(int* fp);",
             "double distance(struct Point p);",
+            "int printf(char* fmt,...);",
             "int printf(char* fmt,...);"));
     }
 

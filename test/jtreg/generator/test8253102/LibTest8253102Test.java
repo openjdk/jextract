@@ -36,6 +36,7 @@ import test.jextract.test8253102.*;
  * @summary jextract should emit address to segment utility method on struct classes
  * @library /lib
  * @run main/othervm JtregJextract -l Test8253102 -t test.jextract.test8253102 test8253102.h
+ * @build LibTest8253102Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8253102Test
  */
 /*
@@ -44,6 +45,7 @@ import test.jextract.test8253102.*;
  * @summary jextract should emit address to segment utility method on struct classes
  * @library /lib
  * @run main/othervm JtregJextractSources -l Test8253102 -t test.jextract.test8253102 test8253102.h
+ * @build LibTest8253102Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8253102Test
  */
 public class LibTest8253102Test {

@@ -36,7 +36,7 @@ struct Foo {
 };
 
 /* get initialised Foo struct instance */
-EXPORT struct Foo getFoo();
+EXPORT struct Foo getFoo(void);
 
 /* first param should be initialized struct instance returned by getFoo */
 EXPORT void f2(struct Foo foo, CB cb);

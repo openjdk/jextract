@@ -35,6 +35,7 @@ import static test.jextract.test8259473.test8259473_h.*;
  * @summary jextract generated code should throw exception for unfound native symbols from calls, variable access, set immediately
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.test8259473 test8259473.h
+ * @build LibTest8259473Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8259473Test
  */
 /*
@@ -43,6 +44,7 @@ import static test.jextract.test8259473.test8259473_h.*;
  * @summary jextract generated code should throw exception for unfound native symbols from calls, variable access, set immediately
  * @library /lib
  * @run main/othervm JtregJextractSources -t test.jextract.test8259473 test8259473.h
+ * @build LibTest8259473Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8259473Test
  */
 public class LibTest8259473Test {
