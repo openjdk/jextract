@@ -31,7 +31,6 @@ import org.openjdk.jextract.Declaration.Function;
 import org.openjdk.jextract.Declaration.Scoped;
 import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.Declaration.Variable;
-import org.openjdk.jextract.Declaration.Visitor;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
@@ -41,15 +40,21 @@ import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 
+/*
+ * This visitor marks a number of unsupported construct so that they are skipped by code generation.
+ * Unsupported constructs are:
+ * - declarations containing an unsupported type (e.g. "long128")
+ * - structs/unions.variables for which no layout exists
+ * - functions/function pointer for which no descriptor exists
+ * - variadic function pointers
+ * - bitfields struct members
+ */
 public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration> {
     static String firstUnsupportedType(Type type) {
         return type.accept(unsupportedVisitor, null);
     }
 
     public Declaration.Scoped scan(Declaration.Scoped header) {
-        // Process all header declarations are collect potential
-        // declarations that will go into transformed HeaderTree
-        // into the this.decls field.
         header.members().forEach(fieldTree -> fieldTree.accept(this, null));
         return header;
     }

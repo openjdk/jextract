@@ -32,9 +32,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.lang.foreign.MemoryLayout;
-import java.util.StringJoiner;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
