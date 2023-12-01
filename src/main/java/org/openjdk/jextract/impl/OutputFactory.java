@@ -186,15 +186,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         return null;
     }
 
-    Function getAsFunctionPointerTypedef(Type type) {
-        if (type instanceof Type.Delegated delegated &&
-                delegated.kind() == Type.Delegated.Kind.TYPEDEF) {
-            return Utils.getAsFunctionPointer(delegated.type());
-        } else {
-            return null;
-        }
-    }
-
     @Override
     public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
         if (Skip.isPresent(tree)) {
