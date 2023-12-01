@@ -21,14 +21,14 @@ jobs:
         include:
           - os: ubuntu-20.04
             TARGET: linux-gnu-ubuntu-20.04
-            JAVA19_HOME: /tmp/deps/jdk-19
+            TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain
           - os: macos-latest
             TARGET: apple-darwin
-            JAVA19_HOME: /tmp/deps/jdk-19/jdk-19.jdk/Contents/Home
+            TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain/jdk-22.jdk/Contents/Home
 
     steps:
     - name: 'Check out repository'
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4.1.1
       with:
         fetch-depth: 1
         
@@ -38,30 +38,30 @@ jobs:
         mkdir -p deps/jtreg
         mkdir -p /tmp/deps
 
-    - name: 'Download JDK 19'
-      id: download_jdk_19
-      uses: oracle-actions/setup-java@v1.1.1
+    - name: 'Download toolchain JDK'
+      id: download_toolchain_jdk
+      uses: oracle-actions/setup-java@v1.3.2
       with:
         website: jdk.java.net
-        release: 19
+        release: 22
         install: false
         
-    - name: 'Extract JDK 19'
+    - name: 'Extract Toolchain JDK'
       shell: sh
       run: |
-        mkdir -p /tmp/deps/jdk-19
-        tar --strip-components=1 -xvf ${{ steps.download_jdk_19.outputs.archive }} -C /tmp/deps/jdk-19
-        ls -lah /tmp/deps/jdk-19
+        mkdir -p /tmp/deps/jdk-toolchain
+        tar --strip-components=1 -xvf ${{ steps.download_toolchain_jdk.outputs.archive }} -C /tmp/deps/jdk-toolchain
+        ls -lah /tmp/deps/jdk-toolchain
 
-    - name: 'Check Java 19 version'
+    - name: 'Check toolchain Java version'
       shell: sh
       run: |
-        ${{ matrix.JAVA19_HOME }}/bin/java --version
+        ${{ matrix.TOOLCHAIN_JAVA_HOME }}/bin/java --version
 
-    - name: 'Setup Java 18'
-      uses: oracle-actions/setup-java@v1.1.1
+    - name: 'Setup Java 17'
+      uses: oracle-actions/setup-java@v1.3.2
       with:
-        release: 18
+        release: 17
 
     - name: 'Check default Java version'
       shell: sh
@@ -80,13 +80,13 @@ jobs:
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk19_home=${{ matrix.JAVA19_HOME }} -Pllvm_home=/tmp/deps/clang_llvm clean verify        
+        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=/tmp/deps/clang_llvm clean verify        
 
     - name: 'Check out JTReg'
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4.1.1
       with:
         repository: 'openjdk/jtreg'
-        ref: 'jtreg-6.2+1'
+        ref: 'jtreg-7.3.1+1'
         fetch-depth: 1
         path: deps/jtreg
 
@@ -100,4 +100,4 @@ jobs:
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk19_home=${{ matrix.JAVA19_HOME }} -Pllvm_home=/tmp/deps/clang_llvm -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
+        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=/tmp/deps/clang_llvm -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg

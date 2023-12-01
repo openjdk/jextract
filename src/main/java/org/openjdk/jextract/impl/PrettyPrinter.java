@@ -27,6 +27,7 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.constant.Constable;
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.lang.foreign.MemoryLayout;
@@ -56,22 +57,20 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
     StringBuilder builder = new StringBuilder();
 
     private void getAttributes(Declaration decl) {
-        Set<String> attrs = decl.attributeNames();
-        if (attrs.isEmpty()) {
-            return;
+        Collection<Record> attrs = decl.attributes();
+        if (!attrs.isEmpty()) {
+            incr();
+            builder.append("Attributes: ");
+            String sep = "\n";
+            for (Record attr : attrs) {
+                incr();
+                builder.append(sep);
+                builder.append(attr);
+                decr();
+                sep = ",\n";
+            }
+            decr();
         }
-        incr();
-        indent();
-        for (String k: attrs) {
-            builder.append("Attr: ");
-            builder.append(k);
-            builder.append(" -> [");
-            builder.append(decl.getAttribute(k).get().stream()
-                .map(Constable::toString)
-                .collect(Collectors.joining(", ")));
-            builder.append("]\n");
-        }
-        decr();
     }
 
     public String print(Declaration decl) {
