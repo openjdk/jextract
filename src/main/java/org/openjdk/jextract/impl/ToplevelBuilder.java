@@ -29,6 +29,9 @@ import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaParameterNames;
 
 import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
@@ -89,25 +92,23 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
-    public void addVar(Declaration.Variable varTree, String javaName,
-        MemoryLayout layout, Optional<String> fiName) {
-        nextHeader().addVar(varTree, javaName, layout, fiName);
+    public void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
+        nextHeader().addVar(varTree, layout, fiName);
     }
 
     @Override
-    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
-            String javaName, List<String> parameterNames) {
-        nextHeader().addFunction(funcTree, descriptor, javaName, parameterNames);
+    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor) {
+        nextHeader().addFunction(funcTree, descriptor);
     }
 
     @Override
-    public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
-        nextHeader().addConstant(constantTree, javaName, javaType);
+    public void addConstant(Declaration.Constant constantTree, Class<?> javaType) {
+        nextHeader().addConstant(constantTree, javaType);
     }
 
     @Override
-    public void addTypedef(Declaration.Typedef typedefTree, String javaName,
-        String superClass, Type type) {
+    public void addTypedef(Declaration.Typedef typedefTree, String superClass, Type type) {
+        String javaName = JavaName.getOrThrow(typedefTree);
         if (type instanceof Type.Primitive primitive) {
             // primitive
             nextHeader().emitPrimitiveTypedef(typedefTree, primitive, javaName);
@@ -122,9 +123,8 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
-    public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
-        String javaName, GroupLayout layout) {
-        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
+    public StructBuilder addStruct(Declaration.Scoped tree, GroupLayout layout) {
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaName.getOrThrow(tree));
         builders.add(sfb);
         StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, tree, layout);
         structBuilder.begin();
@@ -132,11 +132,10 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
-    public void addFunctionalInterface(Type.Function funcType, String javaName,
-        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
+    public void addFunctionalInterface(Declaration declaration, Type.Function funcType, FunctionDescriptor descriptor) {
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaFunctionalInterfaceName.getOrThrow(declaration));
         builders.add(sfb);
-        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, funcType, descriptor, parameterNames);
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, funcType, descriptor, JavaParameterNames.get(funcType));
     }
 
     private HeaderFileBuilder nextHeader() {

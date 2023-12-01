@@ -25,48 +25,41 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 /*
- * This visitor filters tree elements based on --include options specified.
+ * This visitor marks declarations to be skipped, based on --include options specified.
  */
-final class IncludeFilter implements TreeTransformer, Declaration.Visitor<Void, Declaration> {
-    private List<Declaration> decls = new ArrayList<>();
+final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
     private final IncludeHelper includeHelper;
 
     IncludeFilter(IncludeHelper includeHelper) {
         this.includeHelper = includeHelper;
     }
 
-    @Override
-    public Declaration.Scoped transform(Declaration.Scoped header) {
+    public Declaration.Scoped process(Declaration.Scoped header) {
         // Process all header declarations are collect potential
         // declarations that will go into transformed HeaderTree
         // into the this.decls field.
         header.members().forEach(fieldTree -> fieldTree.accept(this, null));
-        return createHeader(header, decls);
+        return header;
     }
 
     @Override
     public Void visitConstant(Declaration.Constant constant, Declaration parent) {
         if (!includeHelper.isIncluded(constant)) {
             //skip
-            return null;
+            Skip.with(constant);
         }
-        decls.add(constant);
         return null;
     }
 
     @Override
     public Void visitFunction(Declaration.Function funcTree, Declaration parent) {
         if (!includeHelper.isIncluded(funcTree)) {
-            return null;
+            //skip
+            Skip.with(funcTree);
         }
-
-        decls.add(funcTree);
         return null;
     }
 
@@ -76,43 +69,35 @@ final class IncludeFilter implements TreeTransformer, Declaration.Visitor<Void, 
         if (isStructKind) {
             String name = d.name();
             if (!name.isEmpty() && !includeHelper.isIncluded(d)) {
-                return null;
+                //skip
+                Skip.with(d);
             }
         }
 
-        List<Declaration> oldDecls = decls;
-        this.decls = new ArrayList<>();
-        try {
-            d.members().forEach(fieldTree -> fieldTree.accept(this, d));
-        } finally {
-            var scoped = createScoped(d, decls);
-            this.decls = oldDecls;
-            decls.add(scoped);
-        }
+        d.members().forEach(fieldTree -> fieldTree.accept(this, d));
         return null;
     }
 
     @Override
     public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
         if (!includeHelper.isIncluded(tree)) {
-            return null;
+            //skip
+            Skip.with(tree);
         }
-        decls.add(tree);
         return null;
     }
 
     @Override
     public Void visitVariable(Declaration.Variable tree, Declaration parent) {
         if (parent == null && !includeHelper.isIncluded(tree)) {
-            return null;
+            //skip
+            Skip.with(tree);
         }
-        decls.add(tree);
         return null;
     }
 
     @Override
     public Void visitDeclaration(Declaration decl, Declaration parent) {
-        decls.add(decl);
         return null;
     }
 }

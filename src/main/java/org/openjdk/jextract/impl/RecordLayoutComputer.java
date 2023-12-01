@@ -115,7 +115,7 @@ abstract class RecordLayoutComputer {
         Declaration.Scoped declaration = finishRecord(anonName != null ? anonName : declName, declName);
         if (cursor.isAnonymousStruct()) {
             // record this with a declaration attribute, so we don't have to rely on the cursor again later
-            declaration.addAttribute(new AnonymousStruct());
+            AnonymousStruct.with(declaration);
         }
         return org.openjdk.jextract.Type.declared(declaration);
     }

@@ -27,14 +27,10 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.constant.Constable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
@@ -345,13 +341,95 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
+    // attributes
+
     /**
      * An attribute to mark anonymous struct declarations.
      */
-    record AnonymousStruct() { }
+    record AnonymousStruct() {
+        private static final AnonymousStruct INSTANCE = new AnonymousStruct();
+
+        public static void with(Scoped scoped) {
+            scoped.addAttribute(INSTANCE);
+        }
+
+        public static boolean isPresent(Scoped scoped) {
+            return scoped.getAttribute(AnonymousStruct.class).isPresent();
+        }
+    }
 
     /**
      * An attribute to mark enum constants, with a link to the name of their parent enum.
      */
-    record EnumConstant(String enumName) { }
+    record EnumConstant(String get) {
+        public static void with(Constant constant, String enumName) {
+            constant.addAttribute(new EnumConstant(enumName));
+        }
+
+        public static Optional<String> get(Constant constant) {
+            return constant.getAttribute(EnumConstant.class)
+                    .map(EnumConstant::get);
+        }
+    }
+
+    /**
+     * An attribute to mark declaration for which no code should be generated.
+     */
+    record Skip() {
+        private static final Skip INSTANCE = new Skip();
+
+        public static void with(Declaration declaration) {
+            declaration.addAttribute(INSTANCE);
+        }
+
+        public static boolean isPresent(Declaration declaration) {
+            return declaration.getAttribute(Skip.class).isPresent();
+        }
+    }
+
+    /**
+     * An attribute to attach a Java name to a C declaration.
+     */
+    record JavaName(String name) {
+        public static void with(Declaration declaration, String javaName) {
+            declaration.addAttribute(new JavaName(javaName));
+        }
+
+        public static String getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(JavaName.class)
+                    .map(JavaName::name).get();
+        }
+
+        public static boolean isPresent(Declaration declaration) {
+            return declaration.getAttribute(JavaName.class).isPresent();
+        }
+    }
+
+    /**
+     * An attribute to attach a list of Java parameter names to a C function type.
+     */
+    record JavaParameterNames(List<String> parameterNames) {
+        public static void with(Type.Function function, List<String> parameterNames) {
+            function.addAttribute(new JavaParameterNames(parameterNames));
+        }
+
+        public static Optional<List<String>> get(Type.Function function) {
+            return function.getAttribute(JavaParameterNames.class)
+                    .map(JavaParameterNames::parameterNames);
+        }
+    }
+
+    /**
+     * An attribute to attach a Java functional interface name to a C declaration.
+     */
+    record JavaFunctionalInterfaceName(String fiName) {
+        public static void with(Declaration declaration, String fiName) {
+            declaration.addAttribute(new JavaFunctionalInterfaceName(fiName));
+        }
+
+        public static String getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(JavaFunctionalInterfaceName.class)
+                    .map(JavaFunctionalInterfaceName::fiName).get();
+        }
+    }
 }

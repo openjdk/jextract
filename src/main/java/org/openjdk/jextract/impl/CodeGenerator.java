@@ -35,13 +35,12 @@ public final class CodeGenerator {
     public static JavaFileObject[] generate(Declaration.Scoped decl, String headerName,
                     String targetPkg, IncludeHelper includeHelper,
                     List<String> libNames) {
-        var nameMangler = new NameMangler(headerName);
         var transformedDecl = Stream.of(decl).
-            map(new IncludeFilter(includeHelper)::transform).
+            map(new IncludeFilter(includeHelper)::process).
             map(new EnumConstantLifter()::transform).
             map(new DuplicateFilter()::transform).
-            map(nameMangler::scan).
+            map(new NameMangler(headerName)::scan).
             findFirst().get();
-        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libNames, nameMangler);
+        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libNames);
     }
 }

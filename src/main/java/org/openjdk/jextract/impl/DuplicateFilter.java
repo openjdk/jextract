@@ -25,6 +25,8 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.impl.DeclarationImpl.Skip;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,13 +35,12 @@ import java.util.Set;
 /*
  * This visitor filters duplicate top-level variables, constants and functions.
  */
-final class DuplicateFilter implements TreeTransformer, Declaration.Visitor<Void, Void> {
+final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     // To detect duplicate Variable and Function declarations.
     private final Set<String> constants = new HashSet<>();
     private final Set<String> variables = new HashSet<>();
     private final Set<Declaration.Typedef> typedefs = new HashSet<>();
     private final Set<Declaration.Function> functions = new HashSet<>();
-    private final List<Declaration> decls = new ArrayList<>();
 
     // have we seen this Constant earlier?
     private boolean constantSeen(Declaration.Constant tree) {
@@ -64,23 +65,20 @@ final class DuplicateFilter implements TreeTransformer, Declaration.Visitor<Void
     DuplicateFilter() {
     }
 
-    @Override
     public Declaration.Scoped transform(Declaration.Scoped header) {
         // Process all header declarations are collect potential
         // declarations that will go into transformed HeaderTree
         // into the this.decls field.
         header.members().forEach(fieldTree -> fieldTree.accept(this, null));
-        return createHeader(header, decls);
+        return header;
     }
 
     @Override
     public Void visitConstant(Declaration.Constant constant, Void ignored) {
         if (constantSeen(constant)) {
             //skip
-            return null;
+            Skip.with(constant);
         }
-
-        decls.add(constant);
         return null;
     }
 
@@ -88,10 +86,8 @@ final class DuplicateFilter implements TreeTransformer, Declaration.Visitor<Void
     public Void visitFunction(Declaration.Function funcTree, Void ignored) {
         if (functionSeen(funcTree)) {
             //skip
-            return null;
+            Skip.with(funcTree);
         }
-
-        decls.add(funcTree);
         return null;
     }
 
@@ -99,10 +95,8 @@ final class DuplicateFilter implements TreeTransformer, Declaration.Visitor<Void
     public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
         if (typedefSeen(tree)) {
             //skip
-            return null;
+            Skip.with(tree);
         }
-
-        decls.add(tree);
         return null;
     }
 
@@ -110,16 +104,13 @@ final class DuplicateFilter implements TreeTransformer, Declaration.Visitor<Void
     public Void visitVariable(Declaration.Variable tree, Void ignored) {
         if (variableSeen(tree)) {
             //skip
-            return null;
+            Skip.with(tree);
         }
-
-        decls.add(tree);
         return null;
     }
 
     @Override
     public Void visitDeclaration(Declaration decl, Void ignored) {
-        decls.add(decl);
         return null;
     }
 }

@@ -25,10 +25,8 @@
  */
 package org.openjdk.jextract.impl;
 
-import java.lang.constant.Constable;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +37,7 @@ import java.util.stream.Collectors;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
+import org.openjdk.jextract.Declaration.Scoped;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.clang.Cursor;
@@ -56,6 +55,8 @@ class TreeMaker {
     public void freeze() {
         typeMaker.resolveTypeReferences();
     }
+
+    Map<Position, Declaration> declarationCache = new HashMap<>();
 
     Declaration addAttributes(Declaration d, Cursor c) {
         if (d == null) return null;
@@ -103,18 +104,25 @@ class TreeMaker {
     }
 
     private Declaration createTreeInternal(Cursor c) {
-        return switch (c.kind()) {
-            case EnumDecl -> createEnum(c);
-            case EnumConstantDecl -> createEnumConstant(c);
-            case FieldDecl -> createVar(c, Declaration.Variable.Kind.FIELD);
-            case ParmDecl -> createVar(c, Declaration.Variable.Kind.PARAMETER);
-            case FunctionDecl -> createFunction(c);
-            case StructDecl -> createRecord(c, Declaration.Scoped.Kind.STRUCT);
-            case UnionDecl -> createRecord(c, Declaration.Scoped.Kind.UNION);
-            case TypedefDecl -> createTypedef(c);
-            case VarDecl -> createVar(c, Declaration.Variable.Kind.GLOBAL);
-            default -> null; // skip
-        };
+        Position pos = CursorPosition.of(c);
+        // dedup multiple declarations that point to the same source location
+        Declaration decl = declarationCache.get(pos);
+        if (decl == null) {
+            decl = switch (c.kind()) {
+                case EnumDecl -> createEnum(c);
+                case EnumConstantDecl -> createEnumConstant(c);
+                case FieldDecl -> createVar(c, Declaration.Variable.Kind.FIELD);
+                case ParmDecl -> createVar(c, Declaration.Variable.Kind.PARAMETER);
+                case FunctionDecl -> createFunction(c);
+                case StructDecl -> createRecord(c, Declaration.Scoped.Kind.STRUCT);
+                case UnionDecl -> createRecord(c, Declaration.Scoped.Kind.UNION);
+                case TypedefDecl -> createTypedef(c);
+                case VarDecl -> createVar(c, Declaration.Variable.Kind.GLOBAL);
+                default -> null; // skip
+            };
+            declarationCache.put(pos, decl);
+        }
+        return decl;
     }
 
     static class CursorPosition implements Position {
@@ -254,7 +262,7 @@ class TreeMaker {
     }
 
     private static boolean isAnonymousStruct(Declaration declaration) {
-        return declaration.getAttribute(AnonymousStruct.class).isPresent();
+        return declaration instanceof Scoped scoped && AnonymousStruct.isPresent(scoped);
     }
 
     private List<Declaration> filterNestedDeclarations(List<Declaration> declarations) {
