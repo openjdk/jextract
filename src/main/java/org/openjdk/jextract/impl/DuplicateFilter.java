@@ -25,25 +25,22 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
-import org.openjdk.jextract.Declaration.Scoped;
-import org.openjdk.jextract.Declaration.Visitor;
-import org.openjdk.jextract.Type.Declared;
-import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /*
  * This visitor filters duplicate top-level variables, constants and functions.
  */
-final class DuplicateFilter implements Declaration.Visitor<Void, Declaration> {
+final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     // To detect duplicate Variable and Function declarations.
     private final Set<String> constants = new HashSet<>();
     private final Set<String> variables = new HashSet<>();
     private final Set<Declaration.Typedef> typedefs = new HashSet<>();
     private final Set<Declaration.Function> functions = new HashSet<>();
-    private final Set<Declaration.Scoped> records = new HashSet<>();
 
     // have we seen this Constant earlier?
     private boolean constantSeen(Declaration.Constant tree) {
@@ -65,11 +62,6 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Declaration> {
         return !typedefs.add(tree);
     }
 
-    // have we seen this record earlier?
-    private boolean recordSeen(Declaration.Scoped tree) {
-        return !AnonymousStruct.isPresent(tree) && !records.add(tree);
-    }
-
     DuplicateFilter() {
     }
 
@@ -82,7 +74,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Declaration> {
     }
 
     @Override
-    public Void visitConstant(Declaration.Constant constant, Declaration parent) {
+    public Void visitConstant(Declaration.Constant constant, Void ignored) {
         if (constantSeen(constant)) {
             //skip
             Skip.with(constant);
@@ -91,7 +83,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Declaration> {
     }
 
     @Override
-    public Void visitFunction(Declaration.Function funcTree, Declaration parent) {
+    public Void visitFunction(Declaration.Function funcTree, Void ignored) {
         if (functionSeen(funcTree)) {
             //skip
             Skip.with(funcTree);
@@ -100,7 +92,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Declaration> {
     }
 
     @Override
-    public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
+    public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
         if (typedefSeen(tree)) {
             //skip
             Skip.with(tree);
@@ -109,29 +101,16 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Declaration> {
     }
 
     @Override
-    public Void visitVariable(Declaration.Variable tree, Declaration parent) {
-        if (parent == null && variableSeen(tree)) {
-            //skip global
+    public Void visitVariable(Declaration.Variable tree, Void ignored) {
+        if (variableSeen(tree)) {
+            //skip
             Skip.with(tree);
         }
         return null;
     }
 
     @Override
-    public Void visitScoped(Scoped scoped, Declaration parent) {
-        if (recordSeen(scoped)) {
-            //skip
-            Skip.with(scoped);
-        }
-        // propagate
-        scoped.members().forEach(member -> {
-            member.accept(this, scoped);
-        });
-        return null;
-    }
-
-    @Override
-    public Void visitDeclaration(Declaration decl, Declaration ignored) {
+    public Void visitDeclaration(Declaration decl, Void ignored) {
         return null;
     }
 }

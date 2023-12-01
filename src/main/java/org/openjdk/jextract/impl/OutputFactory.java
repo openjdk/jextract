@@ -156,11 +156,9 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         return null;
     }
 
-    private boolean generateFunctionalInterface(String name, Type.Function func) {
-        if (Skip.isPresent(func)) return false;
+    private void generateFunctionalInterface(String name, Type.Function func) {
         FunctionDescriptor descriptor = Type.descriptorFor(func).get();
         currentBuilder.addFunctionalInterface(name, func, descriptor);
-        return true;
     }
 
     @Override
@@ -173,18 +171,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
-                if (! generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(param), f)) {
-                    return null;
-                }
+                generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(param), f);
             }
         }
 
         // return type could be a function pointer type
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
         if (returnFunc != null) {
-             if (! generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(funcTree), returnFunc)) {
-                 return null;
-             }
+             generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(funcTree), returnFunc);
         }
 
         FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).get();

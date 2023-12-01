@@ -51,7 +51,7 @@ import java.lang.foreign.ValueLayout;
  */
 public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration> {
     static String firstUnsupportedType(Type type) {
-        return type.accept(unsupportedVisitor, null);
+        return type.accept(UNSUPPORTED_VISITOR, null);
     }
 
     public Declaration.Scoped scan(Declaration.Scoped header) {
@@ -77,14 +77,14 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         // check function pointers in parameters and return types
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
-            if (f != null) {
-                checkFunctionType(param, f);
+            if (f != null && !checkFunctionTypeSupported(param, f)) {
+                Skip.with(funcTree);
             }
         }
 
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
-        if (returnFunc != null) {
-            checkFunctionType(funcTree, returnFunc);
+        if (returnFunc != null && !checkFunctionTypeSupported(funcTree, returnFunc)) {
+            Skip.with(funcTree);
         }
         return null;
     }
@@ -115,7 +115,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         // check
         Type.Function func = Utils.getAsFunctionPointer(varTree.type());
         if (func != null) {
-            checkFunctionType(varTree, func);
+            checkFunctionTypeSupported(varTree, func);
         }
         return null;
     }
@@ -136,8 +136,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     @Override
     public Void visitTypedef(Typedef typedefTree, Declaration declaration) {
         Type.Function func = Utils.getAsFunctionPointer(typedefTree.type());
-        if (func != null) {
-            checkFunctionType(typedefTree, func);
+        if (func != null && !checkFunctionTypeSupported(typedefTree, func)) {
+            Skip.with(typedefTree);
         }
         // propagate
         if (typedefTree.type() instanceof Declared declared) {
@@ -156,27 +156,28 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         return null;
     }
 
-    private void checkFunctionType(Declaration decl, Type.Function func) {
+    private boolean checkFunctionTypeSupported(Declaration decl, Type.Function func) {
         String unsupportedType = firstUnsupportedType(func);
         if (unsupportedType != null) {
             warn("skipping " + JavaName.getOrThrow(decl) + " because of unsupported type usage: " +
                     unsupportedType);
-            Skip.with(func);
+            return false;
         } else {
             FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
             if (descriptor == null) {
-                Skip.with(func);
+                return false;
             }
 
             //generate functional interface
             if (func.varargs() && !func.argumentTypes().isEmpty()) {
                 warn("varargs in callbacks is not supported: " + CDeclarationPrinter.declaration(func, JavaName.getOrThrow(decl)));
-                Skip.with(func);
+                return false;
             }
         }
+        return true;
     }
 
-    static Type.Visitor<String, Void> unsupportedVisitor = new Type.Visitor<>() {
+    private static final Type.Visitor<String, Void> UNSUPPORTED_VISITOR = new Type.Visitor<>() {
         @Override
         public String visitPrimitive(Type.Primitive t, Void unused) {
             if (Skip.isPresent(t)) {
@@ -237,7 +238,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         }
     };
 
-    static void warn(String msg) {
+    private static void warn(String msg) {
         System.err.println("WARNING: " + msg);
     }
 }
