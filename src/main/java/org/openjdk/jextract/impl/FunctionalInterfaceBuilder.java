@@ -75,7 +75,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             MethodHandle UP$MH = RuntimeHelper.upcallHandle(\{className()}.class, \"apply\", $DESC);
 
             static MemorySegment allocate(\{className()} fi, Arena scope) {
-                return RuntimeHelper.upcallStub(UP$MH, fi, $DESC, scope);
+                return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
             }
             """);
     }

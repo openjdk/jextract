@@ -2,7 +2,6 @@
 
 import java.lang.foreign.Linker;
 import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.GroupLayout;
 import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
@@ -12,12 +11,6 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import java.lang.foreign.AddressLayout;
 import java.lang.foreign.MemoryLayout;
@@ -71,16 +64,7 @@ final class RuntimeHelper {
     static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
         try {
             return MH_LOOKUP.findVirtual(fi, name, fdesc.toMethodType());
-        } catch (Throwable ex) {
-            throw new AssertionError(ex);
-        }
-    }
-
-    static <Z> MemorySegment upcallStub(MethodHandle fiHandle, Z z, FunctionDescriptor fdesc, Arena scope) {
-        try {
-            fiHandle = fiHandle.bindTo(z);
-            return LINKER.upcallStub(fiHandle, fdesc, scope);
-        } catch (Throwable ex) {
+        } catch (ReflectiveOperationException ex) {
             throw new AssertionError(ex);
         }
     }
