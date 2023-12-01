@@ -27,6 +27,9 @@ package org.openjdk.jextract.impl;
 import java.lang.foreign.*;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaParameterNames;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import javax.tools.JavaFileObject;
@@ -86,7 +89,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     static JavaFileObject[] generateWrapped(Declaration.Scoped decl,
                 String pkgName, List<String> libraryNames) {
-        String clsName = NameMangler.getJavaName(decl);
+        String clsName = JavaName.getOrThrow(decl);
         ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName);
         return new OutputFactory(pkgName, toplevelBuilder).
             generate(decl, libraryNames.toArray(new String[0]));
@@ -104,7 +107,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         // check if unresolved typedefs can be resolved now!
         for (Declaration.Typedef td : unresolvedStructTypedefs) {
             Declaration.Scoped structDef = ((Type.Declared) td.type()).tree();
-            toplevelBuilder.addTypedef(td, NameMangler.getJavaName(td), structDefinitionName(structDef));
+            toplevelBuilder.addTypedef(td, JavaName.getOrThrow(td), structDefinitionName(structDef));
         }
         try {
             List<JavaFileObject> files = new ArrayList<>(toplevelBuilder.toFiles());
@@ -161,7 +164,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             warn("skipping " + constant.name() + " because of unsupported type usage");
             return null;
         }
-        toplevelBuilder.addConstant(constant, NameMangler.getJavaName(constant), clazz);
+        toplevelBuilder.addConstant(constant, JavaName.getOrThrow(constant), clazz);
         return null;
     }
 
@@ -186,7 +189,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             currentBuilder = structBuilder = currentBuilder.addStruct(
                 d,
                 isNestedAnonStruct,
-                isNestedAnonStruct? null : NameMangler.getJavaName(d),
+                isNestedAnonStruct? null : JavaName.getOrThrow(d),
                 layout);
             if (!d.name().isEmpty()) {
                 addStructDefinition(d, structBuilder.fullName());
@@ -226,7 +229,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
 
         currentBuilder.addFunctionalInterface(func, javaName, descriptor,
-            NameMangler.getParameterNames(func));
+            JavaParameterNames.get(func));
         return true;
     }
 
@@ -253,7 +256,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
-                String fiName = NameMangler.getFiName(param);
+                String fiName = JavaFunctionalInterfaceName.getOrThrow(param);
                 if (! generateFunctionalInterface(f, fiName)) {
                     return null;
                 }
@@ -264,15 +267,15 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         // return type could be a function pointer type
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
         if (returnFunc != null) {
-             if (! generateFunctionalInterface(returnFunc, NameMangler.getFiName(funcTree))) {
+             if (! generateFunctionalInterface(returnFunc, JavaFunctionalInterfaceName.getOrThrow(funcTree))) {
                  return null;
              }
         }
 
-        toplevelBuilder.addFunction(funcTree, descriptor, NameMangler.getJavaName(funcTree),
+        toplevelBuilder.addFunction(funcTree, descriptor, JavaName.getOrThrow(funcTree),
             funcTree.parameters().
                 stream().
-                map(NameMangler::getJavaName).
+                map(JavaName::getOrThrow).
                 toList());
 
         return null;
@@ -314,7 +317,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                              * };
                              */
                             if (structDefinitionSeen(s)) {
-                                String javaName = NameMangler.getJavaName(tree);
+                                String javaName = JavaName.getOrThrow(tree);
                                 toplevelBuilder.addTypedef(tree, javaName, structDefinitionName(s));
                             } else {
                                 /*
@@ -329,21 +332,21 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                 }
             }
         } else if (type instanceof Type.Primitive) {
-            toplevelBuilder.addTypedef(tree, NameMangler.getJavaName(tree), null);
+            toplevelBuilder.addTypedef(tree, JavaName.getOrThrow(tree), null);
         } else {
             Type.Function func = Utils.getAsFunctionPointer(type);
             if (func != null) {
-                String fiName = NameMangler.getFiName(tree);
+                String fiName = JavaFunctionalInterfaceName.getOrThrow(tree);
                 boolean funcIntfGen = generateFunctionalInterface(func, fiName);
                 if (funcIntfGen) {
                     addFunctionTypedef(Type.typedef(tree.name(), tree.type()), fiName);
                 }
             } else if (((TypeImpl)type).isPointer()) {
-                toplevelBuilder.addTypedef(tree, NameMangler.getJavaName(tree), null);
+                toplevelBuilder.addTypedef(tree, JavaName.getOrThrow(tree), null);
             } else {
                 Type.Primitive primitive = Utils.getAsSignedOrUnsigned(type);
                 if (primitive != null) {
-                    toplevelBuilder.addTypedef(tree, NameMangler.getJavaName(tree), null, primitive);
+                    toplevelBuilder.addTypedef(tree, JavaName.getOrThrow(tree), null, primitive);
                 }
             }
         }
@@ -398,7 +401,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         Type.Function func = Utils.getAsFunctionPointer(type);
         String fiName = null;
         if (func != null) {
-            fiName = NameMangler.getFiName(tree);
+            fiName = JavaFunctionalInterfaceName.getOrThrow(tree);
             if (! generateFunctionalInterface(func, fiName)) {
                 fiName = null;
             }
@@ -409,7 +412,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             }
         }
 
-        currentBuilder.addVar(tree, NameMangler.getJavaName(tree), layout, Optional.ofNullable(fiName));
+        currentBuilder.addVar(tree, JavaName.getOrThrow(tree), layout, Optional.ofNullable(fiName));
 
         return null;
     }

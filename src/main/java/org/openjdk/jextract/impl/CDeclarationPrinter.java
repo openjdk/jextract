@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.EnumConstant;
 
 final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
     private static String SPACES = " ".repeat(92);
@@ -142,7 +143,7 @@ final class CDeclarationPrinter implements Declaration.Visitor<Void, Void> {
     @Override
     public Void visitConstant(Declaration.Constant d, Void ignored) {
         indent();
-        Optional<String> enumName = EnumConstantLifter.enumName(d);
+        Optional<String> enumName = EnumConstant.get(d);
         if (enumName.isPresent()) {
             builder.append("enum " + enumName.get() + "." + d.name());
             builder.append(" = ");

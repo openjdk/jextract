@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
+import org.openjdk.jextract.Declaration.Scoped;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.clang.Cursor;
@@ -261,7 +262,7 @@ class TreeMaker {
     }
 
     private static boolean isAnonymousStruct(Declaration declaration) {
-        return declaration.getAttribute(AnonymousStruct.class).isPresent();
+        return declaration instanceof Scoped scoped && AnonymousStruct.is(scoped);
     }
 
     private List<Declaration> filterNestedDeclarations(List<Declaration> declarations) {

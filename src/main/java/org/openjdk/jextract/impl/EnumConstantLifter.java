@@ -25,21 +25,16 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Constant;
 import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.EnumConstant;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
-import java.util.Optional;
-
 /*
  * This visitor lifts enum constants to the top level and removes enum Trees.
  */
 final class EnumConstantLifter implements Declaration.Visitor<Void, Void> {
-
-    static Optional<String> enumName(Declaration.Constant constant) {
-        return constant.getAttribute(EnumConstant.class).map(EnumConstant::enumName);
-    }
 
     public Declaration.Scoped transform(Declaration.Scoped header) {
         // Process all header declarations are collect potential
@@ -55,7 +50,7 @@ final class EnumConstantLifter implements Declaration.Visitor<Void, Void> {
         if (isEnum) {
             // add the name of the enum as an attribute.
             scoped.members().forEach(fieldTree -> {
-                fieldTree.addAttribute(new EnumConstant(scoped.name()));
+                EnumConstant.with((Constant)fieldTree, scoped.name());
                 fieldTree.accept(this, null);
             });
         }
@@ -69,7 +64,7 @@ final class EnumConstantLifter implements Declaration.Visitor<Void, Void> {
             if (declared.tree().kind() == Kind.ENUM) {
                 // no need to do anything for a typedef enum, as the IR always
                 // lifts the enum tree before the typedef.
-                tree.addAttribute(new Skip());
+                Skip.with(tree);
             }
         }
         return null;

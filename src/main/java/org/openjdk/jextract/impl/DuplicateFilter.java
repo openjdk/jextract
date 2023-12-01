@@ -78,7 +78,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     public Void visitConstant(Declaration.Constant constant, Void ignored) {
         if (constantSeen(constant)) {
             //skip
-            constant.addAttribute(new Skip());
+            Skip.with(constant);
         }
 
         decls.add(constant);
@@ -89,7 +89,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     public Void visitFunction(Declaration.Function funcTree, Void ignored) {
         if (functionSeen(funcTree)) {
             //skip
-            funcTree.addAttribute(new Skip());
+            Skip.with(funcTree);
         }
 
         decls.add(funcTree);
@@ -100,7 +100,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
         if (typedefSeen(tree)) {
             //skip
-            tree.addAttribute(new Skip());
+            Skip.with(tree);
         }
 
         decls.add(tree);
@@ -111,7 +111,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     public Void visitVariable(Declaration.Variable tree, Void ignored) {
         if (variableSeen(tree)) {
             //skip
-            tree.addAttribute(new Skip());
+            Skip.with(tree);
         }
 
         decls.add(tree);

@@ -49,7 +49,7 @@ final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
     public Void visitConstant(Declaration.Constant constant, Declaration parent) {
         if (!includeHelper.isIncluded(constant)) {
             //skip
-            constant.addAttribute(new Skip());
+            Skip.with(constant);
         }
         return null;
     }
@@ -58,7 +58,7 @@ final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
     public Void visitFunction(Declaration.Function funcTree, Declaration parent) {
         if (!includeHelper.isIncluded(funcTree)) {
             //skip
-            funcTree.addAttribute(new Skip());
+            Skip.with(funcTree);
         }
         return null;
     }
@@ -70,7 +70,7 @@ final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
             String name = d.name();
             if (!name.isEmpty() && !includeHelper.isIncluded(d)) {
                 //skip
-                d.addAttribute(new Skip());
+                Skip.with(d);
             }
         }
 
@@ -82,7 +82,7 @@ final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
     public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
         if (!includeHelper.isIncluded(tree)) {
             //skip
-            tree.addAttribute(new Skip());
+            Skip.with(tree);
         }
         return null;
     }
@@ -91,7 +91,7 @@ final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
     public Void visitVariable(Declaration.Variable tree, Declaration parent) {
         if (parent == null && !includeHelper.isIncluded(tree)) {
             //skip
-            tree.addAttribute(new Skip());
+            Skip.with(tree);
         }
         return null;
     }
