@@ -24,12 +24,15 @@
  */
 package org.openjdk.jextract.impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 
@@ -39,11 +42,16 @@ import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -158,9 +166,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 class Holder {
                     static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
 
-                    static final MethodHandle MH = RuntimeHelper.downcallHandle(\"\{nativeName}\", DESC);
+                    static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                            RuntimeHelper.findOrThrow("\{nativeName}"),
+                            DESC);
                 }
-                return RuntimeHelper.requireNonNull(Holder.MH, \"\{javaName}\");
+                return Holder.MH;
             }
 
             public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
@@ -186,7 +196,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendLines(STR."""
                 public static \{invokerName} \{invokerFactoryName}(MemoryLayout... layouts) {
                     FunctionDescriptor baseDesc$ = \{descriptorString(2, descriptor)};
-                    var mh$ = RuntimeHelper.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
+                    var mh$ = Linker.nativeLinker().downcallHandle(
+                            RuntimeHelper.findOrThrow("\{nativeName}"),
+                            baseDesc$.appendArgumentLayouts(layouts),
+                            Linker.Option.firstVariadicArg(baseDesc$.argumentLayouts().size())
+                        ).asSpreader(Object[].class, layouts.length);
                     return (\{paramExprs}) -> {
                         try {
                             \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
@@ -238,6 +252,18 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitPrimitiveTypedefLayout(name, TypeImpl.PointerImpl.POINTER_LAYOUT, typedefTree);
     }
 
+    void emitLoadLibrary(List<String> libraries) {
+        incrAlign();
+        appendLines("static {");
+        for (String lib : libraries) {
+            String quotedLibName = lib.replace("\\", "\\\\"); // double up slashes
+            String method = quotedLibName.indexOf(File.separatorChar) != -1 ? "load" : "loadLibrary";
+            appendIndentedLines(STR."System.\{method}(\"\{quotedLibName}\");");
+        }
+        appendLines("}");
+        decrAlign();
+    }
+
     private boolean primitiveKindSupported(Type.Primitive.Kind kind) {
         return switch(kind) {
             case Bool, Short, Int, Long, LongLong, Float, Double, Char -> true;
@@ -273,7 +299,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         String mangledName = mangleName(javaName, MemorySegment.class);
         incrAlign();
         appendLines(STR."""
-            private static final MemorySegment \{mangledName} = RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layout});
+            private static final MemorySegment \{mangledName} = RuntimeHelper.SYMBOL_LOOKUP.find("\{nativeName}")
+                .map(s -> s.reinterpret(\{layout}.byteSize()))
+                .orElse(null);
 
             """);
         if (declaration != null) {

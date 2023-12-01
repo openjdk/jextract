@@ -29,17 +29,14 @@ import static java.lang.Long.MAX_VALUE;
 final class RuntimeHelper {
 
     private static final Linker LINKER = Linker.nativeLinker();
-    private static final ClassLoader LOADER = RuntimeHelper.class.getClassLoader();
     private static final MethodHandles.Lookup MH_LOOKUP = MethodHandles.lookup();
-    private static final SymbolLookup SYMBOL_LOOKUP;
-    private static final SegmentAllocator THROWING_ALLOCATOR = (x, y) -> { throw new AssertionError("should not reach here"); };
+    static final SymbolLookup SYMBOL_LOOKUP;
     static final AddressLayout POINTER = ValueLayout.ADDRESS.withTargetLayout(MemoryLayout.sequenceLayout(MAX_VALUE, JAVA_BYTE));
 
     final static SegmentAllocator CONSTANT_ALLOCATOR =
             (size, align) -> Arena.ofAuto().allocate(size, align);
 
     static {
-        #LOAD_LIBRARIES#
         SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
         SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> LINKER.defaultLookup().find(name));
     }
@@ -47,36 +44,20 @@ final class RuntimeHelper {
     // Suppresses default constructor, ensuring non-instantiability.
     private RuntimeHelper() {}
 
+    static UnsatisfiedLinkError newUnsatisfiedLinkError(String symbolName) {
+        return new UnsatisfiedLinkError("unresolved symbol: " + symbolName);
+    }
+
+    static MemorySegment findOrThrow(String symbol) {
+        return SYMBOL_LOOKUP.find(symbol)
+            .orElseThrow(() -> RuntimeHelper.newUnsatisfiedLinkError(symbol));
+    }
+
     static <T> T requireNonNull(T obj, String symbolName) {
         if (obj == null) {
-            throw new UnsatisfiedLinkError("unresolved symbol: " + symbolName);
+            throw newUnsatisfiedLinkError(symbolName);
         }
         return obj;
-    }
-
-    static MemorySegment lookupGlobalVariable(String name, MemoryLayout layout) {
-        return SYMBOL_LOOKUP.find(name)
-                .map(s -> s.reinterpret(layout.byteSize()))
-                .orElse(null);
-    }
-
-    static MethodHandle downcallHandle(String name, FunctionDescriptor fdesc) {
-        return SYMBOL_LOOKUP.find(name).
-                map(addr -> LINKER.downcallHandle(addr, fdesc)).
-                orElse(null);
-    }
-
-    static MethodHandle downcallHandle(FunctionDescriptor fdesc) {
-        return LINKER.downcallHandle(fdesc);
-    }
-
-    static MethodHandle downcallHandleVariadic(String name, FunctionDescriptor baseDesc, MemoryLayout[] variadicLayouts) {
-        FunctionDescriptor variadicDesc = baseDesc.appendArgumentLayouts(variadicLayouts);
-        Linker.Option fva = Linker.Option.firstVariadicArg(baseDesc.argumentLayouts().size());
-        return SYMBOL_LOOKUP.find(name)
-                .map(addr -> LINKER.downcallHandle(addr, variadicDesc, fva)
-                        .asSpreader(Object[].class, variadicLayouts.length))
-                .orElse(null);
     }
 
     static MemoryLayout[] inferVariadicLayouts(Object[] varargs) {
@@ -102,10 +83,6 @@ final class RuntimeHelper {
         } catch (Throwable ex) {
             throw new AssertionError(ex);
         }
-    }
-
-    static MemorySegment asArray(MemorySegment addr, MemoryLayout layout, int numElements, Arena arena) {
-         return addr.reinterpret(numElements * layout.byteSize(), arena, null);
     }
 
     // Internals only below this point

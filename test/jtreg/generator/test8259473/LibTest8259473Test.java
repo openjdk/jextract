@@ -48,55 +48,27 @@ import static test.jextract.test8259473.test8259473_h.*;
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8259473Test
  */
 public class LibTest8259473Test {
+
+    static void assertThrowsULE(Runnable action, String symbol) {
+        try {
+            action.run();
+            throw new AssertionError("should not reach here");
+        } catch (Throwable t) {
+            while (t.getCause() != null) {
+                t = t.getCause();
+            }
+            assertTrue(t.getMessage().contains("unresolved symbol: " + symbol));
+        }
+    }
+
     @Test
     public void nullChecksTest() {
-        try {
-            func();
-            throw new AssertionError("should not reach here");
-        } catch (UnsatisfiedLinkError ule) {
-            assertTrue(ule.getMessage().contains("unresolved symbol: func"));
-        }
-
-        try {
-            func$MH();
-            throw new AssertionError("should not reach here");
-        } catch (UnsatisfiedLinkError ule) {
-            assertTrue(ule.getMessage().contains("unresolved symbol: func"));
-        }
-
-        try {
-            x$get();
-            throw new AssertionError("should not reach here");
-        } catch (UnsatisfiedLinkError ule) {
-            assertTrue(ule.getMessage().contains("unresolved symbol: x"));
-        }
-
-        try {
-            x$set(1);
-            throw new AssertionError("should not reach here");
-        } catch (UnsatisfiedLinkError ule) {
-            assertTrue(ule.getMessage().contains("unresolved symbol: x"));
-        }
-
-        try {
-            x$SEGMENT();
-            throw new AssertionError("should not reach here");
-        } catch (UnsatisfiedLinkError ule) {
-            assertTrue(ule.getMessage().contains("unresolved symbol: x"));
-        }
-
-        try {
-            y$SEGMENT();
-            throw new AssertionError("should not reach here");
-        } catch (UnsatisfiedLinkError ule) {
-            assertTrue(ule.getMessage().contains("unresolved symbol: y"));
-        }
-
-        try {
-            pt$SEGMENT();
-            throw new AssertionError("should not reach here");
-        } catch (UnsatisfiedLinkError ule) {
-            assertTrue(ule.getMessage().contains("unresolved symbol: pt"));
-        }
+        assertThrowsULE(() -> func(), "func");
+        assertThrowsULE(() -> func$MH(), "func");
+        assertThrowsULE(() -> x$get(), "x");
+        assertThrowsULE(() -> x$set(1), "x");
+        assertThrowsULE(() -> x$SEGMENT(), "x");
+        assertThrowsULE(() -> y$SEGMENT(), "y");
+        assertThrowsULE(() -> pt$SEGMENT(), "pt");
     }
 }

@@ -54,15 +54,16 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private int headersCount;
     private final ClassDesc headerDesc;
 
-    ToplevelBuilder(String packageName, String headerClassName) {
+    ToplevelBuilder(String packageName, String headerClassName, List<String> libraries) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
-        lastHeader = firstHeader = createFirstHeader(sfb);
+        lastHeader = firstHeader = createFirstHeader(sfb, libraries);
     }
 
-    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb) {
+    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<String> libraries) {
         HeaderFileBuilder first = new HeaderFileBuilder(sfb, sfb.className(), "#{SUPER}");
         first.classBegin();
+        first.emitLoadLibrary(libraries);
         // emit basic primitive types
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Bool), "C_BOOL");
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Char), "C_CHAR");

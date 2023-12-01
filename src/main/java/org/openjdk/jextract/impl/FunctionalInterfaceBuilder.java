@@ -82,7 +82,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalFactoryForPointer() {
         appendIndentedLines(STR."""
-            MethodHandle DOWN$MH = RuntimeHelper.downcallHandle($DESC);
+            MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
             static \{className()} ofAddress(MemorySegment addr, Arena arena) {
                 MemorySegment symbol = addr.reinterpret(arena, null);

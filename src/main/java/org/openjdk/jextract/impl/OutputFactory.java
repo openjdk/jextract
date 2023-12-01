@@ -89,9 +89,9 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     static JavaFileObject[] generateWrapped(Declaration.Scoped decl,
                 String pkgName, List<String> libraryNames) {
         String clsName = JavaName.getOrThrow(decl);
-        ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName);
+        ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName, libraryNames);
         return new OutputFactory(pkgName, toplevelBuilder).
-            generate(decl, libraryNames.toArray(new String[0]));
+            generate(decl);
     }
 
     private OutputFactory(String pkgName, ToplevelBuilder toplevelBuilder) {
@@ -100,7 +100,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         this.currentBuilder = toplevelBuilder;
     }
 
-    JavaFileObject[] generate(Declaration.Scoped decl, String[] libs) {
+    JavaFileObject[] generate(Declaration.Scoped decl) {
         //generate all decls
         decl.members().forEach(this::generateDecl);
         // check if unresolved typedefs can be resolved now!
@@ -110,7 +110,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
         try {
             List<JavaFileObject> files = new ArrayList<>(toplevelBuilder.toFiles());
-            files.add(jfoFromString(pkgName,"RuntimeHelper", getRuntimeHelperSource(libs)));
+            files.add(jfoFromString(pkgName, "RuntimeHelper", getRuntimeHelperSource()));
             return files.toArray(new JavaFileObject[0]);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
@@ -119,24 +119,10 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
     }
 
-    private String getRuntimeHelperSource(String[] libraries) throws URISyntaxException, IOException {
+    private String getRuntimeHelperSource() throws URISyntaxException, IOException {
         URL runtimeHelper = OutputFactory.class.getResource("resources/RuntimeHelper.java.template");
-        String template = (pkgName.isEmpty()? "" : "package " + pkgName + ";\n") +
+        return (pkgName.isEmpty()? "" : "package " + pkgName + ";\n") +
                         String.join("\n", Files.readAllLines(Paths.get(runtimeHelper.toURI())));
-        List<String> loadLibrariesStr = new ArrayList<>();
-        for (String lib : libraries) {
-            String quotedLibName = quoteLibraryName(lib);
-            if (quotedLibName.indexOf(File.separatorChar) != -1) {
-                loadLibrariesStr.add("System.load(\"" + quotedLibName + "\");");
-            } else {
-                loadLibrariesStr.add("System.loadLibrary(\"" + quotedLibName + "\");");
-            }
-        }
-        return template.replace("#LOAD_LIBRARIES#", loadLibrariesStr.stream().collect(Collectors.joining(" ")));
-    }
-
-    private String quoteLibraryName(String lib) {
-        return lib.replace("\\", "\\\\"); // double up slashes
     }
 
     private void generateDecl(Declaration tree) {

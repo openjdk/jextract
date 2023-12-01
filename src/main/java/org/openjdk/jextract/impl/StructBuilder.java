@@ -245,7 +245,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private void emitOfAddressScoped() {
         appendIndentedLines("""
             public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
-                return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope);
+                return addr.reinterpret($LAYOUT().byteSize(), scope, null);
             }
             """);
     }
