@@ -188,6 +188,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     return (\{paramExprs}) -> {
                         try {
                             \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
+                        } catch(IllegalArgumentException ex$)  {
+                            throw ex$; // rethrow IAE from passing wrong number/type of args
                         } catch (Throwable ex$) {
                            throw new AssertionError("should not reach here", ex$);
                         }
@@ -236,7 +238,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private boolean primitiveKindSupported(Type.Primitive.Kind kind) {
         return switch(kind) {
-            case Short, Int, Long, LongLong, Float, Double, Char -> true;
+            case Bool, Short, Int, Long, LongLong, Float, Double, Char -> true;
             default -> false;
         };
     }

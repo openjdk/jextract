@@ -71,6 +71,22 @@ public class TestPrintf {
         }
     }
 
+    @Test(dataProvider = "wrongArgsCases", expectedExceptions = IllegalArgumentException.class)
+    public void testsPrintfInvokerWrongArgs(String fmt, MemoryLayout[] layouts, Object[] args) {
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment s = arena.allocate(1024);
+            my_sprintf$makeInvoker(layouts)
+                .my_sprintf(s, arena.allocateFrom(fmt), args.length, args); // should throw
+        }
+    }
+
+    // linker does not except unpromoted layouts
+    @Test(dataProvider = "illegalLinkCases", expectedExceptions = IllegalArgumentException.class)
+    public void testsPrintfInvokerWrongArgs(MemoryLayout[] layouts) {
+        my_sprintf$makeInvoker(layouts); // should throw
+    }
+
+    // data providers:
     @DataProvider
     public Object[][] cases() {
         return new Object[][]{
@@ -81,6 +97,27 @@ public class TestPrintf {
                 new MemoryLayout[] { C_INT, C_INT, C_DOUBLE, C_DOUBLE, C_LONG_LONG, C_LONG_LONG, C_INT, C_INT,
                         C_INT, C_INT, C_LONG_LONG, C_INT }
             }
+        };
+    }
+
+    @DataProvider
+    public Object[][] wrongArgsCases() {
+        return new Object[][] {
+            {
+                "%d", new MemoryLayout[] {C_INT}, new Object[0], // too few args
+                "%d", new MemoryLayout[] {C_INT}, new Object[] { 1, 2 }, // too many args
+                "%.2f", new MemoryLayout[] {C_DOUBLE}, new Object[] { 1 }, // wrong type
+            }
+        };
+    }
+
+    @DataProvider
+    public static Object[][] illegalLinkCases() {
+        return new Object[][]{
+                {new MemoryLayout[]{ C_CHAR }},
+                {new MemoryLayout[]{ C_SHORT }},
+                {new MemoryLayout[]{ C_BOOL }},
+                {new MemoryLayout[]{ C_FLOAT }}
         };
     }
 }
