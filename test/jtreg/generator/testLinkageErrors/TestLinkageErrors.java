@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,33 +21,31 @@
  * questions.
  */
 
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySegment;
 import org.testng.annotations.Test;
-import test.jextract.test8259473.*;
+import test.jextract.testLinkageErrors.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
-import static test.jextract.test8259473.test8259473_h.*;
+import static test.jextract.testLinkageErrors.testLinkageErrors_h.*;
 
 /*
  * @test id=classes
  * @bug 8259473
  * @summary jextract generated code should throw exception for unfound native symbols from calls, variable access, set immediately
  * @library /lib
- * @run main/othervm JtregJextract -t test.jextract.test8259473 test8259473.h
- * @build LibTest8259473Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8259473Test
+ * @run main/othervm JtregJextract -t test.jextract.testLinkageErrors testLinkageErrors.h
+ * @build TestLinkageErrors
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestLinkageErrors
  */
 /*
  * @test id=sources
  * @bug 8259473
  * @summary jextract generated code should throw exception for unfound native symbols from calls, variable access, set immediately
  * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.test8259473 test8259473.h
- * @build LibTest8259473Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8259473Test
+ * @run main/othervm JtregJextractSources -t test.jextract.testLinkageErrors testLinkageErrors.h
+ * @build TestLinkageErrors
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestLinkageErrors
  */
-public class LibTest8259473Test {
+public class TestLinkageErrors {
 
     static void assertThrowsULE(Runnable action, String symbol) {
         try {
