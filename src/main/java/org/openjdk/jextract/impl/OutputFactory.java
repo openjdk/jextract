@@ -29,7 +29,6 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
-import org.openjdk.jextract.impl.DeclarationImpl.JavaParameterNames;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import javax.tools.JavaFileObject;
@@ -75,8 +74,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         return structClassNames.get(decl);
     }
 
-    private void addFunctionTypedef(Type.Delegated typedef, String name) {
-        functionTypeDefNames.put(typedef, name);
+    private void addFunctionTypedef(Declaration declaration, Type.Delegated typedef) {
+        functionTypeDefNames.put(typedef, JavaFunctionalInterfaceName.getOrThrow(declaration));
     }
 
     private boolean functionTypedefSeen(Type.Delegated typedef) {
@@ -107,7 +106,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         // check if unresolved typedefs can be resolved now!
         for (Declaration.Typedef td : unresolvedStructTypedefs) {
             Declaration.Scoped structDef = ((Type.Declared) td.type()).tree();
-            toplevelBuilder.addTypedef(td, JavaName.getOrThrow(td), structDefinitionName(structDef));
+            toplevelBuilder.addTypedef(td, structDefinitionName(structDef));
         }
         try {
             List<JavaFileObject> files = new ArrayList<>(toplevelBuilder.toFiles());
@@ -164,7 +163,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             warn("skipping " + constant.name() + " because of unsupported type usage");
             return null;
         }
-        toplevelBuilder.addConstant(constant, JavaName.getOrThrow(constant), clazz);
+        toplevelBuilder.addConstant(constant, clazz);
         return null;
     }
 
@@ -183,13 +182,9 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         StructBuilder structBuilder = null;
         if (isStructKind) {
             GroupLayout layout = (GroupLayout) layoutFor(d);
-            boolean isNestedAnonStruct = d.name().isEmpty() &&
-                (parent instanceof Declaration.Scoped);
             prevBuilder = currentBuilder;
             currentBuilder = structBuilder = currentBuilder.addStruct(
                 d,
-                isNestedAnonStruct,
-                isNestedAnonStruct? null : JavaName.getOrThrow(d),
                 layout);
             if (!d.name().isEmpty()) {
                 addStructDefinition(d, structBuilder.fullName());
@@ -209,10 +204,10 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         return null;
     }
 
-    private boolean generateFunctionalInterface(Type.Function func, String javaName) {
+    private boolean generateFunctionalInterface(Declaration decl, Type.Function func) {
         String unsupportedType = UnsupportedLayouts.firstUnsupportedType(func);
         if (unsupportedType != null) {
-            warn("skipping " + javaName + " because of unsupported type usage: " +
+            warn("skipping " + JavaName.getOrThrow(decl) + " because of unsupported type usage: " +
                     unsupportedType);
             return false;
         }
@@ -224,12 +219,11 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
         //generate functional interface
         if (func.varargs() && !func.argumentTypes().isEmpty()) {
-            warn("varargs in callbacks is not supported: " + CDeclarationPrinter.declaration(func, javaName));
+            warn("varargs in callbacks is not supported: " + CDeclarationPrinter.declaration(func, JavaName.getOrThrow(decl)));
             return false;
         }
 
-        currentBuilder.addFunctionalInterface(func, javaName, descriptor,
-            JavaParameterNames.get(func));
+        currentBuilder.addFunctionalInterface(decl, func, descriptor);
         return true;
     }
 
@@ -256,8 +250,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
-                String fiName = JavaFunctionalInterfaceName.getOrThrow(param);
-                if (! generateFunctionalInterface(f, fiName)) {
+                if (! generateFunctionalInterface(param, f)) {
                     return null;
                 }
                 i++;
@@ -267,17 +260,12 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         // return type could be a function pointer type
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
         if (returnFunc != null) {
-             if (! generateFunctionalInterface(returnFunc, JavaFunctionalInterfaceName.getOrThrow(funcTree))) {
+             if (! generateFunctionalInterface(funcTree, returnFunc)) {
                  return null;
              }
         }
 
-        toplevelBuilder.addFunction(funcTree, descriptor, JavaName.getOrThrow(funcTree),
-            funcTree.parameters().
-                stream().
-                map(JavaName::getOrThrow).
-                toList());
-
+        toplevelBuilder.addFunction(funcTree, descriptor);
         return null;
     }
 
@@ -317,8 +305,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                              * };
                              */
                             if (structDefinitionSeen(s)) {
-                                String javaName = JavaName.getOrThrow(tree);
-                                toplevelBuilder.addTypedef(tree, javaName, structDefinitionName(s));
+                                toplevelBuilder.addTypedef(tree, structDefinitionName(s));
                             } else {
                                 /*
                                  * Definition of typedef'ed struct/union not seen yet. May be the definition comes later.
@@ -332,21 +319,20 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                 }
             }
         } else if (type instanceof Type.Primitive) {
-            toplevelBuilder.addTypedef(tree, JavaName.getOrThrow(tree), null);
+            toplevelBuilder.addTypedef(tree, null);
         } else {
             Type.Function func = Utils.getAsFunctionPointer(type);
             if (func != null) {
-                String fiName = JavaFunctionalInterfaceName.getOrThrow(tree);
-                boolean funcIntfGen = generateFunctionalInterface(func, fiName);
+                boolean funcIntfGen = generateFunctionalInterface(tree, func);
                 if (funcIntfGen) {
-                    addFunctionTypedef(Type.typedef(tree.name(), tree.type()), fiName);
+                    addFunctionTypedef(tree, Type.typedef(tree.name(), tree.type()));
                 }
             } else if (((TypeImpl)type).isPointer()) {
-                toplevelBuilder.addTypedef(tree, JavaName.getOrThrow(tree), null);
+                toplevelBuilder.addTypedef(tree, null);
             } else {
                 Type.Primitive primitive = Utils.getAsSignedOrUnsigned(type);
                 if (primitive != null) {
-                    toplevelBuilder.addTypedef(tree, JavaName.getOrThrow(tree), null, primitive);
+                    toplevelBuilder.addTypedef(tree, null, primitive);
                 }
             }
         }
@@ -402,7 +388,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         String fiName = null;
         if (func != null) {
             fiName = JavaFunctionalInterfaceName.getOrThrow(tree);
-            if (! generateFunctionalInterface(func, fiName)) {
+            if (! generateFunctionalInterface(tree, func)) {
                 fiName = null;
             }
         } else {
@@ -412,7 +398,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             }
         }
 
-        currentBuilder.addVar(tree, JavaName.getOrThrow(tree), layout, Optional.ofNullable(fiName));
+        currentBuilder.addVar(tree, layout, Optional.ofNullable(fiName));
 
         return null;
     }
@@ -446,36 +432,31 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
     interface Builder {
 
-        default void addVar(Declaration.Variable varTree, String javaName,
-                            MemoryLayout layout, Optional<String> fiName) {
+        default void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
-                                 String javaName, List<String> parameterNames) {
+        default void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
+        default void addConstant(Declaration.Constant constantTree, Class<?> javaType) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addTypedef(Declaration.Typedef typedefTree, String javaName, String superClass) {
-            addTypedef(typedefTree, javaName, superClass, typedefTree.type());
+        default void addTypedef(Declaration.Typedef typedefTree, String superClass) {
+            addTypedef(typedefTree, superClass, typedefTree.type());
         }
 
-        default void addTypedef(Declaration.Typedef typedefTree, String javaName,
-                                String superClass, Type type) {
+        default void addTypedef(Declaration.Typedef typedefTree, String superClass, Type type) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default StructBuilder addStruct(Declaration.Scoped structTree, boolean isNestedAnonStruct,
-                                        String javaName, GroupLayout layout) {
+        default StructBuilder addStruct(Declaration.Scoped structTree, GroupLayout layout) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addFunctionalInterface(Type.Function funcType, String javaName,
-                                    FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+        default void addFunctionalInterface(Declaration declaration, Type.Function funcType, FunctionDescriptor descriptor) {
             throw new UnsupportedOperationException("Not implemented");
         }
     }

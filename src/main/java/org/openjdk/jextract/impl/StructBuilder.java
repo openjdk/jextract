@@ -31,6 +31,10 @@ import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaParameterNames;
 
 import java.lang.invoke.VarHandle;
 import java.util.ArrayDeque;
@@ -113,15 +117,15 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     @Override
-    public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
-                                   String name, GroupLayout layout) {
-        if (isNestedAnonStruct) {
+    public StructBuilder addStruct(Declaration.Scoped tree, GroupLayout layout) {
+        if (AnonymousStruct.isPresent(tree)) {
             //nested anon struct - merge into this builder!
             String anonName = layout.name().orElseThrow();
             pushPrefixElement(anonName);
             return this;
         } else {
-            StructBuilder builder = new StructBuilder(sourceFileBuilder(), "public static final", name, this, tree, layout);
+            StructBuilder builder = new StructBuilder(sourceFileBuilder(), "public static final",
+                    JavaName.getOrThrow(tree), this, tree, layout);
             builder.begin();
             builder.emitPrivateDefaultConstructor();
             return builder;
@@ -129,17 +133,17 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     @Override
-    public void addFunctionalInterface(Type.Function funcType, String javaName,
-                                       FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+    public void addFunctionalInterface(Declaration declaration, Type.Function funcType, FunctionDescriptor descriptor) {
         incrAlign();
-        FunctionalInterfaceBuilder.generate(sourceFileBuilder(), javaName, this, funcType, descriptor, parameterNames);
+        FunctionalInterfaceBuilder.generate(sourceFileBuilder(), JavaFunctionalInterfaceName.getOrThrow(declaration),
+                this, funcType, descriptor, JavaParameterNames.get(funcType));
         decrAlign();
     }
 
     @Override
-    public void addVar(Declaration.Variable varTree, String javaName,
-        MemoryLayout layout, Optional<String> fiName) {
+    public void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
         String nativeName = varTree.name();
+        String javaName = JavaName.getOrThrow(varTree);
         try {
             structLayout.byteOffset(elementPaths(nativeName));
         } catch (UnsupportedOperationException uoe) {

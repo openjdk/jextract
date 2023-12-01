@@ -35,6 +35,7 @@ import java.lang.invoke.MethodHandle;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
@@ -57,9 +58,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         super(builder, "public", Kind.CLASS, className, superName, null);
     }
 
-    public void addVar(Declaration.Variable varTree, String javaName,
-        MemoryLayout layout, Optional<String> fiName) {
+    public void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
         String nativeName = varTree.name();
+        String javaName = JavaName.getOrThrow(varTree);
         String layoutVar = emitVarLayout(layout, javaName);
         if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
             if (layout.byteSize() > 0) {
@@ -77,18 +78,21 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
     }
 
-    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
-            String javaName, List<String> parameterNames) {
+    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor) {
         String nativeName = funcTree.name();
         boolean isVarargs = funcTree.type().varargs();
         boolean needsAllocator = descriptor.returnLayout().isPresent() &&
                 descriptor.returnLayout().get() instanceof GroupLayout;
-        emitFunctionWrapper(javaName, nativeName, descriptor, needsAllocator, isVarargs, parameterNames, funcTree);
+        List<String> parameterNames = funcTree.parameters().
+                stream().
+                map(JavaName::getOrThrow).
+                toList();
+        emitFunctionWrapper(JavaName.getOrThrow(funcTree), nativeName, descriptor, needsAllocator, isVarargs, parameterNames, funcTree);
     }
 
-    public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
+    public void addConstant(Declaration.Constant constantTree, Class<?> javaType) {
         Object value = constantTree.value();
-        emitConstant(javaType, javaName, value, constantTree);
+        emitConstant(javaType, JavaName.getOrThrow(constantTree), value, constantTree);
     }
 
     // private generation
