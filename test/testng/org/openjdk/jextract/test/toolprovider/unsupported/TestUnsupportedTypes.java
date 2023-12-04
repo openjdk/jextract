@@ -44,7 +44,6 @@ public class TestUnsupportedTypes extends JextractToolRunner {
     @Test(dataProvider = "cases")
     public void testUnsupportedTypes(String skippedName, String reason) {
         result.checkContainsOutput("WARNING: skipping " + skippedName + ": " + reason);
-
     }
 
     private static final String REASON_UNSUPPORTED_TYPE = "unsupported type usage";
@@ -65,11 +64,11 @@ public class TestUnsupportedTypes extends JextractToolRunner {
             {"GLOBAL_UNSUPPORTED",               REASON_UNSUPPORTED_TYPE},
             {"GLOBAL_UNSUPPORTED_FUNC",          REASON_UNSUPPORTED_TYPE},
             {"GLOBAL_HAS_UNSUPPORTED",           REASON_UNSUPPORTED_TYPE},
-            {"accepts_undeclared",               REASON_NO_FUNC_DESC},
-            {"returns_undeclared",               REASON_NO_FUNC_DESC},
-            {"accepts_undeclared_func",          REASON_NO_FUNC_DESC},
+            {"accepts_undefined",               REASON_NO_FUNC_DESC},
+            {"returns_undefined",               REASON_NO_FUNC_DESC},
+            {"accepts_undefined_func",          REASON_NO_FUNC_DESC},
             {"GLOBAL_UNDECLARED",                REASON_NO_MEM_LAYOUT},
-            {"undeclared_typedef",               REASON_NO_MEM_LAYOUT},
+            {"undefined_typedef",               REASON_NO_MEM_LAYOUT},
         };
     }
 }

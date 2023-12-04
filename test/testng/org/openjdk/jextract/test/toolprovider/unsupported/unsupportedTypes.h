@@ -36,15 +36,15 @@ void accepts_unsupported_func_varargs(void (*)(int, ...));
 extern __int128 GLOBAL_UNSUPPORTED;
 extern __int128 (*GLOBAL_UNSUPPORTED_FUNC)(void);
 
-struct undeclared;
+struct undefined;
 
-struct undeclared returns_undeclared(void);
-void accepts_undeclared(struct undeclared);
-void accepts_undeclared_func(void (*)(struct undeclared));
+struct undefined returns_undefined(void);
+void accepts_undefined(struct undefined);
+void accepts_undefined_func(void (*)(struct undefined));
 
-typedef struct undeclared undeclared_typedef;
+typedef struct undefined undefined_typedef;
 
-extern struct undeclared GLOBAL_UNDECLARED;
+extern struct undefined GLOBAL_UNDECLARED;
 
 struct HasUnsupported {
     __int128 x;
