@@ -189,11 +189,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendLines(STR."""
                 public static \{invokerName} \{invokerFactoryName}(MemoryLayout... layouts) {
                     FunctionDescriptor baseDesc$ = \{descriptorString(2, descriptor)};
-                    var mh$ = Linker.nativeLinker().downcallHandle(
-                            \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
-                            baseDesc$.appendArgumentLayouts(layouts),
-                            Linker.Option.firstVariadicArg(baseDesc$.argumentLayouts().size())
-                        ).asSpreader(Object[].class, layouts.length);
+                    var mh$ = \{runtimeHelperName()}.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
                     return (\{paramExprs}) -> {
                         try {
                             \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
@@ -285,6 +281,15 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 } catch (ReflectiveOperationException ex) {
                     throw new AssertionError(ex);
                 }
+            }
+
+            static MethodHandle downcallHandleVariadic(String name, FunctionDescriptor baseDesc, MemoryLayout[] variadicLayouts) {
+                FunctionDescriptor variadicDesc = baseDesc.appendArgumentLayouts(variadicLayouts);
+                Linker.Option fva = Linker.Option.firstVariadicArg(baseDesc.argumentLayouts().size());
+                return SYMBOL_LOOKUP.find(name)
+                        .map(addr -> Linker.nativeLinker().downcallHandle(addr, variadicDesc, fva)
+                                .asSpreader(Object[].class, variadicLayouts.length))
+                        .orElse(null);
             }
 
             // Internals only below this point
