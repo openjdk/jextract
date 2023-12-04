@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.lang.foreign.MemoryLayout;
+
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
@@ -382,22 +383,35 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             declaration.addAttribute(INSTANCE);
         }
 
+        public static void with(Type type) {
+            type.addAttribute(INSTANCE);
+        }
+
         public static boolean isPresent(Declaration declaration) {
             return declaration.getAttribute(Skip.class).isPresent();
+        }
+
+        public static boolean isPresent(Type type) {
+            return type.getAttribute(Skip.class).isPresent();
         }
     }
 
     /**
      * An attribute to attach a Java name to a C declaration.
      */
-    record JavaName(String name) {
-        public static void with(Declaration declaration, String javaName) {
-            declaration.addAttribute(new JavaName(javaName));
+    record JavaName(List<String> names) {
+        public static void with(Declaration declaration, List<String> names) {
+            declaration.addAttribute(new JavaName(names));
         }
 
         public static String getOrThrow(Declaration declaration) {
             return declaration.getAttribute(JavaName.class)
-                    .map(JavaName::name).get();
+                    .map(javaName -> javaName.names.getLast()).get();
+        }
+
+        public static String getFullNameOrThrow(Declaration declaration) {
+            return declaration.getAttribute(JavaName.class)
+                    .map(javaName -> String.join(".", javaName.names)).get();
         }
 
         public static boolean isPresent(Declaration declaration) {
@@ -425,6 +439,11 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
     record JavaFunctionalInterfaceName(String fiName) {
         public static void with(Declaration declaration, String fiName) {
             declaration.addAttribute(new JavaFunctionalInterfaceName(fiName));
+        }
+
+        public static Optional<String> get(Declaration declaration) {
+            return declaration.getAttribute(JavaFunctionalInterfaceName.class)
+                    .map(JavaFunctionalInterfaceName::fiName);
         }
 
         public static String getOrThrow(Declaration declaration) {

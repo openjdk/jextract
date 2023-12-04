@@ -30,7 +30,6 @@ import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.impl.TypeImpl;
-import org.openjdk.jextract.impl.UnsupportedLayouts;
 
 import java.util.List;
 import java.util.Optional;
@@ -103,7 +102,7 @@ public interface Type extends Attributed {
             /**
              * {@code char16} type.
              */
-            Char16("char16", UnsupportedLayouts.CHAR16),
+            Char16("char16", unsupportedLayout(2, "char16")),
             /**
              * {@code short} type.
              */
@@ -125,7 +124,7 @@ public interface Type extends Attributed {
             /**
              * {@code int128} type.
              */
-            Int128("__int128", UnsupportedLayouts.__INT128),
+            Int128("__int128", unsupportedLayout(16, "__int128")),
             /**
              * {@code float} type.
              */
@@ -139,19 +138,19 @@ public interface Type extends Attributed {
               */
             LongDouble("long double", TypeImpl.IS_WINDOWS ?
                     ValueLayout.JAVA_DOUBLE :
-                    UnsupportedLayouts.LONG_DOUBLE),
+                    unsupportedLayout(16, "long double")),
             /**
              * {@code float128} type.
              */
-            Float128("float128", UnsupportedLayouts._FLOAT128),
+            Float128("float128", unsupportedLayout(16, "_float128")),
             /**
              * {@code float16} type.
              */
-            HalfFloat("__fp16", UnsupportedLayouts.__FP16),
+            HalfFloat("__fp16", unsupportedLayout(2, "__fp16")),
             /**
              * {@code wchar} type.
              */
-            WChar("wchar_t", UnsupportedLayouts.WCHAR_T);
+            WChar("wchar_t", unsupportedLayout(2, "wchar_t"));
 
             private final String typeName;
             private final MemoryLayout layout;
@@ -171,6 +170,10 @@ public interface Type extends Attributed {
              */
             public Optional<MemoryLayout> layout() {
                 return Optional.ofNullable(layout);
+            }
+
+            private static MemoryLayout unsupportedLayout(long size, String name) {
+                return MemoryLayout.paddingLayout(size).withByteAlignment(size).withName(name);
             }
         }
 

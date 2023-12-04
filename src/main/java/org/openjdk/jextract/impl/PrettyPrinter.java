@@ -60,15 +60,18 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
         Collection<Record> attrs = decl.attributes();
         if (!attrs.isEmpty()) {
             incr();
+            indent();
             builder.append("Attributes: ");
             String sep = "\n";
             for (Record attr : attrs) {
-                incr();
                 builder.append(sep);
+                incr();
+                indent();
                 builder.append(attr);
                 decr();
                 sep = ",\n";
             }
+            builder.append("\n");
             decr();
         }
     }

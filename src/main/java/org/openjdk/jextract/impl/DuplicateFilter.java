@@ -65,7 +65,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     DuplicateFilter() {
     }
 
-    public Declaration.Scoped transform(Declaration.Scoped header) {
+    public Declaration.Scoped scan(Declaration.Scoped header) {
         // Process all header declarations are collect potential
         // declarations that will go into transformed HeaderTree
         // into the this.decls field.

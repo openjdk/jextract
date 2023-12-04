@@ -37,7 +37,7 @@ final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
         this.includeHelper = includeHelper;
     }
 
-    public Declaration.Scoped process(Declaration.Scoped header) {
+    public Declaration.Scoped scan(Declaration.Scoped header) {
         // Process all header declarations are collect potential
         // declarations that will go into transformed HeaderTree
         // into the this.decls field.
