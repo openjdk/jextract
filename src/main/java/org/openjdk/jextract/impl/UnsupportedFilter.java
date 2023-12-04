@@ -67,11 +67,12 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
             warn("skipping " + funcTree.name() + " because of unsupported type usage: " +
                     unsupportedType);
             Skip.with(funcTree);
-        } else {
-            FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
-            if (descriptor == null) {
-                Skip.with(funcTree);
-            }
+            return null;
+        }
+        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
+        if (descriptor == null) {
+            Skip.with(funcTree);
+            return null;
         }
 
         // check function pointers in parameters and return types
@@ -79,12 +80,14 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null && !checkFunctionTypeSupported(param, f)) {
                 Skip.with(funcTree);
+                return null;
             }
         }
 
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
         if (returnFunc != null && !checkFunctionTypeSupported(funcTree, returnFunc)) {
             Skip.with(funcTree);
+            return null;
         }
         return null;
     }
@@ -98,24 +101,26 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
             warn("skipping " + name + " because of unsupported type usage: " +
                     unsupportedType);
             Skip.with(varTree);
-        } else {
-            MemoryLayout layout = Type.layoutFor(varTree.type()).orElse(null);
-            if (layout == null) {
-                //no layout - skip
-                Skip.with(varTree);
-            }
+            return null;
+        }
+        MemoryLayout layout = Type.layoutFor(varTree.type()).orElse(null);
+        if (layout == null) {
+            //no layout - skip
+            Skip.with(varTree);
+            return null;
+        }
 
-            if (varTree.kind() == Declaration.Variable.Kind.BITFIELD ||
-                    (layout instanceof ValueLayout && layout.byteSize() > 8)) {
-                //skip
-                Skip.with(varTree);
-            }
+        if (varTree.kind() == Declaration.Variable.Kind.BITFIELD ||
+                (layout instanceof ValueLayout && layout.byteSize() > 8)) {
+            //skip
+            Skip.with(varTree);
+            return null;
         }
 
         // check
         Type.Function func = Utils.getAsFunctionPointer(varTree.type());
-        if (func != null) {
-            checkFunctionTypeSupported(varTree, func);
+        if (func != null && !checkFunctionTypeSupported(varTree, func)) {
+            return null;
         }
         return null;
     }
@@ -162,17 +167,15 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
             warn("skipping " + JavaName.getOrThrow(decl) + " because of unsupported type usage: " +
                     unsupportedType);
             return false;
-        } else {
-            FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
-            if (descriptor == null) {
-                return false;
-            }
-
-            //generate functional interface
-            if (func.varargs() && !func.argumentTypes().isEmpty()) {
-                warn("varargs in callbacks is not supported: " + CDeclarationPrinter.declaration(func, JavaName.getOrThrow(decl)));
-                return false;
-            }
+        }
+        FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
+        if (descriptor == null) {
+            return false;
+        }
+        //generate functional interface
+        if (func.varargs() && !func.argumentTypes().isEmpty()) {
+            warn("varargs in callbacks is not supported: " + CDeclarationPrinter.declaration(func, JavaName.getOrThrow(decl)));
+            return false;
         }
         return true;
     }
