@@ -148,7 +148,7 @@ task verify(type: Exec) {
 
 // jlink a JDK image with org.openjdk.jextract for testing
 task createRuntimeImageForTest(type: Exec) {
-    dependsOn verify
+    dependsOn createJextractImage
 
     def out_dir = "$buildDir/jextract-jdk-test-image"
 

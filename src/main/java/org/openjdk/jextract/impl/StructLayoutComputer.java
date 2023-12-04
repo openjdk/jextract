@@ -54,7 +54,7 @@ final class StructLayoutComputer extends RecordLayoutComputer {
     void addField(long offset, Declaration declaration) {
         if (bitfieldDecls != null) {
             bitfieldDecls.add(declaration);
-            bitfieldSize += ((Declaration.Bitfield)declaration).width();
+//            bitfieldSize += ((Declaration.Bitfield)declaration).width();
         } else {
             super.addField(offset, declaration);
         }

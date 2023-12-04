@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.impl.DeclarationImpl;
@@ -111,10 +112,6 @@ public interface Declaration extends Attributed {
          */
         enum Kind {
             /**
-             * Namespace declaration.
-             */
-            NAMESPACE,
-            /**
              * Class declaration.
              */
             CLASS,
@@ -130,10 +127,6 @@ public interface Declaration extends Attributed {
              * Union declaration.
              */
             UNION,
-            /**
-             * Bitfields declaration.
-             */
-            BITFIELDS,
             /**
              * Toplevel declaration.
              */
@@ -151,7 +144,7 @@ public interface Declaration extends Attributed {
          * @return The (optional) layout associated with this scoped declaration.
          *
          * @implSpec a layout is present if the scoped declaration kind is one of {@link Kind#STRUCT}, {@link Kind#UNION},
-         * {@link Kind#ENUM}, {@link Kind#BITFIELDS}, {@link Kind#CLASS} <em>and</em> if this declaration models an entity in the foreign
+         * {@link Kind#ENUM}, {@link Kind#CLASS} <em>and</em> if this declaration models an entity in the foreign
          * language that is associated with a <em>definition</em>.
          */
         Optional<MemoryLayout> layout();
@@ -211,22 +204,12 @@ public interface Declaration extends Attributed {
          * @return The kind associated with this variable declaration.
          */
         Kind kind();
-    }
-
-    /**
-     * A bitfield declaration. Same as a variable declaration, but doesn't have a layout. Instead, it has
-     * an offset (relative to the enclosing container) and a width.
-     */
-    interface Bitfield extends Variable {
-        /**
-         * {@return The bitfield offset (relative to the enclosing container)}
-         */
-        long offset();
 
         /**
-         * {@return The bitfield width (in bits)}
+         * If this variable is a struct field, return the offset relative to the enclosing struct.
+         * @return the offset relative to the enclosing struct, if any.
          */
-        long width();
+        OptionalLong offset();
     }
 
     /**
@@ -331,21 +314,8 @@ public interface Declaration extends Attributed {
      * @param type the field declaration type.
      * @return a new field declaration with given name and type.
      */
-    static Declaration.Variable field(Position pos, String name, Type type) {
-        return new DeclarationImpl.VariableImpl(type, Declaration.Variable.Kind.FIELD, name, pos);
-    }
-
-    /**
-     * Creates a new bitfield declaration with given name, type, offset and width.
-     * @param pos the bitfield declaration position.
-     * @param name the bitfield declaration name.
-     * @param type the bitfield declaration type.
-     * @param offset the offset of the bitfield (relative to the enclosing container).
-     * @param width the bitfield width.
-     * @return a new bitfield declaration with given name, type and layout.
-     */
-    static Declaration.Variable bitfield(Position pos, String name, Type type, long offset, long width) {
-        return new DeclarationImpl.BitfieldImpl(type, offset, width, name, pos);
+    static Declaration.Variable field(Position pos, String name, long offset, Type type) {
+        return new DeclarationImpl.VariableImpl(type, offset, Declaration.Variable.Kind.FIELD, name, pos);
     }
 
     /**
@@ -380,29 +350,6 @@ public interface Declaration extends Attributed {
     static Declaration.Scoped toplevel(Position pos, Declaration... decls) {
         List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.TOPLEVEL, declList, "<toplevel>", pos);
-    }
-
-    /**
-     * Creates a new namespace declaration with given name and member declarations.
-     * @param pos the namespace declaration position.
-     * @param name the namespace declaration name.
-     * @param decls the namespace declaration member declarations.
-     * @return a new namespace declaration with given name and member declarations.
-     */
-    static Declaration.Scoped namespace(Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.NAMESPACE, declList, name, pos);
-    }
-
-    /**
-     * Creates a new bitfields group declaration with given name and layout.
-     * @param pos the bitfields group declaration position.
-     * @param bitfields the bitfields group member declarations.
-     * @return a new bitfields group declaration with given name and layout.
-     */
-    static Declaration.Scoped bitfields(Position pos, Declaration.Variable... bitfields) {
-        List<Declaration> declList = List.of(bitfields);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.BITFIELDS, declList, "", pos);
     }
 
     /**

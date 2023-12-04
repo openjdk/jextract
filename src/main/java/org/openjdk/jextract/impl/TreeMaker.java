@@ -38,6 +38,7 @@ import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
 import org.openjdk.jextract.Declaration.Scoped;
+import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.clang.Cursor;
@@ -218,13 +219,13 @@ class TreeMaker {
     }
 
     public Declaration.Scoped createRecord(Cursor c, Declaration.Scoped.Kind scopeKind) {
-        Type.Declared t = (Type.Declared)RecordLayoutComputer.compute(typeMaker, 0, c.type(), c.type());
+        Type.Declared t = recordType(c);
         if (c.isDefinition()) {
             Declaration.Scoped scoped = t.tree();
             List<Declaration> decls = filterNestedDeclarations(scoped.members());
             //just a declaration AND definition, we have a layout
             return Declaration.scoped(scoped.kind(), scoped.pos(), scoped.name(),
-                                      scoped.layout().get(), decls.toArray(new Declaration[0]));
+                                      decls.toArray(new Declaration[0]));
         } else {
             //if there's a real definition somewhere else, skip this redundant declaration
             if (!c.getDefinition().isInvalid()) {
@@ -232,6 +233,45 @@ class TreeMaker {
             }
             return Declaration.scoped(scopeKind, CursorPosition.of(c), c.spelling());
         }
+    }
+
+    final Type.Declared recordType(Cursor recordCursor) {
+        return recordType(new ArrayList<>(), recordCursor, recordCursor);
+    }
+
+    final Type.Declared recordType(List<Variable> pendingFields, Cursor parent, Cursor recordCursor) {
+        recordCursor.forEach(fc -> {
+            if (Utils.isFlattenable(fc)) {
+                /*
+                 * Ignore bitfields of zero width.
+                 *
+                 * struct Foo {
+                 *     int i:0;
+                 * }
+                 *
+                 * And bitfields without a name.
+                 * (padding is computed automatically)
+                 */
+                Type fieldType = null;
+                if (fc.isAnonymousStruct()) {
+                    // process struct recursively
+                    recordType(pendingFields, recordCursor, fc);
+                } else if (!fc.isBitField() && !fc.spelling().isEmpty()) {
+                    fieldType = typeMaker.makeType(fc.type());
+                }
+                if (fieldType != null) {
+                    pendingFields.add(Declaration.field(CursorPosition.of(fc), fc.spelling(),
+                            parent.type().getOffsetOf(fc.spelling()), fieldType));
+                }
+            }
+        });
+
+        Scoped structOrUnionDecl = recordCursor.kind() == CursorKind.StructDecl ?
+                Declaration.struct(CursorPosition.of(recordCursor), recordCursor.spelling(),
+                        pendingFields.toArray(new Declaration[0])) :
+                Declaration.union(CursorPosition.of(recordCursor), recordCursor.spelling(),
+                        pendingFields.toArray(new Declaration[0]));
+        return Type.declared(structOrUnionDecl);
     }
 
     public Declaration.Scoped createEnum(Cursor c) {
@@ -256,11 +296,6 @@ class TreeMaker {
                 scoped.kind() == Declaration.Scoped.Kind.ENUM;
     }
 
-    private static boolean isBitfield(Declaration d) {
-        return d instanceof Declaration.Scoped scoped &&
-                scoped.kind() == Declaration.Scoped.Kind.BITFIELDS;
-    }
-
     private static boolean isAnonymousStruct(Declaration declaration) {
         return declaration instanceof Scoped scoped && AnonymousStruct.isPresent(scoped);
     }
@@ -268,7 +303,7 @@ class TreeMaker {
     private List<Declaration> filterNestedDeclarations(List<Declaration> declarations) {
         return declarations.stream()
                 .filter(Objects::nonNull)
-                .filter(d -> isEnum(d) || !d.name().isEmpty() || isAnonymousStruct(d) || isBitfield(d))
+                .filter(d -> isEnum(d) || !d.name().isEmpty() || isAnonymousStruct(d))// || isBitfield(d))
                 .collect(Collectors.toList());
     }
 

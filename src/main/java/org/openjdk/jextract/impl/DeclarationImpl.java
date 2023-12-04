@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.lang.foreign.MemoryLayout;
+import java.util.OptionalLong;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
@@ -110,20 +111,23 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         final Variable.Kind kind;
         final Type type;
         final Optional<MemoryLayout> layout;
+        final OptionalLong offset;
 
-        private VariableImpl(Type type, Optional<MemoryLayout> layout, Variable.Kind kind, String name, Position pos, Map<String, List<Constable>> attrs) {
+        private VariableImpl(Type type, Optional<MemoryLayout> layout, OptionalLong offset, Variable.Kind kind, String name,
+                             Position pos, Map<String, List<Constable>> attrs) {
             super(name, pos, attrs);
             this.kind = Objects.requireNonNull(kind);
             this.type = Objects.requireNonNull(type);
             this.layout = Objects.requireNonNull(layout);
+            this.offset = offset;
         }
 
         public VariableImpl(Type type, Variable.Kind kind, String name, Position pos) {
-            this(type, TypeImpl.getLayout(type), kind, name, pos, null);
+            this(type, TypeImpl.getLayout(type), OptionalLong.empty(), kind, name, pos, null);
         }
 
-        public VariableImpl(Type type, MemoryLayout layout, Variable.Kind kind, String name, Position pos) {
-            this(type, Optional.of(layout), kind, name, pos, null);
+        public VariableImpl(Type type, long offset, Variable.Kind kind, String name, Position pos) {
+            this(type, TypeImpl.getLayout(type), OptionalLong.of(offset), kind, name, pos, null);
         }
 
         @Override
@@ -154,45 +158,10 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         public int hashCode() {
             return Objects.hash(super.hashCode(), kind, type);
         }
-    }
-
-    public static final class BitfieldImpl extends VariableImpl implements Declaration.Bitfield {
-
-        final long offset;
-        final long width;
-
-        private BitfieldImpl(Type type, long offset, long width, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(type, Optional.<MemoryLayout>empty(), Kind.BITFIELD, name, pos, attrs);
-            this.offset = offset;
-            this.width = width;
-        }
-
-        public BitfieldImpl(Type type, long offset, long width, String name, Position pos) {
-            this(type, offset, width, name, pos, null);
-        }
 
         @Override
-        public long offset() {
+        public OptionalLong offset() {
             return offset;
-        }
-
-        @Override
-        public long width() {
-            return width;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof BitfieldImpl bitfield)) return false;
-            if (!super.equals(o)) return false;
-            return offset == bitfield.offset &&
-                    width == bitfield.width;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(super.hashCode(), offset, width);
         }
     }
 

@@ -156,12 +156,13 @@ abstract class RecordLayoutComputer {
     Declaration field(long offset, Cursor c) {
         org.openjdk.jextract.Type type = typeMaker.makeType(c.type());
         String name = c.spelling();
-        if (c.isBitField()) {
-            return Declaration.bitfield(TreeMaker.CursorPosition.of(c), name, type, offset, c.getBitFieldWidth());
-        } else if (c.isAnonymousStruct() && type instanceof org.openjdk.jextract.Type.Declared decl) {
+//        if (c.isBitField()) {
+//            return Declaration.bitfield(TreeMaker.CursorPosition.of(c), name, type, offset, c.getBitFieldWidth());
+        //} else
+        if (c.isAnonymousStruct() && type instanceof org.openjdk.jextract.Type.Declared decl) {
             return decl.tree();
         } else {
-            return Declaration.field(TreeMaker.CursorPosition.of(c), name, type);
+            return Declaration.field(TreeMaker.CursorPosition.of(c), name, -1, type);
         }
     }
 
@@ -173,7 +174,7 @@ abstract class RecordLayoutComputer {
     }
 
     Declaration.Scoped bitfield(Declaration.Variable... declarations) {
-        return Declaration.bitfields(declarations[0].pos(), declarations);
+        return null;//Declaration.bitfields(declarations[0].pos(), declarations);
     }
 
     long offsetOf(Type parent, Cursor c) {
