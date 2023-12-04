@@ -149,10 +149,26 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitTypedef(Typedef typedefTree, Declaration declaration) {
+        String unsupportedType = firstUnsupportedType(typedefTree.type());
+        if (unsupportedType != null) {
+            warnUnsupportedType(typedefTree.name(), unsupportedType);
+            Skip.with(typedefTree);
+            return null;
+        }
+
         Type.Function func = Utils.getAsFunctionPointer(typedefTree.type());
         if (func != null && !checkFunctionTypeSupported(typedefTree, func, typedefTree.name())) {
             Skip.with(typedefTree);
         }
+
+        MemoryLayout layout = Type.layoutFor(typedefTree.type()).orElse(null);
+        if (layout == null) {
+            //no layout - skip
+            warnSkip(typedefTree.name(), "can not compute MemoryLayout");
+            Skip.with(typedefTree);
+            return null;
+        }
+
         // propagate
         if (typedefTree.type() instanceof Declared declared) {
             visitScoped(declared.tree(), null);

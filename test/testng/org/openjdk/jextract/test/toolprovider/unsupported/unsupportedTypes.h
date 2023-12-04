@@ -24,6 +24,7 @@
 __int128 returns_unsupported(void);
 void accepts_unsupported(__int128);
 
+typedef __int128 unsupported_t;
 typedef __int128 (*unsupported_func_t)(void);
 
 // this insane syntax indicates a function 'returns_unsupported_func(void)'
@@ -40,6 +41,8 @@ struct undeclared;
 struct undeclared returns_undeclared(void);
 void accepts_undeclared(struct undeclared);
 void accepts_undeclared_func(void (*)(struct undeclared));
+
+typedef struct undeclared undeclared_typedef;
 
 extern struct undeclared GLOBAL_UNDECLARED;
 

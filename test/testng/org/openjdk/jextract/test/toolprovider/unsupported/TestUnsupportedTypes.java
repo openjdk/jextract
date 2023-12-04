@@ -57,6 +57,7 @@ public class TestUnsupportedTypes extends JextractToolRunner {
         return new Object[][]{
             {"returns_unsupported",              REASON_UNSUPPORTED_TYPE},
             {"accepts_unsupported",              REASON_UNSUPPORTED_TYPE},
+            {"unsupported_t",                    REASON_UNSUPPORTED_TYPE},
             {"unsupported_func_t",               REASON_UNSUPPORTED_TYPE},
             {"returns_unsupported_func",         REASON_UNSUPPORTED_TYPE},
             {"accepts_unsupported_func",         REASON_UNSUPPORTED_TYPE},
@@ -68,6 +69,7 @@ public class TestUnsupportedTypes extends JextractToolRunner {
             {"returns_undeclared",               REASON_NO_FUNC_DESC},
             {"accepts_undeclared_func",          REASON_NO_FUNC_DESC},
             {"GLOBAL_UNDECLARED",                REASON_NO_MEM_LAYOUT},
+            {"undeclared_typedef",               REASON_NO_MEM_LAYOUT},
         };
     }
 }
