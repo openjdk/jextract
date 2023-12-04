@@ -108,21 +108,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             Declaration.Scoped structDef = ((Type.Declared) td.type()).tree();
             toplevelBuilder.addTypedef(td, structDefinitionName(structDef));
         }
-        try {
-            List<JavaFileObject> files = new ArrayList<>(toplevelBuilder.toFiles());
-            files.add(jfoFromString(pkgName, "RuntimeHelper", getRuntimeHelperSource()));
-            return files.toArray(new JavaFileObject[0]);
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        } catch (URISyntaxException ex2) {
-            throw new RuntimeException(ex2);
-        }
-    }
-
-    private String getRuntimeHelperSource() throws URISyntaxException, IOException {
-        URL runtimeHelper = OutputFactory.class.getResource("resources/RuntimeHelper.java.template");
-        return (pkgName.isEmpty()? "" : "package " + pkgName + ";\n") +
-                        String.join("\n", Files.readAllLines(Paths.get(runtimeHelper.toURI())));
+        List<JavaFileObject> files = new ArrayList<>(toplevelBuilder.toFiles());
+        return files.toArray(new JavaFileObject[0]);
     }
 
     private void generateDecl(Declaration tree) {
@@ -169,9 +156,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         if (isStructKind) {
             GroupLayout layout = (GroupLayout) layoutFor(d);
             prevBuilder = currentBuilder;
-            currentBuilder = structBuilder = currentBuilder.addStruct(
-                d,
-                layout);
+            currentBuilder = structBuilder = currentBuilder.addStruct(d, layout);
             if (!d.name().isEmpty()) {
                 addStructDefinition(d, structBuilder.fullName());
             }

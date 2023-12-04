@@ -58,14 +58,17 @@ abstract class ClassSourceBuilder {
     private final String className;
     private final String superName;
     private final ClassSourceBuilder enclosing;
+    private final String runtimeHelperName;
 
-    ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName, ClassSourceBuilder enclosing) {
+    ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName,
+                       ClassSourceBuilder enclosing, String runtimeHelperName) {
         this.sb = builder;
         this.modifiers = modifiers;
         this.kind = kind;
         this.className = className;
         this.superName = superName;
         this.enclosing = enclosing;
+        this.runtimeHelperName = runtimeHelperName;
     }
 
     final String className() {
@@ -76,6 +79,10 @@ abstract class ClassSourceBuilder {
     final String fullName() {
         // for a (nested) class 'com.foo.package.A.B.C' this will return 'A.B.C'
         return isNested() ? enclosing.fullName() + "." + className : className;
+    }
+
+    final String runtimeHelperName() {
+        return runtimeHelperName;
     }
 
     // is the name enclosed by a class of the same name?
@@ -244,7 +251,7 @@ abstract class ClassSourceBuilder {
         return " ".repeat(size * 4);
     }
 
-    private static String valueLayoutString(ValueLayout vl) {
+    private String valueLayoutString(ValueLayout vl) {
         if (vl.carrier() == boolean.class) {
             return "JAVA_BOOLEAN";
         } else if (vl.carrier() == char.class) {
@@ -262,7 +269,7 @@ abstract class ClassSourceBuilder {
         } else if (vl.carrier() == double.class) {
             return "JAVA_DOUBLE";
         } else if (vl.carrier() == MemorySegment.class) {
-            return "RuntimeHelper.POINTER";
+            return STR."\{runtimeHelperName}.C_POINTER";
         } else {
             throw new UnsupportedOperationException("Unsupported layout: " + vl);
         }

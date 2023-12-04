@@ -31,13 +31,13 @@ import org.openjdk.jextract.Type;
 import java.util.List;
 
 final class TypedefBuilder extends ClassSourceBuilder {
-    private TypedefBuilder(SourceFileBuilder builder, String className, String superClass) {
-        super(builder, "public", Kind.CLASS, className, superClass, null);
+    private TypedefBuilder(SourceFileBuilder builder, String className, String superClass, String runtimeHelperName) {
+        super(builder, "public", Kind.CLASS, className, superClass, null, runtimeHelperName);
     }
 
-    public static void generate(SourceFileBuilder builder, String className, String superClass,
-                          Declaration.Typedef typedefTree) {
-        TypedefBuilder tdb = new TypedefBuilder(builder, className, superClass);
+    public static void generate(SourceFileBuilder builder, String className, String superClass, String runtimeHelperName,
+                                Declaration.Typedef typedefTree) {
+        TypedefBuilder tdb = new TypedefBuilder(builder, className, superClass, runtimeHelperName);
         tdb.emitDocComment(typedefTree);
         tdb.classBegin();
         tdb.emitPrivateDefaultConstructor();

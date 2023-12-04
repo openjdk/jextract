@@ -61,9 +61,9 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<String> libraries) {
-        HeaderFileBuilder first = new HeaderFileBuilder(sfb, sfb.className(), "#{SUPER}");
+        HeaderFileBuilder first = new HeaderFileBuilder(sfb, sfb.className(), "#{SUPER}", sfb.className());
         first.classBegin();
-        first.emitLoadLibraries(libraries);
+        first.emitFirstHeaderPreamble(libraries);
         // emit basic primitive types
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Bool), "C_BOOL");
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Char), "C_CHAR");
@@ -73,16 +73,25 @@ class ToplevelBuilder implements OutputFactory.Builder {
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.LongLong), "C_LONG_LONG");
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Float), "C_FLOAT");
         first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Double), "C_DOUBLE");
-        first.emitPointerTypedef("C_POINTER");
+
+        // we don't use 'emitPrimitiveTypedef' so we can attach the target layout
+        first.appendIndentedLines("""
+            public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
+                    .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
+            """);
         return first;
     }
 
     public List<JavaFileObject> toFiles() {
+        boolean hasOneHeader = lastHeader == firstHeader;
+        if (hasOneHeader) {
+            firstHeader.emitRuntimeHelperMethods();
+        }
         lastHeader.classEnd();
 
         List<JavaFileObject> files = new ArrayList<>();
         files.add(firstHeader.sourceFileBuilder().toFile(s -> s.replace("extends #{SUPER}",
-                lastHeader != firstHeader ? "extends " + lastHeader.className() : "")));
+                hasOneHeader ? "" : "extends " + lastHeader.className())));
         files.addAll(builders.stream()
                 .map(SourceFileBuilder::toFile).toList());
         return files;
@@ -118,7 +127,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
             nextHeader().emitPointerTypedef(typedefTree, javaName);
         } else {
             SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
-            TypedefBuilder.generate(sfb, sfb.className(), superClass, typedefTree);
+            TypedefBuilder.generate(sfb, sfb.className(), superClass, firstHeader.className(), typedefTree);
             builders.add(sfb);
         }
     }
@@ -127,7 +136,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     public StructBuilder addStruct(Declaration.Scoped tree, GroupLayout layout) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaName.getOrThrow(tree));
         builders.add(sfb);
-        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, tree, layout);
+        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, firstHeader.className(), tree, layout);
         structBuilder.begin();
         return structBuilder;
     }
@@ -136,16 +145,19 @@ class ToplevelBuilder implements OutputFactory.Builder {
     public void addFunctionalInterface(Declaration declaration, Type.Function funcType, FunctionDescriptor descriptor) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaFunctionalInterfaceName.getOrThrow(declaration));
         builders.add(sfb);
-        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, funcType, descriptor, JavaParameterNames.get(funcType));
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, firstHeader.className(), funcType, descriptor, JavaParameterNames.get(funcType));
     }
 
     private HeaderFileBuilder nextHeader() {
         if (declCount == DECLS_PER_HEADER_CLASS) {
-            boolean hasSuper = lastHeader != firstHeader;
+            boolean wasFirstHeader = lastHeader == firstHeader;
+            if (wasFirstHeader) {
+                firstHeader.emitRuntimeHelperMethods();
+            }
             String className = headerDesc.displayName() + "_" + ++headersCount;
             SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), className);
             HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, sfb.className(),
-                    hasSuper ? lastHeader.className() : null);
+                    wasFirstHeader ? null : lastHeader.className(), firstHeader.className());
             lastHeader.classEnd();
             headerFileBuilder.classBegin();
             builders.add(sfb);

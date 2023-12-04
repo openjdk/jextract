@@ -264,8 +264,8 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
                 "VarHandle", "ByteOrder",
                 "FunctionDescriptor", "LibraryLookup",
                 "MemoryLayout",
-                "Arena", "NativeArena", "MemorySegment", "ValueLayout",
-                "RuntimeHelper" -> true;
+                "Arena", "NativeArena", "MemorySegment", "ValueLayout"
+                    -> true;
             default -> false;
         };
     }
