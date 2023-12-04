@@ -55,24 +55,6 @@ final class InMemoryJavaCompiler {
         return fileManager.getCompiledFiles();
     }
 
-    static JavaFileObject jfoFromByteArray(URI uri, byte[] bytes) {
-        return new SimpleJavaFileObject(uri, JavaFileObject.Kind.CLASS) {
-            @Override
-            public InputStream openInputStream() {
-                return new ByteArrayInputStream(bytes);
-            }
-        };
-    }
-
-    static JavaFileObject jfoFromString(URI uri, String contents) {
-        return new SimpleJavaFileObject(uri, JavaFileObject.Kind.SOURCE) {
-            @Override
-            public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
-                return contents;
-            }
-        };
-    }
-
     // Wraper for class byte array
     private static class ClassFile extends SimpleJavaFileObject {
         private final ByteArrayOutputStream baos = new ByteArrayOutputStream();

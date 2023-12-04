@@ -84,11 +84,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
     }
 
-    private JavaFileObject jfoFromString(String pkgName, String clsName, String contents) {
-        String pkgPrefix = pkgName.isEmpty() ? "" : pkgName.replaceAll("\\.", "/") + "/";
-        return InMemoryJavaCompiler.jfoFromString(URI.create(pkgPrefix + clsName + ".java"), contents);
-    }
-
     @Override
     public Void visitConstant(Declaration.Constant constant, Declaration parent) {
         if (Skip.isPresent(constant)) {
