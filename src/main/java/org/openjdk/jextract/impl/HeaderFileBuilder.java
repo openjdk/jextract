@@ -233,10 +233,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
     }
 
-    void emitPointerTypedef(String name) {
-        emitPointerTypedef(null, name);
-    }
-
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
         emitPrimitiveTypedefLayout(name, TypeImpl.PointerImpl.POINTER_LAYOUT, typedefTree);
     }
