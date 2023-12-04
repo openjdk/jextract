@@ -194,14 +194,12 @@ void createJtregTask(String name, boolean coverage, String os_lib_dir) {
     tasks.register(name, JavaExec) {
         dependsOn createRuntimeImageForTest,cmakeBuild
 
-        doFirst {
-            if (findProperty("jtreg_home") == null) {
-                throw new GradleException("jtreg_home is not defined")
-            }
-            // e.g.: <jacoco repo>/org.jacoco.agent/target/classes/jacocoagent.jar
-            if (coverage && findProperty("jacoco_agent") == null) {
-                throw new GradleException("jacoco_agent is not defined")
-            }
+        if (findProperty("jtreg_home") == null) {
+            throw new GradleException("jtreg_home is not defined")
+        }
+        // e.g.: <jacoco repo>/org.jacoco.agent/target/classes/jacocoagent.jar
+        if (coverage && findProperty("jacoco_agent") == null) {
+            throw new GradleException("jacoco_agent is not defined")
         }
 
         workingDir = "$buildDir"
@@ -231,14 +229,12 @@ void createJtregTask(String name, boolean coverage, String os_lib_dir) {
 createJtregTask("jtreg", false, os_lib_dir)
 createJtregTask("jtregWithCoverage", true, os_lib_dir)
 
-task coverage(type: JavaExec) {
+tasks.register("coverage", JavaExec) {
     dependsOn jtregWithCoverage
 
-    doFirst {
-        // e.g.: <jacoco repo>/org.jacoco.cli/target/org.jacoco.cli-0.8.12-SNAPSHOT-nodeps.jar
-        if (findProperty("jacoco_cli") == null) {
-            throw new GradleException("jacoco_cli is not defined")
-        }
+    // e.g.: <jacoco repo>/org.jacoco.cli/target/org.jacoco.cli-0.8.12-SNAPSHOT-nodeps.jar
+    if (findProperty("jacoco_cli") == null) {
+        throw new GradleException("jacoco_cli is not defined")
     }
 
     classpath = files(findProperty("jacoco_cli"))
