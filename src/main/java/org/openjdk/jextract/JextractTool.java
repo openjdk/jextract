@@ -117,13 +117,14 @@ public final class JextractTool {
     }
 
     public static List<JavaFileObject> generate(Declaration.Scoped decl, String headerName,
-                                                String targetPkg, List<String> libNames) {
-        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, new IncludeHelper(), libNames));
+                                                String targetPkg, List<String> libNames, PrintWriter errStream) {
+        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, new IncludeHelper(), libNames, errStream));
     }
 
     private static List<JavaFileObject> generateInternal(Declaration.Scoped decl, String headerName,
-                                                String targetPkg, IncludeHelper includeHelper, List<String> libNames) {
-        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, includeHelper, libNames));
+                                                         String targetPkg, IncludeHelper includeHelper,
+                                                         List<String> libNames, PrintWriter errStream) {
+        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, includeHelper, libNames, errStream));
     }
 
     /**
@@ -475,7 +476,7 @@ public final class JextractTool {
 
             files = generateInternal(
                 toplevel, headerName,
-                options.targetPackage, options.includeHelper, options.libraryNames);
+                options.targetPackage, options.includeHelper, options.libraryNames, err);
         } catch (ClangException ce) {
             err.println(ce.getMessage());
             if (JextractTool.DEBUG) {

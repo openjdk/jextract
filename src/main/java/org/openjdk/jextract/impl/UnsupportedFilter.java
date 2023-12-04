@@ -36,6 +36,7 @@ import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
+import java.io.PrintWriter;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
@@ -50,6 +51,13 @@ import java.lang.foreign.ValueLayout;
  * - bitfields struct members
  */
 public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration> {
+
+    private final PrintWriter errStream;
+
+    public UnsupportedFilter(PrintWriter errStream) {
+        this.errStream = errStream;
+    }
+
     static String firstUnsupportedType(Type type) {
         return type.accept(UNSUPPORTED_VISITOR, null);
     }
@@ -64,13 +72,13 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         //generate static wrapper for function
         String unsupportedType = firstUnsupportedType(funcTree.type());
         if (unsupportedType != null) {
-            warn("skipping " + funcTree.name() + " because of unsupported type usage: " +
-                    unsupportedType);
+            warnUnsupportedType(funcTree.name(), unsupportedType);
             Skip.with(funcTree);
             return null;
         }
         FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
         if (descriptor == null) {
+            warnSkip(funcTree.name(), "can not compute FunctionDescriptor");
             Skip.with(funcTree);
             return null;
         }
@@ -78,14 +86,14 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         // check function pointers in parameters and return types
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
-            if (f != null && !checkFunctionTypeSupported(param, f)) {
+            if (f != null && !checkFunctionTypeSupported(param, f, funcTree.name())) {
                 Skip.with(funcTree);
                 return null;
             }
         }
 
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
-        if (returnFunc != null && !checkFunctionTypeSupported(funcTree, returnFunc)) {
+        if (returnFunc != null && !checkFunctionTypeSupported(funcTree, returnFunc, funcTree.name())) {
             Skip.with(funcTree);
             return null;
         }
@@ -95,31 +103,32 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     @Override
     public Void visitVariable(Variable varTree, Declaration parent) {
         String unsupportedType = firstUnsupportedType(varTree.type());
+        String name = parent != null ? parent.name() + "." : "";
+        name += varTree.name();
         if (unsupportedType != null) {
-            String name = parent != null ? parent.name() + "." : "";
-            name += varTree.name();
-            warn("skipping " + name + " because of unsupported type usage: " +
-                    unsupportedType);
+            warnUnsupportedType(name, unsupportedType);
             Skip.with(varTree);
             return null;
         }
         MemoryLayout layout = Type.layoutFor(varTree.type()).orElse(null);
         if (layout == null) {
             //no layout - skip
+            warnSkip(name, "can not compute MemoryLayout");
             Skip.with(varTree);
             return null;
         }
 
-        if (varTree.kind() == Declaration.Variable.Kind.BITFIELD ||
-                (layout instanceof ValueLayout && layout.byteSize() > 8)) {
+        if (varTree.kind() == Declaration.Variable.Kind.BITFIELD) {
             //skip
+            warnSkip(name, "type is bitfield");
             Skip.with(varTree);
             return null;
         }
 
         // check
         Type.Function func = Utils.getAsFunctionPointer(varTree.type());
-        if (func != null && !checkFunctionTypeSupported(varTree, func)) {
+        if (func != null && !checkFunctionTypeSupported(varTree, func, name)) {
+            Skip.with(varTree);
             return null;
         }
         return null;
@@ -141,7 +150,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     @Override
     public Void visitTypedef(Typedef typedefTree, Declaration declaration) {
         Type.Function func = Utils.getAsFunctionPointer(typedefTree.type());
-        if (func != null && !checkFunctionTypeSupported(typedefTree, func)) {
+        if (func != null && !checkFunctionTypeSupported(typedefTree, func, typedefTree.name())) {
             Skip.with(typedefTree);
         }
         // propagate
@@ -161,20 +170,21 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         return null;
     }
 
-    private boolean checkFunctionTypeSupported(Declaration decl, Type.Function func) {
+    private boolean checkFunctionTypeSupported(Declaration decl, Type.Function func, String nameOfSkipped) {
         String unsupportedType = firstUnsupportedType(func);
         if (unsupportedType != null) {
-            warn("skipping " + JavaName.getOrThrow(decl) + " because of unsupported type usage: " +
-                    unsupportedType);
+            warnUnsupportedType(nameOfSkipped, unsupportedType);
             return false;
         }
         FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
         if (descriptor == null) {
+            warnSkip(nameOfSkipped, "can not compute FunctionDescriptor");
             return false;
         }
         //generate functional interface
         if (func.varargs() && !func.argumentTypes().isEmpty()) {
-            warn("varargs in callbacks is not supported: " + CDeclarationPrinter.declaration(func, JavaName.getOrThrow(decl)));
+            warnSkip(nameOfSkipped, "varargs in callbacks is not supported: "
+                    + CDeclarationPrinter.declaration(func, JavaName.getOrThrow(decl)));
             return false;
         }
         return true;
@@ -241,7 +251,15 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         }
     };
 
-    private static void warn(String msg) {
-        System.err.println("WARNING: " + msg);
+    private void warnUnsupportedType(String treeName, String type) {
+        warnSkip(treeName, STR."unsupported type usage: \{type}");
+    }
+
+    private void warnSkip(String treeName, String message) {
+        warn(STR."skipping \{treeName}: \{message}");
+    }
+
+    private void warn(String msg) {
+        errStream.println("WARNING: " + msg);
     }
 }
