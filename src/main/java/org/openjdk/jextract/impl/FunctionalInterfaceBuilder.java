@@ -43,17 +43,18 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final Optional<List<String>> parameterNames;
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
-                                       FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        super(builder, "public", Kind.INTERFACE, className, null, enclosing);
+                                       String runtimeHelperName, FunctionDescriptor descriptor,
+                                       Optional<List<String>> parameterNames) {
+        super(builder, "public", Kind.INTERFACE, className, null, enclosing, runtimeHelperName);
         this.fiType = descriptor.toMethodType();
         this.downcallType = descriptor.toMethodType();
         this.fiDesc = descriptor;
         this.parameterNames = parameterNames;
     }
 
-    public static void generate(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
+    public static void generate(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing, String runtimeHelperName,
                                 Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className, enclosing,
+        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className, enclosing, runtimeHelperName,
                 descriptor, parameterNames);
         fib.emitDocComment(funcType, className);
         fib.classBegin();
@@ -72,17 +73,17 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalFactories() {
         appendIndentedLines(STR."""
-            MethodHandle UP$MH = RuntimeHelper.upcallHandle(\{className()}.class, \"apply\", $DESC);
+            MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.class, \"apply\", $DESC);
 
             static MemorySegment allocate(\{className()} fi, Arena scope) {
-                return RuntimeHelper.upcallStub(UP$MH, fi, $DESC, scope);
+                return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
             }
             """);
     }
 
     private void emitFunctionalFactoryForPointer() {
         appendIndentedLines(STR."""
-            MethodHandle DOWN$MH = RuntimeHelper.downcallHandle($DESC);
+            MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
             static \{className()} ofAddress(MemorySegment addr, Arena arena) {
                 MemorySegment symbol = addr.reinterpret(arena, null);

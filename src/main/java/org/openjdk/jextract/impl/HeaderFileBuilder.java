@@ -24,6 +24,7 @@
  */
 package org.openjdk.jextract.impl;
 
+import java.io.File;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
@@ -54,8 +55,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     static final String MEMBER_MODS = "public static";
 
-    HeaderFileBuilder(SourceFileBuilder builder, String className, String superName) {
-        super(builder, "public", Kind.CLASS, className, superName, null);
+    HeaderFileBuilder(SourceFileBuilder builder, String className, String superName, String runtimeHelperName) {
+        super(builder, "public", Kind.CLASS, className, superName, null, runtimeHelperName);
     }
 
     public void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
@@ -158,9 +159,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 class Holder {
                     static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
 
-                    static final MethodHandle MH = RuntimeHelper.downcallHandle(\"\{nativeName}\", DESC);
+                    static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                            \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
+                            DESC);
                 }
-                return RuntimeHelper.requireNonNull(Holder.MH, \"\{javaName}\");
+                return Holder.MH;
             }
 
             public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
@@ -186,7 +189,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendLines(STR."""
                 public static \{invokerName} \{invokerFactoryName}(MemoryLayout... layouts) {
                     FunctionDescriptor baseDesc$ = \{descriptorString(2, descriptor)};
-                    var mh$ = RuntimeHelper.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
+                    var mh$ = \{runtimeHelperName()}.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
                     return (\{paramExprs}) -> {
                         try {
                             \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
@@ -203,7 +206,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
             appendLines(STR."""
                 public static \{retType} \{javaName}(\{paramExprs}) {
-                    MemoryLayout[] inferredLayouts$ = RuntimeHelper.inferVariadicLayouts(\{varargsParam});
+                    MemoryLayout[] inferredLayouts$ = \{runtimeHelperName()}.inferVariadicLayouts(\{varargsParam});
                     \{returnExpr}\{invokerFactoryName}(inferredLayouts$).\{javaName}(\{String.join(", ", finalParamNames)});
                 }
                 """);
@@ -230,12 +233,78 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
     }
 
-    void emitPointerTypedef(String name) {
-        emitPointerTypedef(null, name);
-    }
-
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
         emitPrimitiveTypedefLayout(name, TypeImpl.PointerImpl.POINTER_LAYOUT, typedefTree);
+    }
+
+    void emitFirstHeaderPreamble(List<String> libraries) {
+        incrAlign();
+        appendLines("static final SymbolLookup SYMBOL_LOOKUP;");
+        appendLines("static {");
+        for (String lib : libraries) {
+            String quotedLibName = lib.replace("\\", "\\\\"); // double up slashes
+            String method = quotedLibName.indexOf(File.separatorChar) != -1 ? "load" : "loadLibrary";
+            appendIndentedLines(STR."System.\{method}(\"\{quotedLibName}\");");
+        }
+        appendLines("""
+
+            SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
+            Linker linker = Linker.nativeLinker();
+            SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> linker.defaultLookup().find(name));
+            """);
+        appendLines("}");
+        decrAlign();
+    }
+
+    void emitRuntimeHelperMethods() {
+        appendIndentedLines("""
+            static MemorySegment findOrThrow(String symbol) {
+                return SYMBOL_LOOKUP.find(symbol)
+                    .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
+            }
+
+            static MemoryLayout[] inferVariadicLayouts(Object[] varargs) {
+                MemoryLayout[] result = new MemoryLayout[varargs.length];
+                for (int i = 0; i < varargs.length; i++) {
+                    result[i] = variadicLayout(varargs[i].getClass());
+                }
+                return result;
+            }
+
+            static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
+                try {
+                    return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
+                } catch (ReflectiveOperationException ex) {
+                    throw new AssertionError(ex);
+                }
+            }
+
+            static MethodHandle downcallHandleVariadic(String name, FunctionDescriptor baseDesc, MemoryLayout[] variadicLayouts) {
+                FunctionDescriptor variadicDesc = baseDesc.appendArgumentLayouts(variadicLayouts);
+                Linker.Option fva = Linker.Option.firstVariadicArg(baseDesc.argumentLayouts().size());
+                return SYMBOL_LOOKUP.find(name)
+                        .map(addr -> Linker.nativeLinker().downcallHandle(addr, variadicDesc, fva)
+                                .asSpreader(Object[].class, variadicLayouts.length))
+                        .orElse(null);
+            }
+
+            // Internals only below this point
+
+            private static MemoryLayout variadicLayout(Class<?> c) {
+                // apply default argument promotions per C spec
+                // note that all primitives are boxed, since they are passed through an Object[]
+                if (c == Boolean.class || c == Byte.class || c == Character.class || c == Short.class || c == Integer.class) {
+                    return JAVA_INT;
+                } else if (c == Long.class) {
+                    return JAVA_LONG;
+                } else if (c == Float.class || c == Double.class) {
+                    return JAVA_DOUBLE;
+                } else if (MemorySegment.class.isAssignableFrom(c)) {
+                    return ADDRESS;
+                }
+                throw new IllegalArgumentException("Invalid type for ABI: " + c.getTypeName());
+            }
+            """);
     }
 
     private boolean primitiveKindSupported(Type.Primitive.Kind kind) {
@@ -251,7 +320,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         appendLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get() {
-                return (\{type.getSimpleName()}) \{vhConstant}.get(RuntimeHelper.requireNonNull(\{segmentConstant}, "\{nativeName}"), 0L);
+                return (\{type.getSimpleName()}) \{vhConstant}.get(\{segmentConstant}(), 0L);
             }
             """);
         decrAlign();
@@ -263,7 +332,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         appendLines(STR."""
             public static void \{javaName}$set(\{type.getSimpleName()} x) {
-                \{vhConstant}.set(RuntimeHelper.requireNonNull(\{segmentConstant}, "\{nativeName}"), 0L, x);
+                \{vhConstant}.set(\{segmentConstant}(), 0L, x);
             }
             """);
         decrAlign();
@@ -272,16 +341,16 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     public String emitGlobalSegment(String layout, String javaName, String nativeName, Declaration declaration) {
         String mangledName = mangleName(javaName, MemorySegment.class);
         incrAlign();
-        appendLines(STR."""
-            private static final MemorySegment \{mangledName} = RuntimeHelper.lookupGlobalVariable(\"\{nativeName}\", \{layout});
-
-            """);
         if (declaration != null) {
             emitDocComment(declaration);
         }
         appendLines(STR."""
             \{MEMBER_MODS} MemorySegment \{mangledName}() {
-                return RuntimeHelper.requireNonNull(\{mangledName}, \"\{javaName}\");
+                class Holder {
+                    static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{nativeName}")
+                        .reinterpret(\{layout}.byteSize());
+                }
+                return Holder.SEGMENT;
             }
             """);
         decrAlign();
@@ -331,7 +400,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private String constantValue(Class<?> type, Object value) {
         if (value instanceof String) {
-            return STR."RuntimeHelper.CONSTANT_ALLOCATOR.allocateFrom(\"\{Utils.quote(Objects.toString(value))}\");";
+            return STR."Arena.ofAuto().allocateFrom(\"\{Utils.quote(Objects.toString(value))}\");";
         } else if (type == MemorySegment.class) {
             return STR."MemorySegment.ofAddress(\{((Number)value).longValue()}L);";
         } else {

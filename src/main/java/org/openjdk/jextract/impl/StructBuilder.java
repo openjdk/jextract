@@ -58,8 +58,9 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private final Deque<String> prefixElementNames;
 
     StructBuilder(SourceFileBuilder builder, String modifiers, String className,
-                  ClassSourceBuilder enclosing, Declaration.Scoped structTree, GroupLayout structLayout) {
-        super(builder, modifiers, Kind.CLASS, className, null, enclosing);
+                  ClassSourceBuilder enclosing, String runtimeHelperName, Declaration.Scoped structTree,
+                  GroupLayout structLayout) {
+        super(builder, modifiers, Kind.CLASS, className, null, enclosing, runtimeHelperName);
         this.structTree = structTree;
         this.structLayout = structLayout;
         this.structType = Type.declared(structTree);
@@ -125,7 +126,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             return this;
         } else {
             StructBuilder builder = new StructBuilder(sourceFileBuilder(), "public static final",
-                    JavaName.getOrThrow(tree), this, tree, layout);
+                    JavaName.getOrThrow(tree), this, runtimeHelperName(), tree, layout);
             builder.begin();
             builder.emitPrivateDefaultConstructor();
             return builder;
@@ -136,7 +137,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     public void addFunctionalInterface(String name, Type.Function funcType, FunctionDescriptor descriptor) {
         incrAlign();
         FunctionalInterfaceBuilder.generate(sourceFileBuilder(), name,
-                this, funcType, descriptor, JavaParameterNames.get(funcType));
+                this, runtimeHelperName(), funcType, descriptor, JavaParameterNames.get(funcType));
         decrAlign();
     }
 
@@ -238,7 +239,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private void emitOfAddressScoped() {
         appendIndentedLines("""
             public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
-                return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope);
+                return addr.reinterpret($LAYOUT().byteSize(), scope, null);
             }
             """);
     }
