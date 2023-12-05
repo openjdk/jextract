@@ -140,20 +140,12 @@ public interface Declaration extends Attributed {
         List<Declaration> members();
 
         /**
-         * The (optional) layout associated with this scoped declaration.
-         * @return The (optional) layout associated with this scoped declaration.
-         *
-         * @implSpec a layout is present if the scoped declaration kind is one of {@link Kind#STRUCT}, {@link Kind#UNION},
-         * {@link Kind#ENUM}, {@link Kind#CLASS} <em>and</em> if this declaration models an entity in the foreign
-         * language that is associated with a <em>definition</em>.
-         */
-        Optional<MemoryLayout> layout();
-
-        /**
          * The scoped declaration kind.
          * @return The scoped declaration kind.
          */
         Kind kind();
+
+        Optional<MemoryLayout> layout();
     }
 
     /**
@@ -204,12 +196,6 @@ public interface Declaration extends Attributed {
          * @return The kind associated with this variable declaration.
          */
         Kind kind();
-
-        /**
-         * If this variable is a struct field, return the offset relative to the enclosing struct.
-         * @return the offset relative to the enclosing struct, if any.
-         */
-        OptionalLong offset();
     }
 
     /**
@@ -314,8 +300,8 @@ public interface Declaration extends Attributed {
      * @param type the field declaration type.
      * @return a new field declaration with given name and type.
      */
-    static Declaration.Variable field(Position pos, String name, long offset, Type type) {
-        return new DeclarationImpl.VariableImpl(type, offset, Declaration.Variable.Kind.FIELD, name, pos);
+    static Declaration.Variable field(Position pos, String name, Type type) {
+        return new DeclarationImpl.VariableImpl(type, Declaration.Variable.Kind.FIELD, name, pos);
     }
 
     /**
@@ -365,19 +351,6 @@ public interface Declaration extends Attributed {
     }
 
     /**
-     * Creates a new struct declaration with given name, layout and member declarations.
-     * @param pos the struct declaration position.
-     * @param name the struct declaration name.
-     * @param layout the struct declaration layout.
-     * @param decls the struct declaration member declarations.
-     * @return a new struct declaration with given name, layout and member declarations.
-     */
-    static Declaration.Scoped struct(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.STRUCT, layout, declList, name, pos);
-    }
-
-    /**
      * Creates a new union declaration with given name and member declarations.
      * @param pos the union declaration position.
      * @param name the union declaration name.
@@ -387,44 +360,6 @@ public interface Declaration extends Attributed {
     static Declaration.Scoped union(Position pos, String name, Declaration... decls) {
         List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Scoped.Kind.UNION, declList, name, pos);
-    }
-
-    /**
-     * Creates a new union declaration with given name, layout and member declarations.
-     * @param pos the union declaration position.
-     * @param name the union declaration name.
-     * @param layout the union declaration layout.
-     * @param decls the union declaration member declarations.
-     * @return a new union declaration with given name, layout and member declarations.
-     */
-    static Declaration.Scoped union(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.UNION, layout, declList, name, pos);
-    }
-
-    /**
-     * Creates a new class declaration with given name and member declarations.
-     * @param pos the class declaration position.
-     * @param name the class declaration name.
-     * @param decls the class declaration member declarations.
-     * @return a new class declaration with given name and member declarations.
-     */
-    static Declaration.Scoped class_(Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.CLASS, declList, name, pos);
-    }
-
-    /**
-     * Creates a new class declaration with given name, layout and member declarations.
-     * @param pos the class declaration position.
-     * @param name the class declaration name.
-     * @param layout the class declaration layout.
-     * @param decls the class declaration member declarations.
-     * @return a new class declaration with given name, layout and member declarations.
-     */
-    static Declaration.Scoped class_(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.CLASS, layout, declList, name, pos);
     }
 
     /**
@@ -440,19 +375,6 @@ public interface Declaration extends Attributed {
     }
 
     /**
-     * Creates a new enum declaration with given name, layout and member declarations.
-     * @param pos the enum declaration position.
-     * @param name the enum declaration name.
-     * @param layout the enum declaration layout.
-     * @param decls the enum declaration member declarations.
-     * @return a new enum declaration with given name, layout and member declarations.
-     */
-    static Declaration.Scoped enum_(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.ENUM, layout, declList, name, pos);
-    }
-
-    /**
      * Creates a new scoped declaration with given kind, name and member declarations.
      * @param kind the kind of the scoped declaration.
      * @param pos the scoped declaration position.
@@ -463,20 +385,6 @@ public interface Declaration extends Attributed {
     static Declaration.Scoped scoped(Scoped.Kind kind, Position pos, String name, Declaration... decls) {
         List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(kind, declList, name, pos);
-    }
-
-    /**
-     * Creates a new scoped declaration with given kind, name, layout and member declarations.
-     * @param kind the kind of the scoped declaration.
-     * @param pos the scoped declaration position.
-     * @param name the scoped declaration name.
-     * @param layout the scoped declaration layout.
-     * @param decls the scoped declaration member declarations.
-     * @return a new scoped declaration with given kind, name, layout and member declarations.
-     */
-    static Declaration.Scoped scoped(Scoped.Kind kind, Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(kind, layout, declList, name, pos);
     }
 
     /**

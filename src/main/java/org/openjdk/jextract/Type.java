@@ -30,6 +30,7 @@ import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.impl.TypeImpl;
+import org.openjdk.jextract.impl.TypeImpl.ErronrousTypeImpl;
 
 import java.util.List;
 import java.util.Optional;
@@ -525,10 +526,10 @@ public interface Type extends Attributed {
     }
 
     /**
-     * Creates an erroneous type.
-     * @return an erroneous type.
+     * Creates an erroneous type with the given name.
+     * @return an erroneous type with the given name.
      */
-    static Type error() {
-        return TypeImpl.ERROR;
+    static Type error(String erroneousName) {
+        return new ErronrousTypeImpl(erroneousName);
     }
 }

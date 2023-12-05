@@ -27,11 +27,12 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.constant.Constable;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryLayout;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.lang.foreign.MemoryLayout;
 import java.util.OptionalLong;
 
 import org.openjdk.jextract.Declaration;
@@ -110,24 +111,16 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
 
         final Variable.Kind kind;
         final Type type;
-        final Optional<MemoryLayout> layout;
-        final OptionalLong offset;
 
-        private VariableImpl(Type type, Optional<MemoryLayout> layout, OptionalLong offset, Variable.Kind kind, String name,
+        private VariableImpl(Type type, Variable.Kind kind, String name,
                              Position pos, Map<String, List<Constable>> attrs) {
             super(name, pos, attrs);
             this.kind = Objects.requireNonNull(kind);
             this.type = Objects.requireNonNull(type);
-            this.layout = Objects.requireNonNull(layout);
-            this.offset = offset;
         }
 
         public VariableImpl(Type type, Variable.Kind kind, String name, Position pos) {
-            this(type, TypeImpl.getLayout(type), OptionalLong.empty(), kind, name, pos, null);
-        }
-
-        public VariableImpl(Type type, long offset, Variable.Kind kind, String name, Position pos) {
-            this(type, TypeImpl.getLayout(type), OptionalLong.of(offset), kind, name, pos, null);
+            this(type, kind, name, pos, null);
         }
 
         @Override
@@ -157,11 +150,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         @Override
         public int hashCode() {
             return Objects.hash(super.hashCode(), kind, type);
-        }
-
-        @Override
-        public OptionalLong offset() {
-            return offset;
         }
     }
 
@@ -213,22 +201,16 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
 
         private final Scoped.Kind kind;
         private final List<Declaration> declarations;
-        private final Optional<MemoryLayout> optLayout;
-
-        public ScopedImpl(Kind kind, MemoryLayout layout, List<Declaration> declarations, String name, Position pos) {
-            this(kind, Optional.of(layout), declarations, name, pos, null);
-        }
 
         public ScopedImpl(Kind kind, List<Declaration> declarations, String name, Position pos) {
-            this(kind, Optional.empty(), declarations, name, pos, null);
+            this(kind, declarations, name, pos, null);
         }
 
-        ScopedImpl(Kind kind, Optional<MemoryLayout> optLayout, List<Declaration> declarations,
+        ScopedImpl(Kind kind, List<Declaration> declarations,
                 String name, Position pos, Map<String, List<Constable>> attrs) {
             super(name, pos, attrs);
             this.kind = Objects.requireNonNull(kind);
             this.declarations = Objects.requireNonNull(declarations);
-            this.optLayout = Objects.requireNonNull(optLayout);
         }
 
         @Override
@@ -242,13 +224,13 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
 
         @Override
-        public Optional<MemoryLayout> layout() {
-            return optLayout;
+        public Kind kind() {
+            return kind;
         }
 
         @Override
-        public Kind kind() {
-            return kind;
+        public Optional<MemoryLayout> layout() {
+            return ScopedLayout.get(this);
         }
 
         @Override
@@ -418,6 +400,70 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         public static String getOrThrow(Declaration declaration) {
             return declaration.getAttribute(JavaFunctionalInterfaceName.class)
                     .map(JavaFunctionalInterfaceName::fiName).get();
+        }
+    }
+
+    record ScopedLayout(MemoryLayout layout) {
+        public static void with(Scoped declaration, MemoryLayout layout) {
+            declaration.addAttribute(new ScopedLayout(layout));
+        }
+
+        public static Optional<MemoryLayout> get(Scoped declaration) {
+            return declaration.getAttribute(ScopedLayout.class)
+                    .map(ScopedLayout::layout);
+        }
+
+        public static MemoryLayout getOrThrow(Scoped declaration) {
+            return declaration.getAttribute(ScopedLayout.class)
+                    .map(ScopedLayout::layout).get();
+        }
+    }
+
+    record ClangAlignOf(long align) {
+        public static void with(Declaration declaration, long align) {
+            declaration.addAttribute(new ClangAlignOf(align));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangAlignOf.class)
+                    .stream().mapToLong(ClangAlignOf::align).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangAlignOf.class)
+                    .stream().mapToLong(ClangAlignOf::align).findFirst().getAsLong();
+        }
+    }
+
+    record ClangSizeOf(long size) {
+        public static void with(Declaration declaration, long size) {
+            declaration.addAttribute(new ClangSizeOf(size));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangSizeOf.class)
+                    .stream().mapToLong(ClangSizeOf::size).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangSizeOf.class)
+                    .stream().mapToLong(ClangSizeOf::size).findFirst().getAsLong();
+        }
+    }
+
+    record ClangOffsetOf(long offset) {
+        public static void with(Declaration declaration, long size) {
+            declaration.addAttribute(new ClangOffsetOf(size));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangOffsetOf.class)
+                    .stream().mapToLong(ClangOffsetOf::offset).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangOffsetOf.class)
+                    .stream().mapToLong(ClangOffsetOf::offset).findFirst().getAsLong();
         }
     }
 }

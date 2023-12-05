@@ -27,6 +27,7 @@ import org.openjdk.jextract.Type;
 import org.testng.annotations.Test;
 import testlib.JextractApiTestBase;
 
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 public class Test8238712 extends JextractApiTestBase {

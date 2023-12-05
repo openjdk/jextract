@@ -192,7 +192,9 @@ class TypeMaker {
             }
             case Enum:
             case Record: {
-                return Type.declared((Declaration.Scoped) treeMaker.createTree(t.getDeclarationCursor()));
+                Declaration d = treeMaker.createTree(t.getDeclarationCursor());
+                return d != null ?
+                        Type.declared((Declaration.Scoped)d) : Type.error(t.spelling());
             }
             case BlockPointer:
             case Pointer: {
@@ -234,7 +236,7 @@ class TypeMaker {
                 return Type.qualified(Delegated.Kind.ATOMIC, aType);
             }
             default:
-                return TypeImpl.ERROR;
+                return Type.error(t.spelling());
         }
     }
 

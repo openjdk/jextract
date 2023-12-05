@@ -80,8 +80,7 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
     @Override
     public Void visitScoped(Declaration.Scoped d, Void aVoid) {
         indent();
-        builder.append("Scoped: " + d.kind() + " " + d.name() + d.layout().map(l -> " layout = " + l).orElse(""));
-        builder.append("\n");
+        builder.append("Scoped: " + d.kind() + " " + d.name() + "\n");
         getAttributes(d);
         incr();
         d.members().forEach(m -> m.accept(this, null));
@@ -105,9 +104,6 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
     public Void visitVariable(Declaration.Variable d, Void aVoid) {
         indent();
         builder.append("Variable: " + d.kind() + " " + d.name() + " type = " + d.type().accept(typeVisitor, null));
-        if (d.offset().isPresent()) {
-            builder.append(" offset = " + d.offset().getAsLong());
-        }
         builder.append("\n");
         getAttributes(d);
         return null;
@@ -160,7 +156,7 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
 
         @Override
         public String visitDeclared(Type.Declared t, Void aVoid) {
-            return "Declared(" + t.tree().layout().map(MemoryLayout::toString).orElse("") + ")";
+            return "Declared(" + t.tree().name() + ")";
         }
 
         @Override

@@ -34,11 +34,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
 import org.openjdk.jextract.Declaration.Scoped;
-import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.clang.Cursor;
@@ -46,7 +44,11 @@ import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.CursorLanguage;
 import org.openjdk.jextract.clang.LinkageKind;
 import org.openjdk.jextract.clang.SourceLocation;
+import org.openjdk.jextract.clang.TypeKind;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
 
 class TreeMaker {
     public TreeMaker() {}
@@ -55,6 +57,12 @@ class TreeMaker {
 
     public void freeze() {
         typeMaker.resolveTypeReferences();
+    }
+
+    public TreeMaker dup() {
+        TreeMaker newMaker = new TreeMaker();
+        newMaker.declarationCache = new HashMap<>(declarationCache);
+        return newMaker;
     }
 
     Map<Position, Declaration> declarationCache = new HashMap<>();
@@ -135,7 +143,7 @@ class TreeMaker {
         private CursorPosition(Cursor cursor) {
             this.cursor = cursor;
             SourceLocation.Location loc = cursor.getSourceLocation().getFileLocation();
-            this.path = loc.path();
+            this.path = loc.path().toAbsolutePath();
             this.line = loc.line();
             this.column = loc.column();
         }
@@ -219,13 +227,10 @@ class TreeMaker {
     }
 
     public Declaration.Scoped createRecord(Cursor c, Declaration.Scoped.Kind scopeKind) {
-        Type.Declared t = recordType(c);
+        checkCursorAny(c, CursorKind.StructDecl, CursorKind.UnionDecl);
         if (c.isDefinition()) {
-            Declaration.Scoped scoped = t.tree();
-            List<Declaration> decls = filterNestedDeclarations(scoped.members());
-            //just a declaration AND definition, we have a layout
-            return Declaration.scoped(scoped.kind(), scoped.pos(), scoped.name(),
-                                      decls.toArray(new Declaration[0]));
+            Type.Declared t = recordType(c, c);
+            return t.tree();
         } else {
             //if there's a real definition somewhere else, skip this redundant declaration
             if (!c.getDefinition().isInvalid()) {
@@ -235,11 +240,8 @@ class TreeMaker {
         }
     }
 
-    final Type.Declared recordType(Cursor recordCursor) {
-        return recordType(new ArrayList<>(), recordCursor, recordCursor);
-    }
-
-    final Type.Declared recordType(List<Variable> pendingFields, Cursor parent, Cursor recordCursor) {
+    final Type.Declared recordType(Cursor parent, Cursor recordCursor) {
+        List<Declaration> pendingFields = new ArrayList<>();
         recordCursor.forEach(fc -> {
             if (Utils.isFlattenable(fc)) {
                 /*
@@ -252,16 +254,17 @@ class TreeMaker {
                  * And bitfields without a name.
                  * (padding is computed automatically)
                  */
-                Type fieldType = null;
                 if (fc.isAnonymousStruct()) {
                     // process struct recursively
-                    recordType(pendingFields, recordCursor, fc);
+                    pendingFields.add(recordType(parent, fc).tree());
                 } else if (!fc.isBitField() && !fc.spelling().isEmpty()) {
-                    fieldType = typeMaker.makeType(fc.type());
-                }
-                if (fieldType != null) {
-                    pendingFields.add(Declaration.field(CursorPosition.of(fc), fc.spelling(),
-                            parent.type().getOffsetOf(fc.spelling()), fieldType));
+                    Type fieldType = typeMaker.makeType(fc.type());
+                    Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);
+                    ClangAlignOf.with(fieldDecl, fc.type().align());
+                    ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
+                            0 : fc.type().size());
+                    ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()) / 8);
+                    pendingFields.add(fieldDecl);
                 }
             }
         });
@@ -271,6 +274,9 @@ class TreeMaker {
                         pendingFields.toArray(new Declaration[0])) :
                 Declaration.union(CursorPosition.of(recordCursor), recordCursor.spelling(),
                         pendingFields.toArray(new Declaration[0]));
+        ClangSizeOf.with(structOrUnionDecl, recordCursor.type().size());
+        ClangAlignOf.with(structOrUnionDecl, recordCursor.type().align());
+
         return Type.declared(structOrUnionDecl);
     }
 
@@ -284,8 +290,7 @@ class TreeMaker {
         List<Declaration> decls = filterNestedDeclarations(allDecls);
         if (c.isDefinition()) {
             //just a declaration AND definition, we have a layout
-            MemoryLayout layout = TypeMaker.valueLayoutForSize(c.type().size() * 8).layout().orElseThrow();
-            return Declaration.enum_(CursorPosition.of(c), c.spelling(), layout, decls.toArray(new Declaration[0]));
+            return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
         } else {
             return null;
         }

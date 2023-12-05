@@ -91,10 +91,6 @@ public class JextractApiTestBase {
         return checkScoped(toplevel, name, Declaration.Scoped.Kind.STRUCT, fields);
     }
 
-    public static Declaration.Scoped checkBitfields(Declaration.Scoped toplevel, String name, String... fields) {
-        return checkScoped(toplevel, name, Declaration.Scoped.Kind.BITFIELDS, fields);
-    }
-
     public static Declaration.Scoped checkUnion(Declaration.Scoped toplevel, String name, String... fields) {
         return checkScoped(toplevel, name, Declaration.Scoped.Kind.UNION, fields);
     }
@@ -114,13 +110,6 @@ public class JextractApiTestBase {
     public static Declaration.Variable checkField(Declaration.Scoped record, String name, Type type) {
         Declaration.Variable global = checkVariable(record, name, type);
         assertEquals(global.kind(), Declaration.Variable.Kind.FIELD);
-        return global;
-    }
-
-    public static Declaration.Variable checkBitField(Declaration.Scoped record, String name, Type type, int size) {
-        Declaration.Variable global = checkVariable(record, name, type);
-        assertEquals(global.kind(), Declaration.Variable.Kind.BITFIELD);
-        assertEquals(((Declaration.Bitfield)global).width(), size);
         return global;
     }
 

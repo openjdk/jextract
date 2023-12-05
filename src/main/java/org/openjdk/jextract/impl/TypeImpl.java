@@ -39,6 +39,7 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.ScopedLayout;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
@@ -59,7 +60,13 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
         return (t2.kind() == Delegated.Kind.TYPEDEF) && t1.equals(t2.type());
     }
 
-    public static final TypeImpl ERROR = new TypeImpl() {
+    public static class ErronrousTypeImpl extends TypeImpl {
+        final String erroneousName;
+
+        public ErronrousTypeImpl(String erroneousName) {
+            this.erroneousName = erroneousName;
+        }
+
         @Override
         public <R, D> R accept(Visitor<R, D> visitor, D data) {
             return visitor.visitType(this, data);
@@ -441,7 +448,7 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
 
         @Override
         public MemoryLayout visitDeclared(org.openjdk.jextract.Type.Declared t, Void _ignored) {
-            return t.tree().layout().orElseThrow(UnsupportedOperationException::new);
+            return ScopedLayout.get(t.tree()).orElseThrow(UnsupportedOperationException::new);
         }
 
         @Override
