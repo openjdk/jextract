@@ -26,14 +26,12 @@
 
 package org.openjdk.jextract;
 
-import java.lang.constant.Constable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.Set;
 import java.lang.foreign.MemoryLayout;
+
+import org.openjdk.jextract.Declaration.Variable.Kind;
 import org.openjdk.jextract.impl.DeclarationImpl;
 
 /**
@@ -128,6 +126,10 @@ public interface Declaration extends Attributed {
              */
             UNION,
             /**
+             * Bitfields declaration.
+             */
+            BITFIELDS,
+            /**
              * Toplevel declaration.
              */
             TOPLEVEL;
@@ -196,6 +198,18 @@ public interface Declaration extends Attributed {
          * @return The kind associated with this variable declaration.
          */
         Kind kind();
+    }
+
+    /**
+     * A bitfield declaration. Same as a variable declaration, but doesn't have a layout. Instead, it has
+     * an offset (relative to the enclosing container) and a width.
+     */
+    interface Bitfield extends Variable {
+
+        /**
+         * {@return The bitfield width (in bits)}
+         */
+        long width();
     }
 
     /**
@@ -305,6 +319,17 @@ public interface Declaration extends Attributed {
     }
 
     /**
+     * Creates a new bitfield declaration with given name, type, offset and width.
+     * @param pos the bitfield declaration position.
+     * @param name the bitfield declaration name.
+     * @param type the bitfield declaration type.
+     * @return a new bitfield declaration with given name, type and layout.
+     */
+    static Declaration.Variable bitfield(Position pos, String name, long width, Type type) {
+        return new DeclarationImpl.BitfieldImpl(type, width, name, pos);
+    }
+
+    /**
      * Creates a new parameter declaration with given name and type.
      * @param pos the parameter declaration position.
      * @param name the parameter declaration name.
@@ -336,6 +361,17 @@ public interface Declaration extends Attributed {
     static Declaration.Scoped toplevel(Position pos, Declaration... decls) {
         List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.TOPLEVEL, declList, "<toplevel>", pos);
+    }
+
+    /**
+     * Creates a new bitfields group declaration with given name and layout.
+     * @param pos the bitfields group declaration position.
+     * @param bitfields the bitfields group member declarations.
+     * @return a new bitfields group declaration with given name and layout.
+     */
+    static Declaration.Scoped bitfields(Position pos, Declaration.Variable... bitfields) {
+        List<Declaration> declList = List.of(bitfields);
+        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.BITFIELDS, declList, "", pos);
     }
 
     /**

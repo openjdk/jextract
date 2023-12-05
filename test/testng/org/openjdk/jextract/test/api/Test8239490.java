@@ -32,13 +32,33 @@ public class Test8239490 extends JextractApiTestBase {
     public void test8239490() {
         Declaration.Scoped d = parse("Test8239490.h");
         // check Foo
-        Declaration.Scoped structFoo = checkStruct(d, "Foo");
+        String[] fooBitfieldNames = { "a", "b", "c" };
+        int[] fooBitfieldSizes = { 1, 1, 30 };
+        Declaration.Scoped structFoo = checkStruct(d, "Foo", "");
+        Declaration.Scoped bitfieldsFoo = checkBitfields(structFoo, "", "a", "b", "c");
+        Type intType = ((Declaration.Variable)bitfieldsFoo.members().get(0)).type();
+        for (int i = 0 ; i < fooBitfieldNames.length ; i++) {
+            checkBitField(bitfieldsFoo, fooBitfieldNames[i], intType, fooBitfieldSizes[i]);
+        }
         // check Bar
-        Declaration.Scoped structBar = checkStruct(d, "Bar", "z");
+        String[] barBitfieldNames = { "x", "y" };
+        int[] barBitfieldSizes = { 1, 31 };
+        Declaration.Scoped structBar = checkStruct(d, "Bar", "", "z");
+        Declaration.Scoped bitfieldsBar = checkBitfields(structBar, "", "x", "y");
+        for (int i = 0 ; i < barBitfieldNames.length ; i++) {
+            checkBitField(bitfieldsBar, barBitfieldNames[i], intType, barBitfieldSizes[i]);
+        }
         checkField(structBar, "z", Type.array(1, Type.declared(structFoo)));
 
         // check Baz
-        Declaration.Scoped structBaz = checkStruct(d, "Baz", "z");
+        String[] bazBitfieldNames = { "x", "y" };
+        int[] bazBitfieldSizes = { 1, 63 };
+        Declaration.Scoped structBaz = checkStruct(d, "Baz", "", "z");
+        Declaration.Scoped bitfieldsBaz = checkBitfields(structBaz, "", "x", "y");
+        Type longType = ((Declaration.Variable)bitfieldsBaz.members().get(0)).type();
+        for (int i = 0 ; i < bazBitfieldNames.length ; i++) {
+            checkBitField(bitfieldsBaz, bazBitfieldNames[i], longType, bazBitfieldSizes[i]);
+        }
         checkField(structBaz, "z", Type.array(1, Type.declared(structBar)));
     }
 }

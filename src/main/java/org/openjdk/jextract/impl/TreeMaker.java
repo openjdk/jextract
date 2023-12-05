@@ -32,11 +32,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
 import org.openjdk.jextract.Declaration.Scoped;
+import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.clang.Cursor;
@@ -46,7 +48,6 @@ import org.openjdk.jextract.clang.LinkageKind;
 import org.openjdk.jextract.clang.SourceLocation;
 import org.openjdk.jextract.clang.TypeKind;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
-import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
 
@@ -242,40 +243,56 @@ class TreeMaker {
 
     final Type.Declared recordType(Cursor parent, Cursor recordCursor) {
         List<Declaration> pendingFields = new ArrayList<>();
+        List<Variable> pendingBitFields = new ArrayList<>();
+        AtomicReference<Position> pendingBitfieldsPos = new AtomicReference<>();
         recordCursor.forEach(fc -> {
             if (Utils.isFlattenable(fc)) {
-                /*
-                 * Ignore bitfields of zero width.
-                 *
-                 * struct Foo {
-                 *     int i:0;
-                 * }
-                 *
-                 * And bitfields without a name.
-                 * (padding is computed automatically)
-                 */
-                if (fc.isAnonymousStruct()) {
-                    // process struct recursively
-                    pendingFields.add(recordType(parent, fc).tree());
-                } else if (!fc.isBitField() && !fc.spelling().isEmpty()) {
+                if (fc.isBitField()) {
+                    if (pendingBitfieldsPos.get() == null) {
+                        pendingBitfieldsPos.set(CursorPosition.of(fc));
+                    }
                     Type fieldType = typeMaker.makeType(fc.type());
-                    Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);
-                    ClangAlignOf.with(fieldDecl, fc.type().align());
-                    ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
-                            0 : fc.type().size());
-                    ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()) / 8);
-                    pendingFields.add(fieldDecl);
+                    Variable bitfieldDecl = Declaration.bitfield(CursorPosition.of(fc), fc.spelling(), fc.getBitFieldWidth(), fieldType);
+                    if (!fc.spelling().isEmpty()) {
+                        ClangOffsetOf.with(bitfieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                    }
+                    pendingBitFields.add(bitfieldDecl);
+                } else {
+                    if (!pendingBitFields.isEmpty()) {
+                        pendingFields.add(Declaration.bitfields(pendingBitfieldsPos.get(), pendingBitFields.toArray(Variable[]::new)));
+                        pendingBitFields.clear();
+                        pendingBitfieldsPos.set(null);
+                    }
+                    if (fc.isAnonymousStruct()) {
+                        // process struct recursively
+                        pendingFields.add(recordType(parent, fc).tree());
+                    } else if (!fc.isBitField() && !fc.spelling().isEmpty()) {
+                        Type fieldType = typeMaker.makeType(fc.type());
+                        Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);
+                        ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
+                                0 : fc.type().size() * 8);
+                        ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                        pendingFields.add(fieldDecl);
+                    }
                 }
             }
         });
+
+        if (!pendingBitFields.isEmpty()) {
+            pendingFields.add(Declaration.bitfields(pendingBitfieldsPos.get(), pendingBitFields.toArray(Variable[]::new)));
+            pendingBitFields.clear();
+            pendingBitfieldsPos.set(null);
+        }
 
         Scoped structOrUnionDecl = recordCursor.kind() == CursorKind.StructDecl ?
                 Declaration.struct(CursorPosition.of(recordCursor), recordCursor.spelling(),
                         pendingFields.toArray(new Declaration[0])) :
                 Declaration.union(CursorPosition.of(recordCursor), recordCursor.spelling(),
                         pendingFields.toArray(new Declaration[0]));
-        ClangSizeOf.with(structOrUnionDecl, recordCursor.type().size());
-        ClangAlignOf.with(structOrUnionDecl, recordCursor.type().align());
+        ClangSizeOf.with(structOrUnionDecl, recordCursor.type().size() * 8);
+        if (recordCursor.isAnonymousStruct()) {
+            AnonymousStruct.with(structOrUnionDecl);
+        }
 
         return Type.declared(structOrUnionDecl);
     }

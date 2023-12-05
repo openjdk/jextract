@@ -27,7 +27,6 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.constant.Constable;
-import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +149,38 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         @Override
         public int hashCode() {
             return Objects.hash(super.hashCode(), kind, type);
+        }
+    }
+
+    public static final class BitfieldImpl extends VariableImpl implements Declaration.Bitfield {
+
+        final long width;
+
+        private BitfieldImpl(Type type, long width, String name, Position pos, Map<String, List<Constable>> attrs) {
+            super(type, Kind.BITFIELD, name, pos, attrs);
+            this.width = width;
+        }
+
+        public BitfieldImpl(Type type, long width, String name, Position pos) {
+            this(type, width, name, pos, null);
+        }
+
+        @Override
+        public long width() {
+            return width;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof BitfieldImpl bitfield)) return false;
+            if (!super.equals(o)) return false;
+            return width == bitfield.width;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(super.hashCode(), width);
         }
     }
 
@@ -416,22 +447,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         public static MemoryLayout getOrThrow(Scoped declaration) {
             return declaration.getAttribute(ScopedLayout.class)
                     .map(ScopedLayout::layout).get();
-        }
-    }
-
-    record ClangAlignOf(long align) {
-        public static void with(Declaration declaration, long align) {
-            declaration.addAttribute(new ClangAlignOf(align));
-        }
-
-        public static OptionalLong get(Declaration declaration) {
-            return declaration.getAttribute(ClangAlignOf.class)
-                    .stream().mapToLong(ClangAlignOf::align).findFirst();
-        }
-
-        public static long getOrThrow(Declaration declaration) {
-            return declaration.getAttribute(ClangAlignOf.class)
-                    .stream().mapToLong(ClangAlignOf::align).findFirst().getAsLong();
         }
     }
 
