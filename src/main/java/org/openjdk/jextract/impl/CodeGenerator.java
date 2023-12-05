@@ -25,6 +25,8 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.tools.JavaFileObject;
@@ -33,14 +35,14 @@ public final class CodeGenerator {
     private CodeGenerator() {}
 
     public static JavaFileObject[] generate(Declaration.Scoped decl, String headerName,
-                    String targetPkg, IncludeHelper includeHelper,
-                    List<String> libNames) {
+                                            String targetPkg, IncludeHelper includeHelper,
+                                            List<String> libNames, PrintWriter errStream) {
         var transformedDecl = Stream.of(decl)
                 .map(new IncludeFilter(includeHelper)::scan)
                 .map(new EnumConstantLifter()::scan)
                 .map(new DuplicateFilter()::scan)
                 .map(new NameMangler(headerName)::scan)
-                .map(new UnsupportedFilter()::scan)
+                .map(new UnsupportedFilter(errStream)::scan)
                 .findFirst().get();
         return OutputFactory.generateWrapped(transformedDecl, targetPkg, libNames);
     }
