@@ -135,7 +135,7 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
     private static Type.Visitor<String, Void> typeVisitor = new Type.Visitor<>() {
         @Override
         public String visitPrimitive(Type.Primitive t, Void aVoid) {
-            return t.kind().toString() + t.kind().layout().map(l -> "(layout = " + l + ")").orElse("");
+            return t.kind().toString() + Type.layoutFor(t).map(l -> "(layout = " + l + ")").orElse("");
         }
 
         @Override

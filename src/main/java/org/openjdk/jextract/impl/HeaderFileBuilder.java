@@ -228,8 +228,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
         Type.Primitive.Kind kind = primType.kind();
-        if (primitiveKindSupported(kind) && kind.layout().isPresent()) {
-            emitPrimitiveTypedefLayout(name, kind.layout().get(), typedefTree);
+        if (primitiveKindSupported(kind) && Type.layoutFor(primType).isPresent()) {
+            emitPrimitiveTypedefLayout(name, Type.layoutFor(primType).get(), typedefTree);
         }
     }
 

@@ -26,16 +26,10 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.GroupLayout;
-import java.lang.foreign.PaddingLayout;
-import java.lang.foreign.SequenceLayout;
-import java.lang.foreign.StructLayout;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import java.lang.foreign.AddressLayout;
@@ -43,16 +37,7 @@ import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
-import org.openjdk.jextract.Declaration.Constant;
-import org.openjdk.jextract.Declaration.Scoped;
-import org.openjdk.jextract.Declaration.Scoped.Kind;
-import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
-import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
-import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
-import org.openjdk.jextract.impl.DeclarationImpl.ScopedLayout;
-import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
 
@@ -96,10 +81,6 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
 
         public PrimitiveImpl(Kind kind) {
             this.kind = Objects.requireNonNull(kind);
-            if (kind.layout().isPresent() && kind.layout().get() instanceof PaddingLayout) {
-                // this type is unsupported, add a Skip attribute
-                Skip.with(this);
-            }
         }
 
         @Override
@@ -435,7 +416,31 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
     private static org.openjdk.jextract.Type.Visitor<MemoryLayout, Void> layoutMaker = new org.openjdk.jextract.Type.Visitor<>() {
         @Override
         public MemoryLayout visitPrimitive(org.openjdk.jextract.Type.Primitive t, Void _ignored) {
-            return t.kind().layout().orElseThrow(UnsupportedOperationException::new);
+            return switch (t.kind()) {
+                case Void -> throw new UnsupportedOperationException();
+                case Bool -> ValueLayout.JAVA_BOOLEAN;
+                case Char -> ValueLayout.JAVA_BYTE;
+                case Char16 -> unsupportedLayout(2, t);
+                case Short -> ValueLayout.JAVA_SHORT;
+                case Int -> ValueLayout.JAVA_INT;
+                case Long -> TypeImpl.IS_WINDOWS ?
+                        ValueLayout.JAVA_INT :
+                        ValueLayout.JAVA_LONG;
+                case LongLong -> ValueLayout.JAVA_LONG;
+                case Int128 -> unsupportedLayout(16, t);
+                case Float -> ValueLayout.JAVA_FLOAT;
+                case Double -> ValueLayout.JAVA_DOUBLE;
+                case LongDouble -> TypeImpl.IS_WINDOWS ?
+                        ValueLayout.JAVA_DOUBLE :
+                        unsupportedLayout(16, t);
+                case Float128 -> unsupportedLayout(16, t);
+                case HalfFloat -> unsupportedLayout(2, t);
+                case WChar -> unsupportedLayout(2, t);
+            };
+        }
+
+        private MemoryLayout unsupportedLayout(long size, Type.Primitive t) {
+            return MemoryLayout.paddingLayout(size).withByteAlignment(size).withName(t.kind().typeName());
         }
 
         @Override
@@ -460,7 +465,7 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
 
         @Override
         public MemoryLayout visitDeclared(org.openjdk.jextract.Type.Declared t, Void _ignored) {
-            return declaredLayout(t.tree());
+            return Declaration.layoutFor(t.tree()).orElseThrow(UnsupportedOperationException::new);
         }
 
         @Override
@@ -476,136 +481,6 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
         @Override
         public MemoryLayout visitType(org.openjdk.jextract.Type t, Void _ignored) {
             throw new UnsupportedOperationException();
-        }
-
-        private MemoryLayout declaredLayout(Scoped scoped) {
-            Optional<MemoryLayout> layout = ScopedLayout.get(scoped);
-            if (layout.isPresent()) {
-                return layout.get();
-            } else {
-                // compute and cache for later use
-                switch (scoped.kind()) {
-                    case Kind.STRUCT, Kind.UNION -> {
-                        if (ClangSizeOf.get(scoped).isPresent()) {
-                            GroupLayout groupLayout = recordLayout(0, new AtomicInteger(), scoped);
-                            ScopedLayout.with(scoped, groupLayout);
-                            return groupLayout;
-                        }
-                    }
-                    case Kind.ENUM -> {
-                        MemoryLayout constLayout = Type.layoutFor(((Constant)scoped.members().get(0)).type())
-                                .orElseThrow(UnsupportedOperationException::new);
-                        ScopedLayout.with(scoped, constLayout);
-                        return constLayout;
-                    }
-                }
-                throw new UnsupportedOperationException();
-            }
-        }
-
-        private GroupLayout recordLayout(long base, AtomicInteger anonCount, Scoped scoped) {
-            boolean isStruct = scoped.kind() == Kind.STRUCT;
-            String name = scoped.name().isEmpty() ?
-                    "$anon$" + anonCount.getAndIncrement() :
-                    scoped.name();
-
-            long offset = base; // bits
-            long size = 0L; // bits
-            List<MemoryLayout> memberLayouts = new ArrayList<>();
-            for (Declaration member : scoped.members()) {
-                if (member instanceof Scoped nested && nested.kind() == Kind.BITFIELDS) {
-                    // skip
-                } else if (nextOffset(member).isPresent()) {
-                    long nextOffset = nextOffset(member).getAsLong();
-                    long delta = nextOffset - offset;
-                    if (delta > 0) {
-                        memberLayouts.add(MemoryLayout.paddingLayout(delta / 8));
-                        offset += delta;
-                        if (isStruct) {
-                            size += delta;
-                        }
-                    }
-                    boolean added = false;
-                    if (member instanceof Scoped nested) {
-                        // nested anonymous struct or union, recurse
-                        GroupLayout layout = recordLayout(base + offset, anonCount, nested);
-                        ScopedLayout.with(nested, layout);
-                        memberLayouts.add(layout);
-                        added = true;
-                    } else {
-                        Variable field = (Variable) member;
-                        Optional<MemoryLayout> fieldLayout = Type.layoutFor(field.type());
-                        if (fieldLayout.isPresent()) {
-                            memberLayouts.add(fieldLayout.get()
-                                    .withName(field.name()));
-                            added = true;
-                        }
-                    }
-                    if (added) {
-                        // update offset and size
-                        long fieldSize = ClangSizeOf.getOrThrow(member);
-                        if (isStruct) {
-                            offset += fieldSize;
-                            size += fieldSize;
-                        } else {
-                            size = Math.max(size, ClangSizeOf.getOrThrow(member));
-                        }
-                    }
-                }
-            }
-            long expectedSize = ClangSizeOf.getOrThrow(scoped);
-            if (size != expectedSize) {
-                memberLayouts.add(MemoryLayout.paddingLayout((expectedSize - size) / 8));
-            }
-            long align = ClangAlignOf.getOrThrow(scoped) / 8;
-            GroupLayout layout = isStruct ?
-                    MemoryLayout.structLayout(alignFields(memberLayouts, align)) :
-                    MemoryLayout.unionLayout(alignFields(memberLayouts, align));
-            return layout.withName(name);
-        }
-
-        private OptionalLong nextOffset(Declaration member) {
-            if (member instanceof Variable) {
-                return ClangOffsetOf.get(member);
-            } else {
-                Optional<Declaration> firstDecl = ((Scoped)member).members().stream().findFirst();
-                return firstDecl.isEmpty() ?
-                        OptionalLong.empty() :
-                        nextOffset(firstDecl.get());
-            }
-        }
-
-        private MemoryLayout[] alignFields(List<MemoryLayout> members, long align) {
-            return members.stream()
-                    .map(l -> forceAlign(l, align))
-                    .toArray(MemoryLayout[]::new);
-        }
-
-        private MemoryLayout forceAlign(MemoryLayout layout, long align) {
-            if (align >= layout.byteAlignment()) {
-                return layout; // fast-path
-            }
-            MemoryLayout res = switch (layout) {
-                case GroupLayout groupLayout -> {
-                    MemoryLayout[] newMembers = groupLayout.memberLayouts()
-                            .stream().map(l -> forceAlign(l, align)).toArray(MemoryLayout[]::new);
-                    yield groupLayout instanceof StructLayout ?
-                            MemoryLayout.structLayout(newMembers) :
-                            MemoryLayout.unionLayout(newMembers);
-                }
-                case SequenceLayout sequenceLayout ->
-                        MemoryLayout.sequenceLayout(sequenceLayout.elementCount(),
-                                forceAlign(sequenceLayout.elementLayout(), align));
-                default -> layout.withByteAlignment(align);
-            };
-            // copy name and target layout, if present
-            if (layout.name().isPresent()) {
-                res = res.withName(layout.name().get());
-            }
-            if (layout instanceof AddressLayout addressLayout && addressLayout.targetLayout().isPresent()) {
-                ((AddressLayout)res).withTargetLayout(addressLayout.targetLayout().get());
-            }
-            return res;
         }
     };
 }

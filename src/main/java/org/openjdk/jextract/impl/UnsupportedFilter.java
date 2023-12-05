@@ -41,6 +41,8 @@ import org.openjdk.jextract.impl.TypeImpl.ErronrousTypeImpl;
 import java.io.PrintWriter;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.PaddingLayout;
+import java.util.Optional;
 
 /*
  * This visitor marks a number of unsupported construct so that they are skipped by code generation.
@@ -211,8 +213,9 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     private static final Type.Visitor<String, Void> UNSUPPORTED_VISITOR = new Type.Visitor<>() {
         @Override
         public String visitPrimitive(Type.Primitive t, Void unused) {
-            if (Skip.isPresent(t)) {
-                return t.kind().layout().get().name().get();
+            Optional<MemoryLayout> layout = Type.layoutFor(t);
+            if (layout.isPresent() && layout.get() instanceof PaddingLayout) {
+                return t.kind().typeName();
             } else {
                 return null;
             }

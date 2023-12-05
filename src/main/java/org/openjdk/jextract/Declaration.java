@@ -32,10 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.lang.foreign.MemoryLayout;
 
-import org.openjdk.jextract.Declaration.Variable.Kind;
-import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.impl.DeclarationImpl;
-import org.openjdk.jextract.impl.TypeImpl;
 
 /**
  * Instances of this class are used to model declaration elements in the foreign language.
@@ -455,7 +452,7 @@ public interface Declaration extends Attributed {
      */
     static Optional<MemoryLayout> layoutFor(Declaration d) {
         return switch (d) {
-            case Scoped scoped -> Type.layoutFor(Type.declared(scoped));
+            case Scoped scoped -> DeclarationImpl.layoutFor(scoped);
             case Variable var -> Type.layoutFor(var.type());
             case Typedef typedef -> Type.layoutFor(typedef.type());
             case Constant constant -> Type.layoutFor(constant.type());
