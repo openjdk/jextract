@@ -9,12 +9,16 @@ import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Declared;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ScopedLayout;
 
+import java.lang.foreign.AddressLayout;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.StructLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -119,7 +123,9 @@ public class LayoutComputer implements Declaration.Visitor<Void, Void> {
                     processType(field.type());
                     Optional<MemoryLayout> fieldLayout = Type.layoutFor(field.type());
                     if (fieldLayout.isPresent()) {
-                        memberLayouts.add(fieldLayout.get().withName(field.name()));
+                        memberLayouts.add(fieldLayout.get()
+                                .withName(field.name())
+                                .withByteAlignment(ClangAlignOf.getOrThrow(field) / 8));
                         added = true;
                     }
                 }
@@ -139,9 +145,10 @@ public class LayoutComputer implements Declaration.Visitor<Void, Void> {
         if (size != expectedSize) {
             memberLayouts.add(MemoryLayout.paddingLayout((expectedSize - size) / 8));
         }
+        long align = ClangAlignOf.getOrThrow(scoped) / 8;
         GroupLayout layout = isStruct ?
-                MemoryLayout.structLayout(memberLayouts.toArray(MemoryLayout[]::new)) :
-                MemoryLayout.unionLayout(memberLayouts.toArray(MemoryLayout[]::new));
+                MemoryLayout.structLayout(alignFields(memberLayouts, align)) :
+                MemoryLayout.unionLayout(alignFields(memberLayouts, align));
         return layout.withName(name);
     }
 
@@ -152,7 +159,40 @@ public class LayoutComputer implements Declaration.Visitor<Void, Void> {
             Optional<Declaration> firstDecl = ((Scoped)member).members().stream().findFirst();
             return firstDecl.isEmpty() ?
                     OptionalLong.empty() :
-                    ClangOffsetOf.get(firstDecl.get());
+                    nextOffset(firstDecl.get());
         }
+    }
+
+    MemoryLayout[] alignFields(List<MemoryLayout> members, long align) {
+        return members.stream()
+                .map(l -> forceAlign(l, align))
+                .toArray(MemoryLayout[]::new);
+    }
+
+    MemoryLayout forceAlign(MemoryLayout layout, long align) {
+        if (align >= layout.byteAlignment()) {
+            return layout; // fast-path
+        }
+        MemoryLayout res = switch (layout) {
+            case GroupLayout groupLayout -> {
+                MemoryLayout[] newMembers = groupLayout.memberLayouts()
+                        .stream().map(l -> forceAlign(l, align)).toArray(MemoryLayout[]::new);
+                yield groupLayout instanceof StructLayout ?
+                        MemoryLayout.structLayout(newMembers) :
+                        MemoryLayout.unionLayout(newMembers);
+            }
+            case SequenceLayout sequenceLayout ->
+                    MemoryLayout.sequenceLayout(sequenceLayout.elementCount(),
+                            forceAlign(sequenceLayout.elementLayout(), align));
+            default -> layout.withByteAlignment(align);
+        };
+        // copy name and target layout, if present
+        if (layout.name().isPresent()) {
+            res = res.withName(layout.name().get());
+        }
+        if (layout instanceof AddressLayout addressLayout && addressLayout.targetLayout().isPresent()) {
+            ((AddressLayout)res).withTargetLayout(addressLayout.targetLayout().get());
+        }
+        return res;
     }
 }

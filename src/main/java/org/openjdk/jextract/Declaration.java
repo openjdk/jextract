@@ -146,8 +146,6 @@ public interface Declaration extends Attributed {
          * @return The scoped declaration kind.
          */
         Kind kind();
-
-        Optional<MemoryLayout> layout();
     }
 
     /**

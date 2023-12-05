@@ -48,6 +48,7 @@ import org.openjdk.jextract.clang.LinkageKind;
 import org.openjdk.jextract.clang.SourceLocation;
 import org.openjdk.jextract.clang.TypeKind;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
 
@@ -269,6 +270,7 @@ class TreeMaker {
                     } else if (!fc.isBitField() && !fc.spelling().isEmpty()) {
                         Type fieldType = typeMaker.makeType(fc.type());
                         Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);
+                        ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
                         ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
@@ -290,6 +292,7 @@ class TreeMaker {
                 Declaration.union(CursorPosition.of(recordCursor), recordCursor.spelling(),
                         pendingFields.toArray(new Declaration[0]));
         ClangSizeOf.with(structOrUnionDecl, recordCursor.type().size() * 8);
+        ClangAlignOf.with(structOrUnionDecl, recordCursor.type().align() * 8);
         if (recordCursor.isAnonymousStruct()) {
             AnonymousStruct.with(structOrUnionDecl);
         }

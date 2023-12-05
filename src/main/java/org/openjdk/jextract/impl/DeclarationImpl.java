@@ -259,10 +259,10 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             return kind;
         }
 
-        @Override
-        public Optional<MemoryLayout> layout() {
-            return ScopedLayout.get(this);
-        }
+//        @Override
+//        public Optional<MemoryLayout> layout() {
+//            return ScopedLayout.get(this);
+//        }
 
         @Override
         public boolean equals(Object o) {
@@ -447,6 +447,22 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         public static MemoryLayout getOrThrow(Scoped declaration) {
             return declaration.getAttribute(ScopedLayout.class)
                     .map(ScopedLayout::layout).get();
+        }
+    }
+
+    record ClangAlignOf(long align) {
+        public static void with(Declaration declaration, long align) {
+            declaration.addAttribute(new ClangAlignOf(align));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangAlignOf.class)
+                    .stream().mapToLong(ClangAlignOf::align).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangAlignOf.class)
+                    .stream().mapToLong(ClangAlignOf::align).findFirst().getAsLong();
         }
     }
 
