@@ -44,6 +44,7 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Declared;
 
 public abstract class DeclarationImpl extends AttributedImpl implements Declaration {
 
@@ -373,23 +374,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
                         size += delta;
                     }
                 }
-                boolean added = false;
-                if (member instanceof Scoped nested) {
-                    // nested anonymous struct or union, recurse
-                    GroupLayout layout = recordLayout(base + offset, anonCount, nested);
-                    ScopedLayout.with(nested, layout);
-                    memberLayouts.add(layout);
-                    added = true;
-                } else {
-                    Variable field = (Variable) member;
-                    Optional<MemoryLayout> fieldLayout = Type.layoutFor(field.type());
-                    if (fieldLayout.isPresent()) {
-                        memberLayouts.add(fieldLayout.get()
-                                .withName(field.name()));
-                        added = true;
-                    }
-                }
-                if (added) {
+                Optional<MemoryLayout> layout = memberLayout(base + offset, anonCount, member);
+                if (layout.isPresent()) {
+                    memberLayouts.add(layout.get());
                     // update offset and size
                     long fieldSize = ClangSizeOf.getOrThrow(member);
                     if (isStruct) {
@@ -410,6 +397,19 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
                 MemoryLayout.structLayout(alignFields(memberLayouts, align)) :
                 MemoryLayout.unionLayout(alignFields(memberLayouts, align));
         return layout.withName(name);
+    }
+
+    private static Optional<MemoryLayout> memberLayout(long offset, AtomicInteger anonCount, Declaration member) {
+        if (member instanceof Scoped nested) {
+            // nested anonymous struct or union, recurse
+            GroupLayout layout = recordLayout(offset, anonCount, nested);
+            ScopedLayout.with(nested, layout);
+            return Optional.of(layout);
+        } else {
+            Variable field = (Variable) member;
+            return Type.layoutFor(field.type())
+                    .map(l -> l.withName(field.name()));
+        }
     }
 
     private static OptionalLong nextOffset(Declaration member) {
