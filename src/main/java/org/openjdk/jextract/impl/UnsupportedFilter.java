@@ -72,13 +72,13 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         //generate static wrapper for function
         String unsupportedType = firstUnsupportedType(funcTree.type());
         if (unsupportedType != null) {
-            warnUnsupportedType(funcTree.name(), unsupportedType);
+            warnSkip(funcTree.name(), STR."unsupported type usage: \{unsupportedType}");
             Skip.with(funcTree);
             return null;
         }
         FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
         if (descriptor == null) {
-            warnSkip(funcTree.name(), "can not compute FunctionDescriptor");
+            warnSkip(funcTree.name(), "does not have a valid function descriptor");
             Skip.with(funcTree);
             return null;
         }
@@ -106,14 +106,14 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         String name = parent != null ? parent.name() + "." : "";
         name += varTree.name();
         if (unsupportedType != null) {
-            warnUnsupportedType(name, unsupportedType);
+            warnSkip(name, STR."unsupported type usage: \{unsupportedType}");
             Skip.with(varTree);
             return null;
         }
         MemoryLayout layout = Type.layoutFor(varTree.type()).orElse(null);
         if (layout == null) {
             //no layout - skip
-            warnSkip(name, "can not compute MemoryLayout");
+            warnSkip(name, "does not have a valid memory layout");
             Skip.with(varTree);
             return null;
         }
@@ -151,7 +151,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     public Void visitTypedef(Typedef typedefTree, Declaration declaration) {
         String unsupportedType = firstUnsupportedType(typedefTree.type());
         if (unsupportedType != null) {
-            warnUnsupportedType(typedefTree.name(), unsupportedType);
+            warnSkip(typedefTree.name(), STR."unsupported type usage: \{unsupportedType}");
             Skip.with(typedefTree);
             return null;
         }
@@ -164,7 +164,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         MemoryLayout layout = Type.layoutFor(typedefTree.type()).orElse(null);
         if (layout == null) {
             //no layout - skip
-            warnSkip(typedefTree.name(), "can not compute MemoryLayout");
+            warnSkip(typedefTree.name(), "does not have a valid memory layout");
             Skip.with(typedefTree);
             return null;
         }
@@ -189,12 +189,12 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     private boolean checkFunctionTypeSupported(Declaration decl, Type.Function func, String nameOfSkipped) {
         String unsupportedType = firstUnsupportedType(func);
         if (unsupportedType != null) {
-            warnUnsupportedType(nameOfSkipped, unsupportedType);
+            warnSkip(nameOfSkipped, STR."unsupported type usage: \{unsupportedType}");
             return false;
         }
         FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
         if (descriptor == null) {
-            warnSkip(nameOfSkipped, "can not compute FunctionDescriptor");
+            warnSkip(nameOfSkipped, "does not have a valid function descriptor");
             return false;
         }
         //generate functional interface
@@ -266,10 +266,6 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
             return null;
         }
     };
-
-    private void warnUnsupportedType(String treeName, String type) {
-        warnSkip(treeName, STR."unsupported type usage: \{type}");
-    }
 
     private void warnSkip(String treeName, String message) {
         warn(STR."skipping \{treeName}: \{message}");
