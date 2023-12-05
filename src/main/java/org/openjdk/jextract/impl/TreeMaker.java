@@ -225,7 +225,7 @@ class TreeMaker {
     }
 
     public Declaration.Scoped createHeader(Cursor c, List<Declaration> decls) {
-        return Declaration.toplevel(CursorPosition.of(c), filterNestedDeclarations(decls).toArray(new Declaration[0]));
+        return Declaration.toplevel(CursorPosition.of(c), filterHeaderDeclarations(decls).toArray(new Declaration[0]));
     }
 
     public Declaration.Scoped createRecord(Cursor c, Declaration.Scoped.Kind scopeKind) {
@@ -300,13 +300,12 @@ class TreeMaker {
     }
 
     public Declaration.Scoped createEnum(Cursor c) {
-        List<Declaration> allDecls = new ArrayList<>();
+        List<Declaration> decls = new ArrayList<>();
         c.forEach(child -> {
             if (!child.isBitField() || (child.getBitFieldWidth() != 0 && !child.spelling().isEmpty())) {
-                allDecls.add(createTree(child));
+                decls.add(createTree(child));
             }
         });
-        List<Declaration> decls = filterNestedDeclarations(allDecls);
         if (c.isDefinition()) {
             //just a declaration AND definition, we have a layout
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
@@ -320,14 +319,15 @@ class TreeMaker {
                 scoped.kind() == Declaration.Scoped.Kind.ENUM;
     }
 
-    private static boolean isAnonymousStruct(Declaration declaration) {
-        return declaration instanceof Scoped scoped && AnonymousStruct.isPresent(scoped);
-    }
-
-    private List<Declaration> filterNestedDeclarations(List<Declaration> declarations) {
+    /*
+     * This method drops anonymous structs from the resulting toplevel declaration. These structs
+     * can appear as part of a typedef, but are presented by libclang as toplevel structs, so we
+     * need to filter them out.
+     */
+    private List<Declaration> filterHeaderDeclarations(List<Declaration> declarations) {
         return declarations.stream()
                 .filter(Objects::nonNull)
-                .filter(d -> isEnum(d) || !d.name().isEmpty() || isAnonymousStruct(d))// || isBitfield(d))
+                .filter(d -> isEnum(d) || !d.name().isEmpty())
                 .collect(Collectors.toList());
     }
 

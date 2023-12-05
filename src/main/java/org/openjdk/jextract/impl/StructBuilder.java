@@ -104,7 +104,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             emitOfAddressScoped();
             classEnd();
             if (isNested()) {
-                // we are nested. Decrease offset
+                // we are nested. Decrease align
                 sourceFileBuilder().decrAlign();
             }
         } else {

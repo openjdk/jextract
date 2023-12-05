@@ -259,11 +259,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             return kind;
         }
 
-//        @Override
-//        public Optional<MemoryLayout> layout() {
-//            return ScopedLayout.get(this);
-//        }
-
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
