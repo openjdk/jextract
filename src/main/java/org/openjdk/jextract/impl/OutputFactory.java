@@ -99,7 +99,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         Builder prevBuilder = null;
         StructBuilder structBuilder = null;
         if (isStructKind) {
-            GroupLayout layout = (GroupLayout) layoutFor(d);
+            GroupLayout layout = (GroupLayout)Declaration.layoutFor(d).get();
             prevBuilder = currentBuilder;
             currentBuilder = structBuilder = currentBuilder.addStruct(
                 d,
@@ -171,7 +171,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                              *     int x, y;
                              * };
                              */
-                            toplevelBuilder.addTypedef(tree, ScopedLayout.get(s).isEmpty() ? null : JavaName.getFullNameOrThrow(s));
+                            toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(s));
                         }
                     }
                     default -> visitScoped(s, tree);
@@ -219,17 +219,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         MemoryLayout layout = Type.layoutFor(type).get();
         currentBuilder.addVar(tree, layout, fiName);
         return null;
-    }
-
-    protected static MemoryLayout layoutFor(Declaration decl) {
-        if (decl instanceof Declaration.Typedef alias) {
-            return Type.layoutFor(alias.type()).orElseThrow();
-        } else if (decl instanceof Declaration.Scoped scoped) {
-            return ScopedLayout.getOrThrow(scoped);
-        } else {
-            throw new IllegalArgumentException("Unexpected parent declaration");
-        }
-        // case like `typedef struct { ... } Foo`
     }
 
     private Class<?> getJavaType(Type type) {

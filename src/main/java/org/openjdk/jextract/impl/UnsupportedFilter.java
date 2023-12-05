@@ -35,14 +35,12 @@ import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
-import org.openjdk.jextract.impl.DeclarationImpl.ScopedLayout;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 import org.openjdk.jextract.impl.TypeImpl.ErronrousTypeImpl;
 
 import java.io.PrintWriter;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.ValueLayout;
 
 /*
  * This visitor marks a number of unsupported construct so that they are skipped by code generation.
@@ -140,7 +138,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     @Override
     public Void visitScoped(Scoped scoped, Declaration declaration) {
         if ((scoped.kind() == Kind.STRUCT ||
-                scoped.kind() == Kind.UNION) && ScopedLayout.get(scoped).isEmpty()) {
+                scoped.kind() == Kind.UNION) && Declaration.layoutFor(scoped).isEmpty()) {
             // skip
             Skip.with(scoped);
         }

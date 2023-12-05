@@ -39,7 +39,6 @@ public final class CodeGenerator {
                                             List<String> libNames, PrintWriter errStream) {
         var transformedDecl = Stream.of(decl)
                 .map(new IncludeFilter(includeHelper)::scan)
-                .map(new LayoutComputer()::scan)
                 .map(new EnumConstantLifter()::scan)
                 .map(new DuplicateFilter()::scan)
                 .map(new NameMangler(headerName)::scan)

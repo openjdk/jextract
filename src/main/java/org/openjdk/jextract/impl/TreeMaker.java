@@ -270,7 +270,6 @@ class TreeMaker {
                     } else if (!fc.isBitField() && !fc.spelling().isEmpty()) {
                         Type fieldType = typeMaker.makeType(fc.type());
                         Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);
-                        ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
                         ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));

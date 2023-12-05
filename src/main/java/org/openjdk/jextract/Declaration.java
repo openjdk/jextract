@@ -26,13 +26,16 @@
 
 package org.openjdk.jextract;
 
+import java.lang.foreign.FunctionDescriptor;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.lang.foreign.MemoryLayout;
 
 import org.openjdk.jextract.Declaration.Variable.Kind;
+import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.impl.DeclarationImpl;
+import org.openjdk.jextract.impl.TypeImpl;
 
 /**
  * Instances of this class are used to model declaration elements in the foreign language.
@@ -443,6 +446,30 @@ public interface Declaration extends Attributed {
      */
     static Declaration.Typedef typedef(Position pos, String name, Type type) {
         return new DeclarationImpl.TypedefImpl(type, name, pos, null);
+    }
+
+    /**
+     * Compute the layout for a given declaration.
+     * @param d the declaration.
+     * @return the layout for given declaration.
+     */
+    static Optional<MemoryLayout> layoutFor(Declaration d) {
+        return switch (d) {
+            case Scoped scoped -> Type.layoutFor(Type.declared(scoped));
+            case Variable var -> Type.layoutFor(var.type());
+            case Typedef typedef -> Type.layoutFor(typedef.type());
+            case Constant constant -> Type.layoutFor(constant.type());
+            default -> Optional.empty();
+        };
+    }
+
+    /**
+     * Compute the function descriptor for a given function declaration.
+     * @param function the function declaration.
+     * @return the function descriptor for given function declaration.
+     */
+    static Optional<FunctionDescriptor> descriptorFor(Function function) {
+        return Type.descriptorFor(function.type());
     }
 
     /**

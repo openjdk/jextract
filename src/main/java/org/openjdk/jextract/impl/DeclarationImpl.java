@@ -443,11 +443,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             return declaration.getAttribute(ScopedLayout.class)
                     .map(ScopedLayout::layout);
         }
-
-        public static MemoryLayout getOrThrow(Scoped declaration) {
-            return declaration.getAttribute(ScopedLayout.class)
-                    .map(ScopedLayout::layout).get();
-        }
     }
 
     record ClangAlignOf(long align) {
