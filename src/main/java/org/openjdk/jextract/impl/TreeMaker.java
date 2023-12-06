@@ -231,7 +231,7 @@ class TreeMaker {
     public Declaration.Scoped createRecord(Cursor c, Declaration.Scoped.Kind scopeKind) {
         checkCursorAny(c, CursorKind.StructDecl, CursorKind.UnionDecl);
         if (c.isDefinition()) {
-            Type.Declared t = recordType(c, c);
+            Type.Declared t = recordDeclaration(c, c);
             return t.tree();
         } else {
             //if there's a real definition somewhere else, skip this redundant declaration
@@ -242,7 +242,7 @@ class TreeMaker {
         }
     }
 
-    final Type.Declared recordType(Cursor parent, Cursor recordCursor) {
+    final Type.Declared recordDeclaration(Cursor parent, Cursor recordCursor) {
         List<Declaration> pendingFields = new ArrayList<>();
         List<Variable> pendingBitFields = new ArrayList<>();
         AtomicReference<Position> pendingBitfieldsPos = new AtomicReference<>();
@@ -266,7 +266,7 @@ class TreeMaker {
                     }
                     if (fc.isAnonymousStruct()) {
                         // process struct recursively
-                        pendingFields.add(recordType(parent, fc).tree());
+                        pendingFields.add(recordDeclaration(parent, fc).tree());
                     } else if (!fc.isBitField() && !fc.spelling().isEmpty()) {
                         Type fieldType = typeMaker.makeType(fc.type());
                         Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);

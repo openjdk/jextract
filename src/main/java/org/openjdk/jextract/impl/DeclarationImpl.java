@@ -336,29 +336,42 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             switch (scoped.kind()) {
                 case Kind.STRUCT, Kind.UNION -> {
                     if (ClangSizeOf.get(scoped).isPresent()) {
-                        GroupLayout groupLayout = recordLayout(0, new AtomicInteger(), scoped);
-                        ScopedLayout.with(scoped, groupLayout);
-                        return Optional.of(groupLayout);
+                        Optional<MemoryLayout> recordLayout = recordLayout(scoped);
+                        recordLayout.ifPresent(memoryLayout -> ScopedLayout.with(scoped, memoryLayout));
+                        return recordLayout;
                     }
                 }
                 case Kind.ENUM -> {
-                    MemoryLayout constLayout = Type.layoutFor(((Constant)scoped.members().get(0)).type())
-                            .orElseThrow(UnsupportedOperationException::new);
-                    ScopedLayout.with(scoped, constLayout);
-                    return Optional.of(constLayout);
+                    Optional<MemoryLayout> constLayout = Type.layoutFor(((Constant)scoped.members().get(0)).type());
+                    constLayout.ifPresent(memoryLayout -> ScopedLayout.with(scoped, memoryLayout));
+                    return constLayout;
                 }
             }
             return Optional.empty();
         }
     }
 
-    private static GroupLayout recordLayout(long base, AtomicInteger anonCount, Scoped scoped) {
+    // Note: this method always returns the same result when called on the same tree. More specifically,
+    // even if a client calls this method on a nested anonymous struct, the nested layout is computed
+    // correctly, as if it was computed as part of the enclosing non-anonymous struct. This ensures maximum
+    // flexibility, as there is no specific order in which clients should obtain layouts for scoped declarations.
+    private static Optional<MemoryLayout> recordLayout(Scoped scoped) {
         boolean isStruct = scoped.kind() == Kind.STRUCT;
         String name = scoped.name().isEmpty() ?
-                "$anon$" + anonCount.getAndIncrement() :
+                "$anon$" + scoped.pos().line() + ":" + scoped.pos().col() :
                 scoped.name();
 
-        long offset = base; // bits
+        long offset = 0;
+        if (AnonymousStruct.isPresent(scoped)) {
+            // find the starting offset of this anon declaration inside its
+            // innermost non-anonymous container
+            OptionalLong firstOffset = nextOffset(scoped);
+            if (firstOffset.isEmpty()) {
+                return Optional.empty();
+            }
+            offset = firstOffset.getAsLong();
+        }
+
         long size = 0L; // bits
         List<MemoryLayout> memberLayouts = new ArrayList<>();
         for (Declaration member : scoped.members()) {
@@ -374,9 +387,13 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
                         size += delta;
                     }
                 }
-                Optional<MemoryLayout> layout = memberLayout(base + offset, anonCount, member);
+                Optional<MemoryLayout> layout = Declaration.layoutFor(member);
                 if (layout.isPresent()) {
-                    memberLayouts.add(layout.get());
+                    MemoryLayout memberLayout = layout.get();
+                    if (member instanceof Variable) {
+                        memberLayout = memberLayout.withName(member.name());
+                    }
+                    memberLayouts.add(memberLayout);
                     // update offset and size
                     long fieldSize = ClangSizeOf.getOrThrow(member);
                     if (isStruct) {
@@ -396,20 +413,7 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         GroupLayout layout = isStruct ?
                 MemoryLayout.structLayout(alignFields(memberLayouts, align)) :
                 MemoryLayout.unionLayout(alignFields(memberLayouts, align));
-        return layout.withName(name);
-    }
-
-    private static Optional<MemoryLayout> memberLayout(long offset, AtomicInteger anonCount, Declaration member) {
-        if (member instanceof Scoped nested) {
-            // nested anonymous struct or union, recurse
-            GroupLayout layout = recordLayout(offset, anonCount, nested);
-            ScopedLayout.with(nested, layout);
-            return Optional.of(layout);
-        } else {
-            Variable field = (Variable) member;
-            return Type.layoutFor(field.type())
-                    .map(l -> l.withName(field.name()));
-        }
+        return Optional.of(layout.withName(name));
     }
 
     private static OptionalLong nextOffset(Declaration member) {
