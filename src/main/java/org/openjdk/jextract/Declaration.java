@@ -110,10 +110,6 @@ public interface Declaration extends Attributed {
          */
         enum Kind {
             /**
-             * Class declaration.
-             */
-            CLASS,
-            /**
              * Enum declaration.
              */
             ENUM,
