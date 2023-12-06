@@ -570,6 +570,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
+    /**
+     * An attribute to attach a layout to a scoped declaration.
+     */
     record ScopedLayout(MemoryLayout layout) {
         public static void with(Scoped declaration, MemoryLayout layout) {
             declaration.addAttribute(new ScopedLayout(layout));
@@ -581,6 +584,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
+    /**
+     * An attribute to attach alignment info to a declaration.
+     */
     record ClangAlignOf(long align) {
         public static void with(Declaration declaration, long align) {
             declaration.addAttribute(new ClangAlignOf(align));
@@ -597,6 +603,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
+    /**
+     * An attribute to attach size info to a declaration.
+     */
     record ClangSizeOf(long size) {
         public static void with(Declaration declaration, long size) {
             declaration.addAttribute(new ClangSizeOf(size));
@@ -613,6 +622,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
+    /**
+     * An attribute to attach offset info to a declaration.
+     */
     record ClangOffsetOf(long offset) {
         public static void with(Declaration declaration, long size) {
             declaration.addAttribute(new ClangOffsetOf(size));
