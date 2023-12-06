@@ -61,12 +61,6 @@ class TreeMaker {
         typeMaker.resolveTypeReferences();
     }
 
-    public TreeMaker dup() {
-        TreeMaker newMaker = new TreeMaker();
-        newMaker.declarationCache = new HashMap<>(declarationCache);
-        return newMaker;
-    }
-
     Map<Position, Declaration> declarationCache = new HashMap<>();
 
     Declaration addAttributes(Declaration d, Cursor c) {
@@ -145,7 +139,7 @@ class TreeMaker {
         private CursorPosition(Cursor cursor) {
             this.cursor = cursor;
             SourceLocation.Location loc = cursor.getSourceLocation().getFileLocation();
-            this.path = loc.path().toAbsolutePath();
+            this.path = loc.path();
             this.line = loc.line();
             this.column = loc.column();
         }
