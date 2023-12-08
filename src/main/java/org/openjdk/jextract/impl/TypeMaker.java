@@ -264,14 +264,4 @@ class TypeMaker {
             return t;
         }
     };
-
-    public static Primitive.Kind valueLayoutForSize(long size) {
-        return switch ((int) size) {
-            case 8 -> Primitive.Kind.Char;
-            case 16 -> Primitive.Kind.Short;
-            case 32 -> Primitive.Kind.Int;
-            case 64 -> Primitive.Kind.LongLong;
-            default -> throw new IllegalStateException("Cannot infer container layout");
-        };
-    }
 }

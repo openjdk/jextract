@@ -261,7 +261,7 @@ class TreeMaker {
                     if (fc.isAnonymousStruct()) {
                         // process struct recursively
                         pendingFields.add(recordDeclaration(parent, fc).tree());
-                    } else if (!fc.isBitField() && !fc.spelling().isEmpty()) {
+                    } else {
                         Type fieldType = typeMaker.makeType(fc.type());
                         Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
