@@ -45,7 +45,7 @@ public class Parser {
     private final TreeMaker treeMaker;
 
     public Parser() {
-        this.treeMaker = new TreeMaker();
+        this.treeMaker = new TreeMaker(null);
     }
 
     public Declaration.Scoped parse(Path path, Collection<String> args) {
@@ -100,7 +100,6 @@ public class Parser {
 
             decls.addAll(macroParser.macroTable.reparseConstants());
             Declaration.Scoped rv = treeMaker.createHeader(tuCursor, decls);
-            treeMaker.freeze();
             return rv;
         }
     }

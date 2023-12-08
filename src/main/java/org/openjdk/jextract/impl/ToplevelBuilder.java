@@ -29,9 +29,7 @@ import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
-import org.openjdk.jextract.impl.DeclarationImpl.JavaParameterNames;
 
 import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
@@ -145,7 +143,8 @@ class ToplevelBuilder implements OutputFactory.Builder {
     public void addFunctionalInterface(String name, Type.Function funcType, FunctionDescriptor descriptor) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), name);
         builders.add(sfb);
-        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, firstHeader.className(), funcType, descriptor, JavaParameterNames.get(funcType));
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, firstHeader.className(), funcType, descriptor,
+                funcType.parameterNames().map(NameMangler::javaSafeIdentifiers));
     }
 
     private HeaderFileBuilder nextHeader() {

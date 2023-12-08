@@ -32,9 +32,7 @@ import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
-import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
-import org.openjdk.jextract.impl.DeclarationImpl.JavaParameterNames;
 
 import java.lang.invoke.VarHandle;
 import java.util.ArrayDeque;
@@ -137,7 +135,8 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     public void addFunctionalInterface(String name, Type.Function funcType, FunctionDescriptor descriptor) {
         incrAlign();
         FunctionalInterfaceBuilder.generate(sourceFileBuilder(), name,
-                this, runtimeHelperName(), funcType, descriptor, JavaParameterNames.get(funcType));
+                this, runtimeHelperName(), funcType, descriptor,
+                funcType.parameterNames().map(NameMangler::javaSafeIdentifiers));
         decrAlign();
     }
 

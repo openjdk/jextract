@@ -29,7 +29,6 @@ import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
-import org.openjdk.jextract.impl.DeclarationImpl.JavaParameterNames;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -196,16 +195,6 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         JavaName.with(typedef, List.of(javaName));
         Type.Function func = Utils.getAsFunctionPointer(typedef.type());
         if (func != null) {
-           var paramNamesOpt = func.parameterNames();
-           if (paramNamesOpt.isPresent()) {
-               JavaParameterNames.with(func,
-                   paramNamesOpt.
-                      get().
-                      stream().
-                      map(NameMangler::javaSafeIdentifier).
-                      toList()
-               );
-           }
            JavaFunctionalInterfaceName.with(typedef, javaName);
            functionTypeDefNames.put(typedef.type(), javaName);
         }
@@ -245,8 +234,14 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     }
 
     // Java identifier handling helpers
-    private static String javaSafeIdentifier(String name) {
+    public static String javaSafeIdentifier(String name) {
         return javaSafeIdentifier(name, false);
+    }
+
+    public static List<String> javaSafeIdentifiers(List<String> names) {
+        return names.stream().
+                map(NameMangler::javaSafeIdentifier).
+                toList();
     }
 
     private static String javaSafeIdentifier(String name, boolean checkAllChars) {

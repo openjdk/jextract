@@ -41,7 +41,7 @@ import org.openjdk.jextract.Type;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
 
-public abstract class TypeImpl extends AttributedImpl implements Type {
+public abstract class TypeImpl implements Type {
 
     public static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
