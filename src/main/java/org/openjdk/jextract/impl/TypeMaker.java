@@ -28,6 +28,7 @@ package org.openjdk.jextract.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Scoped;
@@ -135,13 +136,19 @@ class TypeMaker {
                 } else {
                     // struct/union pointer - defer processing of pointee type
                     Position pos = CursorPosition.of(pointee.getDeclarationCursor());
+                    String spelling = t.spelling();
                     return Type.pointer(() -> {
-                        Declaration decl = treeMaker.lookup(pos).orElseThrow(IllegalStateException::new);
-                        return switch (decl) {
-                            case Scoped scoped -> Type.declared(scoped);
-                            case Typedef typedef -> Type.typedef(typedef.name(), typedef.type());
-                            default -> throw new UnsupportedOperationException();
-                        };
+                        Optional<Declaration> decl = treeMaker.lookup(pos);
+                        if (decl.isEmpty()) {
+                            // no declaration, maybe an opaque type, return an error type
+                            return Type.error(spelling);
+                        } else {
+                            return switch (decl.get()) {
+                                case Scoped scoped -> Type.declared(scoped);
+                                case Typedef typedef -> Type.typedef(typedef.name(), typedef.type());
+                                default -> throw new UnsupportedOperationException();
+                            };
+                        }
                     });
                 }
             }
