@@ -28,8 +28,8 @@ package org.openjdk.jextract;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.impl.TypeImpl;
+import org.openjdk.jextract.impl.TypeImpl.ErronrousTypeImpl;
 
 import java.util.List;
 import java.util.Optional;
@@ -90,90 +90,72 @@ public interface Type extends Attributed {
             /**
              * {@code void} type.
              */
-            Void("void", null),
+            Void("void"),
             /**
              * {@code Bool} type.
              */
-            Bool("_Bool", ValueLayout.JAVA_BOOLEAN),
+            Bool("_Bool"),
             /**
              * {@code char} type.
              */
-            Char("char", ValueLayout.JAVA_BYTE),
+            Char("char"),
             /**
              * {@code char16} type.
              */
-            Char16("char16", unsupportedLayout(2, "char16")),
+            Char16("char16"),
             /**
              * {@code short} type.
              */
-            Short("short", ValueLayout.JAVA_SHORT),
+            Short("short"),
             /**
              * {@code int} type.
              */
-            Int("int", ValueLayout.JAVA_INT),
+            Int("int"),
             /**
              * {@code long} type.
              */
-            Long("long", TypeImpl.IS_WINDOWS ?
-                ValueLayout.JAVA_INT :
-                ValueLayout.JAVA_LONG),
+            Long("long"),
             /**
              * {@code long long} type.
              */
-            LongLong("long long", ValueLayout.JAVA_LONG),
+            LongLong("long long"),
             /**
              * {@code int128} type.
              */
-            Int128("__int128", unsupportedLayout(16, "__int128")),
+            Int128("__int128"),
             /**
              * {@code float} type.
              */
-            Float("float", ValueLayout.JAVA_FLOAT),
+            Float("float"),
             /**
              * {@code double} type.
              */
-            Double("double", ValueLayout.JAVA_DOUBLE),
+            Double("double"),
             /**
               * {@code long double} type.
               */
-            LongDouble("long double", TypeImpl.IS_WINDOWS ?
-                    ValueLayout.JAVA_DOUBLE :
-                    unsupportedLayout(16, "long double")),
+            LongDouble("long double"),
             /**
              * {@code float128} type.
              */
-            Float128("float128", unsupportedLayout(16, "_float128")),
+            Float128("float128"),
             /**
              * {@code float16} type.
              */
-            HalfFloat("__fp16", unsupportedLayout(2, "__fp16")),
+            HalfFloat("__fp16"),
             /**
              * {@code wchar} type.
              */
-            WChar("wchar_t", unsupportedLayout(2, "wchar_t"));
+            WChar("wchar_t");
 
             private final String typeName;
-            private final MemoryLayout layout;
 
-            Kind(String typeName, MemoryLayout layout) {
+            Kind(String typeName) {
                 this.typeName = typeName;
-                this.layout = layout;
             }
 
             public String typeName() {
                 return typeName;
-            }
-
-            /**
-             * The primitive type (optional) layout.
-             * @return The primitive type (optional) layout.
-             */
-            public Optional<MemoryLayout> layout() {
-                return Optional.ofNullable(layout);
-            }
-
-            private static MemoryLayout unsupportedLayout(long size, String name) {
-                return MemoryLayout.paddingLayout(size).withByteAlignment(size).withName(name);
             }
         }
 
@@ -525,10 +507,10 @@ public interface Type extends Attributed {
     }
 
     /**
-     * Creates an erroneous type.
-     * @return an erroneous type.
+     * Creates an erroneous type with the given name.
+     * @return an erroneous type with the given name.
      */
-    static Type error() {
-        return TypeImpl.ERROR;
+    static Type error(String erroneousName) {
+        return new ErronrousTypeImpl(erroneousName);
     }
 }

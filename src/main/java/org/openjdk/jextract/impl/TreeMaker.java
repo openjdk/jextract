@@ -32,12 +32,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
 import org.openjdk.jextract.Declaration.Scoped;
+import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.clang.Cursor;
@@ -45,7 +46,11 @@ import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.CursorLanguage;
 import org.openjdk.jextract.clang.LinkageKind;
 import org.openjdk.jextract.clang.SourceLocation;
+import org.openjdk.jextract.clang.TypeKind;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
 
 class TreeMaker {
     public TreeMaker() {}
@@ -214,17 +219,14 @@ class TreeMaker {
     }
 
     public Declaration.Scoped createHeader(Cursor c, List<Declaration> decls) {
-        return Declaration.toplevel(CursorPosition.of(c), filterNestedDeclarations(decls).toArray(new Declaration[0]));
+        return Declaration.toplevel(CursorPosition.of(c), filterHeaderDeclarations(decls).toArray(new Declaration[0]));
     }
 
     public Declaration.Scoped createRecord(Cursor c, Declaration.Scoped.Kind scopeKind) {
-        Type.Declared t = (Type.Declared)RecordLayoutComputer.compute(typeMaker, 0, c.type(), c.type());
+        checkCursorAny(c, CursorKind.StructDecl, CursorKind.UnionDecl);
         if (c.isDefinition()) {
-            Declaration.Scoped scoped = t.tree();
-            List<Declaration> decls = filterNestedDeclarations(scoped.members());
-            //just a declaration AND definition, we have a layout
-            return Declaration.scoped(scoped.kind(), scoped.pos(), scoped.name(),
-                                      scoped.layout().get(), decls.toArray(new Declaration[0]));
+            Type.Declared t = recordDeclaration(c, c);
+            return t.tree();
         } else {
             //if there's a real definition somewhere else, skip this redundant declaration
             if (!c.getDefinition().isInvalid()) {
@@ -234,18 +236,73 @@ class TreeMaker {
         }
     }
 
-    public Declaration.Scoped createEnum(Cursor c) {
-        List<Declaration> allDecls = new ArrayList<>();
-        c.forEach(child -> {
-            if (!child.isBitField() || (child.getBitFieldWidth() != 0 && !child.spelling().isEmpty())) {
-                allDecls.add(createTree(child));
+    final Type.Declared recordDeclaration(Cursor parent, Cursor recordCursor) {
+        List<Declaration> pendingFields = new ArrayList<>();
+        List<Variable> pendingBitFields = new ArrayList<>();
+        AtomicReference<Position> pendingBitfieldsPos = new AtomicReference<>();
+        recordCursor.forEach(fc -> {
+            if (Utils.isFlattenable(fc)) {
+                if (fc.isBitField()) {
+                    if (pendingBitfieldsPos.get() == null) {
+                        pendingBitfieldsPos.set(CursorPosition.of(fc));
+                    }
+                    Type fieldType = typeMaker.makeType(fc.type());
+                    Variable bitfieldDecl = Declaration.bitfield(CursorPosition.of(fc), fc.spelling(), fc.getBitFieldWidth(), fieldType);
+                    if (!fc.spelling().isEmpty()) {
+                        ClangOffsetOf.with(bitfieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                    }
+                    pendingBitFields.add(bitfieldDecl);
+                } else {
+                    if (!pendingBitFields.isEmpty()) {
+                        pendingFields.add(Declaration.bitfields(pendingBitfieldsPos.get(), pendingBitFields.toArray(Variable[]::new)));
+                        pendingBitFields.clear();
+                        pendingBitfieldsPos.set(null);
+                    }
+                    if (fc.isAnonymousStruct()) {
+                        // process struct recursively
+                        pendingFields.add(recordDeclaration(parent, fc).tree());
+                    } else {
+                        Type fieldType = typeMaker.makeType(fc.type());
+                        Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);
+                        ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
+                                0 : fc.type().size() * 8);
+                        ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                        pendingFields.add(fieldDecl);
+                    }
+                }
             }
         });
-        List<Declaration> decls = filterNestedDeclarations(allDecls);
+
+        if (!pendingBitFields.isEmpty()) {
+            pendingFields.add(Declaration.bitfields(pendingBitfieldsPos.get(), pendingBitFields.toArray(Variable[]::new)));
+            pendingBitFields.clear();
+            pendingBitfieldsPos.set(null);
+        }
+
+        Scoped structOrUnionDecl = recordCursor.kind() == CursorKind.StructDecl ?
+                Declaration.struct(CursorPosition.of(recordCursor), recordCursor.spelling(),
+                        pendingFields.toArray(new Declaration[0])) :
+                Declaration.union(CursorPosition.of(recordCursor), recordCursor.spelling(),
+                        pendingFields.toArray(new Declaration[0]));
+        ClangSizeOf.with(structOrUnionDecl, recordCursor.type().size() * 8);
+        ClangAlignOf.with(structOrUnionDecl, recordCursor.type().align() * 8);
+        if (recordCursor.isAnonymousStruct()) {
+            AnonymousStruct.with(structOrUnionDecl);
+        }
+
+        return Type.declared(structOrUnionDecl);
+    }
+
+    public Declaration.Scoped createEnum(Cursor c) {
+        List<Declaration> decls = new ArrayList<>();
+        c.forEach(child -> {
+            if (!child.isBitField() || (child.getBitFieldWidth() != 0 && !child.spelling().isEmpty())) {
+                decls.add(createTree(child));
+            }
+        });
         if (c.isDefinition()) {
             //just a declaration AND definition, we have a layout
-            MemoryLayout layout = TypeMaker.valueLayoutForSize(c.type().size() * 8).layout().orElseThrow();
-            return Declaration.enum_(CursorPosition.of(c), c.spelling(), layout, decls.toArray(new Declaration[0]));
+            return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
         } else {
             return null;
         }
@@ -256,19 +313,15 @@ class TreeMaker {
                 scoped.kind() == Declaration.Scoped.Kind.ENUM;
     }
 
-    private static boolean isBitfield(Declaration d) {
-        return d instanceof Declaration.Scoped scoped &&
-                scoped.kind() == Declaration.Scoped.Kind.BITFIELDS;
-    }
-
-    private static boolean isAnonymousStruct(Declaration declaration) {
-        return declaration instanceof Scoped scoped && AnonymousStruct.isPresent(scoped);
-    }
-
-    private List<Declaration> filterNestedDeclarations(List<Declaration> declarations) {
+    /*
+     * This method drops anonymous structs from the resulting toplevel declaration. These structs
+     * can appear as part of a typedef, but are presented by libclang as toplevel structs, so we
+     * need to filter them out.
+     */
+    private List<Declaration> filterHeaderDeclarations(List<Declaration> declarations) {
         return declarations.stream()
                 .filter(Objects::nonNull)
-                .filter(d -> isEnum(d) || !d.name().isEmpty() || isAnonymousStruct(d) || isBitfield(d))
+                .filter(d -> isEnum(d) || !d.name().isEmpty())
                 .collect(Collectors.toList());
     }
 

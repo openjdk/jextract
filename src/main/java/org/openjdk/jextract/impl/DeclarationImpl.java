@@ -27,15 +27,24 @@
 package org.openjdk.jextract.impl;
 
 import java.lang.constant.Constable;
+import java.lang.foreign.AddressLayout;
+import java.lang.foreign.GroupLayout;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.SequenceLayout;
+import java.lang.foreign.StructLayout;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.lang.foreign.MemoryLayout;
+import java.util.OptionalLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Declared;
 
 public abstract class DeclarationImpl extends AttributedImpl implements Declaration {
 
@@ -109,21 +118,16 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
 
         final Variable.Kind kind;
         final Type type;
-        final Optional<MemoryLayout> layout;
 
-        private VariableImpl(Type type, Optional<MemoryLayout> layout, Variable.Kind kind, String name, Position pos, Map<String, List<Constable>> attrs) {
+        private VariableImpl(Type type, Variable.Kind kind, String name,
+                             Position pos, Map<String, List<Constable>> attrs) {
             super(name, pos, attrs);
             this.kind = Objects.requireNonNull(kind);
             this.type = Objects.requireNonNull(type);
-            this.layout = Objects.requireNonNull(layout);
         }
 
         public VariableImpl(Type type, Variable.Kind kind, String name, Position pos) {
-            this(type, TypeImpl.getLayout(type), kind, name, pos, null);
-        }
-
-        public VariableImpl(Type type, MemoryLayout layout, Variable.Kind kind, String name, Position pos) {
-            this(type, Optional.of(layout), kind, name, pos, null);
+            this(type, kind, name, pos, null);
         }
 
         @Override
@@ -158,22 +162,15 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
 
     public static final class BitfieldImpl extends VariableImpl implements Declaration.Bitfield {
 
-        final long offset;
         final long width;
 
-        private BitfieldImpl(Type type, long offset, long width, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(type, Optional.<MemoryLayout>empty(), Kind.BITFIELD, name, pos, attrs);
-            this.offset = offset;
+        private BitfieldImpl(Type type, long width, String name, Position pos, Map<String, List<Constable>> attrs) {
+            super(type, Kind.BITFIELD, name, pos, attrs);
             this.width = width;
         }
 
-        public BitfieldImpl(Type type, long offset, long width, String name, Position pos) {
-            this(type, offset, width, name, pos, null);
-        }
-
-        @Override
-        public long offset() {
-            return offset;
+        public BitfieldImpl(Type type, long width, String name, Position pos) {
+            this(type, width, name, pos, null);
         }
 
         @Override
@@ -186,13 +183,12 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             if (this == o) return true;
             if (!(o instanceof BitfieldImpl bitfield)) return false;
             if (!super.equals(o)) return false;
-            return offset == bitfield.offset &&
-                    width == bitfield.width;
+            return width == bitfield.width;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(super.hashCode(), offset, width);
+            return Objects.hash(super.hashCode(), width);
         }
     }
 
@@ -244,22 +240,16 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
 
         private final Scoped.Kind kind;
         private final List<Declaration> declarations;
-        private final Optional<MemoryLayout> optLayout;
-
-        public ScopedImpl(Kind kind, MemoryLayout layout, List<Declaration> declarations, String name, Position pos) {
-            this(kind, Optional.of(layout), declarations, name, pos, null);
-        }
 
         public ScopedImpl(Kind kind, List<Declaration> declarations, String name, Position pos) {
-            this(kind, Optional.empty(), declarations, name, pos, null);
+            this(kind, declarations, name, pos, null);
         }
 
-        ScopedImpl(Kind kind, Optional<MemoryLayout> optLayout, List<Declaration> declarations,
+        ScopedImpl(Kind kind, List<Declaration> declarations,
                 String name, Position pos, Map<String, List<Constable>> attrs) {
             super(name, pos, attrs);
             this.kind = Objects.requireNonNull(kind);
             this.declarations = Objects.requireNonNull(declarations);
-            this.optLayout = Objects.requireNonNull(optLayout);
         }
 
         @Override
@@ -270,11 +260,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         @Override
         public List<Declaration> members() {
             return declarations;
-        }
-
-        @Override
-        public Optional<MemoryLayout> layout() {
-            return optLayout;
         }
 
         @Override
@@ -340,6 +325,139 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         public int hashCode() {
             return Objects.hash(super.hashCode(), value, type);
         }
+    }
+
+    public static Optional<MemoryLayout> layoutFor(Scoped scoped) {
+        Optional<MemoryLayout> layout = ScopedLayout.get(scoped);
+        if (layout.isPresent()) {
+            return layout;
+        } else {
+            // compute and cache for later use
+            switch (scoped.kind()) {
+                case Kind.STRUCT, Kind.UNION -> {
+                    if (ClangSizeOf.get(scoped).isPresent()) {
+                        Optional<MemoryLayout> recordLayout = recordLayout(scoped);
+                        recordLayout.ifPresent(memoryLayout -> ScopedLayout.with(scoped, memoryLayout));
+                        return recordLayout;
+                    }
+                }
+                case Kind.ENUM -> {
+                    Optional<MemoryLayout> constLayout = Type.layoutFor(((Constant)scoped.members().get(0)).type());
+                    constLayout.ifPresent(memoryLayout -> ScopedLayout.with(scoped, memoryLayout));
+                    return constLayout;
+                }
+            }
+            return Optional.empty();
+        }
+    }
+
+    // Note: this method always returns the same result when called on the same tree. More specifically,
+    // even if a client calls this method on a nested anonymous struct, the nested layout is computed
+    // correctly, as if it was computed as part of the enclosing non-anonymous struct. This ensures maximum
+    // flexibility, as there is no specific order in which clients should obtain layouts for scoped declarations.
+    private static Optional<MemoryLayout> recordLayout(Scoped scoped) {
+        boolean isStruct = scoped.kind() == Kind.STRUCT;
+        String name = scoped.name().isEmpty() ?
+                "$anon$" + scoped.pos().line() + ":" + scoped.pos().col() :
+                scoped.name();
+
+        long offset = 0;
+        if (AnonymousStruct.isPresent(scoped)) {
+            // find the starting offset of this anon declaration inside its
+            // innermost non-anonymous container
+            OptionalLong firstOffset = nextOffset(scoped);
+            if (firstOffset.isEmpty()) {
+                return Optional.empty();
+            }
+            offset = firstOffset.getAsLong();
+        }
+
+        long size = 0L; // bits
+        List<MemoryLayout> memberLayouts = new ArrayList<>();
+        for (Declaration member : scoped.members()) {
+            if (member instanceof Scoped nested && nested.kind() == Kind.BITFIELDS) {
+                // skip
+            } else if (nextOffset(member).isPresent()) {
+                long nextOffset = nextOffset(member).getAsLong();
+                long delta = nextOffset - offset;
+                if (delta > 0) {
+                    memberLayouts.add(MemoryLayout.paddingLayout(delta / 8));
+                    offset += delta;
+                    if (isStruct) {
+                        size += delta;
+                    }
+                }
+                Optional<MemoryLayout> layout = Declaration.layoutFor(member);
+                if (layout.isPresent()) {
+                    MemoryLayout memberLayout = layout.get();
+                    if (member instanceof Variable) {
+                        memberLayout = memberLayout.withName(member.name());
+                    }
+                    memberLayouts.add(memberLayout);
+                    // update offset and size
+                    long fieldSize = ClangSizeOf.getOrThrow(member);
+                    if (isStruct) {
+                        offset += fieldSize;
+                        size += fieldSize;
+                    } else {
+                        size = Math.max(size, ClangSizeOf.getOrThrow(member));
+                    }
+                }
+            }
+        }
+        long expectedSize = ClangSizeOf.getOrThrow(scoped);
+        if (size != expectedSize) {
+            memberLayouts.add(MemoryLayout.paddingLayout((expectedSize - size) / 8));
+        }
+        long align = ClangAlignOf.getOrThrow(scoped) / 8;
+        GroupLayout layout = isStruct ?
+                MemoryLayout.structLayout(alignFields(memberLayouts, align)) :
+                MemoryLayout.unionLayout(alignFields(memberLayouts, align));
+        return Optional.of(layout.withName(name));
+    }
+
+    private static OptionalLong nextOffset(Declaration member) {
+        if (member instanceof Variable) {
+            return ClangOffsetOf.get(member);
+        } else {
+            Optional<Declaration> firstDecl = ((Scoped)member).members().stream().findFirst();
+            return firstDecl.isEmpty() ?
+                    OptionalLong.empty() :
+                    nextOffset(firstDecl.get());
+        }
+    }
+
+    private static MemoryLayout[] alignFields(List<MemoryLayout> members, long align) {
+        return members.stream()
+                .map(l -> forceAlign(l, align))
+                .toArray(MemoryLayout[]::new);
+    }
+
+    private static MemoryLayout forceAlign(MemoryLayout layout, long align) {
+        if (align >= layout.byteAlignment()) {
+            return layout; // fast-path
+        }
+        MemoryLayout res = switch (layout) {
+            case GroupLayout groupLayout -> {
+                MemoryLayout[] newMembers = groupLayout.memberLayouts()
+                        .stream().map(l -> forceAlign(l, align)).toArray(MemoryLayout[]::new);
+                yield groupLayout instanceof StructLayout ?
+                        MemoryLayout.structLayout(newMembers) :
+                        MemoryLayout.unionLayout(newMembers);
+            }
+            case SequenceLayout sequenceLayout ->
+                    MemoryLayout.sequenceLayout(sequenceLayout.elementCount(),
+                            forceAlign(sequenceLayout.elementLayout(), align));
+            default -> layout.withByteAlignment(align);
+        };
+        // copy name and target layout, if present
+        if (layout.name().isPresent()) {
+            res = res.withName(layout.name().get());
+        }
+        if (layout instanceof AddressLayout addressLayout && addressLayout.targetLayout().isPresent()) {
+            ((AddressLayout)res).withTargetLayout(addressLayout.targetLayout().get());
+        }
+        return res;
     }
 
     // attributes
@@ -449,6 +567,77 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         public static String getOrThrow(Declaration declaration) {
             return declaration.getAttribute(JavaFunctionalInterfaceName.class)
                     .map(JavaFunctionalInterfaceName::fiName).get();
+        }
+    }
+
+    /**
+     * An attribute to attach a layout to a scoped declaration.
+     */
+    record ScopedLayout(MemoryLayout layout) {
+        public static void with(Scoped declaration, MemoryLayout layout) {
+            declaration.addAttribute(new ScopedLayout(layout));
+        }
+
+        public static Optional<MemoryLayout> get(Scoped declaration) {
+            return declaration.getAttribute(ScopedLayout.class)
+                    .map(ScopedLayout::layout);
+        }
+    }
+
+    /**
+     * An attribute to attach alignment info to a declaration.
+     */
+    record ClangAlignOf(long align) {
+        public static void with(Declaration declaration, long align) {
+            declaration.addAttribute(new ClangAlignOf(align));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangAlignOf.class)
+                    .stream().mapToLong(ClangAlignOf::align).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangAlignOf.class)
+                    .stream().mapToLong(ClangAlignOf::align).findFirst().getAsLong();
+        }
+    }
+
+    /**
+     * An attribute to attach size info to a declaration.
+     */
+    record ClangSizeOf(long size) {
+        public static void with(Declaration declaration, long size) {
+            declaration.addAttribute(new ClangSizeOf(size));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangSizeOf.class)
+                    .stream().mapToLong(ClangSizeOf::size).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangSizeOf.class)
+                    .stream().mapToLong(ClangSizeOf::size).findFirst().getAsLong();
+        }
+    }
+
+    /**
+     * An attribute to attach offset info to a declaration.
+     */
+    record ClangOffsetOf(long offset) {
+        public static void with(Declaration declaration, long size) {
+            declaration.addAttribute(new ClangOffsetOf(size));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangOffsetOf.class)
+                    .stream().mapToLong(ClangOffsetOf::offset).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangOffsetOf.class)
+                    .stream().mapToLong(ClangOffsetOf::offset).findFirst().getAsLong();
         }
     }
 }

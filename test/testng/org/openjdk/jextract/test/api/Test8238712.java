@@ -40,7 +40,7 @@ public class Test8238712 extends JextractApiTestBase {
         checkFunction(d, "returnRecordType", fooType);
         // Opaque struct, have no field
         Declaration.Scoped structBar = checkStruct(d, "bar");
-        assertTrue(structBar.layout().isEmpty());
+        assertTrue(Declaration.layoutFor(structBar).isEmpty());
         Type barType = Type.declared(structBar);
         // Function with opaque struct won't work but should have cursor for tool to handle
         checkFunction(d, "returnBar", barType);

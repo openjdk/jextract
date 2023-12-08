@@ -227,10 +227,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
-        Type.Primitive.Kind kind = primType.kind();
-        if (primitiveKindSupported(kind) && kind.layout().isPresent()) {
-            emitPrimitiveTypedefLayout(name, kind.layout().get(), typedefTree);
-        }
+        emitPrimitiveTypedefLayout(name, Type.layoutFor(primType).get(), typedefTree);
     }
 
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
@@ -305,13 +302,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 throw new IllegalArgumentException("Invalid type for ABI: " + c.getTypeName());
             }
             """);
-    }
-
-    private boolean primitiveKindSupported(Type.Primitive.Kind kind) {
-        return switch(kind) {
-            case Bool, Short, Int, Long, LongLong, Float, Double, Char -> true;
-            default -> false;
-        };
     }
 
     private void emitGlobalGetter(String segmentConstant, String vhConstant, String javaName, String nativeName,

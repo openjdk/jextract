@@ -337,7 +337,7 @@ class MacroParserImpl implements AutoCloseable {
 
         void reparseMacros(boolean recovery) {
             String snippet = macroDecl(recovery);
-            TreeMaker treeMaker = new TreeMaker();
+            TreeMaker treeMaker = new TreeMaker(); // @@@: what about de-duplicated declarations?
             try {
                 reparser.reparse(snippet).forEach(c -> {
                     if (c.kind() == CursorKind.VarDecl &&

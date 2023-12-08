@@ -67,14 +67,14 @@ public class TestNested extends JextractToolRunner {
             checkClass(loader, "MyStruct",
                 checkField("a", byte.class, 0),
 
-                checkField("b", int.class, 4, "$anon$0"),
-                checkField("c", int.class, 8, "$anon$0", "$anon$0"),
+                checkField("b", int.class, 4, "$anon$48:5"),
+                checkField("c", int.class, 8, "$anon$48:5", "$anon$50:9"),
 
-                checkField("d", byte.class, 12, "$anon$0"),
-                checkField("f", MemorySegment.class, 13, "$anon$0"),
+                checkField("d", byte.class, 12, "$anon$48:5"),
+                checkField("f", MemorySegment.class, 13, "$anon$48:5"),
 
-                checkField("g", int.class, 16, "$anon$1"),
-                checkField("h", long.class, 16, "$anon$1"),
+                checkField("g", int.class, 16, "$anon$58:5"),
+                checkField("h", long.class, 16, "$anon$58:5"),
 
                 checkField("k", MemorySegment.class, 24)
             );
@@ -88,14 +88,14 @@ public class TestNested extends JextractToolRunner {
             checkClass(loader, "MyUnion",
                 checkField("a", byte.class, 0),
 
-                checkField("b", int.class, 0, "$anon$0"),
-                checkField("c", int.class, 4, "$anon$0", "$anon$0"),
+                checkField("b", int.class, 0, "$anon$73:5"),
+                checkField("c", int.class, 4, "$anon$73:5", "$anon$75:9"),
 
-                checkField("d", byte.class, 8, "$anon$0"),
-                checkField("f", MemorySegment.class, 9, "$anon$0"),
+                checkField("d", byte.class, 8, "$anon$73:5"),
+                checkField("f", MemorySegment.class, 9, "$anon$73:5"),
 
-                checkField("g", int.class, 0, "$anon$1"),
-                checkField("h", int.class, 4, "$anon$1"),
+                checkField("g", int.class, 0, "$anon$83:5"),
+                checkField("h", int.class, 4, "$anon$83:5"),
 
                 checkField("k", MemorySegment.class, 0)
             );
@@ -107,18 +107,18 @@ public class TestNested extends JextractToolRunner {
                 checkField("j", long.class, 0)
             );
             checkClass(loader, "X",
-                checkField("Z", MemorySegment.class, 0, "$anon$0")
+                checkField("Z", MemorySegment.class, 0, "$anon$97:5")
             );
             checkClass(loader, "X$Z",
                 checkField("y", int.class, 0)
             );
             checkClass(loader, "X2",
-                checkField("y", int.class, 0, "$anon$0", "$anon$0")
+                checkField("y", int.class, 0, "$anon$105:5", "$anon$106:9")
             );
             checkClass(loader, "NestedUnion",
                 checkField("x", int.class, 0),
-                checkField("y", int.class, 4, "$anon$0"),
-                checkField("z", int.class, 4, "$anon$0")
+                checkField("y", int.class, 4, "$anon$114:5"),
+                checkField("z", int.class, 4, "$anon$114:5")
             );
         } finally {
             TestUtils.deleteDir(nestedOutput);

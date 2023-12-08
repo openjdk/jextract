@@ -29,17 +29,20 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Constant;
 import org.openjdk.jextract.Declaration.Function;
 import org.openjdk.jextract.Declaration.Scoped;
+import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
+import org.openjdk.jextract.impl.TypeImpl.ErronrousTypeImpl;
 
 import java.io.PrintWriter;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.ValueLayout;
+import java.lang.foreign.PaddingLayout;
+import java.util.Optional;
 
 /*
  * This visitor marks a number of unsupported construct so that they are skipped by code generation.
@@ -136,7 +139,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitScoped(Scoped scoped, Declaration declaration) {
-        if (scoped.layout().isEmpty()) {
+        if ((scoped.kind() == Kind.STRUCT ||
+                scoped.kind() == Kind.UNION) && Declaration.layoutFor(scoped).isEmpty()) {
             // skip
             Skip.with(scoped);
         }
@@ -209,8 +213,9 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     private static final Type.Visitor<String, Void> UNSUPPORTED_VISITOR = new Type.Visitor<>() {
         @Override
         public String visitPrimitive(Type.Primitive t, Void unused) {
-            if (Skip.isPresent(t)) {
-                return t.kind().layout().get().name().get();
+            Optional<MemoryLayout> layout = Type.layoutFor(t);
+            if (layout.isPresent() && layout.get() instanceof PaddingLayout) {
+                return t.kind().typeName();
             } else {
                 return null;
             }
@@ -263,7 +268,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
         @Override
         public String visitType(Type t, Void unused) {
-            return null;
+            return t.isErroneous() ?
+                    ((ErronrousTypeImpl)t).erroneousName : null;
         }
     };
 

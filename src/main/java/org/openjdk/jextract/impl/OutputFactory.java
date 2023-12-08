@@ -29,21 +29,14 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
+import org.openjdk.jextract.impl.DeclarationImpl.ScopedLayout;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import javax.tools.JavaFileObject;
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
-import java.net.URL;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /*
  * Scan a header file and generate Java source items for entities defined in that header
@@ -106,7 +99,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         Builder prevBuilder = null;
         StructBuilder structBuilder = null;
         if (isStructKind) {
-            GroupLayout layout = (GroupLayout) layoutFor(d);
+            GroupLayout layout = (GroupLayout)Declaration.layoutFor(d).get();
             prevBuilder = currentBuilder;
             currentBuilder = structBuilder = currentBuilder.addStruct(
                 d,
@@ -178,7 +171,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                              *     int x, y;
                              * };
                              */
-                            toplevelBuilder.addTypedef(tree, s.layout().isEmpty() ? null : JavaName.getFullNameOrThrow(s));
+                            toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(s));
                         }
                     }
                     default -> visitScoped(s, tree);
@@ -226,17 +219,6 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         MemoryLayout layout = Type.layoutFor(type).get();
         currentBuilder.addVar(tree, layout, fiName);
         return null;
-    }
-
-    protected static MemoryLayout layoutFor(Declaration decl) {
-        if (decl instanceof Declaration.Typedef alias) {
-            return Type.layoutFor(alias.type()).orElseThrow();
-        } else if (decl instanceof Declaration.Scoped scoped) {
-            return scoped.layout().orElseThrow();
-        } else {
-            throw new IllegalArgumentException("Unexpected parent declaration");
-        }
-        // case like `typedef struct { ... } Foo`
     }
 
     private Class<?> getJavaType(Type type) {

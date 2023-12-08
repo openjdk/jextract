@@ -192,7 +192,9 @@ class TypeMaker {
             }
             case Enum:
             case Record: {
-                return Type.declared((Declaration.Scoped) treeMaker.createTree(t.getDeclarationCursor()));
+                Declaration d = treeMaker.createTree(t.getDeclarationCursor());
+                return d != null ?
+                        Type.declared((Declaration.Scoped)d) : Type.error(t.spelling());
             }
             case BlockPointer:
             case Pointer: {
@@ -234,7 +236,7 @@ class TypeMaker {
                 return Type.qualified(Delegated.Kind.ATOMIC, aType);
             }
             default:
-                return TypeImpl.ERROR;
+                return Type.error(t.spelling());
         }
     }
 
@@ -262,14 +264,4 @@ class TypeMaker {
             return t;
         }
     };
-
-    public static Primitive.Kind valueLayoutForSize(long size) {
-        return switch ((int) size) {
-            case 8 -> Primitive.Kind.Char;
-            case 16 -> Primitive.Kind.Short;
-            case 32 -> Primitive.Kind.Int;
-            case 64 -> Primitive.Kind.LongLong;
-            default -> throw new IllegalStateException("Cannot infer container layout");
-        };
-    }
 }

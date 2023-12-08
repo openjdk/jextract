@@ -26,7 +26,6 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.PaddingLayout;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,7 +38,6 @@ import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
 
@@ -59,7 +57,13 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
         return (t2.kind() == Delegated.Kind.TYPEDEF) && t1.equals(t2.type());
     }
 
-    public static final TypeImpl ERROR = new TypeImpl() {
+    public static class ErronrousTypeImpl extends TypeImpl {
+        final String erroneousName;
+
+        public ErronrousTypeImpl(String erroneousName) {
+            this.erroneousName = erroneousName;
+        }
+
         @Override
         public <R, D> R accept(Visitor<R, D> visitor, D data) {
             return visitor.visitType(this, data);
@@ -77,10 +81,6 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
 
         public PrimitiveImpl(Kind kind) {
             this.kind = Objects.requireNonNull(kind);
-            if (kind.layout().isPresent() && kind.layout().get() instanceof PaddingLayout) {
-                // this type is unsupported, add a Skip attribute
-                Skip.with(this);
-            }
         }
 
         @Override
@@ -416,7 +416,31 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
     private static org.openjdk.jextract.Type.Visitor<MemoryLayout, Void> layoutMaker = new org.openjdk.jextract.Type.Visitor<>() {
         @Override
         public MemoryLayout visitPrimitive(org.openjdk.jextract.Type.Primitive t, Void _ignored) {
-            return t.kind().layout().orElseThrow(UnsupportedOperationException::new);
+            return switch (t.kind()) {
+                case Void -> throw new UnsupportedOperationException();
+                case Bool -> ValueLayout.JAVA_BOOLEAN;
+                case Char -> ValueLayout.JAVA_BYTE;
+                case Char16 -> unsupportedLayout(2, t);
+                case Short -> ValueLayout.JAVA_SHORT;
+                case Int -> ValueLayout.JAVA_INT;
+                case Long -> TypeImpl.IS_WINDOWS ?
+                        ValueLayout.JAVA_INT :
+                        ValueLayout.JAVA_LONG;
+                case LongLong -> ValueLayout.JAVA_LONG;
+                case Int128 -> unsupportedLayout(16, t);
+                case Float -> ValueLayout.JAVA_FLOAT;
+                case Double -> ValueLayout.JAVA_DOUBLE;
+                case LongDouble -> TypeImpl.IS_WINDOWS ?
+                        ValueLayout.JAVA_DOUBLE :
+                        unsupportedLayout(16, t);
+                case Float128 -> unsupportedLayout(16, t);
+                case HalfFloat -> unsupportedLayout(2, t);
+                case WChar -> unsupportedLayout(2, t);
+            };
+        }
+
+        private MemoryLayout unsupportedLayout(long size, Type.Primitive t) {
+            return MemoryLayout.paddingLayout(size).withByteAlignment(size).withName(t.kind().typeName());
         }
 
         @Override
@@ -441,7 +465,7 @@ public abstract class TypeImpl extends AttributedImpl implements Type {
 
         @Override
         public MemoryLayout visitDeclared(org.openjdk.jextract.Type.Declared t, Void _ignored) {
-            return t.tree().layout().orElseThrow(UnsupportedOperationException::new);
+            return Declaration.layoutFor(t.tree()).orElseThrow(UnsupportedOperationException::new);
         }
 
         @Override
