@@ -26,32 +26,32 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.constant.Constable;
 import java.lang.foreign.AddressLayout;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.StructLayout;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.Type.Declared;
 
-public abstract class DeclarationImpl extends AttributedImpl implements Declaration {
+public abstract class DeclarationImpl implements Declaration {
 
     private final String name;
     private final Position pos;
+    private final Map<Class<?>, Record> attributes = new HashMap<>();
 
-    public DeclarationImpl(String name, Position pos, Map<String, List<Constable>> attrs) {
+    DeclarationImpl(String name, Position pos) {
         this.name = name;
         this.pos = pos;
     }
@@ -74,19 +74,41 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         if (this == o) {
             return true;
         }
-        return o instanceof Declaration decl && name().equals(decl.name());
+        return o instanceof Declaration decl &&
+                name().equals(decl.name()) &&
+                attributes.equals(decl.attributes());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(name, attributes);
+    }
+
+    @Override
+    public Collection<Record> attributes() {
+        return attributes.values();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R extends Record> Optional<R> getAttribute(Class<R> attributeClass) {
+        return Optional.ofNullable((R)attributes.get(attributeClass));
+    }
+
+    @Override
+    public <R extends Record> void addAttribute(R attribute) {
+        Record attr = attributes.get(attribute.getClass());
+        if (attr != null && !attr.equals(attribute)) {
+            throw new IllegalStateException("Attribute already exists: " + attribute.getClass().getSimpleName());
+        }
+        attributes.put(attribute.getClass(), attribute);
     }
 
     public static final class TypedefImpl extends DeclarationImpl implements Declaration.Typedef {
         final Type type;
 
-        public TypedefImpl(Type type, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
+        public TypedefImpl(Type type, String name, Position pos) {
+            super(name, pos);
             this.type = Objects.requireNonNull(type);
         }
 
@@ -104,7 +126,7 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         public boolean equals(Object o) {
             if (this == o) return true;
             return o instanceof Declaration.Typedef other &&
-                    name().equals(other.name()) &&
+                    super.equals(other) &&
                     type.equals(other.type());
         }
 
@@ -119,15 +141,10 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         final Variable.Kind kind;
         final Type type;
 
-        private VariableImpl(Type type, Variable.Kind kind, String name,
-                             Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
+        public VariableImpl(Type type, Variable.Kind kind, String name, Position pos) {
+            super(name, pos);
             this.kind = Objects.requireNonNull(kind);
             this.type = Objects.requireNonNull(type);
-        }
-
-        public VariableImpl(Type type, Variable.Kind kind, String name, Position pos) {
-            this(type, kind, name, pos, null);
         }
 
         @Override
@@ -148,9 +165,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Variable variable)) return false;
-            if (!super.equals(o)) return false;
-            return kind == variable.kind() &&
+            return o instanceof Declaration.Variable variable &&
+                    super.equals(o) &&
+                    kind == variable.kind() &&
                     type.equals(variable.type());
         }
 
@@ -164,13 +181,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
 
         final long width;
 
-        private BitfieldImpl(Type type, long width, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(type, Kind.BITFIELD, name, pos, attrs);
-            this.width = width;
-        }
-
         public BitfieldImpl(Type type, long width, String name, Position pos) {
-            this(type, width, name, pos, null);
+            super(type, Kind.BITFIELD, name, pos);
+            this.width = width;
         }
 
         @Override
@@ -181,9 +194,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof BitfieldImpl bitfield)) return false;
-            if (!super.equals(o)) return false;
-            return width == bitfield.width;
+            return o instanceof Declaration.Bitfield bitfield &&
+                    super.equals(o) &&
+                    width == bitfield.width();
         }
 
         @Override
@@ -198,11 +211,7 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         final Type.Function type;
 
         public FunctionImpl(Type.Function type, List<Variable> params, String name, Position pos) {
-            this(type, params, name, pos, null);
-        }
-
-        public FunctionImpl(Type.Function type, List<Variable> params, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
+            super(name, pos);
             this.params = Objects.requireNonNull(params);
             this.type = Objects.requireNonNull(type);
         }
@@ -225,14 +234,15 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Function function)) return false;
-            if (!super.equals(o)) return false;
-            return type.equals(function.type());
+            return o instanceof Declaration.Function function &&
+                    super.equals(o) &&
+                    params.equals(function.parameters()) &&
+                    type.equals(function.type());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(super.hashCode(), type);
+            return Objects.hash(super.hashCode(), params, type);
         }
     }
 
@@ -242,12 +252,7 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         private final List<Declaration> declarations;
 
         public ScopedImpl(Kind kind, List<Declaration> declarations, String name, Position pos) {
-            this(kind, declarations, name, pos, null);
-        }
-
-        ScopedImpl(Kind kind, List<Declaration> declarations,
-                String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
+            super(name, pos);
             this.kind = Objects.requireNonNull(kind);
             this.declarations = Objects.requireNonNull(declarations);
         }
@@ -270,9 +275,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Scoped scoped)) return false;
-            if (!super.equals(o)) return false;
-            return kind == scoped.kind() &&
+            return o instanceof Declaration.Scoped scoped &&
+                    super.equals(o) &&
+                    kind == scoped.kind() &&
                     declarations.equals(scoped.members());
         }
 
@@ -288,11 +293,7 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         final Type type;
 
         public ConstantImpl(Type type, Object value, String name, Position pos) {
-            this(type, value, name, pos, null);
-        }
-
-        public ConstantImpl(Type type, Object value, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
+            super(name, pos);
             this.value = Objects.requireNonNull(value);
             this.type = Objects.requireNonNull(type);
         }
@@ -315,9 +316,9 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Constant constant)) return false;
-            if (!super.equals(o)) return false;
-            return value.equals(constant.value()) &&
+            return o instanceof Declaration.Constant constant &&
+                    super.equals(o) &&
+                    value == constant.value() &&
                     type.equals(constant.type());
         }
 
@@ -501,16 +502,8 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
             declaration.addAttribute(INSTANCE);
         }
 
-        public static void with(Type type) {
-            type.addAttribute(INSTANCE);
-        }
-
         public static boolean isPresent(Declaration declaration) {
             return declaration.getAttribute(Skip.class).isPresent();
-        }
-
-        public static boolean isPresent(Type type) {
-            return type.getAttribute(Skip.class).isPresent();
         }
     }
 
@@ -538,20 +531,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
     }
 
     /**
-     * An attribute to attach a list of Java parameter names to a C function type.
-     */
-    record JavaParameterNames(List<String> parameterNames) {
-        public static void with(Type.Function function, List<String> parameterNames) {
-            function.addAttribute(new JavaParameterNames(parameterNames));
-        }
-
-        public static Optional<List<String>> get(Type.Function function) {
-            return function.getAttribute(JavaParameterNames.class)
-                    .map(JavaParameterNames::parameterNames);
-        }
-    }
-
-    /**
      * An attribute to attach a Java functional interface name to a C declaration.
      */
     record JavaFunctionalInterfaceName(String fiName) {
@@ -570,9 +549,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
-    /**
-     * An attribute to attach a layout to a scoped declaration.
-     */
     record ScopedLayout(MemoryLayout layout) {
         public static void with(Scoped declaration, MemoryLayout layout) {
             declaration.addAttribute(new ScopedLayout(layout));
@@ -584,9 +560,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
-    /**
-     * An attribute to attach alignment info to a declaration.
-     */
     record ClangAlignOf(long align) {
         public static void with(Declaration declaration, long align) {
             declaration.addAttribute(new ClangAlignOf(align));
@@ -603,9 +576,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
-    /**
-     * An attribute to attach size info to a declaration.
-     */
     record ClangSizeOf(long size) {
         public static void with(Declaration declaration, long size) {
             declaration.addAttribute(new ClangSizeOf(size));
@@ -622,9 +592,6 @@ public abstract class DeclarationImpl extends AttributedImpl implements Declarat
         }
     }
 
-    /**
-     * An attribute to attach offset info to a declaration.
-     */
     record ClangOffsetOf(long offset) {
         public static void with(Declaration declaration, long size) {
             declaration.addAttribute(new ClangOffsetOf(size));

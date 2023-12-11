@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -26,102 +26,33 @@
 
 package org.openjdk.jextract.impl;
 
-import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Supplier;
+import java.util.Optional;
 
-import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Scoped;
+import org.openjdk.jextract.Declaration.Typedef;
+import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Primitive;
-import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.TypeKind;
+import org.openjdk.jextract.impl.TreeMaker.CursorPosition;
 
+/**
+ * This class turns a clang type into a jextract type. Unlike declarations, jextract types are not
+ * de-duplicated, so relying on the identity of a jextract type is wrong. Since pointer types can
+ * point back to declarations, we create special pointer types backed by a supplier which fetches
+ * the correct declaration from the tree maker cache. This makes sure that situations with
+ * mutually referring pointers are dealt with correctly (i.e. by breaking cycles).
+ */
 class TypeMaker {
 
-    TreeMaker treeMaker;
-    private final Map<org.openjdk.jextract.clang.Type, Type> typeCache = new HashMap<>();
-    private List<ClangTypeReference> unresolved = new ArrayList<>();
-
-    private class ClangTypeReference implements Supplier<Type> {
-        org.openjdk.jextract.clang.Type origin;
-        Type derived;
-
-        private ClangTypeReference(org.openjdk.jextract.clang.Type origin) {
-            this.origin = origin;
-            derived = typeCache.get(origin);
-        }
-
-        public boolean isUnresolved() {
-            return null == derived;
-        }
-
-        public void resolve() {
-            derived = makeType(origin);
-            Objects.requireNonNull(derived, "Clang type cannot be resolved: " + origin.spelling());
-        }
-
-        public Type get() {
-            Objects.requireNonNull(derived, "Type is not yet resolved.");
-            return derived;
-        }
-    }
-
-    private ClangTypeReference reference(org.openjdk.jextract.clang.Type type) {
-        ClangTypeReference ref = new ClangTypeReference(type);
-        if (ref.isUnresolved()) {
-            unresolved.add(ref);
-        }
-        return ref;
-    }
-
-    public TypeMaker(TreeMaker treeMaker) {
-        this.treeMaker = treeMaker;
-    }
-
-    /**
-     * Resolve all type references. This method should be called before discard clang cursors/types
-     */
-    void resolveTypeReferences() {
-        List<ClangTypeReference> resolving = unresolved;
-        unresolved = new ArrayList<>();
-        while (! resolving.isEmpty()) {
-            resolving.forEach(ClangTypeReference::resolve);
-            resolving = unresolved;
-            unresolved = new ArrayList<>();
-        }
-    }
-
-    Type makeType(org.openjdk.jextract.clang.Type t) {
-        Type rv = typeCache.get(t);
-        if (rv != null) {
-            return rv;
-        }
-        rv = makeTypeInternal(t);
-        if (null != rv && typeCache.put(t, rv) != null) {
-            throw new ConcurrentModificationException();
-        }
-        return rv;
-    }
-
-    static class TypeException extends RuntimeException {
-        static final long serialVersionUID = 1L;
-
-        TypeException(String msg) {
-            super(msg);
-        }
-    }
-
-    Type makeTypeInternal(org.openjdk.jextract.clang.Type t) {
+    static Type makeType(org.openjdk.jextract.clang.Type t, TreeMaker treeMaker) {
         switch(t.kind()) {
             case Auto:
-                return makeType(t.canonicalType());
+                return makeType(t.canonicalType(), treeMaker);
             case Void:
                 return Type.void_();
             case Char_S:
@@ -170,15 +101,15 @@ class TypeMaker {
             case Elaborated:
                 org.openjdk.jextract.clang.Type canonical = t.canonicalType();
                 if (canonical.equalType(t)) {
-                    throw new TypeException("Unknown type with same canonical type: " + t.spelling());
+                    return Type.error(t.spelling());
                 }
-                return makeType(canonical);
+                return makeType(canonical, treeMaker);
             case ConstantArray: {
-                Type elem = makeType(t.getElementType());
+                Type elem = makeType(t.getElementType(), treeMaker);
                 return Type.array(t.getNumberOfElements(), elem);
             }
             case IncompleteArray: {
-                Type elem = makeType(t.getElementType());
+                Type elem = makeType(t.getElementType(), treeMaker);
                 return Type.array(elem);
             }
             case FunctionProto:
@@ -186,9 +117,9 @@ class TypeMaker {
                 List<Type> args = new ArrayList<>();
                 for (int i = 0; i < t.numberOfArgs(); i++) {
                     // argument could be function pointer declared locally
-                    args.add(lowerFunctionType(t.argType(i)));
+                    args.add(lowerFunctionType(t.argType(i), treeMaker));
                 }
-                return Type.function(t.isVariadic(), lowerFunctionType(t.resultType()), args.toArray(new Type[0]));
+                return Type.function(t.isVariadic(), lowerFunctionType(t.resultType(), treeMaker), args.toArray(new Type[0]));
             }
             case Enum:
             case Record: {
@@ -198,23 +129,39 @@ class TypeMaker {
             }
             case BlockPointer:
             case Pointer: {
-                // TODO: We can always erase type for macro evaluation, should we?
-                if (t.getPointeeType().kind() == TypeKind.FunctionProto) {
-                    return new TypeImpl.PointerImpl(makeType(t.getPointeeType()));
+                org.openjdk.jextract.clang.Type pointee = t.getPointeeType();
+                if (pointee.kind() == TypeKind.FunctionProto ||
+                        pointee.getDeclarationCursor().isInvalid()) {
+                    return Type.pointer(makeType(t.getPointeeType(), treeMaker));
                 } else {
-                    return new TypeImpl.PointerImpl(reference(t.getPointeeType()));
+                    // struct/union pointer - defer processing of pointee type
+                    Position pos = CursorPosition.of(pointee.getDeclarationCursor());
+                    String spelling = t.spelling();
+                    return Type.pointer(() -> {
+                        Optional<Declaration> decl = treeMaker.lookup(pos);
+                        if (decl.isEmpty()) {
+                            // no declaration, maybe an opaque type, return an error type
+                            return Type.error(spelling);
+                        } else {
+                            return switch (decl.get()) {
+                                case Scoped scoped -> Type.declared(scoped);
+                                case Typedef typedef -> Type.typedef(typedef.name(), typedef.type());
+                                default -> throw new UnsupportedOperationException();
+                            };
+                        }
+                    });
                 }
             }
             case Typedef: {
-                Type __type = makeType(t.canonicalType());
+                Type __type = makeType(t.canonicalType(), treeMaker);
                 return Type.typedef(t.spelling(), __type);
             }
             case Complex: {
-                Type __type = makeType(t.getElementType());
+                Type __type = makeType(t.getElementType(), treeMaker);
                 return Type.qualified(Delegated.Kind.COMPLEX, __type);
             }
             case Vector: {
-                Type __type = makeType(t.getElementType());
+                Type __type = makeType(t.getElementType(), treeMaker);
                 return Type.vector(t.getNumberOfElements(), __type);
             }
             case WChar: //unsupported
@@ -232,7 +179,7 @@ class TypeMaker {
                 return Type.qualified(Delegated.Kind.UNSIGNED, iType);
             }
             case Atomic: {
-                Type aType = makeType(t.getValueType());
+                Type aType = makeType(t.getValueType(), treeMaker);
                 return Type.qualified(Delegated.Kind.ATOMIC, aType);
             }
             default:
@@ -240,12 +187,12 @@ class TypeMaker {
         }
     }
 
-    private Type lowerFunctionType(org.openjdk.jextract.clang.Type t) {
-        Type t2 = makeType(t);
+    private static Type lowerFunctionType(org.openjdk.jextract.clang.Type t, TreeMaker treeMaker) {
+        Type t2 = makeType(t, treeMaker);
         return t2.accept(lowerFunctionType, null);
     }
 
-    private Type.Visitor<Type, Void> lowerFunctionType = new Type.Visitor<>() {
+    private static final Type.Visitor<Type, Void> lowerFunctionType = new Type.Visitor<>() {
         @Override
         public Type visitArray(Type.Array t, Void aVoid) {
             return Type.pointer(t.elementType());

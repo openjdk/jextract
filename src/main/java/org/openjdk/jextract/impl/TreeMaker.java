@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -32,15 +32,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
 import org.openjdk.jextract.Declaration.Scoped;
+import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.CursorLanguage;
@@ -52,16 +55,19 @@ import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
 
+/**
+ * This class turns a clang cursor into a jextract declaration. All declarations are de-duplicated,
+ * based on the declaration position. Because of this, the tree maker's declaration cache effectively
+ * acts as a symbol table.
+ */
 class TreeMaker {
-    public TreeMaker() {}
 
-    TypeMaker typeMaker = new TypeMaker(this);
+    private final TreeMaker parent;
+    private final Map<Position, Declaration> declarationCache = new HashMap<>();
 
-    public void freeze() {
-        typeMaker.resolveTypeReferences();
+    public TreeMaker(TreeMaker parent) {
+        this.parent = parent;
     }
-
-    Map<Position, Declaration> declarationCache = new HashMap<>();
 
     Declaration addAttributes(Declaration d, Cursor c) {
         if (d == null) return null;
@@ -76,6 +82,13 @@ class TreeMaker {
             d.addAttribute(new ClangAttributes(Collections.unmodifiableMap(attributes)));
         }
         return d;
+    }
+
+    public Optional<Declaration> lookup(Position pos) {
+        Declaration declaration = declarationCache.get(pos);
+        return (declaration == null && parent != null) ?
+                parent.lookup(pos) :
+                Optional.ofNullable(declaration);
     }
 
     public Declaration createTree(Cursor c) {
@@ -110,21 +123,25 @@ class TreeMaker {
 
     private Declaration createTreeInternal(Cursor c) {
         Position pos = CursorPosition.of(c);
+        if (pos == Position.NO_POSITION) return null; // intrinsic, skip
         // dedup multiple declarations that point to the same source location
-        Declaration decl = declarationCache.get(pos);
-        if (decl == null) {
-            decl = switch (c.kind()) {
-                case EnumDecl -> createEnum(c);
-                case EnumConstantDecl -> createEnumConstant(c);
-                case FieldDecl -> createVar(c, Declaration.Variable.Kind.FIELD);
-                case ParmDecl -> createVar(c, Declaration.Variable.Kind.PARAMETER);
-                case FunctionDecl -> createFunction(c);
-                case StructDecl -> createRecord(c, Declaration.Scoped.Kind.STRUCT);
-                case UnionDecl -> createRecord(c, Declaration.Scoped.Kind.UNION);
-                case TypedefDecl -> createTypedef(c);
-                case VarDecl -> createVar(c, Declaration.Variable.Kind.GLOBAL);
-                default -> null; // skip
-            };
+        Optional<Declaration> cachedDecl = lookup(pos);
+        if (cachedDecl.isPresent()) {
+            return cachedDecl.get();
+        }
+        Declaration decl = switch (c.kind()) {
+            case EnumDecl -> createEnum(c);
+            case EnumConstantDecl -> createEnumConstant(c);
+            case FieldDecl -> createVar(c, Declaration.Variable.Kind.FIELD);
+            case ParmDecl -> createVar(c, Declaration.Variable.Kind.PARAMETER);
+            case FunctionDecl -> createFunction(c);
+            case StructDecl -> createRecord(c, Declaration.Scoped.Kind.STRUCT);
+            case UnionDecl -> createRecord(c, Declaration.Scoped.Kind.UNION);
+            case TypedefDecl -> createTypedef(c);
+            case VarDecl -> createVar(c, Declaration.Variable.Kind.GLOBAL);
+            default -> null; // skip
+        };
+        if (decl != null && pos != Position.NO_POSITION) {
             declarationCache.put(pos, decl);
         }
         return decl;
@@ -139,7 +156,7 @@ class TreeMaker {
         private CursorPosition(Cursor cursor) {
             this.cursor = cursor;
             SourceLocation.Location loc = cursor.getSourceLocation().getFileLocation();
-            this.path = loc.path();
+            this.path = loc.path().toAbsolutePath();
             this.line = loc.line();
             this.column = loc.column();
         }
@@ -215,7 +232,8 @@ class TreeMaker {
     }
 
     public Declaration.Constant createEnumConstant(Cursor c) {
-        return Declaration.constant(CursorPosition.of(c), c.spelling(), c.getEnumConstantValue(), typeMaker.makeType(c.type()));
+        return Declaration.constant(CursorPosition.of(c), c.spelling(), c.getEnumConstantValue(),
+                toType(c));
     }
 
     public Declaration.Scoped createHeader(Cursor c, List<Declaration> decls) {
@@ -246,7 +264,7 @@ class TreeMaker {
                     if (pendingBitfieldsPos.get() == null) {
                         pendingBitfieldsPos.set(CursorPosition.of(fc));
                     }
-                    Type fieldType = typeMaker.makeType(fc.type());
+                    Type fieldType = toType(fc);
                     Variable bitfieldDecl = Declaration.bitfield(CursorPosition.of(fc), fc.spelling(), fc.getBitFieldWidth(), fieldType);
                     if (!fc.spelling().isEmpty()) {
                         ClangOffsetOf.with(bitfieldDecl, parent.type().getOffsetOf(fc.spelling()));
@@ -262,8 +280,7 @@ class TreeMaker {
                         // process struct recursively
                         pendingFields.add(recordDeclaration(parent, fc).tree());
                     } else {
-                        Type fieldType = typeMaker.makeType(fc.type());
-                        Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);
+                        Declaration fieldDecl = createTree(fc);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
                         ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
@@ -304,6 +321,7 @@ class TreeMaker {
             //just a declaration AND definition, we have a layout
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
         } else {
+            //if there's a real definition somewhere else, skip this redundant declaration
             return null;
         }
     }
@@ -311,6 +329,12 @@ class TreeMaker {
     private static boolean isEnum(Declaration d) {
         return d instanceof Declaration.Scoped scoped &&
                 scoped.kind() == Declaration.Scoped.Kind.ENUM;
+    }
+
+    private static boolean isRedundantTypedef(Declaration d) {
+        return d instanceof Typedef typedef &&
+                typedef.type() instanceof Declared declaredType &&
+                declaredType.tree().name().equals(typedef.name());
     }
 
     /*
@@ -321,31 +345,19 @@ class TreeMaker {
     private List<Declaration> filterHeaderDeclarations(List<Declaration> declarations) {
         return declarations.stream()
                 .filter(Objects::nonNull)
-                .filter(d -> isEnum(d) || !d.name().isEmpty())
+                .filter(d -> isEnum(d) || (!d.name().isEmpty() && !isRedundantTypedef(d)))
                 .collect(Collectors.toList());
     }
 
     private Declaration.Typedef createTypedef(Cursor c) {
         Type cursorType = toType(c);
         Type canonicalType = canonicalType(cursorType);
-        if (canonicalType instanceof Type.Declared declaredCanonicalType) {
-            Declaration.Scoped s = declaredCanonicalType.tree();
-            if (s.name().equals(c.spelling())) {
-                // typedef record with the same name, no need to present twice
-                return null;
-            }
-        }
         Type.Function funcType = null;
         boolean isFuncPtrType = false;
         if (canonicalType instanceof Type.Function canonicalFunctionType) {
             funcType = canonicalFunctionType;
         } else if (Utils.isPointerType(canonicalType)) {
-            Type pointeeType = null;
-            try {
-                pointeeType = ((Type.Delegated)canonicalType).type();
-            } catch (NullPointerException npe) {
-                // exception thrown for unresolved pointee type. Ignore if we hit that case.
-            }
+            Type pointeeType = ((Type.Delegated)canonicalType).type();
             if (pointeeType instanceof Type.Function pointeeFunctionType) {
                 funcType = pointeeFunctionType;
                 isFuncPtrType = true;
@@ -380,19 +392,12 @@ class TreeMaker {
     private Declaration.Variable createVar(Cursor c, Declaration.Variable.Kind kind) {
         if (c.isBitField()) throw new AssertionError("Cannot get here!");
         checkCursorAny(c, CursorKind.VarDecl, CursorKind.FieldDecl, CursorKind.ParmDecl);
-        Type type;
-        try {
-            type = toType(c);
-        } catch (TypeMaker.TypeException ex) {
-            System.err.println(ex);
-            System.err.println("WARNING: ignoring variable: " + c.spelling());
-            return null;
-        }
+        Type type = toType(c);
         return Declaration.var(kind, CursorPosition.of(c), c.spelling(), type);
     }
 
-    private Type toType(Cursor c) {
-        return typeMaker.makeType(c.type());
+    Type toType(Cursor c) {
+        return TypeMaker.makeType(c.type(), this);
     }
 
     private void checkCursor(Cursor c, CursorKind k) {

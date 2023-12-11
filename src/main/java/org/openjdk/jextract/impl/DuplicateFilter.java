@@ -39,8 +39,8 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     // To detect duplicate Variable and Function declarations.
     private final Set<String> constants = new HashSet<>();
     private final Set<String> variables = new HashSet<>();
-    private final Set<Declaration.Typedef> typedefs = new HashSet<>();
-    private final Set<Declaration.Function> functions = new HashSet<>();
+    private final Set<String> typedefs = new HashSet<>();
+    private final Set<String> functions = new HashSet<>();
 
     // have we seen this Constant earlier?
     private boolean constantSeen(Declaration.Constant tree) {
@@ -54,12 +54,12 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
 
     // have we seen this Function earlier?
     private boolean functionSeen(Declaration.Function tree) {
-        return !functions.add(tree);
+        return !functions.add(tree.name());
     }
 
     // have we seen this Function earlier?
     private boolean typedefSeen(Declaration.Typedef tree) {
-        return !typedefs.add(tree);
+        return !typedefs.add(tree.name());
     }
 
     DuplicateFilter() {

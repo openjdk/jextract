@@ -301,33 +301,32 @@ class MacroParserImpl implements AutoCloseable {
                 // step 2 - retry failed parsed macros as pointers
                 reparseMacros(true);
             }
-            treeMaker.typeMaker.resolveTypeReferences();
             return macrosByMangledName.values().stream()
                     .filter(Entry::isSuccess)
                     .map(e -> ((Success) e).constant())
                     .collect(Collectors.toList());
         }
 
-        void updateTable(TypeMaker typeMaker, Cursor decl) {
+        void updateTable(TreeMaker treeMaker, Cursor decl) {
             String mangledName = decl.spelling();
             Entry entry = macrosByMangledName.get(mangledName);
             try (EvalResult result = decl.eval()) {
                 Entry newEntry = switch (result.getKind()) {
                     case Integral -> {
                         long value = result.getAsInt();
-                        yield entry.success(typeMaker.makeType(decl.type()), value);
+                        yield entry.success(treeMaker.toType(decl), value);
                     }
                     case FloatingPoint -> {
                         double value = result.getAsFloat();
-                        yield entry.success(typeMaker.makeType(decl.type()), value);
+                        yield entry.success(treeMaker.toType(decl), value);
                     }
                     case StrLiteral -> {
                         String value = result.getAsString();
-                        yield entry.success(typeMaker.makeType(decl.type()), value);
+                        yield entry.success(treeMaker.toType(decl), value);
                     }
                     default -> {
                         Type type = decl.type().equals(decl.type().canonicalType()) ?
-                                null : typeMaker.makeType(decl.type());
+                                null : treeMaker.toType(decl);
                         yield entry.failure(type);
                     }
                 };
@@ -337,17 +336,13 @@ class MacroParserImpl implements AutoCloseable {
 
         void reparseMacros(boolean recovery) {
             String snippet = macroDecl(recovery);
-            TreeMaker treeMaker = new TreeMaker(); // @@@: what about de-duplicated declarations?
-            try {
-                reparser.reparse(snippet).forEach(c -> {
-                    if (c.kind() == CursorKind.VarDecl &&
-                            c.spelling().contains("jextract$")) {
-                        updateTable(treeMaker.typeMaker, c);
-                    }
-                });
-            } finally {
-                treeMaker.typeMaker.resolveTypeReferences();
-            }
+            TreeMaker treeMaker = new TreeMaker(MacroParserImpl.this.treeMaker);
+            reparser.reparse(snippet).forEach(c -> {
+                if (c.kind() == CursorKind.VarDecl &&
+                        c.spelling().contains("jextract$")) {
+                    updateTable(treeMaker, c);
+                }
+            });
         }
 
         String macroDecl(boolean recovery) {

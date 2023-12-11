@@ -27,6 +27,7 @@
 package org.openjdk.jextract;
 
 import java.lang.foreign.FunctionDescriptor;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,7 +41,7 @@ import org.openjdk.jextract.impl.DeclarationImpl;
  * support the <em>visitor</em> pattern (see {@link Declaration#accept(Visitor, Object)} and
  * {@link Visitor}).
  */
-public interface Declaration extends Attributed {
+public interface Declaration {
 
     /**
      * The position associated with this declaration.
@@ -80,6 +81,26 @@ public interface Declaration extends Attributed {
      * @return the hash code value for this Declaration.
      */
     int hashCode();
+
+    /**
+     * {@return the attributes associated with this declaration}
+     */
+    Collection<Record> attributes();
+
+    /**
+     * Obtains an attribute from this declaration.
+     * @param attributeClass the class of the attribute to be obtained.
+     * @param <R> the attribute's type.
+     * @return the attribute (if any).
+     */
+    <R extends Record> Optional<R> getAttribute(Class<R> attributeClass);
+
+    /**
+     * Adds a new attribute to this declaration.
+     * @param attribute the attribute to be added.
+     * @param <R> the attribute's type.
+     */
+    <R extends Record> void addAttribute(R attribute);
 
     /**
      * A function declaration.
@@ -438,7 +459,7 @@ public interface Declaration extends Attributed {
      * @return a new type declaration with given name and declared type.
      */
     static Declaration.Typedef typedef(Position pos, String name, Type type) {
-        return new DeclarationImpl.TypedefImpl(type, name, pos, null);
+        return new DeclarationImpl.TypedefImpl(type, name, pos);
     }
 
     /**
