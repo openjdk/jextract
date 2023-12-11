@@ -127,17 +127,18 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     @Override
     public void addVar(Declaration.Variable varTree, Optional<String> fiName) {
         String javaName = JavaName.getOrThrow(varTree);
-        long offset = ClangOffsetOf.getOrThrow(varTree) / 8;
         long size = ClangSizeOf.getOrThrow(varTree) / 8;
+        String offsetField = emitOffsetFieldDecl(varTree);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
-            emitSegmentGetter(javaName, offset, size);
+            String sizeField = emitSizeFieldDecl(varTree);
+            emitSegmentGetter(javaName, offsetField, sizeField);
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
             emitFieldDocComment(varTree, "Getter for field:");
-            emitFieldGetter(javaName, varTree.type(), offset);
+            emitFieldGetter(javaName, varTree.type(), offsetField);
             emitFieldDocComment(varTree, "Setter for field:");
-            emitFieldSetter(javaName, varTree.type(), offset);
-            emitIndexedFieldGetter(javaName, varTree.type(), offset);
-            emitIndexedFieldSetter(javaName, varTree.type(), offset);
+            emitFieldSetter(javaName, varTree.type(), offsetField);
+            emitIndexedFieldGetter(javaName, varTree.type(), offsetField);
+            emitIndexedFieldSetter(javaName, varTree.type(), offsetField);
             if (fiName.isPresent()) {
                 emitFunctionalInterfaceGetter(fiName.get(), javaName);
             }
@@ -158,34 +159,34 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitFieldGetter(String javaName, Type varType, long offset) {
+    private void emitFieldGetter(String javaName, Type varType, String offsetField) {
         String seg = safeParameterName("seg");
         Class<?> type = Utils.carrierFor(varType);
         MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}) {
-                return \{seg}.get(\{layoutString(0, layout)}, \{offset});
+                return \{seg}.get(\{layoutString(0, layout)}, \{offsetField});
             }
             """);
     }
 
-    private void emitFieldSetter(String javaName, Type varType, long offset) {
+    private void emitFieldSetter(String javaName, Type varType, String offsetField) {
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
         Class<?> type = Utils.carrierFor(varType);
         MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             public static void \{javaName}$set(MemorySegment \{seg}, \{type.getSimpleName()} \{x}) {
-                \{seg}.set(\{layoutString(1, layout)}, \{offset}, \{x});
+                \{seg}.set(\{layoutString(1, layout)}, \{offsetField}, \{x});
             }
             """);
     }
 
-    private void emitSegmentGetter(String javaName, long offset, long size) {
+    private void emitSegmentGetter(String javaName, String offsetField, String sizeField) {
         String seg = safeParameterName("seg");
         appendIndentedLines(STR."""
             public static MemorySegment \{javaName}$slice(MemorySegment \{seg}) {
-                return \{seg}.asSlice(\{offset}, \{size});
+                return \{seg}.asSlice(\{offsetField}, \{sizeField});
             }
             """);
     }
@@ -218,19 +219,19 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitIndexedFieldGetter(String javaName, Type varType, long offset) {
+    private void emitIndexedFieldGetter(String javaName, Type varType, String offsetField) {
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
         Class<?> type = Utils.carrierFor(varType);
         MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}, long \{index}) {
-                return \{seg}.get(\{layoutString(1, layout)}, \{offset} + (\{index} * sizeof()));
+                return \{seg}.get(\{layoutString(1, layout)}, \{offsetField} + (\{index} * sizeof()));
             }
             """);
     }
 
-    private void emitIndexedFieldSetter(String javaName, Type varType, long offset) {
+    private void emitIndexedFieldSetter(String javaName, Type varType, String offsetField) {
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
@@ -238,7 +239,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             public static void \{javaName}$set(MemorySegment \{seg}, long \{index}, \{type.getSimpleName()} \{x}) {
-                \{seg}.set(\{layoutString(1, layout)}, \{offset} + (\{index} * sizeof()), \{x});
+                \{seg}.set(\{layoutString(1, layout)}, \{offsetField} + (\{index} * sizeof()), \{x});
             }
             """);
     }
@@ -252,5 +253,21 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 return $LAYOUT;
             }
             """);
+    }
+
+    private String emitOffsetFieldDecl(Declaration field) {
+        String offsetFieldName = STR."\{field.name()}$OFFSET";
+        appendIndentedLines(STR."""
+            private static final long \{offsetFieldName} = \{ClangOffsetOf.getOrThrow(field) / 8};
+            """);
+        return offsetFieldName;
+    }
+
+    private String emitSizeFieldDecl(Declaration field) {
+        String sizeFieldName = STR."\{field.name()}$SIZE";
+        appendIndentedLines(STR."""
+            private static final long \{sizeFieldName} = \{ClangSizeOf.getOrThrow(field) / 8};
+            """);
+        return sizeFieldName;
     }
 }

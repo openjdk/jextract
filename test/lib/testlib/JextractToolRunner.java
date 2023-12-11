@@ -170,7 +170,9 @@ public class JextractToolRunner {
 
     protected static Field findField(Class<?> cls, String name) {
         try {
-            return cls.getField(name);
+            Field field = cls.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
         } catch (Exception e) {
             System.err.println(e);
             return null;

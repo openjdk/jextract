@@ -23,6 +23,7 @@
 package org.openjdk.jextract.test.toolprovider;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.Arena;
@@ -33,6 +34,7 @@ import testlib.JextractToolRunner;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -186,6 +188,10 @@ public class TestClassGeneration extends JextractToolRunner {
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment struct = arena.allocate(structLayout);
+            Field offsetField = findField(structCls, memberName + "$OFFSET");
+            assertNotNull(offsetField);
+            assertEquals(offsetField.getType(), long.class);
+            assertEquals(offsetField.get(null), structLayout.byteOffset(PathElement.groupElement(memberName)));
 
             Method getter = checkMethod(structCls, memberName + "$get", expectedType, MemorySegment.class);
             Method setter = checkMethod(structCls, memberName + "$set", void.class, MemorySegment.class, expectedType);
