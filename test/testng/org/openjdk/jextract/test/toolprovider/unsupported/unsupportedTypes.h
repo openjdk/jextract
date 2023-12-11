@@ -49,5 +49,3 @@ extern struct undefined GLOBAL_UNDECLARED;
 struct HasUnsupported {
     __int128 x;
 };
-
-extern struct HasUnsupported GLOBAL_HAS_UNSUPPORTED;

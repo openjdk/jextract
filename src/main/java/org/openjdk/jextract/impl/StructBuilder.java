@@ -164,7 +164,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}) {
-                return \{seg}.get(\{layoutString(1, layout)}, \{offset});
+                return \{seg}.get(\{layoutString(0, layout)}, \{offset});
             }
             """);
     }

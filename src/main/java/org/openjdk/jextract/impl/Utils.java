@@ -29,6 +29,7 @@ package org.openjdk.jextract.impl;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
+import org.openjdk.jextract.Type.Delegated.Kind;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
@@ -159,7 +160,7 @@ class Utils {
         return switch (type) {
             case Type.Declared declared when declared.tree().kind() == Declaration.Scoped.Kind.ENUM ->
                 isPrimitive(((Declaration.Constant)declared.tree().members().get(0)).type());
-            case Type.Delegated delegated -> isPrimitive(delegated.type());
+            case Type.Delegated delegated when delegated.kind() != Kind.POINTER -> isPrimitive(delegated.type());
             case Type.Primitive _ -> true;
             default -> false;
         };
