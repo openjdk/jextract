@@ -127,7 +127,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     @Override
     public void addVar(Declaration.Variable varTree, Optional<String> fiName) {
         String javaName = JavaName.getOrThrow(varTree);
-        long size = ClangSizeOf.getOrThrow(varTree) / 8;
         String offsetField = emitOffsetFieldDecl(varTree);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
             String sizeField = emitSizeFieldDecl(varTree);
