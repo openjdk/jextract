@@ -105,8 +105,8 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
-    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor) {
-        nextHeader().addFunction(funcTree, descriptor);
+    public void addFunction(Declaration.Function funcTree) {
+        nextHeader().addFunction(funcTree);
     }
 
     @Override

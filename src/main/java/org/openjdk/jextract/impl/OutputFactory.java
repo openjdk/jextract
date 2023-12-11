@@ -136,8 +136,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
              generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(funcTree), returnFunc);
         }
 
-        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).get();
-        toplevelBuilder.addFunction(funcTree, descriptor);
+        toplevelBuilder.addFunction(funcTree);
         return null;
     }
 
@@ -221,7 +220,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor) {
+        default void addFunction(Declaration.Function funcTree) {
             throw new UnsupportedOperationException("Not implemented");
         }
 

@@ -37,19 +37,17 @@ import java.util.stream.IntStream;
 
 final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
-    private final MethodType fiType;
-    private final MethodType downcallType;
-    private final FunctionDescriptor fiDesc;
+    private final Type.Function funcType;
+    private final MethodType methodType;
     private final Optional<List<String>> parameterNames;
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
                                        String runtimeHelperName, Type.Function funcType,
                                        Optional<List<String>> parameterNames) {
         super(builder, "public", Kind.INTERFACE, className, null, enclosing, runtimeHelperName);
-        this.fiDesc = Type.descriptorFor(funcType).get();
-        this.fiType = fiDesc.toMethodType();
-        this.downcallType = fiDesc.toMethodType();
         this.parameterNames = parameterNames;
+        this.funcType = funcType;
+        this.methodType = Utils.methodTypeFor(funcType);
     }
 
     public static void generate(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing, String runtimeHelperName,
@@ -67,7 +65,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalInterfaceMethod() {
         appendIndentedLines(STR."""
-            \{fiRetType()} apply(\{paramExprs("")});
+            \{methodType.returnType().getSimpleName()} apply(\{paramExprs("")});
             """);
     }
 
@@ -110,8 +108,8 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private String paramExprs(String paramNamePrefix) {
         StringBuilder result = new StringBuilder();
         String delim = "";
-        for (int i = 0 ; i < fiType.parameterCount(); i++) {
-            result.append(delim).append(fiType.parameterType(i).getSimpleName());
+        for (int i = 0 ; i < methodType.parameterCount(); i++) {
+            result.append(delim).append(methodType.parameterType(i).getSimpleName());
             result.append(" ");
             result.append(paramNamePrefix).append(parameterName(i));
             delim = ", ";
@@ -119,47 +117,28 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         return result.toString();
     }
 
-    private String fiRetType() {
-        return fiType.returnType().getSimpleName();
-    }
-
-    private String downcallRetType() {
-        return fiType.returnType().getSimpleName();
-    }
-
     private String retExpr() {
         String retExpr = "";
-        if (!fiType.returnType().equals(void.class)) {
-            retExpr = STR."return (\{fiRetType()})";
-            if (fiType.returnType() != downcallType.returnType()) {
-                // add cast for invokeExact
-                retExpr += STR." (\{downcallRetType()})";
-            }
+        if (!methodType.returnType().equals(void.class)) {
+            retExpr = STR."return (\{methodType.returnType().getSimpleName()})";
         }
         return retExpr;
     }
 
     private String otherArgExprs() {
         String argsExprs = "";
-        if (fiType.parameterCount() > 0) {
-            argsExprs += ", " + IntStream.range(0, fiType.parameterCount())
-                    .mapToObj(i -> {
-                        String paramExpr = "_" + parameterName(i);
-                        if (fiType.parameterType(i) != downcallType.parameterType(i)) {
-                            // add cast for invokeExact
-                            return "(" + downcallType.parameterType(i).getName() + ")" + paramExpr;
-                        } else {
-                            return paramExpr;
-                        }
-                    })
+        if (methodType.parameterCount() > 0) {
+            argsExprs += ", " + IntStream.range(0, methodType.parameterCount())
+                    .mapToObj(i -> "_" + parameterName(i))
                     .collect(Collectors.joining(", "));
         }
         return argsExprs;
     }
 
     private void emitDescriptorDecl() {
+        FunctionDescriptor descriptor = Type.descriptorFor(funcType).get();
         appendIndentedLines(STR."""
-            FunctionDescriptor $DESC = \{descriptorString(0, fiDesc)};
+            FunctionDescriptor $DESC = \{descriptorString(0, descriptor)};
             """);
     }
 }

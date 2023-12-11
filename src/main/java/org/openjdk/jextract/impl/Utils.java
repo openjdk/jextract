@@ -39,6 +39,7 @@ import java.lang.foreign.AddressLayout;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodType;
 import java.net.URI;
 import java.util.Map;
 
@@ -110,11 +111,27 @@ class Utils {
         };
     }
 
+    static boolean isEnum(Declaration.Scoped scoped) {
+        return switch (scoped.kind()) {
+            case ENUM -> true;
+            default -> false;
+        };
+    }
+
     static boolean isArray(Type type) {
         return switch (type) {
             case Type.Array _ -> true;
             case Type.Delegated delegated when delegated.kind() == Delegated.Kind.TYPEDEF ->
                     isArray(delegated.type());
+            default -> false;
+        };
+    }
+
+    static boolean isEnum(Type type) {
+        return switch (type) {
+            case Type.Declared declared -> isEnum(declared.tree());
+            case Type.Delegated delegated when delegated.kind() == Delegated.Kind.TYPEDEF ->
+                    isEnum(delegated.type());
             default -> false;
         };
     }
@@ -185,6 +202,7 @@ class Utils {
             case Type.Delegated delegated -> delegated.kind() == Type.Delegated.Kind.POINTER ?
                     MemorySegment.class :
                     carrierFor(delegated.type());
+            case Type.Function _ -> MemorySegment.class;
             default -> throw new UnsupportedOperationException(type.toString());
         };
     };
@@ -232,4 +250,11 @@ class Utils {
             long.class, ValueLayout.OfLong.class,
             double.class, ValueLayout.OfDouble.class
     );
+
+    public static MethodType methodTypeFor(Type.Function type) {
+        return MethodType.methodType(
+                carrierFor(type.returnType()),
+                type.argumentTypes().stream().map(Utils::carrierFor).toList()
+        );
+    }
 }

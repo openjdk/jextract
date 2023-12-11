@@ -77,16 +77,15 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
     }
 
-    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor) {
+    public void addFunction(Declaration.Function funcTree) {
         String nativeName = funcTree.name();
         boolean isVarargs = funcTree.type().varargs();
-        boolean needsAllocator = descriptor.returnLayout().isPresent() &&
-                descriptor.returnLayout().get() instanceof GroupLayout;
+        boolean needsAllocator = Utils.isStructOrUnion(funcTree.type().returnType());
         List<String> parameterNames = funcTree.parameters().
                 stream().
                 map(JavaName::getOrThrow).
                 toList();
-        emitFunctionWrapper(JavaName.getOrThrow(funcTree), nativeName, descriptor, needsAllocator, isVarargs, parameterNames, funcTree);
+        emitFunctionWrapper(JavaName.getOrThrow(funcTree), nativeName, needsAllocator, isVarargs, parameterNames, funcTree);
     }
 
     public void addConstant(Declaration.Constant constantTree) {
@@ -135,9 +134,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         return sb.toString();
     }
 
-    private void emitFunctionWrapper(String javaName, String nativeName, FunctionDescriptor descriptor, boolean needsAllocator,
-                                     boolean isVarArg, List<String> parameterNames, Declaration decl) {
-        MethodType declType = descriptor.toMethodType();
+    private void emitFunctionWrapper(String javaName, String nativeName, boolean needsAllocator,
+                                     boolean isVarArg, List<String> parameterNames, Declaration.Function decl) {
+        MethodType declType = Utils.methodTypeFor(decl.type());
         List<String> finalParamNames = finalizeParameterNames(parameterNames, needsAllocator, isVarArg);
         if (needsAllocator) {
             declType = declType.insertParameterTypes(0, SegmentAllocator.class);
@@ -149,30 +148,31 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             returnExpr = STR."return (\{retType}) ";
         }
         String getterName = mangleName(javaName, MethodHandle.class);
+        FunctionDescriptor descriptor = Declaration.descriptorFor(decl).get();
         incrAlign();
         if (!isVarArg) {
-        emitDocComment(decl);
-        appendLines(STR."""
-            \{MEMBER_MODS} MethodHandle \{getterName}() {
-                class Holder {
-                    static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
+            emitDocComment(decl);
+            appendLines(STR."""
+                \{MEMBER_MODS} MethodHandle \{getterName}() {
+                    class Holder {
+                        static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
 
-                    static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
-                            \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
-                            DESC);
+                        static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                                \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
+                                DESC);
+                    }
+                    return Holder.MH;
                 }
-                return Holder.MH;
-            }
 
-            public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
-                var mh$ = \{getterName}();
-                try {
-                    \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
-                } catch (Throwable ex$) {
-                   throw new AssertionError("should not reach here", ex$);
+                public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
+                    var mh$ = \{getterName}();
+                    try {
+                        \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
+                    } catch (Throwable ex$) {
+                       throw new AssertionError("should not reach here", ex$);
+                    }
                 }
-            }
-            """);
+                """);
         } else {
             String invokerName = javaName + "$invoker";
             String invokerFactoryName = javaName + "$makeInvoker";

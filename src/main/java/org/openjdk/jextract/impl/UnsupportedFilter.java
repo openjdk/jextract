@@ -97,6 +97,12 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitVariable(Variable varTree, Declaration parent) {
+        Type type = varTree.type();
+        if (type instanceof Type.Declared declared) {
+            // declared type - visit declaration recursively
+            declared.tree().accept(this, varTree);
+        }
+
         Type unsupportedType = firstUnsupportedType(varTree.type(), false);
         String name = parent != null ? parent.name() + "." : "";
         name += varTree.name();
@@ -138,6 +144,11 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitTypedef(Typedef typedefTree, Declaration declaration) {
+        // propagate
+        if (typedefTree.type() instanceof Declared declared) {
+            visitScoped(declared.tree(), null);
+        }
+
         Type unsupportedType = firstUnsupportedType(typedefTree.type(),false);
         if (unsupportedType != null) {
             warnSkip(typedefTree.name(), STR."unsupported type usage: \{unsupportedType}");
@@ -148,11 +159,6 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         Type.Function func = Utils.getAsFunctionPointer(typedefTree.type());
         if (func != null && !checkFunctionTypeSupported(typedefTree, func, typedefTree.name())) {
             Skip.with(typedefTree);
-        }
-
-        // propagate
-        if (typedefTree.type() instanceof Declared declared) {
-            visitScoped(declared.tree(), null);
         }
         return null;
     }
@@ -231,7 +237,12 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
         @Override
         public Type visitDelegated(Type.Delegated t, Boolean allowVoid) {
-            return firstUnsupportedType(t.type(), true);
+            // Note: unsupported pointer types (e.g. *long double) are not detected, but they are not problematic
+            // layout-wise (e.g. they are always 32- or 64-bits, depending on the platform). This policy also allows
+            // more flexibility when it comes to opaque struct types.
+            return t.kind() != Type.Delegated.Kind.POINTER ?
+                    firstUnsupportedType(t.type(), allowVoid) :
+                    null;
         }
 
         @Override
