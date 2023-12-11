@@ -131,10 +131,6 @@ public interface Declaration {
          */
         enum Kind {
             /**
-             * Class declaration.
-             */
-            CLASS,
-            /**
              * Enum declaration.
              */
             ENUM,

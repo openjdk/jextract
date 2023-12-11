@@ -140,7 +140,7 @@ class TreeMaker {
             case VarDecl -> createVar(c, Declaration.Variable.Kind.GLOBAL);
             default -> null; // skip
         };
-        if (decl != null) {
+        if (decl != null && pos != Position.NO_POSITION) {
             declarationCache.put(pos, decl);
         }
         return decl;
@@ -278,9 +278,8 @@ class TreeMaker {
                     if (fc.isAnonymousStruct()) {
                         // process struct recursively
                         pendingFields.add(recordDeclaration(parent, fc).tree());
-                    } else if (!fc.isBitField() && !fc.spelling().isEmpty()) {
-                        Type fieldType = toType(fc);
-                        Declaration fieldDecl = Declaration.field(CursorPosition.of(fc), fc.spelling(), fieldType);
+                    } else {
+                        Declaration fieldDecl = createTree(fc);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
                         ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
