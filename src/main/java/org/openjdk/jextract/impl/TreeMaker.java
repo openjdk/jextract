@@ -123,6 +123,7 @@ class TreeMaker {
 
     private Declaration createTreeInternal(Cursor c) {
         Position pos = CursorPosition.of(c);
+        if (pos == Position.NO_POSITION) return null; // intrinsic, skip
         // dedup multiple declarations that point to the same source location
         Optional<Declaration> cachedDecl = lookup(pos);
         if (cachedDecl.isPresent()) {
@@ -356,12 +357,7 @@ class TreeMaker {
         if (canonicalType instanceof Type.Function canonicalFunctionType) {
             funcType = canonicalFunctionType;
         } else if (Utils.isPointerType(canonicalType)) {
-            Type pointeeType = null;
-            try {
-                pointeeType = ((Type.Delegated)canonicalType).type();
-            } catch (IllegalStateException unresolved) {
-                // exception thrown for unresolved pointee type. Ignore if we hit that case.
-            }
+            Type pointeeType = ((Type.Delegated)canonicalType).type();
             if (pointeeType instanceof Type.Function pointeeFunctionType) {
                 funcType = pointeeFunctionType;
                 isFuncPtrType = true;
