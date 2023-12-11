@@ -100,8 +100,8 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
-    public void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
-        nextHeader().addVar(varTree, layout, fiName);
+    public void addVar(Declaration.Variable varTree, Optional<String> fiName) {
+        nextHeader().addVar(varTree, fiName);
     }
 
     @Override
@@ -110,8 +110,8 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
-    public void addConstant(Declaration.Constant constantTree, Class<?> javaType) {
-        nextHeader().addConstant(constantTree, javaType);
+    public void addConstant(Declaration.Constant constantTree) {
+        nextHeader().addConstant(constantTree);
     }
 
     @Override
@@ -131,19 +131,19 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
-    public StructBuilder addStruct(Declaration.Scoped tree, GroupLayout layout) {
+    public StructBuilder addStruct(Declaration.Scoped tree) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaName.getOrThrow(tree));
         builders.add(sfb);
-        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, firstHeader.className(), tree, layout);
+        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, firstHeader.className(), tree);
         structBuilder.begin();
         return structBuilder;
     }
 
     @Override
-    public void addFunctionalInterface(String name, Type.Function funcType, FunctionDescriptor descriptor) {
+    public void addFunctionalInterface(String name, Type.Function funcType) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), name);
         builders.add(sfb);
-        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, firstHeader.className(), funcType, descriptor,
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, firstHeader.className(), funcType,
                 funcType.parameterNames().map(NameMangler::javaSafeIdentifiers));
     }
 

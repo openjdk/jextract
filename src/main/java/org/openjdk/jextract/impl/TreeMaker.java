@@ -356,7 +356,7 @@ class TreeMaker {
         boolean isFuncPtrType = false;
         if (canonicalType instanceof Type.Function canonicalFunctionType) {
             funcType = canonicalFunctionType;
-        } else if (Utils.isPointerType(canonicalType)) {
+        } else if (Utils.isPointer(canonicalType)) {
             Type pointeeType = ((Type.Delegated)canonicalType).type();
             if (pointeeType instanceof Type.Function pointeeFunctionType) {
                 funcType = pointeeFunctionType;

@@ -43,19 +43,19 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final Optional<List<String>> parameterNames;
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
-                                       String runtimeHelperName, FunctionDescriptor descriptor,
+                                       String runtimeHelperName, Type.Function funcType,
                                        Optional<List<String>> parameterNames) {
         super(builder, "public", Kind.INTERFACE, className, null, enclosing, runtimeHelperName);
-        this.fiType = descriptor.toMethodType();
-        this.downcallType = descriptor.toMethodType();
-        this.fiDesc = descriptor;
+        this.fiDesc = Type.descriptorFor(funcType).get();
+        this.fiType = fiDesc.toMethodType();
+        this.downcallType = fiDesc.toMethodType();
         this.parameterNames = parameterNames;
     }
 
     public static void generate(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing, String runtimeHelperName,
-                                Type.Function funcType, FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
+                                Type.Function funcType, Optional<List<String>> parameterNames) {
         FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className, enclosing, runtimeHelperName,
-                descriptor, parameterNames);
+                funcType, parameterNames);
         fib.emitDocComment(funcType, className);
         fib.classBegin();
         fib.emitDescriptorDecl();

@@ -35,9 +35,12 @@ import org.openjdk.jextract.clang.CursorKind;
 
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
-import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.AddressLayout;
 import java.io.IOException;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.net.URI;
+import java.util.Map;
 
 /**
  * General utility functions
@@ -100,27 +103,6 @@ class Utils {
         }
     }
 
-    /**
-     * Returns the type that should be used in declarations of various
-     * memory layout implementations.
-     * <p>
-     * For example, the concrete layout implementation class {@code OfLongImpl} should be
-     * declared as {@code OfLong} and not {@code OfLongImpl}.
-     *
-     * @param layout to generate a declaring type string for.
-     * @return the unqualified type
-     */
-    static Class<?> layoutDeclarationType(MemoryLayout layout) {
-        if (!layout.getClass().isInterface()) {
-            Class<?> ifs[] = layout.getClass().getInterfaces();
-            if (ifs.length != 1) {
-                throw new IllegalStateException("The class" + layout.getClass() + " does not implement exactly one interface");
-            }
-            return ifs[0];
-        }
-        return layout.getClass();
-    }
-
     static boolean isStructOrUnion(Declaration.Scoped scoped) {
         return switch (scoped.kind()) {
             case STRUCT, UNION -> true;
@@ -128,28 +110,50 @@ class Utils {
         };
     }
 
-    static boolean isPointerType(Type type) {
-        if (type instanceof Delegated delegated) {
-            return delegated.kind() == Delegated.Kind.POINTER;
-        } else {
-            return false;
-        }
+    static boolean isArray(Type type) {
+        return switch (type) {
+            case Type.Array _ -> true;
+            case Type.Delegated delegated when delegated.kind() == Delegated.Kind.TYPEDEF ->
+                    isArray(delegated.type());
+            default -> false;
+        };
+    }
+
+    static boolean isStructOrUnion(Type type) {
+        return switch (type) {
+            case Type.Declared declared -> isStructOrUnion(declared.tree());
+            case Type.Delegated delegated when delegated.kind() == Delegated.Kind.TYPEDEF ->
+                isStructOrUnion(delegated.type());
+            default -> false;
+        };
+    }
+
+    static boolean isPointer(Type type) {
+        return switch (type) {
+            case Type.Delegated delegated when delegated.kind() == Delegated.Kind.TYPEDEF ->
+                    isPointer(delegated.type());
+            case Type.Delegated delegated when delegated.kind() == Delegated.Kind.POINTER ->
+                    true;
+            default -> false;
+        };
+    }
+
+    static boolean isPrimitive(Type type) {
+        return switch (type) {
+            case Type.Declared declared when declared.tree().kind() == Declaration.Scoped.Kind.ENUM ->
+                isPrimitive(((Declaration.Constant)declared.tree().members().get(0)).type());
+            case Type.Delegated delegated -> isPrimitive(delegated.type());
+            case Type.Primitive _ -> true;
+            default -> false;
+        };
     }
 
     static Function getAsFunctionPointer(Type type) {
-        if (type instanceof Function function) {
-            /*
-             * // pointer to function declared as function like this
-             *
-             * typedef void CB(int);
-             * void func(CB cb);
-             */
-            return function;
-        } else if (isPointerType(type)) {
-            return getAsFunctionPointer(((Delegated)type).type());
-        } else {
-            return null;
-        }
+        return switch (type) {
+            case Type.Delegated delegated -> getAsFunctionPointer(delegated.type());
+            case Type.Function function -> function;
+            default -> null;
+        };
     }
 
     static Type.Primitive getAsSignedOrUnsigned(Type type) {
@@ -170,4 +174,62 @@ class Utils {
     private static boolean isPrintableAscii(char ch) {
         return ch >= ' ' && ch <= '~';
     }
+
+    public static Class<?> carrierFor(Type type) {
+        return switch (type) {
+            case Type.Array _ -> MemorySegment.class;
+            case Type.Primitive p -> Utils.carrierFor(p);
+            case Type.Declared declared -> declared.tree().kind() == Declaration.Scoped.Kind.ENUM ?
+                    carrierFor(((Declaration.Constant) declared.tree().members().get(0)).type()) :
+                    MemorySegment.class;
+            case Type.Delegated delegated -> delegated.kind() == Type.Delegated.Kind.POINTER ?
+                    MemorySegment.class :
+                    carrierFor(delegated.type());
+            default -> throw new UnsupportedOperationException(type.toString());
+        };
+    };
+
+    public static Class<?> carrierFor(Type.Primitive p) {
+        return switch (p.kind()) {
+            case Void -> void.class;
+            case Bool -> boolean.class;
+            case Char -> byte.class;
+            case Short -> short.class;
+            case Int -> int.class;
+            case Long -> TypeImpl.IS_WINDOWS ? int.class : long.class;
+            case LongLong -> long.class;
+            case Float -> float.class;
+            case Double -> double.class;
+            case LongDouble -> {
+                if (TypeImpl.IS_WINDOWS) {
+                    yield (Class<?>) double.class;
+                } else {
+                    throw new UnsupportedOperationException(p.toString());
+                }
+            }
+            default -> throw new UnsupportedOperationException(p.toString());
+        };
+    }
+
+    public static Class<?> valueLayoutCarrierFor(Type t) {
+        if (t instanceof Delegated delegated && delegated.kind() == Delegated.Kind.POINTER) {
+            return AddressLayout.class;
+        } else if (t instanceof Type.Primitive p) {
+            Class<?> clazz = carrierFor(p);
+            return CARRIERS_TO_LAYOUT_CARRIERS.get(clazz);
+        } else {
+            throw new UnsupportedOperationException(t.toString());
+        }
+    }
+
+    static final Map<Class<?>, Class<?>> CARRIERS_TO_LAYOUT_CARRIERS = Map.of(
+            byte.class, ValueLayout.OfByte.class,
+            boolean.class, ValueLayout.OfBoolean.class,
+            char.class, ValueLayout.OfChar.class,
+            short.class, ValueLayout.OfShort.class,
+            int.class, ValueLayout.OfInt.class,
+            float.class, ValueLayout.OfFloat.class,
+            long.class, ValueLayout.OfLong.class,
+            double.class, ValueLayout.OfDouble.class
+    );
 }

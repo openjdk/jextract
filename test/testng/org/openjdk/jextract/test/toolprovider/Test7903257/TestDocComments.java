@@ -69,8 +69,7 @@ public class TestDocComments extends JextractToolRunner {
         assertEquals(comments, List.of(
             "typedef unsigned long long size_t;",
             "typedef int INT_32;",
-            "typedef int* INT_PTR;",
-            "typedef struct Foo* OPAQUE_PTR;"));
+            "typedef int* INT_PTR;"));
     }
 
     @Test

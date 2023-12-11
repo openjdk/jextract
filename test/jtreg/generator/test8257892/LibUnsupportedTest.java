@@ -31,8 +31,8 @@ import org.testng.annotations.Test;
 import org.testng.SkipException;
 
 import test.jextract.unsupported.unsupported_h;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+
+import static org.testng.Assert.*;
 import static test.jextract.unsupported.unsupported_h.*;
 import test.jextract.unsupported.*;
 
@@ -91,16 +91,19 @@ public class LibUnsupportedTest {
     }
 
     @Test
-    public void testIgnoredMethods() {
+    public void testProblematicMethods() {
         if (IS_WINDOWS) {
-            throw new SkipException("long double works on Windows");
+            assertNotNull(findMethod(unsupported_h.class, "func"));
+            assertNotNull(findMethod(unsupported_h.class, "func2"));
+            assertNotNull(findMethod(unsupported_h.class, "func3"));
+        } else {
+            assertNull(findMethod(unsupported_h.class, "func"));
+            assertNull(findMethod(unsupported_h.class, "func2"));
+            assertNull(findMethod(unsupported_h.class, "func3"));
         }
-        assertNull(findMethod(unsupported_h.class, "func"));
-        assertNull(findMethod(unsupported_h.class, "func2"));
-        assertNull(findMethod(unsupported_h.class, "func3"));
-        assertNull(findMethod(unsupported_h.class, "func4"));
-        assertNull(findMethod(unsupported_h.class, "makeFoo"));
-        assertNull(findMethod(unsupported_h.class, "copyFoo"));
+        assertNotNull(findMethod(unsupported_h.class, "func4"));
+        assertNotNull(findMethod(unsupported_h.class, "makeFoo"));
+        assertNotNull(findMethod(unsupported_h.class, "copyFoo"));
     }
 
     private Method findMethod(Class<?> cls, String name) {

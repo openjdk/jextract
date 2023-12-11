@@ -186,9 +186,6 @@ public class TestClassGeneration extends JextractToolRunner {
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment struct = arena.allocate(structLayout);
-            Method vh_getter = checkMethod(structCls, memberName + "$VH", VarHandle.class);
-            VarHandle vh = (VarHandle) vh_getter.invoke(null);
-            assertEquals(vh.varType(), expectedType);
 
             Method getter = checkMethod(structCls, memberName + "$get", expectedType, MemorySegment.class);
             Method setter = checkMethod(structCls, memberName + "$set", void.class, MemorySegment.class, expectedType);

@@ -48,8 +48,6 @@ public class TestUnsupportedTypes extends JextractToolRunner {
 
     private static final String REASON_UNSUPPORTED_TYPE = "unsupported type usage";
     private static final String REASON_VARARGS_CALLBACK = "varargs in callbacks is not supported";
-    private static final String REASON_NO_FUNC_DESC = "does not have a valid function descriptor";
-    private static final String REASON_NO_MEM_LAYOUT = "does not have a valid memory layout";
 
     @DataProvider
     public static Object[][] cases() {
@@ -63,12 +61,11 @@ public class TestUnsupportedTypes extends JextractToolRunner {
             {"accepts_unsupported_func_varargs", REASON_VARARGS_CALLBACK},
             {"GLOBAL_UNSUPPORTED",               REASON_UNSUPPORTED_TYPE},
             {"GLOBAL_UNSUPPORTED_FUNC",          REASON_UNSUPPORTED_TYPE},
-            {"GLOBAL_HAS_UNSUPPORTED",           REASON_UNSUPPORTED_TYPE},
-            {"accepts_undefined",                REASON_NO_FUNC_DESC},
-            {"returns_undefined",                REASON_NO_FUNC_DESC},
-            {"accepts_undefined_func",           REASON_NO_FUNC_DESC},
-            {"GLOBAL_UNDECLARED",                REASON_NO_MEM_LAYOUT},
-            {"undefined_typedef",                REASON_NO_MEM_LAYOUT},
+            {"accepts_undefined",                REASON_UNSUPPORTED_TYPE},
+            {"returns_undefined",                REASON_UNSUPPORTED_TYPE},
+            {"accepts_undefined_func",           REASON_UNSUPPORTED_TYPE},
+            {"GLOBAL_UNDECLARED",                REASON_UNSUPPORTED_TYPE},
+            {"undefined_typedef",                REASON_UNSUPPORTED_TYPE},
         };
     }
 }
