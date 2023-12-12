@@ -59,19 +59,17 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         super(builder, "public", Kind.CLASS, className, superName, null, runtimeHelperName);
     }
 
-    public void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
+    public void addVar(Declaration.Variable varTree, Optional<String> fiName) {
         String nativeName = varTree.name();
         String javaName = JavaName.getOrThrow(varTree);
-        String layoutVar = emitVarLayout(layout, javaName);
-        if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
-            if (layout.byteSize() > 0) {
-                emitGlobalSegment(layoutVar, javaName, nativeName, varTree);
-            };
-        } else if (layout instanceof ValueLayout valueLayout) {
+        String layoutVar = emitVarLayout(varTree.type(), javaName);
+        if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
+            emitGlobalSegment(layoutVar, javaName, nativeName, varTree);
+        } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
             String vhConstant = emitGlobalVarHandle(javaName, layoutVar);
             String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName, null);
-            emitGlobalGetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Getter for variable:");
-            emitGlobalSetter(segmentConstant, vhConstant, javaName, nativeName, valueLayout.carrier(), varTree, "Setter for variable:");
+            emitGlobalGetter(segmentConstant, vhConstant, javaName, varTree, "Getter for variable:");
+            emitGlobalSetter(segmentConstant, vhConstant, javaName, varTree, "Setter for variable:");
 
             if (fiName.isPresent()) {
                 emitFunctionalInterfaceGetter(fiName.get(), javaName);
@@ -79,21 +77,20 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
     }
 
-    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor) {
+    public void addFunction(Declaration.Function funcTree) {
         String nativeName = funcTree.name();
         boolean isVarargs = funcTree.type().varargs();
-        boolean needsAllocator = descriptor.returnLayout().isPresent() &&
-                descriptor.returnLayout().get() instanceof GroupLayout;
+        boolean needsAllocator = Utils.isStructOrUnion(funcTree.type().returnType());
         List<String> parameterNames = funcTree.parameters().
                 stream().
                 map(JavaName::getOrThrow).
                 toList();
-        emitFunctionWrapper(JavaName.getOrThrow(funcTree), nativeName, descriptor, needsAllocator, isVarargs, parameterNames, funcTree);
+        emitFunctionWrapper(JavaName.getOrThrow(funcTree), nativeName, needsAllocator, isVarargs, parameterNames, funcTree);
     }
 
-    public void addConstant(Declaration.Constant constantTree, Class<?> javaType) {
+    public void addConstant(Declaration.Constant constantTree) {
         Object value = constantTree.value();
-        emitConstant(javaType, JavaName.getOrThrow(constantTree), value, constantTree);
+        emitConstant(Utils.carrierFor(constantTree.type()), JavaName.getOrThrow(constantTree), value, constantTree);
     }
 
     // private generation
@@ -137,9 +134,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         return sb.toString();
     }
 
-    private void emitFunctionWrapper(String javaName, String nativeName, FunctionDescriptor descriptor, boolean needsAllocator,
-                                     boolean isVarArg, List<String> parameterNames, Declaration decl) {
-        MethodType declType = descriptor.toMethodType();
+    private void emitFunctionWrapper(String javaName, String nativeName, boolean needsAllocator,
+                                     boolean isVarArg, List<String> parameterNames, Declaration.Function decl) {
+        MethodType declType = Utils.methodTypeFor(decl.type());
         List<String> finalParamNames = finalizeParameterNames(parameterNames, needsAllocator, isVarArg);
         if (needsAllocator) {
             declType = declType.insertParameterTypes(0, SegmentAllocator.class);
@@ -151,30 +148,31 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             returnExpr = STR."return (\{retType}) ";
         }
         String getterName = mangleName(javaName, MethodHandle.class);
+        FunctionDescriptor descriptor = Declaration.descriptorFor(decl).get();
         incrAlign();
         if (!isVarArg) {
-        emitDocComment(decl);
-        appendLines(STR."""
-            \{MEMBER_MODS} MethodHandle \{getterName}() {
-                class Holder {
-                    static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
+            emitDocComment(decl);
+            appendLines(STR."""
+                \{MEMBER_MODS} MethodHandle \{getterName}() {
+                    class Holder {
+                        static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
 
-                    static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
-                            \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
-                            DESC);
+                        static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                                \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
+                                DESC);
+                    }
+                    return Holder.MH;
                 }
-                return Holder.MH;
-            }
 
-            public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
-                var mh$ = \{getterName}();
-                try {
-                    \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
-                } catch (Throwable ex$) {
-                   throw new AssertionError("should not reach here", ex$);
+                public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
+                    var mh$ = \{getterName}();
+                    try {
+                        \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
+                    } catch (Throwable ex$) {
+                       throw new AssertionError("should not reach here", ex$);
+                    }
                 }
-            }
-            """);
+                """);
         } else {
             String invokerName = javaName + "$invoker";
             String invokerFactoryName = javaName + "$makeInvoker";
@@ -227,11 +225,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
-        emitPrimitiveTypedefLayout(name, Type.layoutFor(primType).get(), typedefTree);
+        emitPrimitiveTypedefLayout(name, primType, typedefTree);
     }
 
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
-        emitPrimitiveTypedefLayout(name, TypeImpl.PointerImpl.POINTER_LAYOUT, typedefTree);
+        emitPrimitiveTypedefLayout(name, Type.pointer(), typedefTree);
     }
 
     void emitFirstHeaderPreamble(List<String> libraries) {
@@ -304,10 +302,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             """);
     }
 
-    private void emitGlobalGetter(String segmentConstant, String vhConstant, String javaName, String nativeName,
-                                  Class<?> type, Declaration.Variable decl, String docHeader) {
+    private void emitGlobalGetter(String segmentConstant, String vhConstant, String javaName,
+                                  Declaration.Variable decl, String docHeader) {
         incrAlign();
         emitDocComment(decl, docHeader);
+        Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get() {
                 return (\{type.getSimpleName()}) \{vhConstant}.get(\{segmentConstant}(), 0L);
@@ -316,10 +315,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    private void emitGlobalSetter(String segmentConstant, String vhConstant, String javaName, String nativeName,
-                                  Class<?> type, Declaration.Variable decl, String docHeader) {
+    private void emitGlobalSetter(String segmentConstant, String vhConstant, String javaName,
+                                  Declaration.Variable decl, String docHeader) {
         incrAlign();
         emitDocComment(decl, docHeader);
+        Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
             public static void \{javaName}$set(\{type.getSimpleName()} x) {
                 \{vhConstant}.set(\{segmentConstant}(), 0L, x);
@@ -347,8 +347,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         return mangledName;
     }
 
-    private String emitVarLayout(MemoryLayout layout, String javaName) {
+    private String emitVarLayout(Type varType, String javaName) {
         String mangledName = mangleName(javaName, MemoryLayout.class);
+        MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             private static final MemoryLayout \{mangledName} = \{layoutString(0, layout)};
 
@@ -429,13 +430,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
     }
 
-    private void emitPrimitiveTypedefLayout(String javaName, MemoryLayout layout, Declaration declaration) {
+    private void emitPrimitiveTypedefLayout(String javaName, Type type, Declaration declaration) {
         incrAlign();
         if (declaration != null) {
             emitDocComment(declaration);
         }
+        MemoryLayout layout = Type.layoutFor(type).get();
         appendLines(STR."""
-        public static final \{Utils.layoutDeclarationType(layout).getSimpleName()} \{javaName} = \{layoutString(0, layout)};
+        public static final \{Utils.valueLayoutCarrierFor(type).getSimpleName()} \{javaName} = \{layoutString(0, layout)};
         """);
         decrAlign();
     }

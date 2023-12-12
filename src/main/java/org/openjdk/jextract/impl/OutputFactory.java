@@ -83,8 +83,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
 
-        Class<?> clazz = getJavaType(constant.type());
-        toplevelBuilder.addConstant(constant, clazz);
+        toplevelBuilder.addConstant(constant);
         return null;
     }
 
@@ -99,11 +98,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         Builder prevBuilder = null;
         StructBuilder structBuilder = null;
         if (isStructKind) {
-            GroupLayout layout = (GroupLayout)Declaration.layoutFor(d).get();
             prevBuilder = currentBuilder;
-            currentBuilder = structBuilder = currentBuilder.addStruct(
-                d,
-                layout);
+            currentBuilder = structBuilder = currentBuilder.addStruct(d);
         }
         try {
             d.members().forEach(fieldTree -> fieldTree.accept(this, d));
@@ -117,8 +113,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     private void generateFunctionalInterface(String name, Type.Function func) {
-        FunctionDescriptor descriptor = Type.descriptorFor(func).get();
-        currentBuilder.addFunctionalInterface(name, func, descriptor);
+        currentBuilder.addFunctionalInterface(name, func);
     }
 
     @Override
@@ -141,8 +136,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
              generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(funcTree), returnFunc);
         }
 
-        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).get();
-        toplevelBuilder.addFunction(funcTree, descriptor);
+        toplevelBuilder.addFunction(funcTree);
         return null;
     }
 
@@ -216,34 +210,21 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             generateFunctionalInterface(fiName.get(), func);
         }
 
-        MemoryLayout layout = Type.layoutFor(type).get();
-        currentBuilder.addVar(tree, layout, fiName);
+        currentBuilder.addVar(tree, fiName);
         return null;
-    }
-
-    private Class<?> getJavaType(Type type) {
-        Optional<MemoryLayout> layout = Type.layoutFor(type);
-        if (!layout.isPresent()) return null;
-        if (layout.get() instanceof SequenceLayout || layout.get() instanceof GroupLayout) {
-            return MemorySegment.class;
-        } else if (layout.get() instanceof ValueLayout valueLayout) {
-            return valueLayout.carrier();
-        } else {
-            return null;
-        }
     }
 
     interface Builder {
 
-        default void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
+        default void addVar(Declaration.Variable varTree, Optional<String> fiName) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor) {
+        default void addFunction(Declaration.Function funcTree) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addConstant(Declaration.Constant constantTree, Class<?> javaType) {
+        default void addConstant(Declaration.Constant constantTree) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
@@ -255,11 +236,11 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default StructBuilder addStruct(Declaration.Scoped structTree, GroupLayout layout) {
+        default StructBuilder addStruct(Declaration.Scoped structTree) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addFunctionalInterface(String name, Type.Function funcType, FunctionDescriptor descriptor) {
+        default void addFunctionalInterface(String name, Type.Function funcType) {
             throw new UnsupportedOperationException("Not implemented");
         }
     }

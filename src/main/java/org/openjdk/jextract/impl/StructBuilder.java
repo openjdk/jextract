@@ -24,7 +24,6 @@
  */
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.SequenceLayout;
@@ -32,55 +31,41 @@ import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
-import java.lang.invoke.VarHandle;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
-import java.util.List;
 import java.util.Optional;
-import java.util.StringJoiner;
 
 /**
  * This class generates static utilities class for C structs, unions.
  */
 final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Builder {
 
-    private static final String MEMBER_MODS = "public static";
-
     private final Declaration.Scoped structTree;
-    private final GroupLayout structLayout;
     private final Type structType;
-    private final Deque<String> prefixElementNames;
+    private final Deque<Declaration> nestedAnonDeclarations;
 
     StructBuilder(SourceFileBuilder builder, String modifiers, String className,
-                  ClassSourceBuilder enclosing, String runtimeHelperName, Declaration.Scoped structTree,
-                  GroupLayout structLayout) {
+                  ClassSourceBuilder enclosing, String runtimeHelperName, Declaration.Scoped structTree) {
         super(builder, modifiers, Kind.CLASS, className, null, enclosing, runtimeHelperName);
         this.structTree = structTree;
-        this.structLayout = structLayout;
         this.structType = Type.declared(structTree);
-        this.prefixElementNames = new ArrayDeque<>();
+        this.nestedAnonDeclarations = new ArrayDeque<>();
     }
 
     private String safeParameterName(String paramName) {
         return isEnclosedBySameName(paramName)? paramName + "$" : paramName;
     }
 
-    private void pushPrefixElement(String prefixElementName) {
-        prefixElementNames.push(prefixElementName);
+    private void pushNestedAnonDecl(Declaration anonDecl) {
+        nestedAnonDeclarations.push(anonDecl);
     }
 
-    private void popPrefixElement() {
-        prefixElementNames.pop();
-    }
-
-    private List<String> prefixNamesList() {
-        List<String> prefixes = new ArrayList<>(prefixElementNames);
-        Collections.reverse(prefixes);
-        return Collections.unmodifiableList(prefixes);
+    private void popNestedAnonDecl() {
+        nestedAnonDeclarations.pop();
     }
 
     void begin() {
@@ -107,24 +92,23 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             }
         } else {
             // we're in an anonymous struct which got merged into this one, return this very builder and keep it open
-            popPrefixElement();
+            popNestedAnonDecl();
         }
     }
 
     private boolean inAnonymousNested() {
-        return !prefixElementNames.isEmpty();
+        return !nestedAnonDeclarations.isEmpty();
     }
 
     @Override
-    public StructBuilder addStruct(Declaration.Scoped tree, GroupLayout layout) {
+    public StructBuilder addStruct(Declaration.Scoped tree) {
         if (AnonymousStruct.isPresent(tree)) {
             //nested anon struct - merge into this builder!
-            String anonName = layout.name().orElseThrow();
-            pushPrefixElement(anonName);
+            pushNestedAnonDecl(tree);
             return this;
         } else {
             StructBuilder builder = new StructBuilder(sourceFileBuilder(), "public static final",
-                    JavaName.getOrThrow(tree), this, runtimeHelperName(), tree, layout);
+                    JavaName.getOrThrow(tree), this, runtimeHelperName(), tree);
             builder.begin();
             builder.emitPrivateDefaultConstructor();
             return builder;
@@ -132,30 +116,28 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     @Override
-    public void addFunctionalInterface(String name, Type.Function funcType, FunctionDescriptor descriptor) {
+    public void addFunctionalInterface(String name, Type.Function funcType) {
         incrAlign();
         FunctionalInterfaceBuilder.generate(sourceFileBuilder(), name,
-                this, runtimeHelperName(), funcType, descriptor,
+                this, runtimeHelperName(), funcType,
                 funcType.parameterNames().map(NameMangler::javaSafeIdentifiers));
         decrAlign();
     }
 
     @Override
-    public void addVar(Declaration.Variable varTree, MemoryLayout layout, Optional<String> fiName) {
-        String nativeName = varTree.name();
+    public void addVar(Declaration.Variable varTree, Optional<String> fiName) {
         String javaName = JavaName.getOrThrow(varTree);
-        if (layout instanceof SequenceLayout || layout instanceof GroupLayout) {
-            if (layout.byteSize() > 0) {
-                emitSegmentGetter(javaName, nativeName, layout);
-            }
-        } else if (layout instanceof ValueLayout valueLayout) {
-            String constantField = emitFieldVarHandle(javaName, nativeName, prefixNamesList());
+        String offsetField = emitOffsetFieldDecl(varTree);
+        if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
+            String sizeField = emitSizeFieldDecl(varTree);
+            emitSegmentGetter(javaName, offsetField, sizeField);
+        } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
             emitFieldDocComment(varTree, "Getter for field:");
-            emitFieldGetter(constantField, javaName, valueLayout.carrier());
+            emitFieldGetter(javaName, varTree.type(), offsetField);
             emitFieldDocComment(varTree, "Setter for field:");
-            emitFieldSetter(constantField, javaName, valueLayout.carrier());
-            emitIndexedFieldGetter(constantField, javaName, valueLayout.carrier());
-            emitIndexedFieldSetter(constantField, javaName, valueLayout.carrier());
+            emitFieldSetter(javaName, varTree.type(), offsetField);
+            emitIndexedFieldGetter(javaName, varTree.type(), offsetField);
+            emitIndexedFieldSetter(javaName, varTree.type(), offsetField);
             if (fiName.isPresent()) {
                 emitFunctionalInterfaceGetter(fiName.get(), javaName);
             }
@@ -176,41 +158,34 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitFieldGetter(String vhConstant, String javaName, Class<?> type) {
+    private void emitFieldGetter(String javaName, Type varType, String offsetField) {
         String seg = safeParameterName("seg");
+        Class<?> type = Utils.carrierFor(varType);
+        MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}) {
-                return (\{type.getName()}) \{vhConstant}.get(\{seg}, 0L);
+                return \{seg}.get(\{layoutString(0, layout)}, \{offsetField});
             }
             """);
     }
 
-    private void emitFieldSetter(String vhConstant, String javaName, Class<?> type) {
+    private void emitFieldSetter(String javaName, Type varType, String offsetField) {
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
+        Class<?> type = Utils.carrierFor(varType);
+        MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             public static void \{javaName}$set(MemorySegment \{seg}, \{type.getSimpleName()} \{x}) {
-                \{vhConstant}.set(\{seg}, 0L, \{x});
+                \{seg}.set(\{layoutString(1, layout)}, \{offsetField}, \{x});
             }
             """);
     }
 
-    private MemoryLayout.PathElement[] elementPaths(String nativeFieldName) {
-        List<String> prefixElements = prefixNamesList();
-        MemoryLayout.PathElement[] elems = new MemoryLayout.PathElement[prefixElements.size() + 1];
-        int i = 0;
-        for (; i < prefixElements.size(); i++) {
-            elems[i] = MemoryLayout.PathElement.groupElement(prefixElements.get(i));
-        }
-        elems[i] = MemoryLayout.PathElement.groupElement(nativeFieldName);
-        return elems;
-    }
-
-    private void emitSegmentGetter(String javaName, String nativeName, MemoryLayout layout) {
+    private void emitSegmentGetter(String javaName, String offsetField, String sizeField) {
         String seg = safeParameterName("seg");
         appendIndentedLines(STR."""
             public static MemorySegment \{javaName}$slice(MemorySegment \{seg}) {
-                return \{seg}.asSlice(\{structLayout.byteOffset(elementPaths(nativeName))}, \{layout.byteSize()});
+                return \{seg}.asSlice(\{offsetField}, \{sizeField});
             }
             """);
     }
@@ -243,28 +218,33 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitIndexedFieldGetter(String vhConstant, String javaName, Class<?> type) {
+    private void emitIndexedFieldGetter(String javaName, Type varType, String offsetField) {
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
+        Class<?> type = Utils.carrierFor(varType);
+        MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}, long \{index}) {
-                return (\{type.getName()}) \{vhConstant}.get(\{seg}, \{index} * sizeof());
+                return \{seg}.get(\{layoutString(1, layout)}, \{offsetField} + (\{index} * sizeof()));
             }
             """);
     }
 
-    private void emitIndexedFieldSetter(String vhConstant, String javaName, Class<?> type) {
+    private void emitIndexedFieldSetter(String javaName, Type varType, String offsetField) {
         String index = safeParameterName("index");
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
+        Class<?> type = Utils.carrierFor(varType);
+        MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
             public static void \{javaName}$set(MemorySegment \{seg}, long \{index}, \{type.getSimpleName()} \{x}) {
-                \{vhConstant}.set(\{seg}, \{index} * sizeof(), \{x});
+                \{seg}.set(\{layoutString(1, layout)}, \{offsetField} + (\{index} * sizeof()), \{x});
             }
             """);
     }
 
     private void emitLayoutDecl() {
+        MemoryLayout structLayout = Type.layoutFor(structType).get();
         appendIndentedLines(STR."""
             private static final MemoryLayout $LAYOUT = \{layoutString(0, structLayout)};
 
@@ -274,24 +254,19 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private String emitFieldVarHandle(String javaName, String nativeName, List<String> prefixElementNames) {
-        String mangledName = mangleName(javaName, VarHandle.class);
+    private String emitOffsetFieldDecl(Declaration field) {
+        String offsetFieldName = STR."\{field.name()}$OFFSET";
         appendIndentedLines(STR."""
-            private static final VarHandle \{mangledName} = $LAYOUT.varHandle(\{pathElementStr(nativeName, prefixElementNames)});
-
-            \{MEMBER_MODS} VarHandle \{mangledName}() {
-                return \{mangledName};
-            }
+            private static final long \{offsetFieldName} = \{ClangOffsetOf.getOrThrow(field) / 8};
             """);
-        return mangledName;
+        return offsetFieldName;
     }
 
-    private static String pathElementStr(String nativeName, List<String> prefixElementNames) {
-        StringJoiner joiner = new StringJoiner(", ");
-        for (String prefixElementName : prefixElementNames) {
-            joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{prefixElementName}\")");
-        }
-        joiner.add(STR."MemoryLayout.PathElement.groupElement(\"\{nativeName}\")");
-        return joiner.toString();
+    private String emitSizeFieldDecl(Declaration field) {
+        String sizeFieldName = STR."\{field.name()}$SIZE";
+        appendIndentedLines(STR."""
+            private static final long \{sizeFieldName} = \{ClangSizeOf.getOrThrow(field) / 8};
+            """);
+        return sizeFieldName;
     }
 }

@@ -34,15 +34,12 @@ import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Declared;
+import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
-import org.openjdk.jextract.impl.TypeImpl.ErronrousTypeImpl;
 
 import java.io.PrintWriter;
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.PaddingLayout;
-import java.util.Optional;
 
 /*
  * This visitor marks a number of unsupported construct so that they are skipped by code generation.
@@ -52,6 +49,7 @@ import java.util.Optional;
  * - functions/function pointer for which no descriptor exists
  * - variadic function pointers
  * - bitfields struct members
+ * - anonymous struct whose first (possibly nested) member has unknown offset
  */
 public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration> {
 
@@ -61,8 +59,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         this.errStream = errStream;
     }
 
-    static String firstUnsupportedType(Type type) {
-        return type.accept(UNSUPPORTED_VISITOR, null);
+    static Type firstUnsupportedType(Type type, boolean allowVoid) {
+        return type.accept(UNSUPPORTED_VISITOR, allowVoid);
     }
 
     public Declaration.Scoped scan(Declaration.Scoped header) {
@@ -73,15 +71,9 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     @Override
     public Void visitFunction(Function funcTree, Declaration parent) {
         //generate static wrapper for function
-        String unsupportedType = firstUnsupportedType(funcTree.type());
+        Type unsupportedType = firstUnsupportedType(funcTree.type(), false);
         if (unsupportedType != null) {
             warnSkip(funcTree.name(), STR."unsupported type usage: \{unsupportedType}");
-            Skip.with(funcTree);
-            return null;
-        }
-        FunctionDescriptor descriptor = Type.descriptorFor(funcTree.type()).orElse(null);
-        if (descriptor == null) {
-            warnSkip(funcTree.name(), "does not have a valid function descriptor");
             Skip.with(funcTree);
             return null;
         }
@@ -105,18 +97,17 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitVariable(Variable varTree, Declaration parent) {
-        String unsupportedType = firstUnsupportedType(varTree.type());
+        Type type = varTree.type();
+        if (type instanceof Type.Declared declared) {
+            // declared type - visit declaration recursively
+            declared.tree().accept(this, varTree);
+        }
+
+        Type unsupportedType = firstUnsupportedType(varTree.type(), false);
         String name = parent != null ? parent.name() + "." : "";
         name += varTree.name();
         if (unsupportedType != null) {
             warnSkip(name, STR."unsupported type usage: \{unsupportedType}");
-            Skip.with(varTree);
-            return null;
-        }
-        MemoryLayout layout = Type.layoutFor(varTree.type()).orElse(null);
-        if (layout == null) {
-            //no layout - skip
-            warnSkip(name, "does not have a valid memory layout");
             Skip.with(varTree);
             return null;
         }
@@ -139,9 +130,9 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitScoped(Scoped scoped, Declaration declaration) {
-        if ((scoped.kind() == Kind.STRUCT ||
-                scoped.kind() == Kind.UNION) && Declaration.layoutFor(scoped).isEmpty()) {
-            // skip
+        Type unsupportedType = firstUnsupportedType(Type.declared(scoped), false);
+        if (unsupportedType != null) {
+            warnSkip(scoped.name(), STR."unsupported type usage: \{unsupportedType}");
             Skip.with(scoped);
         }
         // propagate
@@ -153,7 +144,12 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitTypedef(Typedef typedefTree, Declaration declaration) {
-        String unsupportedType = firstUnsupportedType(typedefTree.type());
+        // propagate
+        if (typedefTree.type() instanceof Declared declared) {
+            visitScoped(declared.tree(), null);
+        }
+
+        Type unsupportedType = firstUnsupportedType(typedefTree.type(),false);
         if (unsupportedType != null) {
             warnSkip(typedefTree.name(), STR."unsupported type usage: \{unsupportedType}");
             Skip.with(typedefTree);
@@ -163,19 +159,6 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         Type.Function func = Utils.getAsFunctionPointer(typedefTree.type());
         if (func != null && !checkFunctionTypeSupported(typedefTree, func, typedefTree.name())) {
             Skip.with(typedefTree);
-        }
-
-        MemoryLayout layout = Type.layoutFor(typedefTree.type()).orElse(null);
-        if (layout == null) {
-            //no layout - skip
-            warnSkip(typedefTree.name(), "does not have a valid memory layout");
-            Skip.with(typedefTree);
-            return null;
-        }
-
-        // propagate
-        if (typedefTree.type() instanceof Declared declared) {
-            visitScoped(declared.tree(), null);
         }
         return null;
     }
@@ -191,14 +174,9 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     }
 
     private boolean checkFunctionTypeSupported(Declaration decl, Type.Function func, String nameOfSkipped) {
-        String unsupportedType = firstUnsupportedType(func);
+        Type unsupportedType = firstUnsupportedType(func, false);
         if (unsupportedType != null) {
             warnSkip(nameOfSkipped, STR."unsupported type usage: \{unsupportedType}");
-            return false;
-        }
-        FunctionDescriptor descriptor = Type.descriptorFor(func).orElse(null);
-        if (descriptor == null) {
-            warnSkip(nameOfSkipped, "does not have a valid function descriptor");
             return false;
         }
         //generate functional interface
@@ -210,26 +188,26 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         return true;
     }
 
-    private static final Type.Visitor<String, Void> UNSUPPORTED_VISITOR = new Type.Visitor<>() {
+    private static final Type.Visitor<Type, Boolean> UNSUPPORTED_VISITOR = new Type.Visitor<>() {
         @Override
-        public String visitPrimitive(Type.Primitive t, Void unused) {
-            Optional<MemoryLayout> layout = Type.layoutFor(t);
-            if (layout.isPresent() && layout.get() instanceof PaddingLayout) {
-                return t.kind().typeName();
-            } else {
-                return null;
-            }
+        public Type visitPrimitive(Type.Primitive t, Boolean allowVoid) {
+            return switch (t.kind()) {
+                case Char16, Float128, HalfFloat, Int128, WChar -> t;
+                case LongDouble -> TypeImpl.IS_WINDOWS ? null : t;
+                case Void -> allowVoid ? null : t;
+                default -> null;
+            };
         }
 
         @Override
-        public String visitFunction(Type.Function t, Void unused) {
+        public Type visitFunction(Type.Function t, Boolean allowVoid) {
             for (Type arg : t.argumentTypes()) {
-                String unsupported = firstUnsupportedType(arg);
+                Type unsupported = firstUnsupportedType(arg, false);
                 if (unsupported != null) {
                     return unsupported;
                 }
             }
-            String unsupported = firstUnsupportedType(t.returnType());
+            Type unsupported = firstUnsupportedType(t.returnType(), true);
             if (unsupported != null) {
                 return unsupported;
             }
@@ -237,39 +215,45 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         }
 
         @Override
-        public String visitDeclared(Type.Declared t, Void unused) {
-            for (Declaration d : t.tree().members()) {
-                if (d instanceof Declaration.Variable variable) {
-                    String unsupported = firstUnsupportedType(variable.type());
-                    if (unsupported != null) {
-                        return unsupported;
-                    }
+        public Type visitDeclared(Type.Declared t, Boolean allowVoid) {
+            if (t.tree().kind() == Kind.STRUCT || t.tree().kind() == Kind.UNION) {
+                if (!isValidStructOrUnion(t.tree())) {
+                    return t;
                 }
             }
             return null;
         }
 
+        private boolean isValidStructOrUnion(Scoped scoped) {
+            if (ClangSizeOf.get(scoped).isEmpty()) {
+                return false;
+            }
+            if (AnonymousStruct.isPresent(scoped) &&
+                    DeclarationImpl.nextOffset(scoped).isEmpty()) {
+                return false;
+            }
+            return true;
+        }
+
         @Override
-        public String visitDelegated(Type.Delegated t, Void unused) {
+        public Type visitDelegated(Type.Delegated t, Boolean allowVoid) {
+            // Note: unsupported pointer types (e.g. *long double) are not detected, but they are not problematic
+            // layout-wise (e.g. they are always 32- or 64-bits, depending on the platform). This policy also allows
+            // more flexibility when it comes to opaque struct types.
             return t.kind() != Type.Delegated.Kind.POINTER ?
-                    firstUnsupportedType(t.type()) :
+                    firstUnsupportedType(t.type(), allowVoid) :
                     null;
-            //in principle we should always do this:
-            // return firstUnsupportedType(t.type());
-            // but if we do that, we might end up with infinite recursion (because of pointer types).
-            // Unsupported pointer types (e.g. *long double) are not detected, but they are not problematic layout-wise
-            // (e.g. they are always 32- or 64-bits, depending on the platform).
         }
 
         @Override
-        public String visitArray(Type.Array t, Void unused) {
-            return firstUnsupportedType(t.elementType());
+        public Type visitArray(Type.Array t, Boolean allowVoid) {
+            return firstUnsupportedType(t.elementType(), false);
         }
 
         @Override
-        public String visitType(Type t, Void unused) {
+        public Type visitType(Type t, Boolean allowVoid) {
             return t.isErroneous() ?
-                    ((ErronrousTypeImpl)t).erroneousName : null;
+                    t : null;
         }
     };
 
