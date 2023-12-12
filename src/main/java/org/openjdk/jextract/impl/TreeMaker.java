@@ -62,8 +62,14 @@ import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
  */
 class TreeMaker {
 
+    record CursorKey(Position position, String spelling) {
+        static CursorKey of(Cursor cursor) {
+            return new CursorKey(CursorPosition.of(cursor), cursor.spelling());
+        }
+    }
+
     private final TreeMaker parent;
-    private final Map<Position, Declaration> declarationCache = new HashMap<>();
+    private final Map<CursorKey, Declaration> declarationCache = new HashMap<>();
 
     public TreeMaker(TreeMaker parent) {
         this.parent = parent;
@@ -84,10 +90,10 @@ class TreeMaker {
         return d;
     }
 
-    public Optional<Declaration> lookup(Position pos) {
-        Declaration declaration = declarationCache.get(pos);
+    public Optional<Declaration> lookup(CursorKey key) {
+        Declaration declaration = declarationCache.get(key);
         return (declaration == null && parent != null) ?
-                parent.lookup(pos) :
+                parent.lookup(key) :
                 Optional.ofNullable(declaration);
     }
 
@@ -125,7 +131,8 @@ class TreeMaker {
         Position pos = CursorPosition.of(c);
         if (pos == Position.NO_POSITION) return null; // intrinsic, skip
         // dedup multiple declarations that point to the same source location
-        Optional<Declaration> cachedDecl = lookup(pos);
+        CursorKey key = CursorKey.of(c);
+        Optional<Declaration> cachedDecl = lookup(key);
         if (cachedDecl.isPresent()) {
             return cachedDecl.get();
         }
@@ -141,8 +148,8 @@ class TreeMaker {
             case VarDecl -> createVar(c, Declaration.Variable.Kind.GLOBAL);
             default -> null; // skip
         };
-        if (decl != null && pos != Position.NO_POSITION) {
-            declarationCache.put(pos, decl);
+        if (decl != null) {
+            declarationCache.put(key, decl);
         }
         return decl;
     }
@@ -288,6 +295,9 @@ class TreeMaker {
                         pendingFields.add(fieldDecl);
                     }
                 }
+            } else {
+                // propagate
+                createTree(fc);
             }
         });
 

@@ -135,13 +135,12 @@ class TypeMaker {
                     return Type.pointer(makeType(t.getPointeeType(), treeMaker));
                 } else {
                     // struct/union pointer - defer processing of pointee type
-                    Position pos = CursorPosition.of(pointee.getDeclarationCursor());
-                    String spelling = t.spelling();
+                    TreeMaker.CursorKey key = TreeMaker.CursorKey.of(pointee.getDeclarationCursor());
                     return Type.pointer(() -> {
-                        Optional<Declaration> decl = treeMaker.lookup(pos);
+                        Optional<Declaration> decl = treeMaker.lookup(key);
                         if (decl.isEmpty()) {
                             // no declaration, maybe an opaque type, return an error type
-                            return Type.error(spelling);
+                            return Type.error(key.spelling());
                         } else {
                             return switch (decl.get()) {
                                 case Scoped scoped -> Type.declared(scoped);
