@@ -305,9 +305,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                     // anon struct
                     memberLayout = structOrUnionLayoutString(offset, (Scoped) member);
                 }
-                if ((ClangAlignOf.getOrThrow(member) / 8) > align) {
-                    memberLayout = STR."\{memberLayout}.withByteAlignment(\{align})";
-                }
                 memberLayouts.add(memberLayout);
                 // update offset and size
                 long fieldSize = ClangSizeOf.getOrThrow(member);
@@ -321,7 +318,10 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         }
         long expectedSize = ClangSizeOf.getOrThrow(scoped);
         if (size != expectedSize) {
-            memberLayouts.add(paddingLayoutString((expectedSize - size) / 8));
+            long trailPadding = isStruct ?
+                    (expectedSize - size) / 8 :
+                    expectedSize / 8;
+            memberLayouts.add(paddingLayoutString(trailPadding));
         }
 
         String indentNewLine = STR."\n\{indentString(1)}";

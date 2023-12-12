@@ -326,6 +326,7 @@ public abstract class DeclarationImpl implements Declaration {
         if (member instanceof Variable) {
             return ClangOffsetOf.get(member);
         } else {
+            // anonymous struct
             Optional<Declaration> firstDecl = ((Scoped)member).members().stream().findFirst();
             return firstDecl.isEmpty() ?
                     OptionalLong.empty() :
@@ -422,17 +423,6 @@ public abstract class DeclarationImpl implements Declaration {
         public static String getOrThrow(Declaration declaration) {
             return declaration.getAttribute(JavaFunctionalInterfaceName.class)
                     .map(JavaFunctionalInterfaceName::fiName).get();
-        }
-    }
-
-    record ScopedLayout(MemoryLayout layout) {
-        public static void with(Scoped declaration, MemoryLayout layout) {
-            declaration.addAttribute(new ScopedLayout(layout));
-        }
-
-        public static Optional<MemoryLayout> get(Scoped declaration) {
-            return declaration.getAttribute(ScopedLayout.class)
-                    .map(ScopedLayout::layout);
         }
     }
 

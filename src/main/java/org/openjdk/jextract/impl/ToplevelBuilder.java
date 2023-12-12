@@ -60,13 +60,11 @@ class ToplevelBuilder implements OutputFactory.Builder {
         first.classBegin();
         first.emitFirstHeaderPreamble(libraries);
         // emit basic primitive types
-        String longType = TypeImpl.IS_WINDOWS ? "INT" : "LONG";
         first.appendIndentedLines(STR."""
             public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
             public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
             public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;
             public static final ValueLayout.OfInt C_INT = ValueLayout.JAVA_INT;
-            public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_\{longType};
             public static final ValueLayout.OfLong C_LONG_LONG = ValueLayout.JAVA_LONG;
             public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT;
             public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
@@ -74,7 +72,10 @@ class ToplevelBuilder implements OutputFactory.Builder {
                     .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
             """);
         if (TypeImpl.IS_WINDOWS) {
-            first.appendIndentedLines("public static final AddressLayout C_LONG_DOUBLE = ValueLayout.JAVA_DOUBLE;");
+            first.appendIndentedLines("public static final ValueLayout.OfInt C_LONG = ValueLayout.JAVA_INT;");
+            first.appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = ValueLayout.JAVA_DOUBLE;");
+        } else {
+            first.appendIndentedLines("public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;");
         }
         return first;
     }
