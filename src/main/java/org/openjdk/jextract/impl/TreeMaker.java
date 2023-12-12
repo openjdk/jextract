@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -274,7 +275,8 @@ class TreeMaker {
                     Type fieldType = toType(fc);
                     Variable bitfieldDecl = Declaration.bitfield(CursorPosition.of(fc), fc.spelling(), fc.getBitFieldWidth(), fieldType);
                     if (!fc.spelling().isEmpty()) {
-                        ClangOffsetOf.with(bitfieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                        long offset = parent.type().getOffsetOf(fc.spelling());
+                        ClangOffsetOf.with(bitfieldDecl, offset);
                     }
                     pendingBitFields.add(bitfieldDecl);
                 } else {
@@ -290,7 +292,8 @@ class TreeMaker {
                         Declaration fieldDecl = createTree(fc);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
-                        ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                        long offset = parent.type().getOffsetOf(fc.spelling());
+                        ClangOffsetOf.with(fieldDecl, offset);
                         ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
                         pendingFields.add(fieldDecl);
                     }
@@ -315,10 +318,45 @@ class TreeMaker {
         ClangSizeOf.with(structOrUnionDecl, recordCursor.type().size() * 8);
         ClangAlignOf.with(structOrUnionDecl, recordCursor.type().align() * 8);
         if (recordCursor.isAnonymousStruct()) {
-            AnonymousStruct.with(structOrUnionDecl);
+            AnonymousStruct.with(structOrUnionDecl, offsetOfAnonymousStruct(parent, recordCursor, recordCursor));
         }
 
         return Type.declared(structOrUnionDecl);
+    }
+
+    /*
+     * For the first named field that is nested somewhere inside anonRecord, we get the offset
+     * to outermostParent and anonRecord itself. Subtracting the latter from the former
+     * then gives us the offset of the anonRecord within outermostParent.
+     *
+     * Deals with cases like this too:
+     *
+     * struct Foo {
+     *     char c; // offset = 0
+     *     struct <anon1> { // offset = 96 - 64 = 32
+     *         int: 32;
+     *         struct <anon2> { // offset = 96 - 32 = 64
+     *             int: 32;
+     *             int x; // offset(Foo) = 96, offset(anon2) = 32, offset(anon1) = 64
+     *         };
+     *     };
+     * };
+     */
+    private static OptionalLong offsetOfAnonymousStruct(Cursor outermostParent, Cursor anonRecord, Cursor record) {
+        AtomicReference<OptionalLong> result = new AtomicReference<>(OptionalLong.empty());
+        record.forEach(fc -> {
+            if (result.get().isPresent()) return;
+            if (Utils.isFlattenable(fc)) {
+                if (!fc.spelling().isEmpty()) {
+                    long offsetToOutermost = outermostParent.type().getOffsetOf(fc.spelling());
+                    long offsetToAnon = anonRecord.type().getOffsetOf(fc.spelling());
+                    result.set(OptionalLong.of(offsetToOutermost - offsetToAnon));
+                } else if (fc.isAnonymousStruct()) {
+                    result.set(offsetOfAnonymousStruct(outermostParent, anonRecord, fc));
+                }
+            }
+        });
+        return result.get();
     }
 
     public Declaration.Scoped createEnum(Cursor c) {

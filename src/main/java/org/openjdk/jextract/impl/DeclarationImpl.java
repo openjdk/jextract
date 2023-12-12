@@ -327,10 +327,7 @@ public abstract class DeclarationImpl implements Declaration {
             return ClangOffsetOf.get(member);
         } else {
             // anonymous struct
-            Optional<Declaration> firstDecl = ((Scoped)member).members().stream().findFirst();
-            return firstDecl.isEmpty() ?
-                    OptionalLong.empty() :
-                    recordMemberOffset(firstDecl.get());
+            return AnonymousStruct.getOrThrow((Scoped) member).offset();
         }
     }
 
@@ -339,11 +336,13 @@ public abstract class DeclarationImpl implements Declaration {
     /**
      * An attribute to mark anonymous struct declarations.
      */
-    record AnonymousStruct() {
-        private static final AnonymousStruct INSTANCE = new AnonymousStruct();
+    record AnonymousStruct(OptionalLong offset) {
+        public static void with(Scoped scoped, OptionalLong offset) {
+            scoped.addAttribute(new AnonymousStruct(offset));
+        }
 
-        public static void with(Scoped scoped) {
-            scoped.addAttribute(INSTANCE);
+        public static AnonymousStruct getOrThrow(Scoped scoped) {
+            return scoped.getAttribute(AnonymousStruct.class).orElseThrow();
         }
 
         public static boolean isPresent(Scoped scoped) {
