@@ -24,9 +24,6 @@
  */
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
@@ -63,20 +60,22 @@ class ToplevelBuilder implements OutputFactory.Builder {
         first.classBegin();
         first.emitFirstHeaderPreamble(libraries);
         // emit basic primitive types
-        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Bool), "C_BOOL");
-        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Char), "C_CHAR");
-        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Short), "C_SHORT");
-        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Int), "C_INT");
-        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Long), "C_LONG");
-        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.LongLong), "C_LONG_LONG");
-        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Float), "C_FLOAT");
-        first.emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Double), "C_DOUBLE");
-
-        // we don't use 'emitPrimitiveTypedef' so we can attach the target layout
-        first.appendIndentedLines("""
+        String longType = TypeImpl.IS_WINDOWS ? "INT" : "LONG";
+        first.appendIndentedLines(STR."""
+            public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
+            public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
+            public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;
+            public static final ValueLayout.OfInt C_INT = ValueLayout.JAVA_INT;
+            public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_\{longType};
+            public static final ValueLayout.OfLong C_LONG_LONG = ValueLayout.JAVA_LONG;
+            public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT;
+            public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
             public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
                     .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
             """);
+        if (TypeImpl.IS_WINDOWS) {
+            first.appendIndentedLines("public static final AddressLayout C_LONG_DOUBLE = ValueLayout.JAVA_DOUBLE;");
+        }
         return first;
     }
 

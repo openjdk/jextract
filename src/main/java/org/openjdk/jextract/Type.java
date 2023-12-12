@@ -377,24 +377,6 @@ public interface Type {
     }
 
     /**
-     * Compute the layout for a given type.
-     * @param t the type.
-     * @return the layout for given type.
-     */
-    static Optional<MemoryLayout> layoutFor(Type t) {
-        return TypeImpl.getLayout(t);
-    }
-
-    /**
-     * Compute the function descriptor for a given function type.
-     * @param function the function type.
-     * @return the function descriptor for given function type.
-     */
-    static Optional<FunctionDescriptor> descriptorFor(Function function) {
-        return TypeImpl.getDescriptor(function);
-    }
-
-    /**
      * Create the {@code void} type.
      * @return the {@code void} type.
      */

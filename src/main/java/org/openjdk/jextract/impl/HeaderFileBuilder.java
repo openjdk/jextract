@@ -148,14 +148,13 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             returnExpr = STR."return (\{retType}) ";
         }
         String getterName = mangleName(javaName, MethodHandle.class);
-        FunctionDescriptor descriptor = Declaration.descriptorFor(decl).get();
         incrAlign();
         if (!isVarArg) {
             emitDocComment(decl);
             appendLines(STR."""
                 \{MEMBER_MODS} MethodHandle \{getterName}() {
                     class Holder {
-                        static final FunctionDescriptor DESC = \{descriptorString(2, descriptor)};
+                        static final FunctionDescriptor DESC = \{functionDescriptorString(2, decl.type())};
 
                         static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
                                 \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
@@ -186,7 +185,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             emitDocComment(decl);
             appendLines(STR."""
                 public static \{invokerName} \{invokerFactoryName}(MemoryLayout... layouts) {
-                    FunctionDescriptor baseDesc$ = \{descriptorString(2, descriptor)};
+                    FunctionDescriptor baseDesc$ = \{functionDescriptorString(2, decl.type())};
                     var mh$ = \{runtimeHelperName()}.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
                     return (\{paramExprs}) -> {
                         try {
@@ -218,10 +217,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 return \{fiName}.ofAddress(\{javaName}$get(), Arena.global());
             }
             """);
-    }
-
-    void emitPrimitiveTypedef(Type.Primitive primType, String name) {
-        emitPrimitiveTypedef(null, primType, name);
     }
 
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
@@ -349,9 +344,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private String emitVarLayout(Type varType, String javaName) {
         String mangledName = mangleName(javaName, MemoryLayout.class);
-        MemoryLayout layout = Type.layoutFor(varType).get();
         appendIndentedLines(STR."""
-            private static final MemoryLayout \{mangledName} = \{layoutString(0, layout)};
+            private static final MemoryLayout \{mangledName} = \{layoutString(varType)};
 
             \{MEMBER_MODS} MemoryLayout \{mangledName}() {
                 return \{mangledName};
@@ -435,9 +429,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         if (declaration != null) {
             emitDocComment(declaration);
         }
-        MemoryLayout layout = Type.layoutFor(type).get();
         appendLines(STR."""
-        public static final \{Utils.valueLayoutCarrierFor(type).getSimpleName()} \{javaName} = \{layoutString(0, layout)};
+        public static final \{Utils.valueLayoutCarrierFor(type).getSimpleName()} \{javaName} = \{layoutString(type)};
         """);
         decrAlign();
     }

@@ -136,9 +136,8 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitDescriptorDecl() {
-        FunctionDescriptor descriptor = Type.descriptorFor(funcType).get();
         appendIndentedLines(STR."""
-            FunctionDescriptor $DESC = \{descriptorString(0, descriptor)};
+            FunctionDescriptor $DESC = \{functionDescriptorString(0, funcType)};
             """);
     }
 }

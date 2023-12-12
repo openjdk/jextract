@@ -284,6 +284,7 @@ class TreeMaker {
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
                         ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                        ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
                         pendingFields.add(fieldDecl);
                     }
                 }

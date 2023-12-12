@@ -328,139 +328,15 @@ public abstract class DeclarationImpl implements Declaration {
         }
     }
 
-    public static Optional<MemoryLayout> layoutFor(Scoped scoped) {
-        Optional<MemoryLayout> layout = ScopedLayout.get(scoped);
-        if (layout.isPresent()) {
-            return layout;
-        } else {
-            // compute and cache for later use
-            switch (scoped.kind()) {
-                case Kind.STRUCT, Kind.UNION -> {
-                    if (ClangSizeOf.get(scoped).isPresent()) {
-                        Optional<MemoryLayout> recordLayout = recordLayout(scoped);
-                        recordLayout.ifPresent(memoryLayout -> ScopedLayout.with(scoped, memoryLayout));
-                        return recordLayout;
-                    }
-                }
-                case Kind.ENUM -> {
-                    Optional<MemoryLayout> constLayout = Type.layoutFor(((Constant)scoped.members().get(0)).type());
-                    constLayout.ifPresent(memoryLayout -> ScopedLayout.with(scoped, memoryLayout));
-                    return constLayout;
-                }
-            }
-            return Optional.empty();
-        }
-    }
-
-    // Note: this method always returns the same result when called on the same tree. More specifically,
-    // even if a client calls this method on a nested anonymous struct, the nested layout is computed
-    // correctly, as if it was computed as part of the enclosing non-anonymous struct. This ensures maximum
-    // flexibility, as there is no specific order in which clients should obtain layouts for scoped declarations.
-    private static Optional<MemoryLayout> recordLayout(Scoped scoped) {
-        boolean isStruct = scoped.kind() == Kind.STRUCT;
-
-        long offset = 0;
-        if (AnonymousStruct.isPresent(scoped)) {
-            // find the starting offset of this anon declaration inside its
-            // innermost non-anonymous container
-            OptionalLong firstOffset = nextOffset(scoped);
-            if (firstOffset.isEmpty()) {
-                return Optional.empty();
-            }
-            offset = firstOffset.getAsLong();
-        }
-
-        long size = 0L; // bits
-        List<MemoryLayout> memberLayouts = new ArrayList<>();
-        for (Declaration member : scoped.members()) {
-            if (member instanceof Scoped nested && nested.kind() == Kind.BITFIELDS) {
-                // skip
-            } else if (nextOffset(member).isPresent()) {
-                long nextOffset = nextOffset(member).getAsLong();
-                long delta = nextOffset - offset;
-                if (delta > 0) {
-                    memberLayouts.add(MemoryLayout.paddingLayout(delta / 8));
-                    offset += delta;
-                    if (isStruct) {
-                        size += delta;
-                    }
-                }
-                Optional<MemoryLayout> layout = Declaration.layoutFor(member);
-                if (layout.isPresent()) {
-                    MemoryLayout memberLayout = layout.get();
-                    if (member instanceof Variable) {
-                        memberLayout = memberLayout.withName(member.name());
-                    }
-                    memberLayouts.add(memberLayout);
-                    // update offset and size
-                    long fieldSize = ClangSizeOf.getOrThrow(member);
-                    if (isStruct) {
-                        offset += fieldSize;
-                        size += fieldSize;
-                    } else {
-                        size = Math.max(size, ClangSizeOf.getOrThrow(member));
-                    }
-                }
-            }
-        }
-        long expectedSize = ClangSizeOf.getOrThrow(scoped);
-        if (size != expectedSize) {
-            memberLayouts.add(MemoryLayout.paddingLayout((expectedSize - size) / 8));
-        }
-        long align = ClangAlignOf.getOrThrow(scoped) / 8;
-        GroupLayout layout = isStruct ?
-                MemoryLayout.structLayout(alignFields(memberLayouts, align)) :
-                MemoryLayout.unionLayout(alignFields(memberLayouts, align));
-
-        // the name is only useful for clients accessing the layout, jextract doesn't care about it
-        String name = scoped.name().isEmpty() ?
-                AnonymousStruct.anonName(scoped) :
-                scoped.name();
-        return Optional.of(layout.withName(name));
-    }
-
-    public static OptionalLong nextOffset(Declaration member) {
+    public static OptionalLong recordMemberOffset(Declaration member) {
         if (member instanceof Variable) {
             return ClangOffsetOf.get(member);
         } else {
             Optional<Declaration> firstDecl = ((Scoped)member).members().stream().findFirst();
             return firstDecl.isEmpty() ?
                     OptionalLong.empty() :
-                    nextOffset(firstDecl.get());
+                    recordMemberOffset(firstDecl.get());
         }
-    }
-
-    private static MemoryLayout[] alignFields(List<MemoryLayout> members, long align) {
-        return members.stream()
-                .map(l -> forceAlign(l, align))
-                .toArray(MemoryLayout[]::new);
-    }
-
-    private static MemoryLayout forceAlign(MemoryLayout layout, long align) {
-        if (align >= layout.byteAlignment()) {
-            return layout; // fast-path
-        }
-        MemoryLayout res = switch (layout) {
-            case GroupLayout groupLayout -> {
-                MemoryLayout[] newMembers = groupLayout.memberLayouts()
-                        .stream().map(l -> forceAlign(l, align)).toArray(MemoryLayout[]::new);
-                yield groupLayout instanceof StructLayout ?
-                        MemoryLayout.structLayout(newMembers) :
-                        MemoryLayout.unionLayout(newMembers);
-            }
-            case SequenceLayout sequenceLayout ->
-                    MemoryLayout.sequenceLayout(sequenceLayout.elementCount(),
-                            forceAlign(sequenceLayout.elementLayout(), align));
-            default -> layout.withByteAlignment(align);
-        };
-        // copy name and target layout, if present
-        if (layout.name().isPresent()) {
-            res = res.withName(layout.name().get());
-        }
-        if (layout instanceof AddressLayout addressLayout && addressLayout.targetLayout().isPresent()) {
-            ((AddressLayout)res).withTargetLayout(addressLayout.targetLayout().get());
-        }
-        return res;
     }
 
     // attributes

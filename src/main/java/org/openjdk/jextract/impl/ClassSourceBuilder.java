@@ -25,7 +25,16 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Constant;
+import org.openjdk.jextract.Declaration.Scoped;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Array;
+import org.openjdk.jextract.Type.Declared;
+import org.openjdk.jextract.Type.Delegated;
+import org.openjdk.jextract.Type.Delegated.Kind;
+import org.openjdk.jextract.Type.Function;
+import org.openjdk.jextract.Type.Primitive;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.GroupLayout;
@@ -35,6 +44,7 @@ import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.StructLayout;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 
 /**
@@ -207,81 +217,31 @@ abstract class ClassSourceBuilder {
         }
     }
 
-    String layoutString(int textBoxIndent, MemoryLayout l) {
+    String layoutString(Type type) {
+        return layoutString(type, Long.MAX_VALUE);
+    }
+
+    String layoutString(Type type, long align) {
+        return switch (type) {
+            case Primitive p -> primitiveLayoutString(p, align);
+            case Declared d when d.tree().kind() == Scoped.Kind.ENUM -> layoutString(((Constant)d.tree().members().get(0)).type(), align);
+            case Declared d when Utils.isStructOrUnion(d) -> STR."\{JavaName.getFullNameOrThrow(d.tree())}.$LAYOUT()";
+            case Delegated d when d.kind() == Delegated.Kind.POINTER -> STR."\{runtimeHelperName()}.C_POINTER";
+            case Delegated d -> layoutString(d.type(), align);
+            case Function _ -> STR."\{runtimeHelperName()}.C_POINTER";
+            case Array a -> STR."MemoryLayout.sequenceLayout(\{a.elementCount().orElse(0L)}, \{layoutString(a.elementType(), align)})";
+            default -> throw new UnsupportedOperationException();
+        };
+    }
+
+    String functionDescriptorString(int textBoxIndent, Type.Function functionType) {
+        final MethodType type = Utils.methodTypeFor(functionType);
+        boolean noArgs = type.parameterCount() == 0;
         StringBuilder builder = new StringBuilder();
-        layoutString(textBoxIndent, builder, l);
-        return builder.toString();
-    }
-
-    private void layoutString(int textBoxIndent, StringBuilder builder, MemoryLayout l) {
-        String indent = indentString(textBoxIndent);
-        if (l instanceof ValueLayout val) {
-            builder.append(STR."\{indent}\{valueLayoutString(val)}");
-            if (l.byteAlignment() != l.byteSize()) {
-                builder.append(STR."\{indent}.withByteAlignment(\{l.byteAlignment()})");
-            }
-        } else if (l instanceof SequenceLayout seq) {
-            builder.append(STR."\{indent}MemoryLayout.sequenceLayout(\{seq.elementCount()}, ");
-            layoutString(textBoxIndent + 1, builder, seq.elementLayout());
-            builder.append(STR."\{indent})");
-        } else if (l instanceof GroupLayout group) {
-            if (group instanceof StructLayout) {
-                builder.append(STR."\{indent}MemoryLayout.structLayout(\n");
-            } else {
-                builder.append(STR."\{indent}MemoryLayout.unionLayout(\n");
-            }
-            String delim = "";
-            for (MemoryLayout e : group.memberLayouts()) {
-                builder.append(delim);
-                layoutString(textBoxIndent + 1, builder, e);
-                delim = ",\n";
-            }
-            builder.append("\n");
-            builder.append(STR."\{indent})");
-        } else {
-            // padding (or unsupported)
-            builder.append(STR."\{indent}MemoryLayout.paddingLayout(\{l.byteSize()})");
-        }
-        if (l.name().isPresent()) {
-            builder.append(STR.".withName(\"\{l.name().get()}\")");
-        }
-    }
-
-    private static String indentString(int size) {
-        return " ".repeat(size * 4);
-    }
-
-    private String valueLayoutString(ValueLayout vl) {
-        if (vl.carrier() == boolean.class) {
-            return "JAVA_BOOLEAN";
-        } else if (vl.carrier() == char.class) {
-            return "JAVA_CHAR";
-        } else if (vl.carrier() == byte.class) {
-            return "JAVA_BYTE";
-        } else if (vl.carrier() == short.class) {
-            return "JAVA_SHORT";
-        } else if (vl.carrier() == int.class) {
-            return "JAVA_INT";
-        } else if (vl.carrier() == float.class) {
-            return "JAVA_FLOAT";
-        } else if (vl.carrier() == long.class) {
-            return "JAVA_LONG";
-        } else if (vl.carrier() == double.class) {
-            return "JAVA_DOUBLE";
-        } else if (vl.carrier() == MemorySegment.class) {
-            return STR."\{runtimeHelperName}.C_POINTER";
-        } else {
-            throw new UnsupportedOperationException("Unsupported layout: " + vl);
-        }
-    }
-
-    public String descriptorString(int textBoxIndent, FunctionDescriptor desc) {
-        final boolean noArgs = desc.argumentLayouts().isEmpty();
-        StringBuilder builder = new StringBuilder();
-        if (desc.returnLayout().isPresent()) {
+        if (!type.returnType().equals(void.class)) {
             builder.append("FunctionDescriptor.of(");
             builder.append("\n");
-            layoutString(textBoxIndent + 1, builder, desc.returnLayout().get());
+            builder.append(STR."\{indentString(textBoxIndent + 1)}\{layoutString(functionType.returnType())}");
             if (!noArgs) {
                 builder.append(",");
             }
@@ -291,14 +251,47 @@ abstract class ClassSourceBuilder {
         if (!noArgs) {
             builder.append("\n");
             String delim = "";
-            for (MemoryLayout e : desc.argumentLayouts()) {
+            for (Type arg : functionType.argumentTypes()) {
                 builder.append(delim);
-                layoutString(textBoxIndent + 1, builder, e);
+                builder.append(STR."\{indentString(textBoxIndent + 1)}\{layoutString(arg)}");
                 delim = ",\n";
             }
             builder.append("\n");
         }
         builder.append(STR."\{indentString(textBoxIndent)})");
         return builder.toString();
+    }
+
+    String indentString(int size) {
+        return " ".repeat(size * 4);
+    }
+
+    private String primitiveLayoutString(Primitive primitiveType, long align) {
+        return switch (primitiveType.kind()) {
+            case Bool -> STR."\{runtimeHelperName()}.C_BOOL";
+            case Char -> STR."\{runtimeHelperName()}.C_CHAR";
+            case Short -> alignIfNeeded(STR."\{runtimeHelperName()}.C_SHORT", 2, align);
+            case Int -> alignIfNeeded(STR."\{runtimeHelperName()}.C_INT", 4, align);
+            case Long -> alignIfNeeded(STR."\{runtimeHelperName()}.C_LONG", TypeImpl.IS_WINDOWS ? 4 : 8, align);
+            case LongLong -> alignIfNeeded(STR."\{runtimeHelperName()}.C_LONG_LONG", 8, align);
+            case Float -> alignIfNeeded(STR."\{runtimeHelperName()}.C_FLOAT", 4, align);
+            case Double -> alignIfNeeded(STR."\{runtimeHelperName()}.C_DOUBLE", 8, align);
+            case LongDouble -> TypeImpl.IS_WINDOWS ?
+                    alignIfNeeded(STR."\{runtimeHelperName()}.C_LONG_DOUBLE", 8, align) :
+                    paddingLayoutString(8);
+            case HalfFloat, Char16, WChar -> paddingLayoutString(2); // unsupported
+            case Float128, Int128 -> paddingLayoutString(16); // unsupported
+            default -> throw new UnsupportedOperationException(primitiveType.toString());
+        };
+    }
+
+    private String alignIfNeeded(String layoutPrefix, long align, long expectedAlign) {
+        return align > expectedAlign ?
+                STR."\{layoutPrefix}.withByteAlignment(\{expectedAlign})" :
+                layoutPrefix;
+    }
+
+    String paddingLayoutString(long size) {
+        return STR."MemoryLayout.paddingLayout(\{size})";
     }
 }

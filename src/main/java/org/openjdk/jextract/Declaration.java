@@ -463,30 +463,6 @@ public interface Declaration {
     }
 
     /**
-     * Compute the layout for a given declaration.
-     * @param d the declaration.
-     * @return the layout for given declaration.
-     */
-    static Optional<MemoryLayout> layoutFor(Declaration d) {
-        return switch (d) {
-            case Scoped scoped -> DeclarationImpl.layoutFor(scoped);
-            case Variable var -> Type.layoutFor(var.type());
-            case Typedef typedef -> Type.layoutFor(typedef.type());
-            case Constant constant -> Type.layoutFor(constant.type());
-            default -> Optional.empty();
-        };
-    }
-
-    /**
-     * Compute the function descriptor for a given function declaration.
-     * @param function the function declaration.
-     * @return the function descriptor for given function declaration.
-     */
-    static Optional<FunctionDescriptor> descriptorFor(Function function) {
-        return Type.descriptorFor(function.type());
-    }
-
-    /**
      * A record used to capture clang attributes attached to a declaration.
      * @param attributes a map from attribute name to attribute values.
      */
