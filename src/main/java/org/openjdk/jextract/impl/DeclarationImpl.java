@@ -26,12 +26,7 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.AddressLayout;
-import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.SequenceLayout;
-import java.lang.foreign.StructLayout;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +36,6 @@ import java.util.Optional;
 import java.util.OptionalLong;
 
 import org.openjdk.jextract.Declaration;
-import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 

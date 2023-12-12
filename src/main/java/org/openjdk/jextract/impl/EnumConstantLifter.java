@@ -46,8 +46,7 @@ final class EnumConstantLifter implements Declaration.Visitor<Void, Void> {
 
     @Override
     public Void visitScoped(Declaration.Scoped scoped, Void ignored) {
-        boolean isEnum = scoped.kind() == Declaration.Scoped.Kind.ENUM;
-        if (isEnum) {
+        if (Utils.isEnum(scoped)) {
             // add the name of the enum as an attribute.
             scoped.members().forEach(fieldTree -> {
                 EnumConstant.with((Constant)fieldTree, scoped.name());
@@ -60,12 +59,10 @@ final class EnumConstantLifter implements Declaration.Visitor<Void, Void> {
     @Override
     public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
         Type type = tree.type();
-        if (type instanceof Type.Declared declared) {
-            if (declared.tree().kind() == Kind.ENUM) {
-                // no need to do anything for a typedef enum, as the IR always
-                // lifts the enum tree before the typedef.
-                Skip.with(tree);
-            }
+        if (type instanceof Type.Declared declared && Utils.isEnum(declared)) {
+            // no need to do anything for a typedef enum, as the IR always
+            // lifts the enum tree before the typedef.
+            Skip.with(tree);
         }
         return null;
     }

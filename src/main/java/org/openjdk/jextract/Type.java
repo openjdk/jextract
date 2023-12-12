@@ -26,8 +26,6 @@
 
 package org.openjdk.jextract;
 
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.impl.TypeImpl;
 import org.openjdk.jextract.impl.TypeImpl.ErronrousTypeImpl;
 

@@ -327,11 +327,6 @@ class TreeMaker {
         }
     }
 
-    private static boolean isEnum(Declaration d) {
-        return d instanceof Declaration.Scoped scoped &&
-                scoped.kind() == Declaration.Scoped.Kind.ENUM;
-    }
-
     private static boolean isRedundantTypedef(Declaration d) {
         return d instanceof Typedef typedef &&
                 typedef.type() instanceof Declared declaredType &&
@@ -346,7 +341,7 @@ class TreeMaker {
     private List<Declaration> filterHeaderDeclarations(List<Declaration> declarations) {
         return declarations.stream()
                 .filter(Objects::nonNull)
-                .filter(d -> isEnum(d) || (!d.name().isEmpty() && !isRedundantTypedef(d)))
+                .filter(d -> Utils.isEnum(d) || (!d.name().isEmpty() && !isRedundantTypedef(d)))
                 .collect(Collectors.toList());
     }
 

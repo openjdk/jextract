@@ -31,18 +31,13 @@ import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Array;
 import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.Type.Delegated;
-import org.openjdk.jextract.Type.Delegated.Kind;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.Type.Primitive;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.SequenceLayout;
-import java.lang.foreign.StructLayout;
-import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
@@ -224,7 +219,7 @@ abstract class ClassSourceBuilder {
     String layoutString(Type type, long align) {
         return switch (type) {
             case Primitive p -> primitiveLayoutString(p, align);
-            case Declared d when d.tree().kind() == Scoped.Kind.ENUM -> layoutString(((Constant)d.tree().members().get(0)).type(), align);
+            case Declared d when Utils.isEnum(d) -> layoutString(((Constant)d.tree().members().get(0)).type(), align);
             case Declared d when Utils.isStructOrUnion(d) -> STR."\{JavaName.getFullNameOrThrow(d.tree())}.$LAYOUT()";
             case Delegated d when d.kind() == Delegated.Kind.POINTER -> STR."\{runtimeHelperName()}.C_POINTER";
             case Delegated d -> layoutString(d.type(), align);

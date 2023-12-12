@@ -25,8 +25,6 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.*;
-
 import org.openjdk.jextract.Type;
 
 import java.lang.invoke.MethodType;

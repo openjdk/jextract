@@ -26,12 +26,10 @@
 
 package org.openjdk.jextract;
 
-import java.lang.foreign.FunctionDescriptor;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.lang.foreign.MemoryLayout;
 
 import org.openjdk.jextract.impl.DeclarationImpl;
 

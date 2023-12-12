@@ -105,18 +105,15 @@ class Utils {
         }
     }
 
-    static boolean isStructOrUnion(Declaration.Scoped scoped) {
-        return switch (scoped.kind()) {
-            case STRUCT, UNION -> true;
-            default -> false;
-        };
+    static boolean isStructOrUnion(Declaration declaration) {
+        return declaration instanceof Declaration.Scoped scoped &&
+                (scoped.kind() == Declaration.Scoped.Kind.STRUCT ||
+                 scoped.kind() == Declaration.Scoped.Kind.UNION);
     }
 
-    static boolean isEnum(Declaration.Scoped scoped) {
-        return switch (scoped.kind()) {
-            case ENUM -> true;
-            default -> false;
-        };
+    static boolean isEnum(Declaration declaration) {
+        return declaration instanceof Declaration.Scoped scoped &&
+                scoped.kind() == Declaration.Scoped.Kind.ENUM;
     }
 
     static boolean isArray(Type type) {
