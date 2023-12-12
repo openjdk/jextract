@@ -26,8 +26,6 @@
 
 package org.openjdk.jextract;
 
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.impl.TypeImpl;
 import org.openjdk.jextract.impl.TypeImpl.ErronrousTypeImpl;
 
@@ -374,24 +372,6 @@ public interface Type {
          * @return the result of visiting the given type through this visitor object.
          */
         default R visitType(Type t, P p) { throw new UnsupportedOperationException(); }
-    }
-
-    /**
-     * Compute the layout for a given type.
-     * @param t the type.
-     * @return the layout for given type.
-     */
-    static Optional<MemoryLayout> layoutFor(Type t) {
-        return TypeImpl.getLayout(t);
-    }
-
-    /**
-     * Compute the function descriptor for a given function type.
-     * @param function the function type.
-     * @return the function descriptor for given function type.
-     */
-    static Optional<FunctionDescriptor> descriptorFor(Function function) {
-        return TypeImpl.getDescriptor(function);
     }
 
     /**

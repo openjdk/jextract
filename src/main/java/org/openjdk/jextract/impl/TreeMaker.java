@@ -62,8 +62,14 @@ import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
  */
 class TreeMaker {
 
+    record CursorKey(Position position, String spelling) {
+        static CursorKey of(Cursor cursor) {
+            return new CursorKey(CursorPosition.of(cursor), cursor.spelling());
+        }
+    }
+
     private final TreeMaker parent;
-    private final Map<Position, Declaration> declarationCache = new HashMap<>();
+    private final Map<CursorKey, Declaration> declarationCache = new HashMap<>();
 
     public TreeMaker(TreeMaker parent) {
         this.parent = parent;
@@ -84,10 +90,10 @@ class TreeMaker {
         return d;
     }
 
-    public Optional<Declaration> lookup(Position pos) {
-        Declaration declaration = declarationCache.get(pos);
+    public Optional<Declaration> lookup(CursorKey key) {
+        Declaration declaration = declarationCache.get(key);
         return (declaration == null && parent != null) ?
-                parent.lookup(pos) :
+                parent.lookup(key) :
                 Optional.ofNullable(declaration);
     }
 
@@ -125,7 +131,8 @@ class TreeMaker {
         Position pos = CursorPosition.of(c);
         if (pos == Position.NO_POSITION) return null; // intrinsic, skip
         // dedup multiple declarations that point to the same source location
-        Optional<Declaration> cachedDecl = lookup(pos);
+        CursorKey key = CursorKey.of(c);
+        Optional<Declaration> cachedDecl = lookup(key);
         if (cachedDecl.isPresent()) {
             return cachedDecl.get();
         }
@@ -141,8 +148,8 @@ class TreeMaker {
             case VarDecl -> createVar(c, Declaration.Variable.Kind.GLOBAL);
             default -> null; // skip
         };
-        if (decl != null && pos != Position.NO_POSITION) {
-            declarationCache.put(pos, decl);
+        if (decl != null) {
+            declarationCache.put(key, decl);
         }
         return decl;
     }
@@ -284,9 +291,13 @@ class TreeMaker {
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
                         ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                        ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
                         pendingFields.add(fieldDecl);
                     }
                 }
+            } else {
+                // propagate
+                createTree(fc);
             }
         });
 
@@ -326,11 +337,6 @@ class TreeMaker {
         }
     }
 
-    private static boolean isEnum(Declaration d) {
-        return d instanceof Declaration.Scoped scoped &&
-                scoped.kind() == Declaration.Scoped.Kind.ENUM;
-    }
-
     private static boolean isRedundantTypedef(Declaration d) {
         return d instanceof Typedef typedef &&
                 typedef.type() instanceof Declared declaredType &&
@@ -345,7 +351,7 @@ class TreeMaker {
     private List<Declaration> filterHeaderDeclarations(List<Declaration> declarations) {
         return declarations.stream()
                 .filter(Objects::nonNull)
-                .filter(d -> isEnum(d) || (!d.name().isEmpty() && !isRedundantTypedef(d)))
+                .filter(d -> Utils.isEnum(d) || (!d.name().isEmpty() && !isRedundantTypedef(d)))
                 .collect(Collectors.toList());
     }
 
