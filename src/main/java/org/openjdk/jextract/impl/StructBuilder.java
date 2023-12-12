@@ -267,7 +267,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
         return sizeFieldName;
     }
-    
+
     private String structOrUnionLayoutString(Type type) {
         return switch (type) {
             case Declared d when Utils.isStructOrUnion(type) -> structOrUnionLayoutString(0, d.tree());
