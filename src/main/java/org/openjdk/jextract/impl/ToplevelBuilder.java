@@ -86,14 +86,17 @@ class ToplevelBuilder implements OutputFactory.Builder {
 
         List<JavaFileObject> files = new ArrayList<>();
 
-        // reorder header classes
         if (headerBuilders.size() == 1) {
             files.add(headerBuilders.get(0).toFile(s -> s.replace("#{SUFFIX}", "")));
         } else {
+            // adjust suffixes so that the last header class becomes the main header class,
+            // and extends all the other header classes
             int suffix = headerBuilders.size() - 1;
             for (SourceFileBuilder header : headerBuilders) {
-                String currentSuffix = suffix == 0 ? "" : "_" + suffix;
-                String prevSuffix = "_"  + (suffix + 1);
+                String currentSuffix = suffix == 0 ?
+                        "" : // main header class, drop the suffix
+                        STR."_\{suffix}";
+                String prevSuffix = STR."_\{suffix + 1}";
                 files.add(header.toFile(currentSuffix, s -> s.replace("#{SUFFIX}", currentSuffix)
                         .replace("#{PREV_SUFFIX}", prevSuffix)));
                 suffix--;
@@ -103,6 +106,10 @@ class ToplevelBuilder implements OutputFactory.Builder {
         files.addAll(otherBuilders.stream()
                 .map(SourceFileBuilder::toFile).toList());
         return files;
+    }
+    
+    public String mainHeaderClassName() {
+        return mainHeaderClassName();
     }
 
     public String packageName() {
@@ -135,7 +142,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
             nextHeader().emitPointerTypedef(typedefTree, javaName);
         } else {
             SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
-            TypedefBuilder.generate(sfb, sfb.className(), superClass, headerDesc.displayName(), typedefTree);
+            TypedefBuilder.generate(sfb, sfb.className(), superClass, mainHeaderClassName(), typedefTree);
             otherBuilders.add(sfb);
         }
     }
@@ -144,7 +151,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     public StructBuilder addStruct(Declaration.Scoped tree) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaName.getOrThrow(tree));
         otherBuilders.add(sfb);
-        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, headerDesc.displayName(), tree);
+        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree);
         structBuilder.begin();
         return structBuilder;
     }
@@ -153,16 +160,16 @@ class ToplevelBuilder implements OutputFactory.Builder {
     public void addFunctionalInterface(String name, Type.Function funcType) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), name);
         otherBuilders.add(sfb);
-        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, headerDesc.displayName(), funcType,
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, mainHeaderClassName(), funcType,
                 funcType.parameterNames().map(NameMangler::javaSafeIdentifiers));
     }
 
     private HeaderFileBuilder nextHeader() {
         if (declCount == DECLS_PER_HEADER_CLASS) {
-            SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), headerDesc.displayName());
-            String className = headerDesc.displayName() + "#{SUFFIX}";
+            SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), mainHeaderClassName());
+            String className = mainHeaderClassName() + "#{SUFFIX}";
             HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, className,
-                    headerDesc.displayName() + "#{PREV_SUFFIX}", headerDesc.displayName());
+                    mainHeaderClassName() + "#{PREV_SUFFIX}", mainHeaderClassName());
             lastHeader.classEnd();
             headerFileBuilder.classBegin();
             headerBuilders.add(sfb);
