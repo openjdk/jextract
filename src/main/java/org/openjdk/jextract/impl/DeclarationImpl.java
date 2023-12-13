@@ -322,15 +322,6 @@ public abstract class DeclarationImpl implements Declaration {
         }
     }
 
-    public static OptionalLong recordMemberOffset(Declaration member) {
-        if (member instanceof Variable) {
-            return ClangOffsetOf.get(member);
-        } else {
-            // anonymous struct
-            return AnonymousStruct.getOrThrow((Scoped) member).offset();
-        }
-    }
-
     // attributes
 
     /**

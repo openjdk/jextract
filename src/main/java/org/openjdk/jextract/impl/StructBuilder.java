@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
 /**
@@ -276,6 +277,15 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         };
     }
 
+    private static long recordMemberOffset(Declaration member) {
+        if (member instanceof Variable) {
+            return ClangOffsetOf.get(member).orElseThrow();
+        } else {
+            // anonymous struct
+            return AnonymousStruct.getOrThrow((Scoped) member).offset().orElseThrow();
+        }
+    }
+
     private String structOrUnionLayoutString(long base, Declaration.Scoped scoped) {
         List<String> memberLayouts = new ArrayList<>();
 
@@ -287,7 +297,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         long size = 0L; // bits
         for (Declaration member : scoped.members()) {
             if (!Skip.isPresent(member)) {
-                long nextOffset = DeclarationImpl.recordMemberOffset(member).getAsLong();
+                long nextOffset = recordMemberOffset(member);
                 long delta = nextOffset - offset;
                 if (delta > 0) {
                     memberLayouts.add(paddingLayoutString(delta / 8));
