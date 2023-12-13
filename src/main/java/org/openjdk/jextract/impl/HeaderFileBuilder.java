@@ -65,10 +65,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName, null);
             emitGlobalGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
             emitGlobalSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
-
-            if (fiName.isPresent()) {
-                emitFunctionalInterfaceGetter(fiName.get(), javaName);
-            }
+            fiName.ifPresent(s -> emitFunctionalInterfaceGetter(s, javaName));
+        } else {
+            throw new IllegalArgumentException("Tree type not handled: " + varTree.type());        
         }
     }
 

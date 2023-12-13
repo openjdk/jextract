@@ -110,7 +110,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
     
     public String mainHeaderClassName() {
-        return mainHeaderClassName();
+        return headerDesc.displayName();
     }
 
     public String packageName() {
