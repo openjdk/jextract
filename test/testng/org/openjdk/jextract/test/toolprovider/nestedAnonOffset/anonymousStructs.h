@@ -45,9 +45,9 @@ struct Bar {
 
 struct Baz {
     char c;
-    struct {
+    struct { // should be skipped
         int: 32;
-        union {
+        struct {
             int: 32;
         };
     };

@@ -34,6 +34,7 @@ import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
+import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -285,9 +286,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
         long size = 0L; // bits
         for (Declaration member : scoped.members()) {
-            if (member instanceof Scoped nested && nested.kind() == Scoped.Kind.BITFIELDS) {
-                // skip
-            } else {
+            if (!Skip.isPresent(member)) {
                 long nextOffset = DeclarationImpl.recordMemberOffset(member).getAsLong();
                 long delta = nextOffset - offset;
                 if (delta > 0) {

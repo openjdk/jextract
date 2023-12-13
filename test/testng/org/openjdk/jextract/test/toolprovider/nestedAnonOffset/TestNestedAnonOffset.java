@@ -29,6 +29,7 @@ import testlib.JextractToolRunner;
 
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.StructLayout;
+import java.lang.foreign.UnionLayout;
 import java.nio.file.Path;
 
 import static org.testng.Assert.assertEquals;
@@ -58,15 +59,15 @@ public class TestNestedAnonOffset extends JextractToolRunner {
         Class<?> foo = loader.loadClass("Foo");
         assertNotNull(foo);
         StructLayout layout = (StructLayout) findLayout(foo);
-        assertEquals(C_CHAR.withName("c"), layout.memberLayouts().get(0));
-        assertEquals(MemoryLayout.paddingLayout(3), layout.memberLayouts().get(1));
+        assertEquals(layout.memberLayouts().get(0), C_CHAR.withName("c"));
+        assertEquals(layout.memberLayouts().get(1), MemoryLayout.paddingLayout(3));
 
         StructLayout nestedAnon1 = (StructLayout) layout.memberLayouts().get(2);
-        assertEquals(MemoryLayout.paddingLayout(4), nestedAnon1.memberLayouts().get(0));
+        assertEquals(nestedAnon1.memberLayouts().get(0), MemoryLayout.paddingLayout(4));
 
         StructLayout nestedAnon2 = (StructLayout) nestedAnon1.memberLayouts().get(1);
-        assertEquals(MemoryLayout.paddingLayout(4), nestedAnon2.memberLayouts().get(0));
-        assertEquals(C_INT.withName("x"), nestedAnon2.memberLayouts().get(1));
+        assertEquals(nestedAnon2.memberLayouts().get(0), MemoryLayout.paddingLayout(4));
+        assertEquals(nestedAnon2.memberLayouts().get(1), C_INT.withName("x"));
     }
 
     @Test
@@ -74,14 +75,22 @@ public class TestNestedAnonOffset extends JextractToolRunner {
         Class<?> bar = loader.loadClass("Bar");
         assertNotNull(bar);
         StructLayout layout = (StructLayout) findLayout(bar);
-        assertEquals(C_CHAR.withName("c"), layout.memberLayouts().get(0));
-        assertEquals(MemoryLayout.paddingLayout(3), layout.memberLayouts().get(1));
+        assertEquals(layout.memberLayouts().get(0), C_CHAR.withName("c"));
+        assertEquals(layout.memberLayouts().get(1), MemoryLayout.paddingLayout(3));
 
         StructLayout nestedAnon1 = (StructLayout) layout.memberLayouts().get(2);
-        assertEquals(MemoryLayout.paddingLayout(4), nestedAnon1.memberLayouts().get(0));
+        assertEquals(nestedAnon1.memberLayouts().get(0), MemoryLayout.paddingLayout(4));
 
-        StructLayout nestedAnon2 = (StructLayout) nestedAnon1.memberLayouts().get(1);
-        assertEquals(MemoryLayout.paddingLayout(4), nestedAnon2.memberLayouts().get(0));
-        assertEquals(C_INT.withName("x"), nestedAnon2.memberLayouts().get(1));
+        UnionLayout nestedAnon2 = (UnionLayout) nestedAnon1.memberLayouts().get(1);
+        assertEquals(nestedAnon2.memberLayouts().get(0), C_INT.withName("x"));
+    }
+
+    @Test
+    public void testBaz() {
+        Class<?> baz = loader.loadClass("Baz");
+        assertNotNull(baz);
+        StructLayout layout = (StructLayout) findLayout(baz);
+        assertEquals(layout.memberLayouts().get(0), C_CHAR.withName("c"));
+        assertEquals(layout.memberLayouts().get(1), MemoryLayout.paddingLayout(11));
     }
 }

@@ -69,7 +69,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     }
 
     @Override
-    public Void visitFunction(Function funcTree, Declaration parent) {
+    public Void visitFunction(Function funcTree, Declaration firstNamedParent) {
         //generate static wrapper for function
         Type unsupportedType = firstUnsupportedType(funcTree.type(), false);
         if (unsupportedType != null) {
@@ -95,26 +95,24 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         return null;
     }
 
+    private static String fieldName(Declaration firstNamedParent, Declaration decl) {
+        String name = firstNamedParent != null ? firstNamedParent.name() + "." : "";
+        name += decl.name();
+        return name;
+    }
+
     @Override
-    public Void visitVariable(Variable varTree, Declaration parent) {
+    public Void visitVariable(Variable varTree, Declaration firstNamedParent) {
         Type type = varTree.type();
         if (type instanceof Type.Declared declared) {
             // declared type - visit declaration recursively
-            declared.tree().accept(this, varTree);
+            declared.tree().accept(this, null);
         }
 
         Type unsupportedType = firstUnsupportedType(varTree.type(), false);
-        String name = parent != null ? parent.name() + "." : "";
-        name += varTree.name();
+        String name = fieldName(firstNamedParent, varTree);
         if (unsupportedType != null) {
             warnSkip(name, STR."unsupported type usage: \{unsupportedType}");
-            Skip.with(varTree);
-            return null;
-        }
-
-        if (varTree.kind() == Declaration.Variable.Kind.BITFIELD) {
-            //skip
-            warnSkip(name, "type is bitfield");
             Skip.with(varTree);
             return null;
         }
@@ -129,21 +127,34 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     }
 
     @Override
-    public Void visitScoped(Scoped scoped, Declaration declaration) {
+    public Void visitScoped(Scoped scoped, Declaration firstNamedParent) {
         Type unsupportedType = firstUnsupportedType(Type.declared(scoped), false);
         if (unsupportedType != null) {
             warnSkip(scoped.name(), STR."unsupported type usage: \{unsupportedType}");
             Skip.with(scoped);
+            return null;
         }
+
+        if (scoped.kind() == Kind.BITFIELDS) {
+            for (Declaration bitField : scoped.members()) {
+                if (!bitField.name().isEmpty()) {
+                    warnSkip(fieldName(firstNamedParent, bitField), "type is bitfield");
+                }
+            }
+            Skip.with(scoped);
+            return null;
+        }
+
         // propagate
+        Declaration newNamedParent = !scoped.name().isEmpty() ? scoped : firstNamedParent;
         scoped.members().forEach(fieldTree -> {
-            fieldTree.accept(this, scoped);
+            fieldTree.accept(this, newNamedParent);
         });
         return null;
     }
 
     @Override
-    public Void visitTypedef(Typedef typedefTree, Declaration declaration) {
+    public Void visitTypedef(Typedef typedefTree, Declaration firstNamedParent) {
         // propagate
         if (typedefTree.type() instanceof Declared declared) {
             visitScoped(declared.tree(), null);
@@ -164,12 +175,12 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     }
 
     @Override
-    public Void visitConstant(Constant d, Declaration declaration) {
+    public Void visitConstant(Constant d, Declaration firstNamedParent) {
         return null;
     }
 
     @Override
-    public Void visitDeclaration(Declaration d, Declaration declaration) {
+    public Void visitDeclaration(Declaration d, Declaration firstNamedParent) {
         return null;
     }
 
