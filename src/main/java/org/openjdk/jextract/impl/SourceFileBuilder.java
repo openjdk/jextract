@@ -87,14 +87,6 @@ final class SourceFileBuilder {
         sb.append(s);
     }
 
-    void append(char c) {
-        sb.append(c);
-    }
-
-    void append(long l) {
-        sb.append(l);
-    }
-
     void indent() {
         for (int i = 0; i < align; i++) {
             append("    ");
@@ -107,10 +99,6 @@ final class SourceFileBuilder {
 
     void decrAlign() {
         align--;
-    }
-
-    int align() {
-        return align;
     }
 
     public JavaFileObject toFile(Function<String, String> finisher) {
