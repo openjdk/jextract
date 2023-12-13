@@ -106,7 +106,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         Type type = varTree.type();
         if (type instanceof Type.Declared declared) {
             // declared type - visit declaration recursively
-            declared.tree().accept(this, null);
+            declared.tree().accept(this, varTree);
         }
 
         Type unsupportedType = firstUnsupportedType(varTree.type(), false);
