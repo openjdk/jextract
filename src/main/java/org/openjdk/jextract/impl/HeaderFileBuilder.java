@@ -62,10 +62,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
             emitGlobalSegment(layoutVar, javaName, nativeName, varTree);
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
-            String vhConstant = emitGlobalVarHandle(javaName, layoutVar);
             String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName, null);
-            emitGlobalGetter(segmentConstant, vhConstant, javaName, varTree, "Getter for variable:");
-            emitGlobalSetter(segmentConstant, vhConstant, javaName, varTree, "Setter for variable:");
+            emitGlobalGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
+            emitGlobalSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
 
             if (fiName.isPresent()) {
                 emitFunctionalInterfaceGetter(fiName.get(), javaName);
@@ -293,27 +292,27 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             """);
     }
 
-    private void emitGlobalGetter(String segmentConstant, String vhConstant, String javaName,
+    private void emitGlobalGetter(String segmentConstant, String layoutVar, String javaName,
                                   Declaration.Variable decl, String docHeader) {
         incrAlign();
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
             public static \{type.getSimpleName()} \{javaName}$get() {
-                return (\{type.getSimpleName()}) \{vhConstant}.get(\{segmentConstant}(), 0L);
+                return \{segmentConstant}.get(\{layoutVar}, 0L);
             }
             """);
         decrAlign();
     }
 
-    private void emitGlobalSetter(String segmentConstant, String vhConstant, String javaName,
+    private void emitGlobalSetter(String segmentConstant, String layoutVar, String javaName,
                                   Declaration.Variable decl, String docHeader) {
         incrAlign();
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
             public static void \{javaName}$set(\{type.getSimpleName()} x) {
-                \{vhConstant}.set(\{segmentConstant}(), 0L, x);
+                \{segmentConstant}.set(\{layoutVar}, 0L, x);
             }
             """);
         decrAlign();
@@ -335,31 +334,21 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             }
             """);
         decrAlign();
-        return mangledName;
+        return STR."\{mangledName}()";
     }
 
     private String emitVarLayout(Type varType, String javaName) {
         String mangledName = mangleName(javaName, MemoryLayout.class);
+        String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
         appendIndentedLines(STR."""
-            private static final MemoryLayout \{mangledName} = \{layoutString(varType)};
-
-            \{MEMBER_MODS} MemoryLayout \{mangledName}() {
-                return \{mangledName};
+            \{MEMBER_MODS} \{layoutType} \{mangledName}() {
+                class Holder {
+                    static final \{layoutType} LAYOUT = \{layoutString(varType)};
+                }
+                return Holder.LAYOUT;
             }
             """);
-        return mangledName;
-    }
-
-    private String emitGlobalVarHandle(String javaName, String layoutVar) {
-        String mangledName = mangleName(javaName, VarHandle.class);
-        appendIndentedLines(STR."""
-            private static final VarHandle \{mangledName} = \{layoutVar}.varHandle();
-
-            \{MEMBER_MODS} VarHandle \{mangledName}() {
-                return \{mangledName};
-            }
-            """);
-        return mangledName;
+        return STR."\{mangledName}()";
     }
 
     private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {
@@ -426,7 +415,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             emitDocComment(declaration);
         }
         appendLines(STR."""
-        public static final \{Utils.valueLayoutCarrierFor(type).getSimpleName()} \{javaName} = \{layoutString(type)};
+        public static final \{Utils.layoutCarrierFor(type).getSimpleName()} \{javaName} = \{layoutString(type)};
         """);
         decrAlign();
     }

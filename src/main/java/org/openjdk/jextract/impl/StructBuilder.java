@@ -244,9 +244,9 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     private void emitLayoutDecl() {
         appendIndentedLines(STR."""
-            private static final MemoryLayout $LAYOUT = \{structOrUnionLayoutString(structType)};
+            private static final GroupLayout $LAYOUT = \{structOrUnionLayoutString(structType)};
 
-            public static final MemoryLayout $LAYOUT() {
+            public static final GroupLayout $LAYOUT() {
                 return $LAYOUT;
             }
             """);
