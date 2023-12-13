@@ -59,7 +59,7 @@ final class EnumConstantLifter implements Declaration.Visitor<Void, Void> {
     @Override
     public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
         Type type = tree.type();
-        if (type instanceof Type.Declared declared && Utils.isEnum(declared)) {
+        if (Utils.declarationFor(type).map(Utils::isEnum).orElse(false)) {
             // no need to do anything for a typedef enum, as the IR always
             // lifts the enum tree before the typedef.
             Skip.with(tree);

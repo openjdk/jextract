@@ -98,10 +98,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     @Override
     public Void visitVariable(Variable varTree, Declaration parent) {
         Type type = varTree.type();
-        if (type instanceof Type.Declared declared) {
-            // declared type - visit declaration recursively
-            declared.tree().accept(this, varTree);
-        }
+        Utils.declarationFor(type).ifPresent(s -> s.accept(this, varTree));
 
         Type unsupportedType = firstUnsupportedType(varTree.type(), false);
         String name = parent != null ? parent.name() + "." : "";
