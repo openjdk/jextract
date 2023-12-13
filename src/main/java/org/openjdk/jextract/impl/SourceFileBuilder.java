@@ -83,34 +83,12 @@ final class SourceFileBuilder {
 
     // Internal generation helpers (used by other builders)
 
-    void append(String s) {
-        sb.append(s);
-    }
-
-    void append(char c) {
-        sb.append(c);
-    }
-
-    void append(long l) {
-        sb.append(l);
-    }
-
-    void indent() {
-        for (int i = 0; i < align; i++) {
-            append("    ");
-        }
-    }
-
     void incrAlign() {
         align++;
     }
 
     void decrAlign() {
         align--;
-    }
-
-    int align() {
-        return align;
     }
 
     public JavaFileObject toFile(Function<String, String> finisher) {

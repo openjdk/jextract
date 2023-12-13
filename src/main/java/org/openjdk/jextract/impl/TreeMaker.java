@@ -323,11 +323,7 @@ class TreeMaker {
 
     public Declaration.Scoped createEnum(Cursor c) {
         List<Declaration> decls = new ArrayList<>();
-        c.forEach(child -> {
-            if (!child.isBitField() || (child.getBitFieldWidth() != 0 && !child.spelling().isEmpty())) {
-                decls.add(createTree(child));
-            }
-        });
+        c.forEach(child -> decls.add(createTree(child)));
         if (c.isDefinition()) {
             //just a declaration AND definition, we have a layout
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));

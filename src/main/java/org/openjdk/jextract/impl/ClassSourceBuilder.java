@@ -81,11 +81,6 @@ abstract class ClassSourceBuilder {
         return className;
     }
 
-    final String fullName() {
-        // for a (nested) class 'com.foo.package.A.B.C' this will return 'A.B.C'
-        return isNested() ? enclosing.fullName() + "." + className : className;
-    }
-
     final String runtimeHelperName() {
         return runtimeHelperName;
     }
@@ -115,27 +110,13 @@ abstract class ClassSourceBuilder {
     }
 
     final void classEnd() {
-        indent();
-        append("}\n\n");
+        appendIndentedLines("""
+            }
+
+            """);
     }
 
     // Internal generation helpers (used by other builders)
-
-    final void append(String s) {
-        sb.append(s);
-    }
-
-    final void append(char c) {
-        sb.append(c);
-    }
-
-    final void append(long l) {
-        sb.append(l);
-    }
-
-    final void indent() {
-        sb.indent();
-    }
 
     final void incrAlign() {
         sb.incrAlign();
@@ -143,10 +124,6 @@ abstract class ClassSourceBuilder {
 
     final void decrAlign() {
         sb.decrAlign();
-    }
-
-    final int align() {
-        return sb.align();
     }
 
     // append multiple lines (indentation is added automatically)
@@ -205,11 +182,8 @@ abstract class ClassSourceBuilder {
             return "$MH";
         } else if (type.equals(VarHandle.class)) {
             return "$VH";
-        } else if (type.equals(FunctionDescriptor.class)) {
-            return "$DESC";
-        } else {
-            return "";
         }
+        throw new IllegalArgumentException("Not handled: " + type);
     }
 
     String layoutString(Type type) {
