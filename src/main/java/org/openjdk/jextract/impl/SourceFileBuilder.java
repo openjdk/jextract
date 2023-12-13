@@ -113,8 +113,12 @@ final class SourceFileBuilder {
         return align;
     }
 
+    public JavaFileObject toFile(String suffix, Function<String, String> finisher) {
+        return Utils.fileFromString(packageName, STR."\{className}\{suffix}", finisher.apply(sb.toString()));
+    }
+
     public JavaFileObject toFile(Function<String, String> finisher) {
-        return Utils.fileFromString(packageName, className, finisher.apply(sb.toString()));
+        return toFile("", finisher);
     }
 
     public JavaFileObject toFile() {
