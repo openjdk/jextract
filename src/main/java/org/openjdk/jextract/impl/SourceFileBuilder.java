@@ -83,16 +83,6 @@ final class SourceFileBuilder {
 
     // Internal generation helpers (used by other builders)
 
-    void append(String s) {
-        sb.append(s);
-    }
-
-    void indent() {
-        for (int i = 0; i < align; i++) {
-            append("    ");
-        }
-    }
-
     void incrAlign() {
         align++;
     }
