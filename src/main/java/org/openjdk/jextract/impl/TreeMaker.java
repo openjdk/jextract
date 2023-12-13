@@ -318,7 +318,7 @@ class TreeMaker {
         ClangSizeOf.with(structOrUnionDecl, recordCursor.type().size() * 8);
         ClangAlignOf.with(structOrUnionDecl, recordCursor.type().align() * 8);
         if (recordCursor.isAnonymousStruct()) {
-            AnonymousStruct.with(structOrUnionDecl, offsetOfAnonymousStruct(parent, recordCursor, recordCursor));
+            AnonymousStruct.with(structOrUnionDecl, offsetOfAnonymousRecord(parent, recordCursor, recordCursor));
         }
 
         return Type.declared(structOrUnionDecl);
@@ -342,7 +342,7 @@ class TreeMaker {
      *     };
      * };
      */
-    private static OptionalLong offsetOfAnonymousStruct(Cursor outermostParent, Cursor anonRecord, Cursor record) {
+    private static OptionalLong offsetOfAnonymousRecord(Cursor outermostParent, Cursor anonRecord, Cursor record) {
         AtomicReference<OptionalLong> result = new AtomicReference<>(OptionalLong.empty());
         record.forEach(fc -> {
             if (result.get().isPresent()) return;
@@ -352,7 +352,7 @@ class TreeMaker {
                     long offsetToAnon = anonRecord.type().getOffsetOf(fc.spelling());
                     result.set(OptionalLong.of(offsetToOutermost - offsetToAnon));
                 } else if (fc.isAnonymousStruct()) {
-                    result.set(offsetOfAnonymousStruct(outermostParent, anonRecord, fc));
+                    result.set(offsetOfAnonymousRecord(outermostParent, anonRecord, fc));
                 }
             }
         });
