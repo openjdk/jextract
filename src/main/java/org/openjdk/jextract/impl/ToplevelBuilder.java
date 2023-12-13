@@ -97,8 +97,9 @@ class ToplevelBuilder implements OutputFactory.Builder {
                         "" : // main header class, drop the suffix
                         STR."_\{suffix}";
                 String prevSuffix = STR."_\{suffix + 1}";
-                files.add(header.toFile(currentSuffix, s -> s.replace("#{SUFFIX}", currentSuffix)
-                        .replace("#{PREV_SUFFIX}", prevSuffix)));
+                files.add(header.toFile(currentSuffix,
+                        s -> s.replace("#{SUFFIX}", currentSuffix)
+                              .replace("#{PREV_SUFFIX}", prevSuffix)));
                 suffix--;
             }
         }
