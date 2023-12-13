@@ -52,7 +52,7 @@ import static org.testng.Assert.fail;
 
 public class JextractToolRunner {
 
-    private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+    public static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
     public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
