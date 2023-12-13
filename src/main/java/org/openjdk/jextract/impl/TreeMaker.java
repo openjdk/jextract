@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -315,10 +316,51 @@ class TreeMaker {
         ClangSizeOf.with(structOrUnionDecl, recordCursor.type().size() * 8);
         ClangAlignOf.with(structOrUnionDecl, recordCursor.type().align() * 8);
         if (recordCursor.isAnonymousStruct()) {
-            AnonymousStruct.with(structOrUnionDecl);
+            AnonymousStruct.with(structOrUnionDecl, offsetOfAnonymousRecord(parent, recordCursor, recordCursor));
         }
 
         return Type.declared(structOrUnionDecl);
+    }
+
+    /*
+     * For the first named field that is nested somewhere inside anonRecord, we get the offset
+     * to outermostParent and anonRecord itself. Subtracting the latter from the former
+     * then gives us the offset of the anonRecord within outermostParent.
+     *
+     * Deals with cases like this too:
+     *
+     * struct Foo {
+     *     char c; // offset = 0
+     *     struct <anon1> { // offset = 96 - 64 = 32
+     *         int: 32;
+     *         struct <anon2> { // offset = 96 - 32 = 64
+     *             int: 32;
+     *             int x; // offset(Foo) = 96, offset(anon2) = 32, offset(anon1) = 64
+     *         };
+     *     };
+     * };
+     */
+    private static OptionalLong offsetOfAnonymousRecord(Cursor outermostParent, Cursor anonRecord, Cursor record) {
+        AtomicReference<OptionalLong> result = new AtomicReference<>(OptionalLong.empty());
+        record.forEachShortCircuit(fc -> {
+            if (Utils.isFlattenable(fc)) {
+                if (!fc.spelling().isEmpty()) {
+                    long offsetToOutermost = outermostParent.type().getOffsetOf(fc.spelling());
+                    long offsetToAnon = anonRecord.type().getOffsetOf(fc.spelling());
+                    result.set(OptionalLong.of(offsetToOutermost - offsetToAnon));
+                    return false;
+                } else if (fc.isAnonymousStruct()) {
+                    OptionalLong nestedResult = offsetOfAnonymousRecord(outermostParent, anonRecord, fc);
+                    if (nestedResult.isPresent()) {
+                        result.set(nestedResult);
+                        return false;
+                    }
+                    return true;
+                }
+            }
+            return true;
+        });
+        return result.get();
     }
 
     public Declaration.Scoped createEnum(Cursor c) {
