@@ -32,6 +32,7 @@ import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public final class Cursor extends ClangDisposable.Owned {
 
@@ -194,6 +195,10 @@ public final class Cursor extends ClangDisposable.Owned {
         CursorChildren.forEach(this, action);
     }
 
+    public void forEachShortCircuit(Predicate<Cursor> action) {
+        CursorChildren.forEachShortCircuit(this, action);
+    }
+
     /**
      * We run the visitor action inside the upcall, so that we do not have to worry about
      * having to copy cursors into separate off-heap storage. To do this, we have to setup
@@ -204,11 +209,11 @@ public final class Cursor extends ClangDisposable.Owned {
     private static class CursorChildren {
 
         static class Context {
-            private final Consumer<Cursor> action;
+            private final Predicate<Cursor> action;
             private final ClangDisposable owner;
             private RuntimeException exception;
 
-            Context(Consumer<Cursor> action, ClangDisposable owner) {
+            Context(Predicate<Cursor> action, ClangDisposable owner) {
                 this.action = action;
                 this.owner = owner;
             }
@@ -220,8 +225,7 @@ public final class Cursor extends ClangDisposable.Owned {
                 // at a later time (or the liveness check will fail with IllegalStateException).
                 try {
                     // run the visitor action
-                    action.accept(new Cursor(segment, owner));
-                    return true;
+                    return action.test(new Cursor(segment, owner));
                 } catch (RuntimeException ex) {
                     // if we fail, record the exception, and return false to stop the visit
                     exception = ex;
@@ -246,7 +250,14 @@ public final class Cursor extends ClangDisposable.Owned {
             }
         }, Arena.global());
 
-        synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
+        static void forEach(Cursor c, Consumer<Cursor> op) {
+            forEachShortCircuit(c, decl -> {
+                op.accept(decl);
+                return true;
+            });
+        }
+
+        synchronized static void forEachShortCircuit(Cursor c, Predicate<Cursor> op) {
             // everything is confined, no need to synchronize
             Context prevContext = pendingContext;
             try {

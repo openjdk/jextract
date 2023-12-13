@@ -342,17 +342,19 @@ class TreeMaker {
      */
     private static OptionalLong offsetOfAnonymousRecord(Cursor outermostParent, Cursor anonRecord, Cursor record) {
         AtomicReference<OptionalLong> result = new AtomicReference<>(OptionalLong.empty());
-        record.forEach(fc -> {
-            if (result.get().isPresent()) return;
+        record.forEachShortCircuit(fc -> {
             if (Utils.isFlattenable(fc)) {
                 if (!fc.spelling().isEmpty()) {
                     long offsetToOutermost = outermostParent.type().getOffsetOf(fc.spelling());
                     long offsetToAnon = anonRecord.type().getOffsetOf(fc.spelling());
                     result.set(OptionalLong.of(offsetToOutermost - offsetToAnon));
+                    return false;
                 } else if (fc.isAnonymousStruct()) {
                     result.set(offsetOfAnonymousRecord(outermostParent, anonRecord, fc));
+                    return false;
                 }
             }
+            return true;
         });
         return result.get();
     }
