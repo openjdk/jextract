@@ -275,8 +275,7 @@ class TreeMaker {
                     Type fieldType = toType(fc);
                     Variable bitfieldDecl = Declaration.bitfield(CursorPosition.of(fc), fc.spelling(), fc.getBitFieldWidth(), fieldType);
                     if (!fc.spelling().isEmpty()) {
-                        long offset = parent.type().getOffsetOf(fc.spelling());
-                        ClangOffsetOf.with(bitfieldDecl, offset);
+                        ClangOffsetOf.with(bitfieldDecl, parent.type().getOffsetOf(fc.spelling()));
                     }
                     pendingBitFields.add(bitfieldDecl);
                 } else {
@@ -292,8 +291,7 @@ class TreeMaker {
                         Declaration fieldDecl = createTree(fc);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
-                        long offset = parent.type().getOffsetOf(fc.spelling());
-                        ClangOffsetOf.with(fieldDecl, offset);
+                        ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
                         ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
                         pendingFields.add(fieldDecl);
                     }
