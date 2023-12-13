@@ -52,3 +52,16 @@ struct Baz {
         };
     };
 };
+
+struct Boo {
+    char c;
+    struct { // should have offset
+        int: 32;
+        struct { // should be skipped
+            int: 32;
+        };
+        struct {
+            int x; // named field in second
+        };
+    };
+};

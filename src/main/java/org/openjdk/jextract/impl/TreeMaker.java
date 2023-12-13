@@ -350,8 +350,12 @@ class TreeMaker {
                     result.set(OptionalLong.of(offsetToOutermost - offsetToAnon));
                     return false;
                 } else if (fc.isAnonymousStruct()) {
-                    result.set(offsetOfAnonymousRecord(outermostParent, anonRecord, fc));
-                    return false;
+                    OptionalLong nestedResult = offsetOfAnonymousRecord(outermostParent, anonRecord, fc);
+                    if (nestedResult.isPresent()) {
+                        result.set(nestedResult);
+                        return false;
+                    }
+                    return true;
                 }
             }
             return true;
