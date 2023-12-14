@@ -20,47 +20,35 @@
  * questions.
  */
 
-import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemoryLayout.PathElement;
-
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-import test.jextract.packedstructs.*;
+import test.jextract.clinit.*;
+
+import java.lang.foreign.ValueLayout;
 
 /*
  * @test id=classes
  * @library /lib
- * @run main/othervm JtregJextract -l Func -t test.jextract.packedstructs packedstructs.h
- * @build TestPackedStructs
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPackedStructs
+ * @run main/othervm JtregJextract -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_global.h
+ * @build TestGlobal
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestGlobal
  */
 /*
  * @test id=sources
  * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.packedstructs packedstructs.h
- * @build TestPackedStructs
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPackedStructs
+ * @run main/othervm JtregJextractSources -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_global.h
+ * @build TestGlobal
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestGlobal
  */
-public class TestPackedStructs {
+public class TestGlobal {
 
     @Test
-    public void testPackedStructs() {
-        checkLayout(S1.$LAYOUT());
-        checkLayout(S2.$LAYOUT());
-        checkLayout(S3.$LAYOUT());
-        checkLayout(S4.$LAYOUT());
-        checkLayout(S5.$LAYOUT());
-        checkLayout(S6.$LAYOUT());
-        checkLayout(S7.$LAYOUT());
-        checkLayout(S8.$LAYOUT());
-    }
-
-    private void checkLayout(MemoryLayout layout) {
-        layout.select(PathElement.groupElement("first"));
-        layout.select(PathElement.groupElement("second"));
-        assertEquals(((GroupLayout)layout).memberLayouts().get(1).byteAlignment(), 1);
+    public void testGlobal() {
+        ValueLayout layout = clinit_global_h.C_INT;
+        assertNotNull(layout);
+        assertEquals(layout, clinit_global_h.global1$LAYOUT());
+        assertEquals(layout, clinit_global_h.global2$LAYOUT());
     }
 }

@@ -20,47 +20,36 @@
  * questions.
  */
 
-import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemoryLayout.PathElement;
-
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-import test.jextract.packedstructs.*;
+import test.jextract.clinit.*;
+
+import java.lang.foreign.ValueLayout;
 
 /*
  * @test id=classes
  * @library /lib
- * @run main/othervm JtregJextract -l Func -t test.jextract.packedstructs packedstructs.h
- * @build TestPackedStructs
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPackedStructs
+ * @run main/othervm JtregJextract -l Func -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_typedef.h
+ * @build TestTypedef
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestTypedef
  */
 /*
  * @test id=sources
  * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.packedstructs packedstructs.h
- * @build TestPackedStructs
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPackedStructs
+ * @run main/othervm JtregJextractSources -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_typedef.h
+ * @build TestTypedef
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestTypedef
  */
-public class TestPackedStructs {
+public class TestTypedef {
 
     @Test
-    public void testPackedStructs() {
-        checkLayout(S1.$LAYOUT());
-        checkLayout(S2.$LAYOUT());
-        checkLayout(S3.$LAYOUT());
-        checkLayout(S4.$LAYOUT());
-        checkLayout(S5.$LAYOUT());
-        checkLayout(S6.$LAYOUT());
-        checkLayout(S7.$LAYOUT());
-        checkLayout(S8.$LAYOUT());
-    }
-
-    private void checkLayout(MemoryLayout layout) {
-        layout.select(PathElement.groupElement("first"));
-        layout.select(PathElement.groupElement("second"));
-        assertEquals(((GroupLayout)layout).memberLayouts().get(1).byteAlignment(), 1);
+    public void TestTypedef() {
+        ValueLayout layout = clinit_typedef_h.C_INT;
+        assertNotNull(layout);
+        assertEquals(layout, clinit_typedef_h.one);
+        assertEquals(layout, clinit_typedef_h.two);
+        assertEquals(layout, clinit_typedef_h.three);
     }
 }

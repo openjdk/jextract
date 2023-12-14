@@ -170,10 +170,8 @@ public class TestClassGeneration extends JextractToolRunner {
         Method addr_getter = checkMethod(cls, name + "$SEGMENT", MemorySegment.class);
         MemorySegment segment = (MemorySegment)addr_getter.invoke(null);
 
-        Method vh_getter = checkMethod(cls, name + "$VH", VarHandle.class);
-        VarHandle vh = (VarHandle) vh_getter.invoke(null);
-        assertEquals(vh.varType(), expectedType);
-        assertEquals(vh.get(segment, 0L), expectedValue);
+        Method getter = checkMethod(cls, name + "$get", expectedType);
+        assertEquals(getter.invoke(segment), expectedValue);
 
         checkMethod(cls, name + "$get", expectedType);
         checkMethod(cls, name + "$set", void.class, expectedType);

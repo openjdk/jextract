@@ -235,7 +235,7 @@ public class JextractToolRunner {
     protected Method checkMethod(Class<?> cls, String name, Class<?> returnType, Class<?>... args) {
         Method m = findMethod(cls, name, args);
         assertNotNull(m);
-        assertEquals(m.getReturnType(), returnType);
+        assertTrue(returnType.isAssignableFrom(m.getReturnType())); // tolerate more specific type
         assertEquals(m.getParameterTypes(), args);
         return m;
     }
@@ -243,7 +243,7 @@ public class JextractToolRunner {
     protected static MemoryLayout findLayout(Class<?> cls, String name) {
         Method method = findMethod(cls, name + "$LAYOUT");
         assertNotNull(method);
-        assertEquals(method.getReturnType(), MemoryLayout.class);
+        assertTrue(MemoryLayout.class.isAssignableFrom(method.getReturnType()));
         try {
             return (MemoryLayout)method.invoke(null);
         } catch (Exception exp) {

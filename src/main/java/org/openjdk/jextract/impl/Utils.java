@@ -27,6 +27,7 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Constant;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Delegated.Kind;
@@ -38,7 +39,9 @@ import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import java.lang.foreign.AddressLayout;
 import java.io.IOException;
+import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodType;
 import java.net.URI;
@@ -237,15 +240,19 @@ class Utils {
         };
     }
 
-    public static Class<?> valueLayoutCarrierFor(Type t) {
-        if (t instanceof Delegated delegated && delegated.kind() == Delegated.Kind.POINTER) {
-            return AddressLayout.class;
-        } else if (t instanceof Type.Primitive p) {
-            Class<?> clazz = carrierFor(p);
-            return CARRIERS_TO_LAYOUT_CARRIERS.get(clazz);
-        } else {
-            throw new UnsupportedOperationException(t.toString());
-        }
+    public static Class<?> layoutCarrierFor(Type t) {
+        return switch (t) {
+            case Type.Array _ -> SequenceLayout.class;
+            case Delegated delegated when delegated.kind() == Kind.POINTER -> AddressLayout.class;
+            case Delegated delegated -> layoutCarrierFor(delegated.type());
+            case Type.Primitive primitive -> {
+                Class<?> clazz = carrierFor(primitive);
+                yield CARRIERS_TO_LAYOUT_CARRIERS.get(clazz);
+            }
+            case Type.Declared declared when isStructOrUnion(declared) -> GroupLayout.class;
+            case Type.Declared declared when isEnum(declared) -> layoutCarrierFor(((Constant)declared.tree().members().get(0)).type());
+            default -> throw new UnsupportedOperationException(t.toString());
+        };
     }
 
     static final Map<Class<?>, Class<?>> CARRIERS_TO_LAYOUT_CARRIERS = Map.of(
