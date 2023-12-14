@@ -186,14 +186,6 @@ class TypeMaker {
         }
     }
 
-    private static Type makeDeclaredType(Declaration decl) {
-        return switch (decl) {
-            case Scoped scoped -> Type.declared(scoped);
-            case Typedef typedef -> Type.typedef(typedef.name(), typedef.type());
-            default -> throw new UnsupportedOperationException();
-        };
-    }
-
     private static Type lowerFunctionType(org.openjdk.jextract.clang.Type t, TreeMaker treeMaker) {
         Type t2 = makeType(t, treeMaker);
         return t2.accept(lowerFunctionType, null);
