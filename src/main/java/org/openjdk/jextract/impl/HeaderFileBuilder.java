@@ -356,9 +356,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             private static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
 
             """);
-        if (declaration != null) {
-            emitDocComment(declaration);
-        }
+        emitDocComment(declaration);
         appendLines(STR."""
             \{MEMBER_MODS} \{javaType.getSimpleName()} \{constantName}() {
                 return \{constantName};
@@ -410,9 +408,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private void emitPrimitiveTypedefLayout(String javaName, Type type, Declaration declaration) {
         incrAlign();
-        if (declaration != null) {
-            emitDocComment(declaration);
-        }
+        emitDocComment(declaration);
         appendLines(STR."""
         public static final \{Utils.layoutCarrierFor(type).getSimpleName()} \{javaName} = \{layoutString(type)};
         """);
