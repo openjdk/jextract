@@ -38,7 +38,7 @@ import java.lang.foreign.ValueLayout;
 /*
  * @test id=sources
  * @library /lib
- * @run main/othervm JtregJextractSources -l Func -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_typedef.h
+ * @run main/othervm JtregJextractSources -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_typedef.h
  * @build TestTypedef
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestTypedef
  */
