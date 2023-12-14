@@ -143,13 +143,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
         Type type = tree.type();
-        if (type instanceof Type.Declared declared) {
-            Declaration.Scoped s = declared.tree();
-            if (!s.name().equals(tree.name())) {
-                switch (s.kind()) {
+        Optional<Declaration.Scoped> optScoped = Utils.declarationFor(type);
+        if (optScoped.isPresent()) {
+            Declaration.Scoped scoped = optScoped.get();
+            if (!scoped.name().equals(tree.name())) {
+                switch (scoped.kind()) {
                     case STRUCT, UNION -> {
-                        if (s.name().isEmpty()) {
-                            visitScoped(s, tree);
+                        if (scoped.name().isEmpty()) {
+                            visitScoped(scoped, tree);
                         } else {
                             /*
                              * If typedef is seen after the struct/union definition, we can generate subclass
@@ -162,10 +163,10 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                              *     int x, y;
                              * };
                              */
-                            toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(s));
+                            toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(scoped));
                         }
                     }
-                    default -> visitScoped(s, tree);
+                    default -> visitScoped(scoped, tree);
                 }
             }
         } else if (type instanceof Type.Primitive) {
@@ -193,10 +194,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
         Type type = tree.type();
 
-        if (type instanceof Type.Declared declared) {
-            // declared type - visit declaration recursively
-            declared.tree().accept(this, tree);
-        }
+        Utils.declarationFor(type).ifPresent(s -> s.accept(this, tree));
 
         final String fieldName = tree.name();
         assert !fieldName.isEmpty();

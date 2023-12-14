@@ -43,6 +43,7 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodType;
 import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * General utility functions
@@ -103,6 +104,15 @@ class Utils {
                 ? String.valueOf(ch)
                 : String.format("\\u%04x", (int) ch);
         }
+    }
+
+    static Optional<Declaration.Scoped> declarationFor(Type type) {
+        return switch (type) {
+            case Type.Declared declared -> Optional.of(declared.tree());
+            case Type.Array array -> declarationFor(array.elementType());
+            case Delegated delegated when delegated.kind() != Kind.POINTER -> declarationFor(delegated.type());
+            default -> Optional.empty();
+        };
     }
 
     static boolean isStructOrUnion(Declaration declaration) {
