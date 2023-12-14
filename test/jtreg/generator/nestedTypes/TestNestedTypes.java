@@ -34,14 +34,14 @@ import test.jextract.nestedtypes.*;
 /*
  * @test id=classes
  * @library /lib
- * @run main/othervm JtregJextract -l Func -t test.jextract.nestedtypes nested_types.h
+ * @run main/othervm JtregJextract -t test.jextract.nestedtypes nested_types.h
  * @build TestNestedTypes
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedTypes
  */
 /*
  * @test id=sources
  * @library /lib
- * @run main/othervm JtregJextractSources -l Func -t test.jextract.nestedtypes nested_types.h
+ * @run main/othervm JtregJextractSources -t test.jextract.nestedtypes nested_types.h
  * @build TestNestedTypes
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedTypes
  */
