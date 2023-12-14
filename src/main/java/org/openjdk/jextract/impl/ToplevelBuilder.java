@@ -58,6 +58,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<String> libraries) {
         HeaderFileBuilder first = new HeaderFileBuilder(sfb, STR."\{sfb.className()}#{SUFFIX}", null, sfb.className());
         first.classBegin();
+        first.emitDefaultConstructor();
         first.emitFirstHeaderPreamble(libraries);
         // emit basic primitive types
         first.appendIndentedLines(STR."""
@@ -173,6 +174,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
                     mainHeaderClassName() + "#{PREV_SUFFIX}", mainHeaderClassName());
             lastHeader.classEnd();
             headerFileBuilder.classBegin();
+            headerFileBuilder.emitDefaultConstructor();
             headerBuilders.add(sfb);
             lastHeader = headerFileBuilder;
             declCount = 1;
