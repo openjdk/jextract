@@ -108,7 +108,7 @@ abstract class ClassSourceBuilder {
     }
 
     final void classEnd() {
-        appendIndentedLines("""
+        appendLines("""
             }
 
             """);
