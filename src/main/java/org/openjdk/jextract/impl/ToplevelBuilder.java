@@ -108,7 +108,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
                 .map(SourceFileBuilder::toFile).toList());
         return files;
     }
-    
+
     public String mainHeaderClassName() {
         return headerDesc.displayName();
     }
