@@ -336,7 +336,10 @@ class MacroParserImpl implements AutoCloseable {
 
         void reparseMacros(boolean recovery) {
             String snippet = macroDecl(recovery);
-            TreeMaker treeMaker = new TreeMaker(MacroParserImpl.this.treeMaker);
+            // note: cursors returned during reparsing are not comparable with existing ones.
+            // Because of that, here we create a brand new tree maker, which means pointers to already declared types
+            // (e.g. structs, unions, enums) will be downgraded to void*.
+            TreeMaker treeMaker = new TreeMaker();
             reparser.reparse(snippet).forEach(c -> {
                 if (c.kind() == CursorKind.VarDecl &&
                         c.spelling().contains("jextract$")) {

@@ -53,7 +53,7 @@ public class TestMacros extends JextractApiTestBase {
             Type.pointer(Type.function(false, Type.void_(), C_INT)),
             0L);
         // Record type in macro definition are erased to void
-        checkConstant(badMacro, "NO_FOO", Type.pointer(Type.declared(foo)), 0L);
+        checkConstant(badMacro, "NO_FOO", Type.pointer(), 0L);
         checkConstant(badMacro, "INVALID_INT_ARRAY_PTR", Type.pointer(Type.pointer(C_INT)), 0L);
     }
 

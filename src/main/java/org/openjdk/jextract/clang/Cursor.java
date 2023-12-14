@@ -28,11 +28,17 @@ package org.openjdk.jextract.clang;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+
+import org.openjdk.jextract.clang.libclang.CXCursor;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
+import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+
+import static org.openjdk.jextract.clang.libclang.Index_h.C_CHAR;
 
 public final class Cursor extends ClangDisposable.Owned {
 
@@ -287,17 +293,48 @@ public final class Cursor extends ClangDisposable.Owned {
         return new PrintingPolicy(Index_h.clang_getCursorPrintingPolicy(segment));
     }
 
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        return other instanceof Cursor otherCursor &&
-                (Index_h.clang_equalCursors(segment, otherCursor.segment) != 0);
+    public Key toKey() {
+        return new Key(this);
     }
 
-    @Override
-    public int hashCode() {
-        return spelling().hashCode();
+    /**
+     * A key that can be used for cursor comparisons. This avoids the problem of comparing cursors
+     * which are already closed, and also optimizes the use of the underlying 'clang_equalCursors' function,
+     * to avoid unnecessary off-heap allocation. This is required by the deduplication logic in TreeMaker.
+     */
+    public static class Key {
+
+        final String spelling;
+        final CursorKind kind;
+        final MemorySegment payload;
+
+        private Key(Cursor cursor) {
+            spelling = cursor.spelling();
+            kind = cursor.kind();
+            payload = MemorySegment.ofArray(new byte[(int)CXCursor.$LAYOUT().byteSize()]);
+            payload.copyFrom(cursor.segment);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Key key)) return false;
+            if (kind != key.kind) return false;
+            if (!spelling.equals(key.spelling)) return false;
+            // slow path
+            SegmentAllocator allocator = SegmentAllocator.slicingAllocator(COMPARISON_SEGMENT);
+            return Index_h.clang_equalCursors(toSegment(allocator), key.toSegment(allocator)) != 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(kind, spelling);
+        }
+
+        private MemorySegment toSegment(SegmentAllocator allocator) {
+            return allocator.allocateFrom(C_CHAR, payload,
+                                          C_CHAR, 0, CXCursor.$LAYOUT().byteSize());
+        }
+
+        private static final MemorySegment COMPARISON_SEGMENT = Arena.ofAuto().allocate(CXCursor.$LAYOUT(), 2);
     }
 }
