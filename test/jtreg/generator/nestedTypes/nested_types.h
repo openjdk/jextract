@@ -23,7 +23,7 @@
 
 struct NestedStructArray {
     struct {
-		int x;
+        int x;
     } nested[1];
 };
 
