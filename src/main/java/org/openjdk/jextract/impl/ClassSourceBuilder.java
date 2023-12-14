@@ -103,14 +103,12 @@ abstract class ClassSourceBuilder {
         }
         appendLines(STR."""
             \{modifiers} \{kind.kindName} \{className}\{extendsExpr} {
-
             """);
     }
 
     final void classEnd() {
         appendLines("""
             }
-
             """);
     }
 
@@ -127,6 +125,10 @@ abstract class ClassSourceBuilder {
     // append multiple lines (indentation is added automatically)
     void appendLines(String s) {
         sb.appendLines(s);
+    }
+
+    void appendBlankLine() {
+        appendLines("\n");
     }
 
     // increase indentation before appending lines

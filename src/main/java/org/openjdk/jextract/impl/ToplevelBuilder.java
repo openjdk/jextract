@@ -62,6 +62,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
         first.emitFirstHeaderPreamble(libraries);
         // emit basic primitive types
         first.appendIndentedLines(STR."""
+
             public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
             public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
             public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;
@@ -155,6 +156,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
         otherBuilders.add(sfb);
         StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree);
         structBuilder.begin();
+        structBuilder.emitLayoutDecl();
         return structBuilder;
     }
 
@@ -173,6 +175,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
             HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, className,
                     mainHeaderClassName() + "#{PREV_SUFFIX}", mainHeaderClassName());
             lastHeader.classEnd();
+            headerFileBuilder.appendBlankLine();
             headerFileBuilder.classBegin();
             headerFileBuilder.emitDefaultConstructor();
             headerBuilders.add(sfb);

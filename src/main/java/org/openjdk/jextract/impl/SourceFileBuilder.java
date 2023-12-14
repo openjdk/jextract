@@ -105,7 +105,8 @@ final class SourceFileBuilder {
 
     public void appendLines(String s) {
         // we don't just simply use indent here, since that will also indent empty lines which adds trailing whitespace
-        s.lines().map(l -> l.isEmpty() ? "\n" : l.indent(align * 4)).forEach(sb::append);
+        String indent = "    ".repeat(align);
+        s.lines().map(l -> l.isEmpty() ? "\n" : indent + l + "\n").forEach(sb::append);
     }
 
     public void appendIndentedLines(String s) {
