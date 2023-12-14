@@ -78,6 +78,8 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitFunctionalFactoryForPointer() {
+        boolean needsAllocator = Utils.isStructOrUnion(funcType.returnType());
+        String allocArg = needsAllocator ? ", (SegmentAllocator)arena" : "";
         appendIndentedLines(STR."""
             MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
@@ -85,7 +87,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                 MemorySegment symbol = addr.reinterpret(arena, null);
                 return (\{paramExprs("_")}) -> {
                     try {
-                        \{retExpr()} DOWN$MH.invokeExact(symbol\{otherArgExprs()});
+                        \{retExpr()} DOWN$MH.invokeExact(symbol\{allocArg}\{otherArgExprs()});
                     } catch (Throwable ex$) {
                         throw new AssertionError("should not reach here", ex$);
                     }
