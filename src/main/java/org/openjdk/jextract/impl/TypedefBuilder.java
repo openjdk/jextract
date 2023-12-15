@@ -26,9 +26,6 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
-import org.openjdk.jextract.Type;
-
-import java.util.List;
 
 final class TypedefBuilder extends ClassSourceBuilder {
     private TypedefBuilder(SourceFileBuilder builder, String className, String superClass, String runtimeHelperName) {
@@ -40,7 +37,7 @@ final class TypedefBuilder extends ClassSourceBuilder {
         TypedefBuilder tdb = new TypedefBuilder(builder, className, superClass, runtimeHelperName);
         tdb.emitDocComment(typedefTree);
         tdb.classBegin();
-        tdb.emitPrivateDefaultConstructor();
+        tdb.emitDefaultConstructor();
         tdb.classEnd();
     }
 }

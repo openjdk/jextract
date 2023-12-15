@@ -33,7 +33,7 @@ import test.jextract.packedstructs.*;
 /*
  * @test id=classes
  * @library /lib
- * @run main/othervm JtregJextract -l Func -t test.jextract.packedstructs packedstructs.h
+ * @run main/othervm JtregJextract -t test.jextract.packedstructs packedstructs.h
  * @build TestPackedStructs
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPackedStructs
  */

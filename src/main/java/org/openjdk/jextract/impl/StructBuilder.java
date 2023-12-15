@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
 /**
@@ -112,10 +111,10 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             pushNestedAnonDecl(tree);
             return this;
         } else {
-            StructBuilder builder = new StructBuilder(sourceFileBuilder(), "public static final",
+            StructBuilder builder = new StructBuilder(sourceFileBuilder(), "public static",
                     JavaName.getOrThrow(tree), this, runtimeHelperName(), tree);
             builder.begin();
-            builder.emitPrivateDefaultConstructor();
+            builder.emitDefaultConstructor();
             return builder;
         }
     }

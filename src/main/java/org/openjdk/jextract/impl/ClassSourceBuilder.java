@@ -26,7 +26,6 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Constant;
-import org.openjdk.jextract.Declaration.Scoped;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Array;
 import org.openjdk.jextract.Type.Declared;
@@ -35,7 +34,6 @@ import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.Type.Primitive;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
-import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.invoke.MethodHandle;
@@ -137,10 +135,12 @@ abstract class ClassSourceBuilder {
         sb.appendIndentedLines(s);
     }
 
-    final void emitPrivateDefaultConstructor() {
-        appendLines(STR."""
-            // Suppresses default constructor, ensuring non-instantiability.
-            private \{className}() {}
+    final void emitDefaultConstructor() {
+        appendIndentedLines(STR."""
+            \{className}() {
+                // Suppresses public default constructor, ensuring non-instantiability,
+                // but allows generated subclasses in same package.
+            }
             """);
     }
 
