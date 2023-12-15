@@ -226,27 +226,25 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitFirstHeaderPreamble(List<String> libraries) {
-        incrAlign();
-        appendLines("""
+        appendIndentedLines("""
 
             static final SymbolLookup SYMBOL_LOOKUP;
+
+            static {
             """);
-        appendLines("static {");
+        incrAlign();
         for (String lib : libraries) {
             String quotedLibName = lib.replace("\\", "\\\\"); // double up slashes
             String method = quotedLibName.indexOf(File.separatorChar) != -1 ? "load" : "loadLibrary";
             appendIndentedLines(STR."System.\{method}(\"\{quotedLibName}\");");
         }
-        if (!libraries.isEmpty()) {
-            appendBlankLine();
-        }
-        appendIndentedLines("""
-            SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
-            Linker linker = Linker.nativeLinker();
-            SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> linker.defaultLookup().find(name));
-            """);
-        appendLines("}");
         decrAlign();
+        appendIndentedLines("""
+                SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
+                Linker linker = Linker.nativeLinker();
+                SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> linker.defaultLookup().find(name));
+            }
+            """);
     }
 
     void emitRuntimeHelperMethods() {
