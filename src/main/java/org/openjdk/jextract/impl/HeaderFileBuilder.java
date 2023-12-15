@@ -240,9 +240,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
         decrAlign();
         appendIndentedLines("""
-                SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
-                Linker linker = Linker.nativeLinker();
-                SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> linker.defaultLookup().find(name));
+                SYMBOL_LOOKUP = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
             }
             """);
     }
