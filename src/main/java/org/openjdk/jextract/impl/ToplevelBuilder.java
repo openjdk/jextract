@@ -156,7 +156,6 @@ class ToplevelBuilder implements OutputFactory.Builder {
         otherBuilders.add(sfb);
         StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree);
         structBuilder.begin();
-        structBuilder.emitLayoutDecl();
         return structBuilder;
     }
 

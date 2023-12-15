@@ -117,8 +117,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             StructBuilder builder = new StructBuilder(sourceFileBuilder(), "public static",
                     JavaName.getOrThrow(tree), this, runtimeHelperName(), tree);
             builder.begin();
-            builder.emitPrivateDefaultConstructor();
-            builder.emitLayoutDecl();
             return builder;
         }
     }
@@ -256,7 +254,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    void emitLayoutDecl() {
+    private void emitLayoutDecl() {
         appendIndentedLines(STR."""
 
             private static final GroupLayout $LAYOUT = \{structOrUnionLayoutString(structType)};
