@@ -52,10 +52,11 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
                                 Type.Function funcType, Optional<List<String>> parameterNames) {
         FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className, enclosing, runtimeHelperName,
                 funcType, parameterNames);
+        fib.appendBlankLine();
         fib.emitDocComment(funcType, className);
         fib.classBegin();
-        fib.emitDescriptorDecl();
         fib.emitFunctionalInterfaceMethod();
+        fib.emitDescriptorDecl();
         fib.emitFunctionalFactories();
         fib.emitFunctionalFactoryForPointer();
         fib.classEnd();
@@ -63,13 +64,15 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalInterfaceMethod() {
         appendIndentedLines(STR."""
+
             \{methodType.returnType().getSimpleName()} apply(\{paramExprs("")});
             """);
     }
 
     private void emitFunctionalFactories() {
         appendIndentedLines(STR."""
-            MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.class, \"apply\", $DESC);
+
+            MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.class, "apply", $DESC);
 
             static MemorySegment allocate(\{className()} fi, Arena scope) {
                 return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
@@ -81,6 +84,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         boolean needsAllocator = Utils.isStructOrUnion(funcType.returnType());
         String allocArg = needsAllocator ? ", (SegmentAllocator)arena" : "";
         appendIndentedLines(STR."""
+
             MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
             static \{className()} ofAddress(MemorySegment addr, Arena arena) {
@@ -137,6 +141,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitDescriptorDecl() {
         appendIndentedLines(STR."""
+
             FunctionDescriptor $DESC = \{functionDescriptorString(0, funcType)};
             """);
     }

@@ -35,6 +35,7 @@ final class TypedefBuilder extends ClassSourceBuilder {
     public static void generate(SourceFileBuilder builder, String className, String superClass, String runtimeHelperName,
                                 Declaration.Typedef typedefTree) {
         TypedefBuilder tdb = new TypedefBuilder(builder, className, superClass, runtimeHelperName);
+        tdb.appendBlankLine();
         tdb.emitDocComment(typedefTree);
         tdb.classBegin();
         tdb.emitDefaultConstructor();

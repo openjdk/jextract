@@ -103,14 +103,12 @@ abstract class ClassSourceBuilder {
         }
         appendLines(STR."""
             \{modifiers} \{kind.kindName} \{className}\{extendsExpr} {
-
             """);
     }
 
     final void classEnd() {
-        appendIndentedLines("""
+        appendLines("""
             }
-
             """);
     }
 
@@ -129,6 +127,10 @@ abstract class ClassSourceBuilder {
         sb.appendLines(s);
     }
 
+    void appendBlankLine() {
+        appendLines("\n");
+    }
+
     // increase indentation before appending lines
     // decrease afterwards
     void appendIndentedLines(String s) {
@@ -137,6 +139,7 @@ abstract class ClassSourceBuilder {
 
     final void emitDefaultConstructor() {
         appendIndentedLines(STR."""
+
             \{className}() {
                 // Suppresses public default constructor, ensuring non-instantiability,
                 // but allows generated subclasses in same package.

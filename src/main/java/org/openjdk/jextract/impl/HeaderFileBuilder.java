@@ -25,15 +25,19 @@
 package org.openjdk.jextract.impl;
 
 import java.io.File;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.Linker;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.SymbolLookup;
 import java.lang.invoke.MethodHandle;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
@@ -222,26 +226,32 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitFirstHeaderPreamble(List<String> libraries) {
-        incrAlign();
-        appendLines("static final SymbolLookup SYMBOL_LOOKUP;");
-        appendLines("static {");
-        for (String lib : libraries) {
-            String quotedLibName = lib.replace("\\", "\\\\"); // double up slashes
-            String method = quotedLibName.indexOf(File.separatorChar) != -1 ? "load" : "loadLibrary";
-            appendIndentedLines(STR."System.\{method}(\"\{quotedLibName}\");");
-        }
-        appendLines("""
+        appendIndentedLines("""
 
-            SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
-            Linker linker = Linker.nativeLinker();
-            SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> linker.defaultLookup().find(name));
+            static final SymbolLookup SYMBOL_LOOKUP
+                    = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
             """);
-        appendLines("}");
-        decrAlign();
+        if (!libraries.isEmpty()) {
+            appendIndentedLines("""
+
+                static {
+                """);
+            incrAlign();
+            for (String lib : libraries) {
+                String quotedLibName = lib.replace("\\", "\\\\"); // double up slashes
+                String method = quotedLibName.indexOf(File.separatorChar) != -1 ? "load" : "loadLibrary";
+                appendIndentedLines(STR."System.\{method}(\"\{quotedLibName}\");");
+            }
+            decrAlign();
+            appendIndentedLines("""
+                }
+                """);
+        }
     }
 
     void emitRuntimeHelperMethods() {
         appendIndentedLines("""
+
             static MemorySegment findOrThrow(String symbol) {
                 return SYMBOL_LOOKUP.find(symbol)
                     .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
