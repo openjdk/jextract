@@ -114,7 +114,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             StructBuilder builder = new StructBuilder(sourceFileBuilder(), "public static",
                     JavaName.getOrThrow(tree), this, runtimeHelperName(), tree);
             builder.begin();
-            builder.emitProtectedDefaultConstructor();
+            builder.emitDefaultConstructor();
             return builder;
         }
     }

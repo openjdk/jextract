@@ -135,10 +135,12 @@ abstract class ClassSourceBuilder {
         sb.appendIndentedLines(s);
     }
 
-    final void emitProtectedDefaultConstructor() {
-        appendLines(STR."""
-            // Suppresses public default constructor, ensuring non-instantiability, but allow generated subclasses.
-            protected \{className}() {}
+    final void emitDefaultConstructor() {
+        appendIndentedLines(STR."""
+            \{className}() {
+                // Suppresses public default constructor, ensuring non-instantiability,
+                // but allows generated subclasses in same package.
+            }
             """);
     }
 

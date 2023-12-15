@@ -37,7 +37,7 @@ final class TypedefBuilder extends ClassSourceBuilder {
         TypedefBuilder tdb = new TypedefBuilder(builder, className, superClass, runtimeHelperName);
         tdb.emitDocComment(typedefTree);
         tdb.classBegin();
-        tdb.emitProtectedDefaultConstructor();
+        tdb.emitDefaultConstructor();
         tdb.classEnd();
     }
 }
