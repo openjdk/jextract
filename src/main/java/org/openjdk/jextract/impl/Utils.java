@@ -110,10 +110,11 @@ class Utils {
     }
 
     static Optional<Declaration.Scoped> declarationFor(Type type) {
+        // @@@: we don't chase delegated types (typedefs or pointers). This could lead to declarations
+        // not being visited, which could result in missing generated code.
         return switch (type) {
             case Type.Declared declared -> Optional.of(declared.tree());
             case Type.Array array -> declarationFor(array.elementType());
-            case Delegated delegated when delegated.kind() != Kind.POINTER -> declarationFor(delegated.type());
             default -> Optional.empty();
         };
     }
