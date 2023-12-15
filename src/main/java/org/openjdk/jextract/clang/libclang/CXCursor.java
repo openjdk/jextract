@@ -24,7 +24,7 @@ public class CXCursor {
         Index_h.C_INT.withName("xdata"),
         MemoryLayout.sequenceLayout(3, Index_h.C_POINTER).withName("data")
     ).withName("$anon$2706:9");
-    
+
     public static final GroupLayout $LAYOUT() {
         return $LAYOUT;
     }
