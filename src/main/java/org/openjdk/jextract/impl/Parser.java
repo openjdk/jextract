@@ -45,7 +45,7 @@ public class Parser {
     private final TreeMaker treeMaker;
 
     public Parser() {
-        this.treeMaker = new TreeMaker(null);
+        this.treeMaker = new TreeMaker();
     }
 
     public Declaration.Scoped parse(Path path, Collection<String> args) {

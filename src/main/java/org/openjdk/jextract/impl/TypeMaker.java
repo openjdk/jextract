@@ -33,12 +33,11 @@ import java.util.Optional;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Scoped;
 import org.openjdk.jextract.Declaration.Typedef;
-import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Primitive;
+import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.TypeKind;
-import org.openjdk.jextract.impl.TreeMaker.CursorPosition;
 
 /**
  * This class turns a clang type into a jextract type. Unlike declarations, jextract types are not
@@ -135,12 +134,13 @@ class TypeMaker {
                     return Type.pointer(makeType(t.getPointeeType(), treeMaker));
                 } else {
                     // struct/union pointer - defer processing of pointee type
-                    TreeMaker.CursorKey key = TreeMaker.CursorKey.of(pointee.getDeclarationCursor());
+                    Cursor declCursor = pointee.getDeclarationCursor();
+                    Cursor.Key key = declCursor.toKey();
                     return Type.pointer(() -> {
                         Optional<Declaration> decl = treeMaker.lookup(key);
                         if (decl.isEmpty()) {
-                            // no declaration, maybe an opaque type, return an error type
-                            return Type.error(key.spelling());
+                            // no declaration, maybe an opaque type, give up and downgrade to void pointer
+                            return Type.void_();
                         } else {
                             return switch (decl.get()) {
                                 case Scoped scoped -> Type.declared(scoped);

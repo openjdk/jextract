@@ -25,6 +25,8 @@
  */
 package org.openjdk.jextract.impl;
 
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,18 +65,9 @@ import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
  */
 class TreeMaker {
 
-    record CursorKey(Position position, String spelling) {
-        static CursorKey of(Cursor cursor) {
-            return new CursorKey(CursorPosition.of(cursor), cursor.spelling());
-        }
-    }
+    private final Map<Cursor.Key, Declaration> declarationCache = new HashMap<>();
 
-    private final TreeMaker parent;
-    private final Map<CursorKey, Declaration> declarationCache = new HashMap<>();
-
-    public TreeMaker(TreeMaker parent) {
-        this.parent = parent;
-    }
+    public TreeMaker() { }
 
     Declaration addAttributes(Declaration d, Cursor c) {
         if (d == null) return null;
@@ -91,11 +84,8 @@ class TreeMaker {
         return d;
     }
 
-    public Optional<Declaration> lookup(CursorKey key) {
-        Declaration declaration = declarationCache.get(key);
-        return (declaration == null && parent != null) ?
-                parent.lookup(key) :
-                Optional.ofNullable(declaration);
+    public Optional<Declaration> lookup(Cursor.Key key) {
+        return Optional.ofNullable(declarationCache.get(key));
     }
 
     public Declaration createTree(Cursor c) {
@@ -132,7 +122,7 @@ class TreeMaker {
         Position pos = CursorPosition.of(c);
         if (pos == Position.NO_POSITION) return null; // intrinsic, skip
         // dedup multiple declarations that point to the same source location
-        CursorKey key = CursorKey.of(c);
+        Cursor.Key key = c.toKey();
         Optional<Declaration> cachedDecl = lookup(key);
         if (cachedDecl.isPresent()) {
             return cachedDecl.get();
