@@ -34,6 +34,7 @@ import org.openjdk.jextract.Type.Delegated.Kind;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
+import org.openjdk.jextract.impl.DeclarationImpl.NestedDecl;
 
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
@@ -109,12 +110,11 @@ class Utils {
         }
     }
 
-    static Optional<Declaration.Scoped> declarationFor(Type type) {
-        // @@@: we don't chase delegated types (typedefs or pointers). This could lead to declarations
-        // not being visited, which could result in missing generated code.
+    static Optional<Declaration.Scoped> nestedDeclarationFor(Type type) {
         return switch (type) {
-            case Type.Declared declared -> Optional.of(declared.tree());
-            case Type.Array array -> declarationFor(array.elementType());
+            case Type.Declared declared when NestedDecl.isPresent(declared.tree()) -> Optional.of(declared.tree());
+            case Type.Array array -> nestedDeclarationFor(array.elementType());
+            case Type.Delegated delegated -> nestedDeclarationFor(delegated.type());
             default -> Optional.empty();
         };
     }
@@ -149,11 +149,15 @@ class Utils {
     }
 
     static boolean isStructOrUnion(Type type) {
+        return structOrUnionDecl(type) != null;
+    }
+
+    static Declaration.Scoped structOrUnionDecl(Type type) {
         return switch (type) {
-            case Type.Declared declared -> isStructOrUnion(declared.tree());
+            case Type.Declared declared when isStructOrUnion(declared.tree()) -> declared.tree();
             case Type.Delegated delegated when delegated.kind() == Delegated.Kind.TYPEDEF ->
-                isStructOrUnion(delegated.type());
-            default -> false;
+                    structOrUnionDecl(delegated.type());
+            default -> null;
         };
     }
 

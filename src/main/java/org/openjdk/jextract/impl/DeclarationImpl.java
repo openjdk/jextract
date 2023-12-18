@@ -463,4 +463,19 @@ public abstract class DeclarationImpl implements Declaration {
                     .stream().mapToLong(ClangOffsetOf::offset).findFirst().getAsLong();
         }
     }
+
+    /**
+     * An attribute to mark nested struct/union/enum declarations.
+     */
+    record NestedDecl() {
+        private static final NestedDecl INSTANCE = new NestedDecl();
+
+        public static void with(Declaration declaration) {
+            declaration.addAttribute(INSTANCE);
+        }
+
+        public static boolean isPresent(Declaration declaration) {
+            return declaration.getAttribute(NestedDecl.class).isPresent();
+        }
+    }
 }

@@ -26,7 +26,6 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Constant;
-import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.EnumConstant;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
@@ -59,7 +58,7 @@ final class EnumConstantLifter implements Declaration.Visitor<Void, Void> {
     @Override
     public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
         Type type = tree.type();
-        if (Utils.declarationFor(type).map(Utils::isEnum).orElse(false)) {
+        if (Utils.nestedDeclarationFor(type).map(Utils::isEnum).orElse(false)) {
             // no need to do anything for a typedef enum, as the IR always
             // lifts the enum tree before the typedef.
             Skip.with(tree);

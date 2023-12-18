@@ -185,7 +185,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         }
 
         // handle if this typedef is of a struct/union/enum etc.
-        Utils.declarationFor(typedef.type()).ifPresent(s -> s.accept(this, typedef));
+        Utils.nestedDeclarationFor(typedef.type()).ifPresent(s -> s.accept(this, typedef));
 
         // We may potentially generate a class for a typedef. Make sure
         // class name is unique in the current nesting context.
@@ -203,7 +203,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     public Void visitVariable(Declaration.Variable variable, Declaration parent) {
         JavaName.with(variable, makeJavaName(variable));
         var type = variable.type();
-        Utils.declarationFor(type).ifPresent(s -> s.accept(this, variable));
+        Utils.nestedDeclarationFor(type).ifPresent(s -> s.accept(this, variable));
         Type.Function func = Utils.getAsFunctionPointer(type);
         if (func != null) {
             String fiName = curScope.uniqueNestedClassName(variable.name());
