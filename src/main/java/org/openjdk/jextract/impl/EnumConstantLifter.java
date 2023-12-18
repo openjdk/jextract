@@ -26,6 +26,7 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Constant;
+import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.EnumConstant;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
@@ -33,7 +34,7 @@ import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 /*
  * This visitor lifts enum constants to the top level and removes enum Trees.
  */
-final class EnumConstantLifter extends NestedDeclarationScanner<Void> {
+final class EnumConstantLifter implements Declaration.Visitor<Void, Void> {
 
     public Declaration.Scoped scan(Declaration.Scoped header) {
         // Process all header declarations are collect potential
@@ -51,6 +52,17 @@ final class EnumConstantLifter extends NestedDeclarationScanner<Void> {
                 EnumConstant.with((Constant)fieldTree, scoped.name());
                 fieldTree.accept(this, null);
             });
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
+        Type type = tree.type();
+        if (Utils.nestedDeclarationFor(type).map(Utils::isEnum).orElse(false)) {
+            // no need to do anything for a typedef enum, as the IR always
+            // lifts the enum tree before the typedef.
+            Skip.with(tree);
         }
         return null;
     }
