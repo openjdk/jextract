@@ -43,18 +43,15 @@ import java.util.Optional;
 public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     protected final ToplevelBuilder toplevelBuilder;
     protected Builder currentBuilder;
-    private final String pkgName;
 
     static JavaFileObject[] generateWrapped(Declaration.Scoped decl,
                 String pkgName, List<String> libraryNames) {
         String clsName = JavaName.getOrThrow(decl);
         ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName, libraryNames);
-        return new OutputFactory(pkgName, toplevelBuilder).
-            generate(decl);
+        return new OutputFactory(toplevelBuilder).generate(decl);
     }
 
-    private OutputFactory(String pkgName, ToplevelBuilder toplevelBuilder) {
-        this.pkgName = pkgName;
+    private OutputFactory(ToplevelBuilder toplevelBuilder) {
         this.toplevelBuilder = toplevelBuilder;
         this.currentBuilder = toplevelBuilder;
     }
