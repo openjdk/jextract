@@ -26,73 +26,79 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Scoped;
-import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Array;
 import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.Type.Visitor;
-import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.NestedDecl;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /*
- * This visitor searches for scoped declaration that are part of a declared type that do not appear anywhere else
- * in the toplevel tree, and marks them with the NestedDecl attribute.
+ * This visitor searches for scoped declarations that appear indirectly in the toplevel tree, as part of some
+ * declared type, and marks them with the NestedDecl attribute.
  */
-final class NestedDeclFinder implements Declaration.Visitor<Void, Set<Declaration.Scoped>> {
+final class NestedDeclFinder implements Declaration.Visitor<Void, Void> {
 
-    private final Set<Declaration.Scoped> seenNestedScoped = Collections.newSetFromMap(new IdentityHashMap<>());
-    private final Set<Declaration.Scoped> seenScoped = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<Declaration> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<Declaration> pending = Collections.newSetFromMap(new IdentityHashMap<>());
 
     public Declaration.Scoped scan(Declaration.Scoped header) {
-        header.members().forEach(fieldTree -> fieldTree.accept(this, seenScoped));
-        // the true nested decl are in the intersection between seenNestedScoped and seenScoped
-        seenNestedScoped.removeAll(seenScoped);
-        seenNestedScoped.stream()
-                .filter(Predicate.not(AnonymousStruct::isPresent))
-                .forEach(NestedDecl::with);
+        // Initial scan. After this step:
+        // (a) "seen" contains declarations directly nested in any of the visited members
+        // (b) "pending" contains declarations that are indirectly (e.g. via a type) nested in any of the visited members
+        header.members().forEach(fieldTree -> fieldTree.accept(this, null));
+        while (!seen.isEmpty()) {
+            // remove directly nested declaration from "pending" (as these are not true nested declarations)
+            seen.removeAll(pending);
+            // for each remaining nested declaration in the to do list:
+            // (a) mark it with NestedDecl attribute
+            // (b) propagate the visit (this results in further updates to "seen" and "pending", as described above)
+            for (Declaration d : Set.copyOf(seen)) {
+                NestedDecl.with(d);
+                d.accept(this, null);
+            }
+        }
+
         return header;
     }
 
     @Override
-    public Void visitFunction(Declaration.Function funcTree, Set<Declaration.Scoped> ignored) {
+    public Void visitFunction(Declaration.Function funcTree, Void ignored) {
         funcTree.type().accept(nestedDeclarationTypeVisitor, null);
         return null;
     }
 
     @Override
-    public Void visitTypedef(Declaration.Typedef tree, Set<Declaration.Scoped> ignored) {
+    public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
         tree.type().accept(nestedDeclarationTypeVisitor, null);
         return null;
     }
 
     @Override
-    public Void visitVariable(Declaration.Variable tree, Set<Declaration.Scoped> ignored) {
+    public Void visitVariable(Declaration.Variable tree, Void ignored) {
         tree.type().accept(nestedDeclarationTypeVisitor, null);
         return null;
     }
 
     @Override
-    public Void visitScoped(Scoped d, Set<Declaration.Scoped> seenDecls) {
-        if (seenDecls.add(d)) {
-            // propagate
-            d.members().forEach(m -> m.accept(this, seenDecls));
-        }
+    public Void visitScoped(Scoped d, Void unused) {
+        pending.add(d);
+        // propagate
+        d.members().forEach(m -> m.accept(this, null));
         return null;
     }
 
     @Override
-    public Void visitDeclaration(Declaration decl, Set<Declaration.Scoped> ignored) {
+    public Void visitDeclaration(Declaration decl, Void ignored) {
         return null;
     }
 
-    Type.Visitor<Void, Void> nestedDeclarationTypeVisitor = new Visitor<>() {
+    Type.Visitor<Void, Void> nestedDeclarationTypeVisitor = new Visitor<Void, Void>() {
         @Override
         public Void visitArray(Array t, Void unused) {
             t.elementType().accept(this, null);
@@ -107,7 +113,7 @@ final class NestedDeclFinder implements Declaration.Visitor<Void, Set<Declaratio
 
         @Override
         public Void visitDeclared(Declared t, Void unused) {
-            t.tree().accept(NestedDeclFinder.this, seenNestedScoped);
+            seen.add(t.tree());
             return null;
         }
 
