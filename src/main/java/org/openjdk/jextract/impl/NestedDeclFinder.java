@@ -33,61 +33,66 @@ import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.Type.Visitor;
+import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.NestedDecl;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /*
  * This visitor searches for scoped declaration that are part of a declared type that do not appear anywhere else
  * in the toplevel tree, and marks them with the NestedDecl attribute.
  */
-final class NestedDeclFinder implements Declaration.Visitor<Void, Void> {
+final class NestedDeclFinder implements Declaration.Visitor<Void, Set<Declaration.Scoped>> {
 
-    private final Set<Declaration> seenNestedScoped = Collections.newSetFromMap(new IdentityHashMap<>());
-    private final Set<Declaration> seenScoped = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<Declaration.Scoped> seenNestedScoped = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<Declaration.Scoped> seenScoped = Collections.newSetFromMap(new IdentityHashMap<>());
 
     public Declaration.Scoped scan(Declaration.Scoped header) {
-        header.members().forEach(fieldTree -> fieldTree.accept(this, null));
+        header.members().forEach(fieldTree -> fieldTree.accept(this, seenScoped));
         // the true nested decl are in the intersection between seenNestedScoped and seenScoped
         seenNestedScoped.removeAll(seenScoped);
-        seenNestedScoped.forEach(NestedDecl::with);
+        seenNestedScoped.stream()
+                .filter(Predicate.not(AnonymousStruct::isPresent))
+                .forEach(NestedDecl::with);
         return header;
     }
 
     @Override
-    public Void visitFunction(Declaration.Function funcTree, Void ignored) {
+    public Void visitFunction(Declaration.Function funcTree, Set<Declaration.Scoped> ignored) {
         funcTree.type().accept(nestedDeclarationTypeVisitor, null);
         return null;
     }
 
     @Override
-    public Void visitTypedef(Declaration.Typedef tree, Void ignored) {
+    public Void visitTypedef(Declaration.Typedef tree, Set<Declaration.Scoped> ignored) {
         tree.type().accept(nestedDeclarationTypeVisitor, null);
         return null;
     }
 
     @Override
-    public Void visitVariable(Declaration.Variable tree, Void ignored) {
+    public Void visitVariable(Declaration.Variable tree, Set<Declaration.Scoped> ignored) {
         tree.type().accept(nestedDeclarationTypeVisitor, null);
         return null;
     }
 
     @Override
-    public Void visitScoped(Scoped d, Void unused) {
-        seenScoped.add(d);
-        // propagate
-        d.members().forEach(m -> m.accept(this, null));
+    public Void visitScoped(Scoped d, Set<Declaration.Scoped> seenDecls) {
+        if (seenDecls.add(d)) {
+            // propagate
+            d.members().forEach(m -> m.accept(this, seenDecls));
+        }
         return null;
     }
 
     @Override
-    public Void visitDeclaration(Declaration decl, Void ignored) {
+    public Void visitDeclaration(Declaration decl, Set<Declaration.Scoped> ignored) {
         return null;
     }
 
-    Type.Visitor<Void, Void> nestedDeclarationTypeVisitor = new Visitor<Void, Void>() {
+    Type.Visitor<Void, Void> nestedDeclarationTypeVisitor = new Visitor<>() {
         @Override
         public Void visitArray(Array t, Void unused) {
             t.elementType().accept(this, null);
@@ -102,14 +107,7 @@ final class NestedDeclFinder implements Declaration.Visitor<Void, Void> {
 
         @Override
         public Void visitDeclared(Declared t, Void unused) {
-            if (seenNestedScoped.add(t.tree())) {
-                // visit scoped members recursively
-                t.tree().members().forEach(m -> {
-                    if (m instanceof Variable field) {
-                        field.type().accept(this, null);
-                    }
-                });
-            }
+            t.tree().accept(NestedDeclFinder.this, seenNestedScoped);
             return null;
         }
 
