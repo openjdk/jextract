@@ -52,13 +52,13 @@ final class NestedDeclFinder implements Declaration.Visitor<Void, Void> {
         // (a) "seen" contains declarations directly nested in any of the visited members
         // (b) "pending" contains declarations that are indirectly (e.g. via a type) nested in any of the visited members
         header.members().forEach(fieldTree -> fieldTree.accept(this, null));
-        while (!seen.isEmpty()) {
+        while (!pending.isEmpty()) {
             // remove directly nested declaration from "pending" (as these are not true nested declarations)
-            seen.removeAll(pending);
+            pending.removeAll(seen);
             // for each remaining nested declaration in the to do list:
             // (a) mark it with NestedDecl attribute
             // (b) propagate the visit (this results in further updates to "seen" and "pending", as described above)
-            for (Declaration d : Set.copyOf(seen)) {
+            for (Declaration d : Set.copyOf(pending)) {
                 NestedDecl.with(d);
                 d.accept(this, null);
             }
@@ -87,7 +87,7 @@ final class NestedDeclFinder implements Declaration.Visitor<Void, Void> {
 
     @Override
     public Void visitScoped(Scoped d, Void unused) {
-        pending.add(d);
+        seen.add(d);
         // propagate
         d.members().forEach(m -> m.accept(this, null));
         return null;
@@ -113,7 +113,7 @@ final class NestedDeclFinder implements Declaration.Visitor<Void, Void> {
 
         @Override
         public Void visitDeclared(Declared t, Void unused) {
-            seen.add(t.tree());
+            pending.add(t.tree());
             return null;
         }
 
