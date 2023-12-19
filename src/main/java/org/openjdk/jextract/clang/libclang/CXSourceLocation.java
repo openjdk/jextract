@@ -37,86 +37,63 @@ import static java.lang.foreign.ValueLayout.*;
 /**
  * {@snippet lang=c :
  * struct {
- *     void* data;
- *     unsigned int private_flags;
+ *     void* ptr_data[2];
+ *     unsigned int int_data;
  * };
  * }
  */
-public class CXString {
+public class CXSourceLocation {
 
-    CXString() {
+    CXSourceLocation() {
         // Suppresses public default constructor, ensuring non-instantiability,
         // but allows generated subclasses in same package.
     }
 
     private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
-        Index_h.C_POINTER.withName("data"),
-        Index_h.C_INT.withName("private_flags"),
+        MemoryLayout.sequenceLayout(2, Index_h.C_POINTER).withName("ptr_data"),
+        Index_h.C_INT.withName("int_data"),
         MemoryLayout.paddingLayout(4)
-    ).withName("$anon$37:9");
+    ).withName("$anon$456:9");
 
     public static final GroupLayout $LAYOUT() {
         return $LAYOUT;
     }
 
-    private static final long data$OFFSET = 0;
+    private static final long ptr_data$OFFSET = 0;
+    private static final long ptr_data$SIZE = 16;
+
+    public static MemorySegment ptr_data$slice(MemorySegment seg) {
+        return seg.asSlice(ptr_data$OFFSET, ptr_data$SIZE);
+    }
+
+    private static final long int_data$OFFSET = 16;
 
     /**
      * Getter for field:
      * {@snippet lang=c :
-     * void* data;
+     * unsigned int int_data;
      * }
      */
-    public static MemorySegment data$get(MemorySegment seg) {
-        return seg.get(Index_h.C_POINTER, data$OFFSET);
+    public static int int_data$get(MemorySegment seg) {
+        return seg.get(Index_h.C_INT, int_data$OFFSET);
     }
 
-    public static MemorySegment data$get(MemorySegment seg, long index) {
-        return seg.get(Index_h.C_POINTER, data$OFFSET + (index * sizeof()));
+    public static int int_data$get(MemorySegment seg, long index) {
+        return seg.get(Index_h.C_INT, int_data$OFFSET + (index * sizeof()));
     }
 
     /**
      * Setter for field:
      * {@snippet lang=c :
-     * void* data;
+     * unsigned int int_data;
      * }
      */
-    public static void data$set(MemorySegment seg, MemorySegment x) {
-        seg.set(Index_h.C_POINTER, data$OFFSET, x);
+    public static void int_data$set(MemorySegment seg, int x) {
+        seg.set(Index_h.C_INT, int_data$OFFSET, x);
     }
 
-    public static void data$set(MemorySegment seg, long index, MemorySegment x) {
-        seg.set(Index_h.C_POINTER, data$OFFSET + (index * sizeof()), x);
-    }
-
-    private static final long private_flags$OFFSET = 8;
-
-    /**
-     * Getter for field:
-     * {@snippet lang=c :
-     * unsigned int private_flags;
-     * }
-     */
-    public static int private_flags$get(MemorySegment seg) {
-        return seg.get(Index_h.C_INT, private_flags$OFFSET);
-    }
-
-    public static int private_flags$get(MemorySegment seg, long index) {
-        return seg.get(Index_h.C_INT, private_flags$OFFSET + (index * sizeof()));
-    }
-
-    /**
-     * Setter for field:
-     * {@snippet lang=c :
-     * unsigned int private_flags;
-     * }
-     */
-    public static void private_flags$set(MemorySegment seg, int x) {
-        seg.set(Index_h.C_INT, private_flags$OFFSET, x);
-    }
-
-    public static void private_flags$set(MemorySegment seg, long index, int x) {
-        seg.set(Index_h.C_INT, private_flags$OFFSET + (index * sizeof()), x);
+    public static void int_data$set(MemorySegment seg, long index, int x) {
+        seg.set(Index_h.C_INT, int_data$OFFSET + (index * sizeof()), x);
     }
 
     public static long sizeof() { return $LAYOUT().byteSize(); }

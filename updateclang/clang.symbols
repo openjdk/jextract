@@ -13,8 +13,11 @@
 
 ###
 
+--include-typedef CXCursor
 --include-typedef CXCursorVisitor
 --include-typedef CXIndex
+--include-typedef CXSourceRange
+--include-typedef CXSourceLocation
 --include-typedef CXToken
 --include-typedef CXTranslationUnit
 --include-typedef CXString
@@ -544,8 +547,10 @@
 --include-function clang_PrintingPolicy_getProperty
 --include-function clang_PrintingPolicy_setProperty
 --include-function clang_Range_isNull
+--include-function clang_Type_getAlignOf
 --include-function clang_Type_getOffsetOf
 --include-function clang_Type_getSizeOf
+--include-function clang_Type_getValueType
 --include-function clang_createIndex
 --include-function clang_defaultDiagnosticDisplayOptions
 --include-function clang_defaultReparseOptions

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -28,12 +28,14 @@
 package org.openjdk.jextract.clang.libclang;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+
 /**
- * {@snippet :
+ * {@snippet lang=c :
  * struct {
  *     unsigned int int_data[4];
  *     void* ptr_data;
@@ -42,50 +44,66 @@ import static java.lang.foreign.ValueLayout.*;
  */
 public class CXToken {
 
-    static final StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
-        MemoryLayout.sequenceLayout(4, Constants$root.C_INT$LAYOUT).withName("int_data"),
-        Constants$root.C_POINTER$LAYOUT.withName("ptr_data")
-    );
-    public static MemoryLayout $LAYOUT() {
-        return CXToken.$struct$LAYOUT;
+    CXToken() {
+        // Suppresses public default constructor, ensuring non-instantiability,
+        // but allows generated subclasses in same package.
     }
+
+    private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
+        MemoryLayout.sequenceLayout(4, Index_h.C_INT).withName("int_data"),
+        Index_h.C_POINTER.withName("ptr_data")
+    ).withName("$anon$4996:9");
+
+    public static final GroupLayout $LAYOUT() {
+        return $LAYOUT;
+    }
+
+    private static final long int_data$OFFSET = 0;
+    private static final long int_data$SIZE = 16;
+
     public static MemorySegment int_data$slice(MemorySegment seg) {
-        return seg.asSlice(0, 16);
+        return seg.asSlice(int_data$OFFSET, int_data$SIZE);
     }
-    static final VarHandle ptr_data$VH = $struct$LAYOUT.varHandle(MemoryLayout.PathElement.groupElement("ptr_data"));
-    public static VarHandle ptr_data$VH() {
-        return CXToken.ptr_data$VH;
-    }
+
+    private static final long ptr_data$OFFSET = 16;
+
     /**
      * Getter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * void* ptr_data;
      * }
      */
     public static MemorySegment ptr_data$get(MemorySegment seg) {
-        return (java.lang.foreign.MemorySegment)CXToken.ptr_data$VH.get(seg, 0L);
+        return seg.get(Index_h.C_POINTER, ptr_data$OFFSET);
     }
+
+    public static MemorySegment ptr_data$get(MemorySegment seg, long index) {
+        return seg.get(Index_h.C_POINTER, ptr_data$OFFSET + (index * sizeof()));
+    }
+
     /**
      * Setter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * void* ptr_data;
      * }
      */
     public static void ptr_data$set(MemorySegment seg, MemorySegment x) {
-        CXToken.ptr_data$VH.set(seg, 0L, x);
+        seg.set(Index_h.C_POINTER, ptr_data$OFFSET, x);
     }
-    public static MemorySegment ptr_data$get(MemorySegment seg, long index) {
-        return (java.lang.foreign.MemorySegment)CXToken.ptr_data$VH.get(seg.asSlice(index*sizeof()));
-    }
+
     public static void ptr_data$set(MemorySegment seg, long index, MemorySegment x) {
-        CXToken.ptr_data$VH.set(seg.asSlice(index*sizeof()), x);
+        seg.set(Index_h.C_POINTER, ptr_data$OFFSET + (index * sizeof()), x);
     }
+
     public static long sizeof() { return $LAYOUT().byteSize(); }
     public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
+
     public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
-}
 
+    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
+        return addr.reinterpret($LAYOUT().byteSize(), scope, null);
+    }
+}
 

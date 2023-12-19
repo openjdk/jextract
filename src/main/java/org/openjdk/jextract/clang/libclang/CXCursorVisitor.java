@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -28,31 +28,45 @@
 package org.openjdk.jextract.clang.libclang;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+
 /**
- * {@snippet :
+ * {@snippet lang=c :
  * enum CXChildVisitResult (*CXCursorVisitor)(struct  cursor,struct  parent,void* client_data);
  * }
  */
 public interface CXCursorVisitor {
 
-    int apply(java.lang.foreign.MemorySegment cursor, java.lang.foreign.MemorySegment parent, java.lang.foreign.MemorySegment client_data);
+    int apply(MemorySegment cursor, MemorySegment parent, MemorySegment client_data);
+
+    FunctionDescriptor $DESC = FunctionDescriptor.of(
+        Index_h.C_INT,
+        CXCursor.$LAYOUT(),
+        CXCursor.$LAYOUT(),
+        Index_h.C_POINTER
+    );
+
+    MethodHandle UP$MH = Index_h.upcallHandle(CXCursorVisitor.class, "apply", $DESC);
+
     static MemorySegment allocate(CXCursorVisitor fi, Arena scope) {
-        return RuntimeHelper.upcallStub(CXCursorVisitor.class, fi, constants$13.CXCursorVisitor$FUNC, scope);
+        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
     }
+
+    MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
     static CXCursorVisitor ofAddress(MemorySegment addr, Arena arena) {
         MemorySegment symbol = addr.reinterpret(arena, null);
-        return (java.lang.foreign.MemorySegment _cursor, java.lang.foreign.MemorySegment _parent, java.lang.foreign.MemorySegment _client_data) -> {
+        return (MemorySegment _cursor, MemorySegment _parent, MemorySegment _client_data) -> {
             try {
-                return (int)constants$13.CXCursorVisitor$MH.invokeExact(symbol, _cursor, _parent, _client_data);
+                return (int) DOWN$MH.invokeExact(symbol, _cursor, _parent, _client_data);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
         };
     }
 }
-
 

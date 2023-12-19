@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -28,24 +28,45 @@
 package org.openjdk.jextract.clang.libclang;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-final class Constants$root {
 
-    // Suppresses default constructor, ensuring non-instantiability.
-    private Constants$root() {}
-    static final OfBoolean C_BOOL$LAYOUT = JAVA_BOOLEAN;
-    static final OfByte C_CHAR$LAYOUT = JAVA_BYTE;
-    static final OfShort C_SHORT$LAYOUT = JAVA_SHORT;
-    static final OfInt C_INT$LAYOUT = JAVA_INT;
-    static final OfLong C_LONG$LAYOUT = JAVA_LONG;
-    static final OfLong C_LONG_LONG$LAYOUT = JAVA_LONG;
-    static final OfFloat C_FLOAT$LAYOUT = JAVA_FLOAT;
-    static final OfDouble C_DOUBLE$LAYOUT = JAVA_DOUBLE;
-    static final AddressLayout C_POINTER$LAYOUT = ADDRESS
-            .withTargetLayout(MemoryLayout.sequenceLayout(Long.MAX_VALUE, C_CHAR$LAYOUT));
+/**
+ * {@snippet lang=c :
+ * enum CXChildVisitResult (*clang_visitChildren$visitor)(struct ,struct ,void*);
+ * }
+ */
+public interface clang_visitChildren$visitor {
+
+    int apply(MemorySegment _x0, MemorySegment _x1, MemorySegment _x2);
+
+    FunctionDescriptor $DESC = FunctionDescriptor.of(
+        Index_h.C_INT,
+        CXCursor.$LAYOUT(),
+        CXCursor.$LAYOUT(),
+        Index_h.C_POINTER
+    );
+
+    MethodHandle UP$MH = Index_h.upcallHandle(clang_visitChildren$visitor.class, "apply", $DESC);
+
+    static MemorySegment allocate(clang_visitChildren$visitor fi, Arena scope) {
+        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
+    }
+
+    MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
+    static clang_visitChildren$visitor ofAddress(MemorySegment addr, Arena arena) {
+        MemorySegment symbol = addr.reinterpret(arena, null);
+        return (MemorySegment __x0, MemorySegment __x1, MemorySegment __x2) -> {
+            try {
+                return (int) DOWN$MH.invokeExact(symbol, __x0, __x1, __x2);
+            } catch (Throwable ex$) {
+                throw new AssertionError("should not reach here", ex$);
+            }
+        };
+    }
 }
-
 
