@@ -34,7 +34,7 @@ import org.openjdk.jextract.Type.Delegated.Kind;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
-import org.openjdk.jextract.impl.DeclarationImpl.NestedDecl;
+import org.openjdk.jextract.impl.DeclarationImpl.NestedTypes;
 
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
@@ -47,7 +47,7 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodType;
 import java.net.URI;
 import java.util.Map;
-import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * General utility functions
@@ -110,13 +110,9 @@ class Utils {
         }
     }
 
-    static Optional<Declaration.Scoped> nestedDeclarationFor(Type type) {
-        return switch (type) {
-            case Type.Declared declared when NestedDecl.isPresent(declared.tree()) -> Optional.of(declared.tree());
-            case Type.Array array -> nestedDeclarationFor(array.elementType());
-            case Type.Delegated delegated -> nestedDeclarationFor(delegated.type());
-            default -> Optional.empty();
-        };
+    static void forEachNested(Declaration declaration, Consumer<Declaration> nestedDeclAction) {
+        NestedTypes.get(declaration).ifPresent(decls ->
+            decls.stream().map(Type.Declared::tree).forEach(nestedDeclAction));
     }
 
     static boolean isStructOrUnion(Declaration declaration) {

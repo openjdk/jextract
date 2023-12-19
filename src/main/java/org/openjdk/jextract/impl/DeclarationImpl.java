@@ -26,7 +26,6 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.MemoryLayout;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -465,17 +464,17 @@ public abstract class DeclarationImpl implements Declaration {
     }
 
     /**
-     * An attribute to mark nested struct/union/enum declarations.
+     * An attribute to attach nested struct/union/enum declarations to other declarations.
      */
-    record NestedDecl() {
-        private static final NestedDecl INSTANCE = new NestedDecl();
+    record NestedTypes(List<Type.Declared> nestedTypes) {
 
-        public static void with(Declaration declaration) {
-            declaration.addAttribute(INSTANCE);
+        public static void with(Declaration declaration, List<Type.Declared> nestedTypes) {
+            declaration.addAttribute(new NestedTypes(nestedTypes));
         }
 
-        public static boolean isPresent(Declaration declaration) {
-            return declaration.getAttribute(NestedDecl.class).isPresent();
+        public static Optional<List<Type.Declared>> get(Declaration declaration) {
+            return declaration.getAttribute(NestedTypes.class)
+                    .stream().map(NestedTypes::nestedTypes).findFirst();
         }
     }
 }

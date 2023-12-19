@@ -104,7 +104,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     @Override
     public Void visitVariable(Variable varTree, Declaration firstNamedParent) {
         Type type = varTree.type();
-        Utils.nestedDeclarationFor(type).ifPresent(s -> s.accept(this, varTree));
+        Utils.forEachNested(varTree, s -> s.accept(this, varTree));
 
         Type unsupportedType = firstUnsupportedType(varTree.type(), false);
         String name = fieldName(firstNamedParent, varTree);

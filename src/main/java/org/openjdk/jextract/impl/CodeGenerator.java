@@ -38,7 +38,6 @@ public final class CodeGenerator {
                                             String targetPkg, IncludeHelper includeHelper,
                                             List<String> libNames, PrintWriter errStream) {
         var transformedDecl = Stream.of(decl)
-                .map(new NestedDeclFinder()::scan)
                 .map(new IncludeFilter(includeHelper)::scan)
                 .map(new EnumConstantLifter()::scan)
                 .map(new DuplicateFilter()::scan)

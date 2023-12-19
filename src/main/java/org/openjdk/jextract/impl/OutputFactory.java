@@ -25,6 +25,7 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Variable.Kind;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
@@ -140,8 +141,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
         Type type = tree.type();
-        Optional<Declaration.Scoped> optScoped = Utils.nestedDeclarationFor(type);
-        optScoped.ifPresent(s -> s.accept(this, null));
+        Utils.forEachNested(tree, s -> s.accept(this, null));
 
         Declaration.Scoped structOrUnionDecl = Utils.structOrUnionDecl(type);
         if (structOrUnionDecl != null) {
@@ -171,7 +171,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
         Type type = tree.type();
 
-        Utils.nestedDeclarationFor(type).ifPresent(s -> s.accept(this, tree));
+        Utils.forEachNested(tree, s -> s.accept(this, tree));
 
         final String fieldName = tree.name();
         assert !fieldName.isEmpty();
@@ -182,7 +182,9 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             generateFunctionalInterface(fiName.get(), func);
         }
 
-        currentBuilder.addVar(tree, fiName);
+        if (tree.kind() == Kind.GLOBAL || tree.kind() == Kind.FIELD) {
+            currentBuilder.addVar(tree, fiName);
+        }
         return null;
     }
 
