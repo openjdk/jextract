@@ -25,7 +25,6 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
-import org.openjdk.jextract.Declaration.Variable.Kind;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
@@ -182,9 +181,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             generateFunctionalInterface(fiName.get(), func);
         }
 
-        if (tree.kind() == Kind.GLOBAL || tree.kind() == Kind.FIELD) {
-            currentBuilder.addVar(tree, fiName);
-        }
+        currentBuilder.addVar(tree, fiName);
         return null;
     }
 
