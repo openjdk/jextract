@@ -203,7 +203,23 @@ final class NameMangler implements Declaration.Visitor<Void, String> {
         }
 
         // handle if this typedef is of a struct/union/enum etc.
-        Utils.forEachNested(typedef, d -> d.accept(this, typedef.name()));
+        Utils.forEachNested(typedef, d -> {
+            String nestedName = typedef.name();
+            if (func != null) {
+                String suffix = null;
+                for (int i = 0 ; i < func.argumentTypes().size() ; i++) {
+                    if (func.argumentTypes().get(i) instanceof Type.Declared declared && declared.tree() == d) {
+                        suffix = "$x" + i;
+                    }
+                }
+                if (suffix == null) {
+                    // not found, assume it's the function return
+                    suffix = "$return";
+                }
+                nestedName = nestedName + suffix;
+            }
+            d.accept(this, nestedName);
+        });
         return null;
     }
 
