@@ -25,8 +25,10 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
+import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
@@ -43,7 +45,7 @@ import javax.lang.model.SourceVersion;
  * in the corresponding declaration. The mangled name is later retrieved by
  * OutputFactory via the lookup methods provided by this class.
  */
-final class NameMangler implements Declaration.Visitor<Void, Declaration> {
+final class NameMangler implements Declaration.Visitor<Void, String> {
     private final String headerName;
 
     /*
@@ -124,63 +126,67 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     }
 
     @Override
-    public Void visitConstant(Declaration.Constant constant, Declaration parent) {
+    public Void visitConstant(Declaration.Constant constant, String fallbackName) {
         JavaName.with(constant, makeJavaName(constant));
         return null;
     }
 
     @Override
-    public Void visitFunction(Declaration.Function func, Declaration parent) {
+    public Void visitFunction(Declaration.Function func, String fallbackName) {
         JavaName.with(func, makeJavaName(func));
         int i = 0;
         for (Declaration.Variable param : func.parameters()) {
-            Utils.forEachNested(param, s -> s.accept(this, param));
             Type.Function f = Utils.getAsFunctionPointer(param.type());
+            String paramName = func.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
             if (f != null) {
-                String declFiName = func.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
-                JavaFunctionalInterfaceName.with(param, declFiName);
+                JavaFunctionalInterfaceName.with(param, paramName);
                 i++;
             }
             JavaName.with(param, makeJavaName(param));
+            Utils.forEachNested(param, s -> s.accept(this, paramName));
         }
-        Utils.forEachNested(func, s -> s.accept(this, func));
+
         Type.Function returnFunc = Utils.getAsFunctionPointer(func.type().returnType());
+        String retName = func.name() + "$return";
         if (returnFunc != null) {
-            JavaFunctionalInterfaceName.with(func, func.name() + "$return");
+            JavaFunctionalInterfaceName.with(func, retName);
+        }
+        Utils.forEachNested(func, s -> s.accept(this, retName));
+
+        return null;
+    }
+
+    @Override
+    public Void visitScoped(Declaration.Scoped scoped, String fallbackName) {
+        if (Utils.isEnum(scoped)) {
+            scoped.members().forEach(fieldTree -> fieldTree.accept(this, null));
+        } else if (Utils.isStructOrUnion(scoped)) {
+            String name = scoped.name();
+            if (name.isEmpty()) {
+                name = fallbackName;
+            }
+            if (JavaName.isPresent(scoped)) {
+                //skip struct that's seen already
+                return null;
+            }
+
+            Scope oldScope = curScope;
+            if (!AnonymousStruct.isPresent(scoped)) {
+                this.curScope = Scope.newStruct(oldScope, name);
+                JavaName.with(scoped, curScope.fullName());
+            }
+            try {
+                scoped.members().forEach(fieldTree -> fieldTree.accept(this, null));
+            } finally {
+                this.curScope = oldScope;
+            }
         }
 
         return null;
     }
 
     @Override
-    public Void visitScoped(Declaration.Scoped scoped, Declaration parent) {
-        String name = scoped.name();
-        if (name.isEmpty() && parent != null) {
-            name = parent.name();
-        }
-        if (JavaName.isPresent(scoped)) {
-            //skip struct that's seen already
-            return null;
-        }
-
-        Scope oldScope = curScope;
-        boolean isNestedAnonStruct = scoped.name().isEmpty() &&
-            (parent instanceof Declaration.Scoped);
-        if (!isNestedAnonStruct) {
-            this.curScope = Scope.newStruct(oldScope, name);
-            JavaName.with(scoped, curScope.fullName());
-        }
-        try {
-            scoped.members().forEach(fieldTree -> fieldTree.accept(this, scoped));
-        } finally {
-            this.curScope = oldScope;
-        }
-
-        return null;
-    }
-
-    @Override
-    public Void visitTypedef(Declaration.Typedef typedef, Declaration parent) {
+    public Void visitTypedef(Declaration.Typedef typedef, String fallbackName) {
         if (JavaName.isPresent(typedef)) {
             //skip typedef that's seen already
             return null;
@@ -197,12 +203,12 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         }
 
         // handle if this typedef is of a struct/union/enum etc.
-        Utils.forEachNested(typedef, d -> d.accept(this, typedef));
+        Utils.forEachNested(typedef, d -> d.accept(this, typedef.name()));
         return null;
     }
 
     @Override
-    public Void visitVariable(Declaration.Variable variable, Declaration parent) {
+    public Void visitVariable(Declaration.Variable variable, String fallbackName) {
         JavaName.with(variable, makeJavaName(variable));
         var type = variable.type();
         Type.Function func = Utils.getAsFunctionPointer(type);
@@ -215,12 +221,12 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
                 JavaFunctionalInterfaceName.with(variable, typedefName);
             }
         }
-        Utils.forEachNested(variable, s -> s.accept(this, variable));
+        Utils.forEachNested(variable, s -> s.accept(this, variable.name()));
         return null;
     }
 
     @Override
-    public Void visitDeclaration(Declaration decl, Declaration parent) {
+    public Void visitDeclaration(Declaration decl, String fallbackName) {
         return null;
     }
 
