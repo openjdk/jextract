@@ -134,6 +134,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         JavaName.with(func, makeJavaName(func));
         int i = 0;
         for (Declaration.Variable param : func.parameters()) {
+            Utils.forEachNested(param, s -> s.accept(this, param));
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
                 String declFiName = func.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
@@ -142,6 +143,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
             }
             JavaName.with(param, makeJavaName(param));
         }
+        Utils.forEachNested(func, s -> s.accept(this, func));
         Type.Function returnFunc = Utils.getAsFunctionPointer(func.type().returnType());
         if (returnFunc != null) {
             JavaFunctionalInterfaceName.with(func, func.name() + "$return");
@@ -184,9 +186,6 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
 
-        // handle if this typedef is of a struct/union/enum etc.
-        Utils.forEachNested(typedef, d -> d.accept(this, typedef));
-
         // We may potentially generate a class for a typedef. Make sure
         // class name is unique in the current nesting context.
         String javaName = curScope.uniqueNestedClassName(typedef.name());
@@ -196,6 +195,9 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
            JavaFunctionalInterfaceName.with(typedef, javaName);
            functionTypeDefNames.put(typedef.type(), javaName);
         }
+
+        // handle if this typedef is of a struct/union/enum etc.
+        Utils.forEachNested(typedef, d -> d.accept(this, typedef));
         return null;
     }
 
@@ -203,7 +205,6 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     public Void visitVariable(Declaration.Variable variable, Declaration parent) {
         JavaName.with(variable, makeJavaName(variable));
         var type = variable.type();
-        Utils.forEachNested(variable, s -> s.accept(this, variable));
         Type.Function func = Utils.getAsFunctionPointer(type);
         if (func != null) {
             String fiName = curScope.uniqueNestedClassName(variable.name());
@@ -214,6 +215,7 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
                 JavaFunctionalInterfaceName.with(variable, typedefName);
             }
         }
+        Utils.forEachNested(variable, s -> s.accept(this, variable));
         return null;
     }
 

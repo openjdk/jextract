@@ -221,7 +221,7 @@ class TreeMaker {
         Type type = toType(c);
         Type funcType = canonicalType(type);
         return withNestedTypes(Declaration.function(CursorPosition.of(c), c.spelling(), (Type.Function)funcType,
-                params.toArray(new Declaration.Variable[0])), c);
+                params.toArray(new Declaration.Variable[0])), c, true);
     }
 
     public Declaration.Constant createMacro(Position pos, String name, Type type, Object value) {
@@ -410,7 +410,7 @@ class TreeMaker {
                 }
             }
         }
-        return withNestedTypes(Declaration.typedef(CursorPosition.of(c), c.spelling(), canonicalType), c);
+        return withNestedTypes(Declaration.typedef(CursorPosition.of(c), c.spelling(), canonicalType), c, false);
     }
 
     private Type canonicalType(Type t) {
@@ -426,7 +426,7 @@ class TreeMaker {
         if (c.isBitField()) throw new AssertionError("Cannot get here!");
         checkCursorAny(c, CursorKind.VarDecl, CursorKind.FieldDecl, CursorKind.ParmDecl);
         Type type = toType(c);
-        return withNestedTypes(Declaration.var(kind, CursorPosition.of(c), c.spelling(), type), c);
+        return withNestedTypes(Declaration.var(kind, CursorPosition.of(c), c.spelling(), type), c, false);
     }
 
     /*
@@ -434,13 +434,9 @@ class TreeMaker {
      * inline nested struct/union/enum definitions. This method collects such definitions and
      * attaches them to the original declaration, using an attribute.
      */
-    private <D extends Declaration> D withNestedTypes(D d, Cursor c) {
+    private <D extends Declaration> D withNestedTypes(D d, Cursor c, boolean ignoreNestedParams) {
         List<Declaration> nestedDefinitions = new ArrayList<>();
-        c.forEach(m -> {
-            if (m.isDefinition()) {
-                nestedDefinitions.add(createTree(m));
-            }
-        });
+        collectNestedTypes(c, nestedDefinitions, ignoreNestedParams);
         List<Type.Declared> nestedTypes = nestedDefinitions.stream()
                 .filter(m -> m instanceof Scoped)
                 .map(s -> Type.declared((Scoped)s))
@@ -449,6 +445,18 @@ class TreeMaker {
             NestedTypes.with(d, nestedTypes);
         }
         return d;
+    }
+
+    private void collectNestedTypes(Cursor c, List<Declaration> nestedTypes, boolean ignoreNestedParams) {
+        c.forEach(m -> {
+            if (m.isDefinition()) {
+                if (m.kind() == CursorKind.ParmDecl && !ignoreNestedParams) {
+                    collectNestedTypes(m, nestedTypes, ignoreNestedParams);
+                } else {
+                    nestedTypes.add(createTree(m));
+                }
+            }
+        });
     }
 
     Type toType(Cursor c) {

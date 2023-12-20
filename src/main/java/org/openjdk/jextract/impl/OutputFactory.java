@@ -118,11 +118,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
         // check for function pointer type arguments
         for (Declaration.Variable param : funcTree.parameters()) {
+            Utils.forEachNested(param, s -> s.accept(this, param));
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
                 generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(param), f);
             }
         }
+
+        Utils.forEachNested(funcTree, s -> s.accept(this, funcTree));
 
         // return type could be a function pointer type
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
