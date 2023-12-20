@@ -206,9 +206,12 @@ final class NameMangler implements Declaration.Visitor<Void, String> {
         Utils.forEachNested(typedef, d -> {
             String nestedName = typedef.name();
             if (func != null) {
+                // if this is a function pointer type def, try to use better fallback names for any
+                // anon struct/union that might be defined as part of this typedef
                 String suffix = null;
                 for (int i = 0 ; i < func.argumentTypes().size() ; i++) {
                     if (func.argumentTypes().get(i) instanceof Type.Declared declared && declared.tree() == d) {
+                        // it's a function argument
                         suffix = "$x" + i;
                     }
                 }
