@@ -25,9 +25,11 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
-import org.openjdk.jextract.Declaration.Scoped.Kind;
+import org.openjdk.jextract.Declaration.Typedef;
+import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
+import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
@@ -45,7 +47,7 @@ import javax.lang.model.SourceVersion;
  * in the corresponding declaration. The mangled name is later retrieved by
  * OutputFactory via the lookup methods provided by this class.
  */
-final class NameMangler implements Declaration.Visitor<Void, String> {
+final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     private final String headerName;
 
     /*
@@ -126,45 +128,40 @@ final class NameMangler implements Declaration.Visitor<Void, String> {
     }
 
     @Override
-    public Void visitConstant(Declaration.Constant constant, String fallbackName) {
+    public Void visitConstant(Declaration.Constant constant, Declaration parent) {
         JavaName.with(constant, makeJavaName(constant));
         return null;
     }
 
     @Override
-    public Void visitFunction(Declaration.Function func, String fallbackName) {
+    public Void visitFunction(Declaration.Function func, Declaration parent) {
         JavaName.with(func, makeJavaName(func));
         int i = 0;
         for (Declaration.Variable param : func.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
-            String paramName = func.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
             if (f != null) {
-                JavaFunctionalInterfaceName.with(param, paramName);
+                String fiName = func.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
+                JavaFunctionalInterfaceName.with(param, fiName);
                 i++;
             }
             JavaName.with(param, makeJavaName(param));
-            Utils.forEachNested(param, s -> s.accept(this, paramName));
+            Utils.forEachNested(param, s -> s.accept(this, func));
         }
 
         Type.Function returnFunc = Utils.getAsFunctionPointer(func.type().returnType());
-        String retName = func.name() + "$return";
         if (returnFunc != null) {
-            JavaFunctionalInterfaceName.with(func, retName);
+            JavaFunctionalInterfaceName.with(func, func.name() + "$return");
         }
-        Utils.forEachNested(func, s -> s.accept(this, retName));
+        Utils.forEachNested(func, s -> s.accept(this, func));
 
         return null;
     }
 
     @Override
-    public Void visitScoped(Declaration.Scoped scoped, String fallbackName) {
+    public Void visitScoped(Declaration.Scoped scoped, Declaration parent) {
         if (Utils.isEnum(scoped)) {
             scoped.members().forEach(fieldTree -> fieldTree.accept(this, null));
         } else if (Utils.isStructOrUnion(scoped)) {
-            String name = scoped.name();
-            if (name.isEmpty()) {
-                name = fallbackName;
-            }
             if (JavaName.isPresent(scoped)) {
                 //skip struct that's seen already
                 return null;
@@ -172,6 +169,9 @@ final class NameMangler implements Declaration.Visitor<Void, String> {
 
             Scope oldScope = curScope;
             if (!AnonymousStruct.isPresent(scoped)) {
+                String name = scoped.name().isEmpty() ?
+                        fallbackNameFor(parent, scoped) :
+                        scoped.name();
                 this.curScope = Scope.newStruct(oldScope, name);
                 JavaName.with(scoped, curScope.fullName());
             }
@@ -186,7 +186,7 @@ final class NameMangler implements Declaration.Visitor<Void, String> {
     }
 
     @Override
-    public Void visitTypedef(Declaration.Typedef typedef, String fallbackName) {
+    public Void visitTypedef(Declaration.Typedef typedef, Declaration parent) {
         if (JavaName.isPresent(typedef)) {
             //skip typedef that's seen already
             return null;
@@ -204,30 +204,40 @@ final class NameMangler implements Declaration.Visitor<Void, String> {
 
         // handle if this typedef is of a struct/union/enum etc.
         Utils.forEachNested(typedef, d -> {
-            String nestedName = typedef.name();
-            if (func != null) {
-                // if this is a function pointer type def, try to use better fallback names for any
-                // anon struct/union that might be defined as part of this typedef
-                String suffix = null;
-                for (int i = 0 ; i < func.argumentTypes().size() ; i++) {
-                    if (func.argumentTypes().get(i) instanceof Type.Declared declared && declared.tree() == d) {
-                        // it's a function argument
-                        suffix = "$x" + i;
-                    }
-                }
-                if (suffix == null) {
-                    // not found, assume it's the function return
-                    suffix = "$return";
-                }
-                nestedName = nestedName + suffix;
-            }
-            d.accept(this, nestedName);
+            d.accept(this, typedef);
         });
         return null;
     }
 
+    private String fallbackNameFor(Declaration parent, Declaration.Scoped nested) {
+        String nestedName = parent.name();
+        Function func = switch (parent) {
+            case Declaration.Function f -> f.type();
+            case Variable v -> Utils.getAsFunctionPointer(v.type());
+            case Typedef t -> Utils.getAsFunctionPointer(t.type());
+            default -> null;
+        };
+        if (func != null) {
+            // if this is a function pointer type def, try to use better fallback names for any
+            // anon struct/union that might be defined as part of this typedef
+            String suffix = null;
+            for (int i = 0 ; i < func.argumentTypes().size() ; i++) {
+                if (func.argumentTypes().get(i) instanceof Type.Declared declared && declared.tree() == nested) {
+                    // it's a function argument
+                    suffix = "$x" + i;
+                }
+            }
+            if (suffix == null) {
+                // not found, assume it's the function return
+                suffix = "$return";
+            }
+            nestedName = nestedName + suffix;
+        }
+        return nestedName;
+    }
+
     @Override
-    public Void visitVariable(Declaration.Variable variable, String fallbackName) {
+    public Void visitVariable(Declaration.Variable variable, Declaration parent) {
         JavaName.with(variable, makeJavaName(variable));
         var type = variable.type();
         Type.Function func = Utils.getAsFunctionPointer(type);
@@ -240,12 +250,12 @@ final class NameMangler implements Declaration.Visitor<Void, String> {
                 JavaFunctionalInterfaceName.with(variable, typedefName);
             }
         }
-        Utils.forEachNested(variable, s -> s.accept(this, variable.name()));
+        Utils.forEachNested(variable, s -> s.accept(this, variable));
         return null;
     }
 
     @Override
-    public Void visitDeclaration(Declaration decl, String fallbackName) {
+    public Void visitDeclaration(Declaration decl, Declaration parent) {
         return null;
     }
 

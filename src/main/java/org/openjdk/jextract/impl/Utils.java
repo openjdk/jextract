@@ -28,6 +28,8 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Constant;
+import org.openjdk.jextract.Declaration.Typedef;
+import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Delegated.Kind;
