@@ -72,3 +72,4 @@ typedef struct {
      struct { int x; } (*fp1)(struct { int y; } p);
      struct SR_FLD_FUN_ARG { int x; } (*fp2)(struct SA_FLD_FUN_ARG { int y; } p);
  } p);
+ 

@@ -242,8 +242,8 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         var type = variable.type();
         Type.Function func = Utils.getAsFunctionPointer(type);
         if (func != null) {
-            String fiName = curScope.uniqueNestedClassName(variable.name());
-            JavaFunctionalInterfaceName.with(variable, fiName);
+            String declFiName = curScope.uniqueNestedClassName(variable.name());
+            JavaFunctionalInterfaceName.with(variable, declFiName);
         } else if (variable.type() instanceof Delegated delegatedType) {
             String typedefName = functionTypeDefNames.get(delegatedType.type());
             if (typedefName != null) {
