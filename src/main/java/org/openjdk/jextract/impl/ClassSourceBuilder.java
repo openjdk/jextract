@@ -250,9 +250,9 @@ abstract class ClassSourceBuilder {
             case Double -> alignIfNeeded(STR."\{runtimeHelperName()}.C_DOUBLE", 8, align);
             case LongDouble -> TypeImpl.IS_WINDOWS ?
                     alignIfNeeded(STR."\{runtimeHelperName()}.C_LONG_DOUBLE", 8, align) :
-                    paddingLayoutString(8);
-            case HalfFloat, Char16, WChar -> paddingLayoutString(2); // unsupported
-            case Float128, Int128 -> paddingLayoutString(16); // unsupported
+                    paddingLayoutString(8, 0);
+            case HalfFloat, Char16, WChar -> paddingLayoutString(2, 0); // unsupported
+            case Float128, Int128 -> paddingLayoutString(16, 0); // unsupported
             default -> throw new UnsupportedOperationException(primitiveType.toString());
         };
     }
@@ -263,7 +263,7 @@ abstract class ClassSourceBuilder {
                 layoutPrefix;
     }
 
-    String paddingLayoutString(long size) {
-        return STR."MemoryLayout.paddingLayout(\{size})";
+    String paddingLayoutString(long size, int indent) {
+        return STR."\{indentString(indent)}MemoryLayout.paddingLayout(\{size})";
     }
 }

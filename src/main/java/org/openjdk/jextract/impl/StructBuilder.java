@@ -311,7 +311,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 long nextOffset = recordMemberOffset(member);
                 long delta = nextOffset - offset;
                 if (delta > 0) {
-                    memberLayouts.add(paddingLayoutString(delta / 8));
+                    memberLayouts.add(paddingLayoutString(delta / 8, indent + 1));
                     offset += delta;
                     if (isStruct) {
                         size += delta;
@@ -341,7 +341,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             long trailPadding = isStruct ?
                     (expectedSize - size) / 8 :
                     expectedSize / 8;
-            memberLayouts.add(paddingLayoutString(trailPadding));
+            memberLayouts.add(paddingLayoutString(trailPadding, indent + 1));
         }
 
         String prefix = isStruct ?
