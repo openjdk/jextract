@@ -463,4 +463,20 @@ public abstract class DeclarationImpl implements Declaration {
                     .stream().mapToLong(ClangOffsetOf::offset).findFirst().getAsLong();
         }
     }
+
+    record DeclarationString(String declString) {
+        public static void with(Declaration declaration, String declString) {
+            declaration.addAttribute(new DeclarationString(declString));
+        }
+
+        public static Optional<String> get(Declaration declaration) {
+            return declaration.getAttribute(DeclarationString.class)
+                    .stream().map(DeclarationString::declString).findFirst();
+        }
+
+        public static String getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(DeclarationString.class)
+                    .stream().map(DeclarationString::declString).findFirst().get();
+        }
+    }
 }

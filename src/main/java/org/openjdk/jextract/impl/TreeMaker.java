@@ -51,12 +51,15 @@ import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.CursorLanguage;
 import org.openjdk.jextract.clang.LinkageKind;
+import org.openjdk.jextract.clang.PrintingPolicy;
+import org.openjdk.jextract.clang.PrintingPolicyProperty;
 import org.openjdk.jextract.clang.SourceLocation;
 import org.openjdk.jextract.clang.TypeKind;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
+import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 
 /**
  * This class turns a clang cursor into a jextract declaration. All declarations are de-duplicated,
@@ -140,7 +143,7 @@ class TreeMaker {
             default -> null; // skip
         };
         if (decl != null) {
-            declarationCache.put(key, decl);
+            declarationCache.put(key, withDeclarationString(decl, c));
         }
         return decl;
     }
@@ -448,5 +451,13 @@ class TreeMaker {
             }
         }
         throw new IllegalArgumentException("Invalid cursor kind");
+    }
+
+    private <D extends Declaration> D withDeclarationString(D decl, Cursor cursor) {
+        PrintingPolicy pp = cursor.getPrintingPolicy();
+        pp.setProperty(PrintingPolicyProperty.IncludeTagDefinition, true);
+        pp.setProperty(PrintingPolicyProperty.PolishForDeclaration, true);
+        DeclarationString.with(decl, cursor.prettyPrinted(pp));
+        return decl;
     }
 }
