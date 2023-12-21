@@ -463,14 +463,30 @@ class TreeMaker {
     }
 
     private <D extends Declaration> D withDeclarationString(D decl, Cursor cursor) {
-        if (decl instanceof Declaration.Constant) return decl; // do nothing for enum constants
-        DeclarationString.with(decl, declarationString(cursor));
+        String declString = switch (decl) {
+            case Declaration.Constant _ -> null; // do nothing for enum constants
+            case Typedef _ -> declarationString(cursor, true); // always expand typedefs
+            default -> {
+                // heuristic, try w/o expanding first, and check if there are <anonymous> strings
+                String cursorString = declarationString(cursor, false);
+                if (cursorString.contains("\\(unnamed (struct|union|enum) at")) {
+                    // the output contains anonymous definitions, fallback and expand them
+                    cursorString = declarationString(cursor, true);
+                }
+                yield cursorString;
+            }
+        };
+        if (declString != null) {
+            DeclarationString.with(decl, declString);
+        }
         return decl;
     }
 
-    String declarationString(Cursor cursor) {
+    String declarationString(Cursor cursor, boolean expandNestedDecls) {
         PrintingPolicy pp = cursor.getPrintingPolicy();
-        pp.setProperty(PrintingPolicyProperty.IncludeTagDefinition, true);
+        if (expandNestedDecls) {
+            pp.setProperty(PrintingPolicyProperty.IncludeTagDefinition, true);
+        }
         pp.setProperty(PrintingPolicyProperty.PolishForDeclaration, true);
         return cursor.prettyPrinted(pp);
     }
