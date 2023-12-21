@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
@@ -228,8 +229,11 @@ class TreeMaker {
                 params.toArray(new Declaration.Variable[0]));
     }
 
-    public Declaration.Constant createMacro(Position pos, String name, Type type, Object value) {
-        return Declaration.constant(pos, name, value, type);
+    public Declaration.Constant createMacro(Position pos, String[] tokens, String name, Type type, Object value) {
+        Declaration.Constant macro = Declaration.constant(pos, name, value, type);
+        String macroString = Stream.of(tokens).skip(1).collect(Collectors.joining());
+        DeclarationString.with(macro, STR."#define \{name} \{macroString}");
+        return macro;
     }
 
     public Declaration.Constant createEnumConstant(Cursor c) {
@@ -454,10 +458,14 @@ class TreeMaker {
     }
 
     private <D extends Declaration> D withDeclarationString(D decl, Cursor cursor) {
+        DeclarationString.with(decl, declarationString(cursor));
+        return decl;
+    }
+
+    String declarationString(Cursor cursor) {
         PrintingPolicy pp = cursor.getPrintingPolicy();
         pp.setProperty(PrintingPolicyProperty.IncludeTagDefinition, true);
         pp.setProperty(PrintingPolicyProperty.PolishForDeclaration, true);
-        DeclarationString.with(decl, cursor.prettyPrinted(pp));
-        return decl;
+        return cursor.prettyPrinted(pp);
     }
 }
