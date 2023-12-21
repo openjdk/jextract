@@ -230,10 +230,17 @@ class TreeMaker {
                 params.toArray(new Declaration.Variable[0]));
     }
 
-    public Declaration.Constant createMacro(Position pos, String[] tokens, String name, Type type, Object value) {
+    public Declaration.Constant createMacro(Position pos, String name, Type type, Object value) {
         Declaration.Constant macro = Declaration.constant(pos, name, value, type);
-        String macroString = Stream.of(tokens).skip(1).collect(Collectors.joining());
-        DeclarationString.with(macro, STR."#define \{name} \{macroString}");
+        String valueString = value.toString();
+        if (value instanceof String) {
+            // quote string literal
+            valueString = STR."\"\{valueString}\"";
+        } else if (Utils.isPointer(type)) {
+            // add pointer cast to make it look different from a numeric constant
+            valueString = STR."(\{valueString})";
+        }
+        DeclarationString.with(macro, STR."#define \{name} \{valueString}");
         return macro;
     }
 

@@ -85,8 +85,7 @@ class MacroParserImpl implements AutoCloseable {
             //check for fast path
             Integer num = toNumber(tokens[1]);
             if (num != null) {
-                return Optional.of(treeMaker.createMacro(TreeMaker.CursorPosition.of(cursor), tokens,
-                        name, Type.primitive(Type.Primitive.Kind.Int), (long)num));
+                return Optional.of(treeMaker.createMacro(TreeMaker.CursorPosition.of(cursor), name, Type.primitive(Type.Primitive.Kind.Int), (long)num));
             }
         }
         macroTable.enterMacro(name, tokens, TreeMaker.CursorPosition.of(cursor));
@@ -263,7 +262,7 @@ class MacroParserImpl implements AutoCloseable {
 
             public Success(String name, String[] tokens, Position position, Type type, Object value) {
                 super(name, tokens, position);
-                constant = treeMaker.createMacro(position, tokens, name, type, value);
+                constant = treeMaker.createMacro(position, name, type, value);
             }
 
             @Override

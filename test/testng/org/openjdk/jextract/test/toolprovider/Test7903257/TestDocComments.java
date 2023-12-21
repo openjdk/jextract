@@ -47,7 +47,9 @@ public class TestDocComments extends JextractToolRunner {
     public void testMacros() throws IOException {
         var comments = getDocComments("macros.h", "macros_h.java");
         assertEquals(comments, List.of(
-            "#define FOO 42", "#define MSG \"Hello\""));
+            "#define FOO 42",
+            "#define MSG \"Hello\"",
+            "#define MSG_COMMENT \"HelloWithComment\""));
     }
 
     @Test
