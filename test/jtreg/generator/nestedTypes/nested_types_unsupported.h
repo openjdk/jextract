@@ -28,52 +28,41 @@
 #endif
 
 // function declarations
-EXPORT struct { int x; } f1(struct { int y; } p);
-
-EXPORT struct SR_FUN { int x; } f2(struct SA_FUN { int y; } p);
+EXPORT struct UNSUPPORTED f1(struct UNSUPPORTED p);
 
 // global variable declarations
 
-EXPORT struct { int x; } (*fp1)(struct { int y; } p);
-
-EXPORT struct SR_VAR { int x; } (*fp2)(struct SA_VAR { int y; } p);
+EXPORT struct UNSUPPORTED (*fp)(struct UNSUPPORTED p);
 
 // typedef declarations
 
-typedef struct { int x; } (*td1)(struct { int y; } p);
-
-typedef struct SR_DEF { int x; } (*td2)(struct SA_DEF { int y; } p);
+typedef struct UNSUPPORTED (*td)(struct UNSUPPORTED p);
 
 // field declarations
 
 struct Outer {
-    struct { int x; } (*fp1)(struct { int y; } p);
-    struct SR_FLD { int x; } (*fp2)(struct SA_FLD { int y; } p);
+    struct UNSUPPORTED (*fp)(struct UNSUPPORTED p);
 };
 
 // field and global
 
 EXPORT struct {
-    struct { int x; } (*fp1)(struct { int y; } p);
-    struct SR_FLD_VAR { int x; } (*fp2)(struct SA_FLD_VAR { int y; } p);
+    struct UNSUPPORTED (*fp)(struct UNSUPPORTED p);
 } outer_var;
 
 // field and typedef
 
 typedef struct {
-    struct { int x; } (*fp1)(struct { int y; } p);
-    struct SR_FLD_DEF { int x; } (*fp2)(struct SA_FLD_DEF { int y; } p);
+    struct UNSUPPORTED (*fp)(struct UNSUPPORTED p);
 } outer_td;
 
 // field and function return
 
 EXPORT struct {
-    struct { int x; } (*fp1)(struct { int y; } p);
-    struct SR_FLD_FUN_RET { int x; } (*fp2)(struct SA_FLD_FUN_RET { int y; } p);
-} f3(void);
+    struct UNSUPPORTED (*fp)(struct UNSUPPORTED p);
+} f2(void);
 
 // field and function arg
-EXPORT void f4(struct {
-    struct { int x; } (*fp1)(struct { int y; } p);
-    struct SR_FLD_FUN_ARG { int x; } (*fp2)(struct SA_FLD_FUN_ARG { int y; } p);
+EXPORT void f3(struct {
+    struct UNSUPPORTED (*fp)(struct UNSUPPORTED p);
 } p);
