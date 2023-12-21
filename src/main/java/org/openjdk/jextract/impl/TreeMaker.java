@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
+import org.openjdk.jextract.Declaration.Constant;
 import org.openjdk.jextract.Declaration.Scoped;
 import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.Declaration.Variable;
@@ -365,6 +366,10 @@ class TreeMaker {
         c.forEach(child -> decls.add(createTree(child)));
         if (c.isDefinition()) {
             //just a declaration AND definition, we have a layout
+            decls.forEach(d -> {
+                // append declaration string
+                DeclarationString.with(d, enumConstantString(c.spelling(), (Declaration.Constant)d));
+            });
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
         } else {
             //if there's a real definition somewhere else, skip this redundant declaration
@@ -458,6 +463,7 @@ class TreeMaker {
     }
 
     private <D extends Declaration> D withDeclarationString(D decl, Cursor cursor) {
+        if (decl instanceof Declaration.Constant) return decl; // do nothing for enum constants
         DeclarationString.with(decl, declarationString(cursor));
         return decl;
     }
@@ -467,5 +473,12 @@ class TreeMaker {
         pp.setProperty(PrintingPolicyProperty.IncludeTagDefinition, true);
         pp.setProperty(PrintingPolicyProperty.PolishForDeclaration, true);
         return cursor.prettyPrinted(pp);
+    }
+
+    String enumConstantString(String enumName, Declaration.Constant enumConstant) {
+        if (enumName.isEmpty()) {
+            enumName = "<anonymous>";
+        }
+        return STR."enum \{enumName}.\{enumConstant.name()} = \{enumConstant.value()}";
     }
 }
