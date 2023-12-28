@@ -137,7 +137,7 @@ It is easy to see how this mechanism allows developers to look into the set of s
 
 > <details><summary><strong>Building older jextract versions</strong></summary>
 >
-> The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by chercking out the appropriate branch.
+> The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by checking out the appropriate branch.
 > For example, to build a jextract tool which works against JDK 21:
 >
 > `git checkout jdk21`
@@ -148,7 +148,7 @@ It is easy to see how this mechanism allows developers to look into the set of s
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
 
 (**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
-supports JDK 21. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
+supports JDK 21. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropriate JDK version needed for builds)
 
 
 
