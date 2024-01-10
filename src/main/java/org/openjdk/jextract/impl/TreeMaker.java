@@ -25,8 +25,6 @@
  */
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,12 +49,15 @@ import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.CursorLanguage;
 import org.openjdk.jextract.clang.LinkageKind;
+import org.openjdk.jextract.clang.PrintingPolicy;
+import org.openjdk.jextract.clang.PrintingPolicyProperty;
 import org.openjdk.jextract.clang.SourceLocation;
 import org.openjdk.jextract.clang.TypeKind;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
+import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 
 /**
  * This class turns a clang cursor into a jextract declaration. All declarations are de-duplicated,
@@ -140,7 +141,7 @@ class TreeMaker {
             default -> null; // skip
         };
         if (decl != null) {
-            declarationCache.put(key, decl);
+            declarationCache.put(key, withDeclarationString(decl, c));
         }
         return decl;
     }
@@ -226,7 +227,17 @@ class TreeMaker {
     }
 
     public Declaration.Constant createMacro(Position pos, String name, Type type, Object value) {
-        return Declaration.constant(pos, name, value, type);
+        Declaration.Constant macro = Declaration.constant(pos, name, value, type);
+        String valueString = value.toString();
+        if (value instanceof String) {
+            // quote string literal
+            valueString = STR."\"\{valueString}\"";
+        } else if (Utils.isPointer(type)) {
+            // add pointer cast to make it look different from a numeric constant
+            valueString = STR."(void*) \{valueString}";
+        }
+        DeclarationString.with(macro, STR."#define \{name} \{valueString}");
+        return macro;
     }
 
     public Declaration.Constant createEnumConstant(Cursor c) {
@@ -358,6 +369,10 @@ class TreeMaker {
         c.forEach(child -> decls.add(createTree(child)));
         if (c.isDefinition()) {
             //just a declaration AND definition, we have a layout
+            decls.forEach(d -> {
+                // append declaration string
+                DeclarationString.with(d, enumConstantString(c.spelling(), (Declaration.Constant)d));
+            });
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
         } else {
             //if there's a real definition somewhere else, skip this redundant declaration
@@ -448,5 +463,41 @@ class TreeMaker {
             }
         }
         throw new IllegalArgumentException("Invalid cursor kind");
+    }
+
+    private <D extends Declaration> D withDeclarationString(D decl, Cursor cursor) {
+        String declString = switch (decl) {
+            case Declaration.Constant _ -> null; // do nothing for enum constants
+            case Typedef _ -> declarationString(cursor, true); // always expand typedefs
+            default -> {
+                // heuristic, try w/o expanding first, and check if there are <anonymous> strings
+                String cursorString = declarationString(cursor, false);
+                if (cursorString.contains("\\(unnamed (struct|union|enum) at")) {
+                    // the output contains anonymous definitions, fallback and expand them
+                    cursorString = declarationString(cursor, true);
+                }
+                yield cursorString;
+            }
+        };
+        if (declString != null) {
+            DeclarationString.with(decl, declString);
+        }
+        return decl;
+    }
+
+    private String declarationString(Cursor cursor, boolean expandNestedDecls) {
+        PrintingPolicy pp = cursor.getPrintingPolicy();
+        if (expandNestedDecls) {
+            pp.setProperty(PrintingPolicyProperty.IncludeTagDefinition, true);
+        }
+        pp.setProperty(PrintingPolicyProperty.PolishForDeclaration, true);
+        return cursor.prettyPrinted(pp);
+    }
+
+    private String enumConstantString(String enumName, Declaration.Constant enumConstant) {
+        if (enumName.isEmpty()) {
+            enumName = "<anonymous>";
+        }
+        return STR."enum \{enumName}.\{enumConstant.name()} = \{enumConstant.value()}";
     }
 }

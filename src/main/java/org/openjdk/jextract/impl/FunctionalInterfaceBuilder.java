@@ -25,7 +25,9 @@
 
 package org.openjdk.jextract.impl;
 
+import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 
 import java.lang.invoke.MethodType;
 import java.util.List;
@@ -40,20 +42,19 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final Optional<List<String>> parameterNames;
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
-                                       String runtimeHelperName, Type.Function funcType,
-                                       Optional<List<String>> parameterNames) {
+                                       String runtimeHelperName, Type.Function funcType) {
         super(builder, "public", Kind.INTERFACE, className, null, enclosing, runtimeHelperName);
-        this.parameterNames = parameterNames;
+        this.parameterNames = funcType.parameterNames().map(NameMangler::javaSafeIdentifiers);
         this.funcType = funcType;
         this.methodType = Utils.methodTypeFor(funcType);
     }
 
     public static void generate(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing, String runtimeHelperName,
-                                Type.Function funcType, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className, enclosing, runtimeHelperName,
-                funcType, parameterNames);
+                                Declaration parentDecl, Type.Function funcType) {
+        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className,
+                enclosing, runtimeHelperName, funcType);
         fib.appendBlankLine();
-        fib.emitDocComment(funcType, className);
+        fib.emitDocComment(parentDecl);
         fib.classBegin();
         fib.emitFunctionalInterfaceMethod();
         fib.emitDescriptorDecl();

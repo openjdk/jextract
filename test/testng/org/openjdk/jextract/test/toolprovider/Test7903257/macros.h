@@ -23,3 +23,4 @@
 
 #define FOO 42
 #define MSG "Hello"
+#define MSG_COMMENT "HelloWithComment" /* Some comment */

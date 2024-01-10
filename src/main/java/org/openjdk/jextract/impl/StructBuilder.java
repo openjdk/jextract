@@ -33,6 +33,7 @@ import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
@@ -122,16 +123,16 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     @Override
-    public void addFunctionalInterface(String name, Type.Function funcType) {
+    public void addFunctionalInterface(Declaration parentDecl, Type.Function funcType) {
         incrAlign();
-        FunctionalInterfaceBuilder.generate(sourceFileBuilder(), name,
-                this, runtimeHelperName(), funcType,
-                funcType.parameterNames().map(NameMangler::javaSafeIdentifiers));
+        FunctionalInterfaceBuilder.generate(sourceFileBuilder(), JavaFunctionalInterfaceName.getOrThrow(parentDecl),
+                this, runtimeHelperName(), parentDecl, funcType);
         decrAlign();
     }
 
     @Override
-    public void addVar(Declaration.Variable varTree, Optional<String> fiName) {
+    public void addVar(Declaration.Variable varTree) {
+        Optional<String> fiName = JavaFunctionalInterfaceName.get(varTree);
         String javaName = JavaName.getOrThrow(varTree);
         appendBlankLine();
         String offsetField = emitOffsetFieldDecl(varTree);

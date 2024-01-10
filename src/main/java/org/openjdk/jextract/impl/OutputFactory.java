@@ -109,8 +109,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         return null;
     }
 
-    private void generateFunctionalInterface(String name, Type.Function func) {
-        currentBuilder.addFunctionalInterface(name, func);
+    private void generateFunctionalInterface(Declaration parentDecl, Type.Function func) {
+        currentBuilder.addFunctionalInterface(parentDecl, func);
     }
 
     @Override
@@ -123,14 +123,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         for (Declaration.Variable param : funcTree.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
-                generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(param), f);
+                generateFunctionalInterface(param, f);
             }
         }
 
         // return type could be a function pointer type
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
         if (returnFunc != null) {
-             generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(funcTree), returnFunc);
+             generateFunctionalInterface(funcTree, returnFunc);
         }
 
         toplevelBuilder.addFunction(funcTree);
@@ -174,7 +174,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         } else {
             Type.Function func = Utils.getAsFunctionPointer(type);
             if (func != null) {
-                generateFunctionalInterface(JavaFunctionalInterfaceName.getOrThrow(tree), func);
+                generateFunctionalInterface(tree, func);
             } else if (((TypeImpl)type).isPointer()) {
                 toplevelBuilder.addTypedef(tree, null);
             } else {
@@ -199,19 +199,18 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         final String fieldName = tree.name();
         assert !fieldName.isEmpty();
 
-        Optional<String> fiName = JavaFunctionalInterfaceName.get(tree);
         Type.Function func = Utils.getAsFunctionPointer(type);
         if (func != null) {
-            generateFunctionalInterface(fiName.get(), func);
+            generateFunctionalInterface(tree, func);
         }
 
-        currentBuilder.addVar(tree, fiName);
+        currentBuilder.addVar(tree);
         return null;
     }
 
     interface Builder {
 
-        default void addVar(Declaration.Variable varTree, Optional<String> fiName) {
+        default void addVar(Declaration.Variable varTree) {
             throw new UnsupportedOperationException("Not implemented");
         }
 
@@ -235,7 +234,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default void addFunctionalInterface(String name, Type.Function funcType) {
+        default void addFunctionalInterface(Declaration parentDecl, Type.Function funcType) {
             throw new UnsupportedOperationException("Not implemented");
         }
     }

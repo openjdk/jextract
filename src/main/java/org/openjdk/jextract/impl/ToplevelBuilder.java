@@ -26,6 +26,7 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import javax.tools.JavaFileObject;
@@ -121,8 +122,8 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
-    public void addVar(Declaration.Variable varTree, Optional<String> fiName) {
-        nextHeader().addVar(varTree, fiName);
+    public void addVar(Declaration.Variable varTree) {
+        nextHeader().addVar(varTree);
     }
 
     @Override
@@ -161,11 +162,10 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
-    public void addFunctionalInterface(String name, Type.Function funcType) {
-        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), name);
+    public void addFunctionalInterface(Declaration parentDecl, Type.Function funcType) {
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaFunctionalInterfaceName.getOrThrow(parentDecl));
         otherBuilders.add(sfb);
-        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, mainHeaderClassName(), funcType,
-                funcType.parameterNames().map(NameMangler::javaSafeIdentifiers));
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, mainHeaderClassName(), parentDecl, funcType);
     }
 
     private HeaderFileBuilder nextHeader() {

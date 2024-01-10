@@ -35,6 +35,7 @@ import java.lang.invoke.MethodHandle;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import java.lang.invoke.MethodHandles;
@@ -59,7 +60,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         super(builder, "public", Kind.CLASS, className, superName, null, runtimeHelperName);
     }
 
-    public void addVar(Declaration.Variable varTree, Optional<String> fiName) {
+    public void addVar(Declaration.Variable varTree) {
+        Optional<String> fiName = JavaFunctionalInterfaceName.get(varTree);
         String nativeName = varTree.name();
         String javaName = JavaName.getOrThrow(varTree);
         String layoutVar = emitVarLayout(varTree.type(), javaName);
