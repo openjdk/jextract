@@ -99,7 +99,7 @@ public final class Type extends ClangDisposable.Owned {
         return new Type(elementType, owner);
     }
     public Type getValueType() {
-        var valueType = Index_h.clang_getValueType(owner, segment);
+        var valueType = Index_h.clang_Type_getValueType(owner, segment);
         return new Type(valueType, owner);
     }
 

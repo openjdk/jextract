@@ -32,6 +32,7 @@ import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.Type.Primitive;
+import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import java.lang.foreign.MemoryLayout;
@@ -39,6 +40,8 @@ import java.lang.foreign.MemorySegment;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Superclass for .java source generator classes.
@@ -156,17 +159,7 @@ abstract class ClassSourceBuilder {
             /**
             \{!header.isEmpty() ? STR." * \{header}\n" : ""}\
              * {@snippet lang=c :
-            \{CDeclarationPrinter.declaration(decl, " * ")}
-             * }
-             */
-            """);
-    }
-
-    final void emitDocComment(Type.Function funcType, String name) {
-        appendLines(STR."""
-            /**
-             * {@snippet lang=c :
-             * \{CDeclarationPrinter.declaration(funcType, name)};
+            \{declarationComment(decl)}
              * }
              */
             """);
@@ -250,9 +243,9 @@ abstract class ClassSourceBuilder {
             case Double -> alignIfNeeded(STR."\{runtimeHelperName()}.C_DOUBLE", 8, align);
             case LongDouble -> TypeImpl.IS_WINDOWS ?
                     alignIfNeeded(STR."\{runtimeHelperName()}.C_LONG_DOUBLE", 8, align) :
-                    paddingLayoutString(8);
-            case HalfFloat, Char16, WChar -> paddingLayoutString(2); // unsupported
-            case Float128, Int128 -> paddingLayoutString(16); // unsupported
+                    paddingLayoutString(8, 0);
+            case HalfFloat, Char16, WChar -> paddingLayoutString(2, 0); // unsupported
+            case Float128, Int128 -> paddingLayoutString(16, 0); // unsupported
             default -> throw new UnsupportedOperationException(primitiveType.toString());
         };
     }
@@ -263,7 +256,15 @@ abstract class ClassSourceBuilder {
                 layoutPrefix;
     }
 
-    String paddingLayoutString(long size) {
-        return STR."MemoryLayout.paddingLayout(\{size})";
+    String paddingLayoutString(long size, int indent) {
+        return STR."\{indentString(indent)}MemoryLayout.paddingLayout(\{size})";
+    }
+
+    // Return C source style signature for the given declaration.
+    // A " * " prefix is emitted for every line.
+    static String declarationComment(Declaration decl) {
+        Objects.requireNonNull(decl);
+        String declString = DeclarationString.getOrThrow(decl);
+        return declString.lines().collect(Collectors.joining("\n * ", " * ", ""));
     }
 }

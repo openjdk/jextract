@@ -191,8 +191,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         }
         //generate functional interface
         if (func.varargs() && !func.argumentTypes().isEmpty()) {
-            warnSkip(nameOfSkipped, "varargs in callbacks is not supported: "
-                    + CDeclarationPrinter.declaration(func, JavaName.getOrThrow(decl)));
+            warnSkip(nameOfSkipped, "varargs in callbacks is not supported: " + decl.name());
             return false;
         }
         return true;

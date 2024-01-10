@@ -26,6 +26,7 @@
 
 package org.openjdk.jextract.impl;
 
+import java.lang.foreign.MemoryLayout;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -475,6 +476,22 @@ public abstract class DeclarationImpl implements Declaration {
         public static Optional<List<Type.Declared>> get(Declaration declaration) {
             return declaration.getAttribute(NestedTypes.class)
                     .stream().map(NestedTypes::nestedTypes).findFirst();
+        }
+    }
+
+    record DeclarationString(String declString) {
+        public static void with(Declaration declaration, String declString) {
+            declaration.addAttribute(new DeclarationString(declString));
+        }
+
+        public static Optional<String> get(Declaration declaration) {
+            return declaration.getAttribute(DeclarationString.class)
+                    .stream().map(DeclarationString::declString).findFirst();
+        }
+
+        public static String getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(DeclarationString.class)
+                    .stream().map(DeclarationString::declString).findFirst().get();
         }
     }
 }
