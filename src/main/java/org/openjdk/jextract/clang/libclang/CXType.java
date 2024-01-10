@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -28,12 +28,14 @@
 package org.openjdk.jextract.clang.libclang;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+
 /**
- * {@snippet :
+ * {@snippet lang=c :
  * struct {
  *     enum CXTypeKind kind;
  *     void* data[2];
@@ -42,51 +44,67 @@ import static java.lang.foreign.ValueLayout.*;
  */
 public class CXType {
 
-    static final StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
-        Constants$root.C_INT$LAYOUT.withName("kind"),
+    CXType() {
+        // Suppresses public default constructor, ensuring non-instantiability,
+        // but allows generated subclasses in same package.
+    }
+
+    private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
+        Index_h.C_INT.withName("kind"),
         MemoryLayout.paddingLayout(4),
-        MemoryLayout.sequenceLayout(2, Constants$root.C_POINTER$LAYOUT).withName("data")
-    );
-    public static MemoryLayout $LAYOUT() {
-        return CXType.$struct$LAYOUT;
+        MemoryLayout.sequenceLayout(2, Index_h.C_POINTER).withName("data")
+    ).withName("$anon$3431:9");
+
+    public static final GroupLayout $LAYOUT() {
+        return $LAYOUT;
     }
-    static final VarHandle kind$VH = $struct$LAYOUT.varHandle(MemoryLayout.PathElement.groupElement("kind"));
-    public static VarHandle kind$VH() {
-        return CXType.kind$VH;
-    }
+
+    private static final long kind$OFFSET = 0;
+
     /**
      * Getter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind kind;
      * }
      */
     public static int kind$get(MemorySegment seg) {
-        return (int)CXType.kind$VH.get(seg, 0L);
+        return seg.get(Index_h.C_INT, kind$OFFSET);
     }
+
+    public static int kind$get(MemorySegment seg, long index) {
+        return seg.get(Index_h.C_INT, kind$OFFSET + (index * sizeof()));
+    }
+
     /**
      * Setter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind kind;
      * }
      */
     public static void kind$set(MemorySegment seg, int x) {
-        CXType.kind$VH.set(seg, 0L, x);
+        seg.set(Index_h.C_INT, kind$OFFSET, x);
     }
-    public static int kind$get(MemorySegment seg, long index) {
-        return (int)CXType.kind$VH.get(seg.asSlice(index*sizeof()));
-    }
+
     public static void kind$set(MemorySegment seg, long index, int x) {
-        CXType.kind$VH.set(seg.asSlice(index*sizeof()), x);
+        seg.set(Index_h.C_INT, kind$OFFSET + (index * sizeof()), x);
     }
+
+    private static final long data$OFFSET = 8;
+    private static final long data$SIZE = 16;
+
     public static MemorySegment data$slice(MemorySegment seg) {
-        return seg.asSlice(8, 16);
+        return seg.asSlice(data$OFFSET, data$SIZE);
     }
+
     public static long sizeof() { return $LAYOUT().byteSize(); }
     public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
+
     public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
-}
 
+    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
+        return addr.reinterpret($LAYOUT().byteSize(), scope, null);
+    }
+}
 

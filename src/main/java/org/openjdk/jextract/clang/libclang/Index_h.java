@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -28,5883 +28,8239 @@
 package org.openjdk.jextract.clang.libclang;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
-public class Index_h  {
 
-    public static final OfByte C_CHAR = Constants$root.C_CHAR$LAYOUT;
-    public static final OfShort C_SHORT = Constants$root.C_SHORT$LAYOUT;
-    public static final OfInt C_INT = Constants$root.C_INT$LAYOUT;
-    public static final OfLong C_LONG = Constants$root.C_LONG_LONG$LAYOUT;
-    public static final OfLong C_LONG_LONG = Constants$root.C_LONG_LONG$LAYOUT;
-    public static final OfFloat C_FLOAT = Constants$root.C_FLOAT$LAYOUT;
-    public static final OfDouble C_DOUBLE = Constants$root.C_DOUBLE$LAYOUT;
-    public static final AddressLayout C_POINTER = Constants$root.C_POINTER$LAYOUT;
+public class Index_h {
+
+    static final SymbolLookup SYMBOL_LOOKUP
+            = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
+
+    static {
+        System.loadLibrary("clang");
+    }
+
+    Index_h() {
+        // Suppresses public default constructor, ensuring non-instantiability,
+        // but allows generated subclasses in same package.
+    }
+
+    public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
+    public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
+    public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;
+    public static final ValueLayout.OfInt C_INT = ValueLayout.JAVA_INT;
+    public static final ValueLayout.OfLong C_LONG_LONG = ValueLayout.JAVA_LONG;
+    public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT;
+    public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
+    public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
+            .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
+    public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;
+
+    static MemorySegment findOrThrow(String symbol) {
+        return SYMBOL_LOOKUP.find(symbol)
+            .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
+    }
+
+    static MemoryLayout[] inferVariadicLayouts(Object[] varargs) {
+        MemoryLayout[] result = new MemoryLayout[varargs.length];
+        for (int i = 0; i < varargs.length; i++) {
+            result[i] = variadicLayout(varargs[i].getClass());
+        }
+        return result;
+    }
+
+    static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
+        try {
+            return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
+        } catch (ReflectiveOperationException ex) {
+            throw new AssertionError(ex);
+        }
+    }
+
+    static MethodHandle downcallHandleVariadic(String name, FunctionDescriptor baseDesc, MemoryLayout[] variadicLayouts) {
+        FunctionDescriptor variadicDesc = baseDesc.appendArgumentLayouts(variadicLayouts);
+        Linker.Option fva = Linker.Option.firstVariadicArg(baseDesc.argumentLayouts().size());
+        return SYMBOL_LOOKUP.find(name)
+                .map(addr -> Linker.nativeLinker().downcallHandle(addr, variadicDesc, fva)
+                        .asSpreader(Object[].class, variadicLayouts.length))
+                .orElse(null);
+    }
+
+    // Internals only below this point
+
+    private static MemoryLayout variadicLayout(Class<?> c) {
+        // apply default argument promotions per C spec
+        // note that all primitives are boxed, since they are passed through an Object[]
+        if (c == Boolean.class || c == Byte.class || c == Character.class || c == Short.class || c == Integer.class) {
+            return JAVA_INT;
+        } else if (c == Long.class) {
+            return JAVA_LONG;
+        } else if (c == Float.class || c == Double.class) {
+            return JAVA_DOUBLE;
+        } else if (MemorySegment.class.isAssignableFrom(c)) {
+            return ADDRESS;
+        }
+        throw new IllegalArgumentException("Invalid type for ABI: " + c.getTypeName());
+    }
+    private static final int CXError_Success = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXErrorCode.CXError_Success = 0;
      * }
      */
     public static int CXError_Success() {
-        return (int)0L;
+        return CXError_Success;
     }
+    private static final int CXError_Failure = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXErrorCode.CXError_Failure = 1;
      * }
      */
     public static int CXError_Failure() {
-        return (int)1L;
+        return CXError_Failure;
     }
+    private static final int CXError_Crashed = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXErrorCode.CXError_Crashed = 2;
      * }
      */
     public static int CXError_Crashed() {
-        return (int)2L;
+        return CXError_Crashed;
     }
+    private static final int CXError_InvalidArguments = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXErrorCode.CXError_InvalidArguments = 3;
      * }
      */
     public static int CXError_InvalidArguments() {
-        return (int)3L;
+        return CXError_InvalidArguments;
     }
+    private static final int CXError_ASTReadError = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXErrorCode.CXError_ASTReadError = 4;
      * }
      */
     public static int CXError_ASTReadError() {
-        return (int)4L;
-    }
-    public static MethodHandle clang_getCString$MH() {
-        return RuntimeHelper.requireNonNull(constants$0.clang_getCString$MH,"clang_getCString");
+        return CXError_ASTReadError;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * char* clang_getCString(CXString string);
      * }
      */
+    public static MethodHandle clang_getCString$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_POINTER,
+                CXString.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCString"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getCString(MemorySegment string) {
         var mh$ = clang_getCString$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(string);
+            return (MemorySegment) mh$.invokeExact(string);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_disposeString$MH() {
-        return RuntimeHelper.requireNonNull(constants$0.clang_disposeString$MH,"clang_disposeString");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_disposeString(CXString string);
      * }
      */
+    public static MethodHandle clang_disposeString$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                CXString.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_disposeString"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_disposeString(MemorySegment string) {
         var mh$ = clang_disposeString$MH();
         try {
             mh$.invokeExact(string);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * typedef void* CXIndex;
      * }
      */
-    public static final AddressLayout CXIndex = Constants$root.C_POINTER$LAYOUT;
+    public static final AddressLayout CXIndex = Index_h.C_POINTER;
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * typedef struct CXTranslationUnitImpl* CXTranslationUnit;
      * }
      */
-    public static final AddressLayout CXTranslationUnit = Constants$root.C_POINTER$LAYOUT;
+    public static final AddressLayout CXTranslationUnit = Index_h.C_POINTER;
+    private static final int CXCursor_ExceptionSpecificationKind_None = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_None = 0;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_None() {
-        return (int)0L;
+        return CXCursor_ExceptionSpecificationKind_None;
     }
+    private static final int CXCursor_ExceptionSpecificationKind_DynamicNone = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_DynamicNone = 1;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_DynamicNone() {
-        return (int)1L;
+        return CXCursor_ExceptionSpecificationKind_DynamicNone;
     }
+    private static final int CXCursor_ExceptionSpecificationKind_Dynamic = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_Dynamic = 2;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_Dynamic() {
-        return (int)2L;
+        return CXCursor_ExceptionSpecificationKind_Dynamic;
     }
+    private static final int CXCursor_ExceptionSpecificationKind_MSAny = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_MSAny = 3;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_MSAny() {
-        return (int)3L;
+        return CXCursor_ExceptionSpecificationKind_MSAny;
     }
+    private static final int CXCursor_ExceptionSpecificationKind_BasicNoexcept = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_BasicNoexcept = 4;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_BasicNoexcept() {
-        return (int)4L;
+        return CXCursor_ExceptionSpecificationKind_BasicNoexcept;
     }
+    private static final int CXCursor_ExceptionSpecificationKind_ComputedNoexcept = (int)5L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_ComputedNoexcept = 5;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_ComputedNoexcept() {
-        return (int)5L;
+        return CXCursor_ExceptionSpecificationKind_ComputedNoexcept;
     }
+    private static final int CXCursor_ExceptionSpecificationKind_Unevaluated = (int)6L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_Unevaluated = 6;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_Unevaluated() {
-        return (int)6L;
+        return CXCursor_ExceptionSpecificationKind_Unevaluated;
     }
+    private static final int CXCursor_ExceptionSpecificationKind_Uninstantiated = (int)7L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_Uninstantiated = 7;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_Uninstantiated() {
-        return (int)7L;
+        return CXCursor_ExceptionSpecificationKind_Uninstantiated;
     }
+    private static final int CXCursor_ExceptionSpecificationKind_Unparsed = (int)8L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_Unparsed = 8;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_Unparsed() {
-        return (int)8L;
+        return CXCursor_ExceptionSpecificationKind_Unparsed;
     }
+    private static final int CXCursor_ExceptionSpecificationKind_NoThrow = (int)9L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_NoThrow = 9;
      * }
      */
     public static int CXCursor_ExceptionSpecificationKind_NoThrow() {
-        return (int)9L;
-    }
-    public static MethodHandle clang_createIndex$MH() {
-        return RuntimeHelper.requireNonNull(constants$0.clang_createIndex$MH,"clang_createIndex");
+        return CXCursor_ExceptionSpecificationKind_NoThrow;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXIndex clang_createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics);
      * }
      */
+    public static MethodHandle clang_createIndex$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_POINTER,
+                Index_h.C_INT,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_createIndex"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics) {
         var mh$ = clang_createIndex$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(excludeDeclarationsFromPCH, displayDiagnostics);
+            return (MemorySegment) mh$.invokeExact(excludeDeclarationsFromPCH, displayDiagnostics);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_disposeIndex$MH() {
-        return RuntimeHelper.requireNonNull(constants$0.clang_disposeIndex$MH,"clang_disposeIndex");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_disposeIndex(CXIndex index);
      * }
      */
+    public static MethodHandle clang_disposeIndex$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_disposeIndex"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_disposeIndex(MemorySegment index) {
         var mh$ = clang_disposeIndex$MH();
         try {
             mh$.invokeExact(index);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getFileName$MH() {
-        return RuntimeHelper.requireNonNull(constants$0.clang_getFileName$MH,"clang_getFileName");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getFileName(CXFile SFile);
      * }
      */
+    public static MethodHandle clang_getFileName$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getFileName"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getFileName(SegmentAllocator allocator, MemorySegment SFile) {
         var mh$ = clang_getFileName$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, SFile);
+            return (MemorySegment) mh$.invokeExact(allocator, SFile);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getNullLocation$MH() {
-        return RuntimeHelper.requireNonNull(constants$0.clang_getNullLocation$MH,"clang_getNullLocation");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceLocation clang_getNullLocation();
      * }
      */
+    public static MethodHandle clang_getNullLocation$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceLocation.$LAYOUT()        );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getNullLocation"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getNullLocation(SegmentAllocator allocator) {
         var mh$ = clang_getNullLocation$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator);
+            return (MemorySegment) mh$.invokeExact(allocator);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_equalLocations$MH() {
-        return RuntimeHelper.requireNonNull(constants$1.clang_equalLocations$MH,"clang_equalLocations");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_equalLocations(CXSourceLocation loc1, CXSourceLocation loc2);
      * }
      */
+    public static MethodHandle clang_equalLocations$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXSourceLocation.$LAYOUT(),
+                CXSourceLocation.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_equalLocations"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_equalLocations(MemorySegment loc1, MemorySegment loc2) {
         var mh$ = clang_equalLocations$MH();
         try {
-            return (int)mh$.invokeExact(loc1, loc2);
+            return (int) mh$.invokeExact(loc1, loc2);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getLocation$MH() {
-        return RuntimeHelper.requireNonNull(constants$1.clang_getLocation$MH,"clang_getLocation");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceLocation clang_getLocation(CXTranslationUnit tu, CXFile file, unsigned int line, unsigned int column);
      * }
      */
+    public static MethodHandle clang_getLocation$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceLocation.$LAYOUT(),
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_INT,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getLocation"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getLocation(SegmentAllocator allocator, MemorySegment tu, MemorySegment file, int line, int column) {
         var mh$ = clang_getLocation$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, line, column);
+            return (MemorySegment) mh$.invokeExact(allocator, tu, file, line, column);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getLocationForOffset$MH() {
-        return RuntimeHelper.requireNonNull(constants$1.clang_getLocationForOffset$MH,"clang_getLocationForOffset");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceLocation clang_getLocationForOffset(CXTranslationUnit tu, CXFile file, unsigned int offset);
      * }
      */
+    public static MethodHandle clang_getLocationForOffset$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceLocation.$LAYOUT(),
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getLocationForOffset"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getLocationForOffset(SegmentAllocator allocator, MemorySegment tu, MemorySegment file, int offset) {
         var mh$ = clang_getLocationForOffset$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, tu, file, offset);
+            return (MemorySegment) mh$.invokeExact(allocator, tu, file, offset);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Location_isInSystemHeader$MH() {
-        return RuntimeHelper.requireNonNull(constants$1.clang_Location_isInSystemHeader$MH,"clang_Location_isInSystemHeader");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_Location_isInSystemHeader(CXSourceLocation location);
      * }
      */
+    public static MethodHandle clang_Location_isInSystemHeader$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXSourceLocation.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Location_isInSystemHeader"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Location_isInSystemHeader(MemorySegment location) {
         var mh$ = clang_Location_isInSystemHeader$MH();
         try {
-            return (int)mh$.invokeExact(location);
+            return (int) mh$.invokeExact(location);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Location_isFromMainFile$MH() {
-        return RuntimeHelper.requireNonNull(constants$1.clang_Location_isFromMainFile$MH,"clang_Location_isFromMainFile");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_Location_isFromMainFile(CXSourceLocation location);
      * }
      */
+    public static MethodHandle clang_Location_isFromMainFile$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXSourceLocation.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Location_isFromMainFile"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Location_isFromMainFile(MemorySegment location) {
         var mh$ = clang_Location_isFromMainFile$MH();
         try {
-            return (int)mh$.invokeExact(location);
+            return (int) mh$.invokeExact(location);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Range_isNull$MH() {
-        return RuntimeHelper.requireNonNull(constants$1.clang_Range_isNull$MH,"clang_Range_isNull");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_Range_isNull(CXSourceRange range);
      * }
      */
+    public static MethodHandle clang_Range_isNull$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXSourceRange.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Range_isNull"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Range_isNull(MemorySegment range) {
         var mh$ = clang_Range_isNull$MH();
         try {
-            return (int)mh$.invokeExact(range);
+            return (int) mh$.invokeExact(range);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getExpansionLocation$MH() {
-        return RuntimeHelper.requireNonNull(constants$2.clang_getExpansionLocation$MH,"clang_getExpansionLocation");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_getExpansionLocation(CXSourceLocation location, CXFile* file, unsigned int* line, unsigned int* column, unsigned int* offset);
      * }
      */
+    public static MethodHandle clang_getExpansionLocation$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                CXSourceLocation.$LAYOUT(),
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getExpansionLocation"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_getExpansionLocation(MemorySegment location, MemorySegment file, MemorySegment line, MemorySegment column, MemorySegment offset) {
         var mh$ = clang_getExpansionLocation$MH();
         try {
             mh$.invokeExact(location, file, line, column, offset);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getSpellingLocation$MH() {
-        return RuntimeHelper.requireNonNull(constants$2.clang_getSpellingLocation$MH,"clang_getSpellingLocation");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_getSpellingLocation(CXSourceLocation location, CXFile* file, unsigned int* line, unsigned int* column, unsigned int* offset);
      * }
      */
+    public static MethodHandle clang_getSpellingLocation$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                CXSourceLocation.$LAYOUT(),
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getSpellingLocation"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_getSpellingLocation(MemorySegment location, MemorySegment file, MemorySegment line, MemorySegment column, MemorySegment offset) {
         var mh$ = clang_getSpellingLocation$MH();
         try {
             mh$.invokeExact(location, file, line, column, offset);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getFileLocation$MH() {
-        return RuntimeHelper.requireNonNull(constants$2.clang_getFileLocation$MH,"clang_getFileLocation");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_getFileLocation(CXSourceLocation location, CXFile* file, unsigned int* line, unsigned int* column, unsigned int* offset);
      * }
      */
+    public static MethodHandle clang_getFileLocation$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                CXSourceLocation.$LAYOUT(),
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getFileLocation"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_getFileLocation(MemorySegment location, MemorySegment file, MemorySegment line, MemorySegment column, MemorySegment offset) {
         var mh$ = clang_getFileLocation$MH();
         try {
             mh$.invokeExact(location, file, line, column, offset);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getRangeStart$MH() {
-        return RuntimeHelper.requireNonNull(constants$2.clang_getRangeStart$MH,"clang_getRangeStart");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceLocation clang_getRangeStart(CXSourceRange range);
      * }
      */
+    public static MethodHandle clang_getRangeStart$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceLocation.$LAYOUT(),
+                CXSourceRange.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getRangeStart"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getRangeStart(SegmentAllocator allocator, MemorySegment range) {
         var mh$ = clang_getRangeStart$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, range);
+            return (MemorySegment) mh$.invokeExact(allocator, range);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getRangeEnd$MH() {
-        return RuntimeHelper.requireNonNull(constants$2.clang_getRangeEnd$MH,"clang_getRangeEnd");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceLocation clang_getRangeEnd(CXSourceRange range);
      * }
      */
+    public static MethodHandle clang_getRangeEnd$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceLocation.$LAYOUT(),
+                CXSourceRange.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getRangeEnd"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getRangeEnd(SegmentAllocator allocator, MemorySegment range) {
         var mh$ = clang_getRangeEnd$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, range);
+            return (MemorySegment) mh$.invokeExact(allocator, range);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXDiagnostic_Ignored = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Ignored = 0;
      * }
      */
     public static int CXDiagnostic_Ignored() {
-        return (int)0L;
+        return CXDiagnostic_Ignored;
     }
+    private static final int CXDiagnostic_Note = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Note = 1;
      * }
      */
     public static int CXDiagnostic_Note() {
-        return (int)1L;
+        return CXDiagnostic_Note;
     }
+    private static final int CXDiagnostic_Warning = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Warning = 2;
      * }
      */
     public static int CXDiagnostic_Warning() {
-        return (int)2L;
+        return CXDiagnostic_Warning;
     }
+    private static final int CXDiagnostic_Error = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Error = 3;
      * }
      */
     public static int CXDiagnostic_Error() {
-        return (int)3L;
+        return CXDiagnostic_Error;
     }
+    private static final int CXDiagnostic_Fatal = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Fatal = 4;
      * }
      */
     public static int CXDiagnostic_Fatal() {
-        return (int)4L;
-    }
-    public static MethodHandle clang_getChildDiagnostics$MH() {
-        return RuntimeHelper.requireNonNull(constants$2.clang_getChildDiagnostics$MH,"clang_getChildDiagnostics");
+        return CXDiagnostic_Fatal;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXDiagnosticSet clang_getChildDiagnostics(CXDiagnostic D);
      * }
      */
+    public static MethodHandle clang_getChildDiagnostics$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_POINTER,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getChildDiagnostics"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getChildDiagnostics(MemorySegment D) {
         var mh$ = clang_getChildDiagnostics$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(D);
+            return (MemorySegment) mh$.invokeExact(D);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getNumDiagnostics$MH() {
-        return RuntimeHelper.requireNonNull(constants$3.clang_getNumDiagnostics$MH,"clang_getNumDiagnostics");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_getNumDiagnostics(CXTranslationUnit Unit);
      * }
      */
+    public static MethodHandle clang_getNumDiagnostics$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getNumDiagnostics"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_getNumDiagnostics(MemorySegment Unit) {
         var mh$ = clang_getNumDiagnostics$MH();
         try {
-            return (int)mh$.invokeExact(Unit);
+            return (int) mh$.invokeExact(Unit);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getDiagnostic$MH() {
-        return RuntimeHelper.requireNonNull(constants$3.clang_getDiagnostic$MH,"clang_getDiagnostic");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXDiagnostic clang_getDiagnostic(CXTranslationUnit Unit, unsigned int Index);
      * }
      */
+    public static MethodHandle clang_getDiagnostic$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getDiagnostic"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getDiagnostic(MemorySegment Unit, int Index) {
         var mh$ = clang_getDiagnostic$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(Unit, Index);
+            return (MemorySegment) mh$.invokeExact(Unit, Index);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_disposeDiagnostic$MH() {
-        return RuntimeHelper.requireNonNull(constants$3.clang_disposeDiagnostic$MH,"clang_disposeDiagnostic");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_disposeDiagnostic(CXDiagnostic Diagnostic);
      * }
      */
+    public static MethodHandle clang_disposeDiagnostic$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_disposeDiagnostic"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_disposeDiagnostic(MemorySegment Diagnostic) {
         var mh$ = clang_disposeDiagnostic$MH();
         try {
             mh$.invokeExact(Diagnostic);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXDiagnostic_DisplaySourceLocation = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplaySourceLocation = 1;
      * }
      */
     public static int CXDiagnostic_DisplaySourceLocation() {
-        return (int)1L;
+        return CXDiagnostic_DisplaySourceLocation;
     }
+    private static final int CXDiagnostic_DisplayColumn = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplayColumn = 2;
      * }
      */
     public static int CXDiagnostic_DisplayColumn() {
-        return (int)2L;
+        return CXDiagnostic_DisplayColumn;
     }
+    private static final int CXDiagnostic_DisplaySourceRanges = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplaySourceRanges = 4;
      * }
      */
     public static int CXDiagnostic_DisplaySourceRanges() {
-        return (int)4L;
+        return CXDiagnostic_DisplaySourceRanges;
     }
+    private static final int CXDiagnostic_DisplayOption = (int)8L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption = 8;
      * }
      */
     public static int CXDiagnostic_DisplayOption() {
-        return (int)8L;
+        return CXDiagnostic_DisplayOption;
     }
+    private static final int CXDiagnostic_DisplayCategoryId = (int)16L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplayCategoryId = 16;
      * }
      */
     public static int CXDiagnostic_DisplayCategoryId() {
-        return (int)16L;
+        return CXDiagnostic_DisplayCategoryId;
     }
+    private static final int CXDiagnostic_DisplayCategoryName = (int)32L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplayCategoryName = 32;
      * }
      */
     public static int CXDiagnostic_DisplayCategoryName() {
-        return (int)32L;
-    }
-    public static MethodHandle clang_formatDiagnostic$MH() {
-        return RuntimeHelper.requireNonNull(constants$3.clang_formatDiagnostic$MH,"clang_formatDiagnostic");
+        return CXDiagnostic_DisplayCategoryName;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_formatDiagnostic(CXDiagnostic Diagnostic, unsigned int Options);
      * }
      */
+    public static MethodHandle clang_formatDiagnostic$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                Index_h.C_POINTER,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_formatDiagnostic"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_formatDiagnostic(SegmentAllocator allocator, MemorySegment Diagnostic, int Options) {
         var mh$ = clang_formatDiagnostic$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, Diagnostic, Options);
+            return (MemorySegment) mh$.invokeExact(allocator, Diagnostic, Options);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_defaultDiagnosticDisplayOptions$MH() {
-        return RuntimeHelper.requireNonNull(constants$3.clang_defaultDiagnosticDisplayOptions$MH,"clang_defaultDiagnosticDisplayOptions");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_defaultDiagnosticDisplayOptions();
      * }
      */
+    public static MethodHandle clang_defaultDiagnosticDisplayOptions$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT        );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_defaultDiagnosticDisplayOptions"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_defaultDiagnosticDisplayOptions() {
         var mh$ = clang_defaultDiagnosticDisplayOptions$MH();
         try {
-            return (int)mh$.invokeExact();
+            return (int) mh$.invokeExact();
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getDiagnosticSeverity$MH() {
-        return RuntimeHelper.requireNonNull(constants$3.clang_getDiagnosticSeverity$MH,"clang_getDiagnosticSeverity");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXDiagnosticSeverity clang_getDiagnosticSeverity(CXDiagnostic);
      * }
      */
+    public static MethodHandle clang_getDiagnosticSeverity$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getDiagnosticSeverity"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_getDiagnosticSeverity(MemorySegment x0) {
         var mh$ = clang_getDiagnosticSeverity$MH();
         try {
-            return (int)mh$.invokeExact(x0);
+            return (int) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getDiagnosticLocation$MH() {
-        return RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticLocation$MH,"clang_getDiagnosticLocation");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceLocation clang_getDiagnosticLocation(CXDiagnostic);
      * }
      */
-    public static MemorySegment clang_getDiagnosticLocation(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getDiagnosticLocation$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceLocation.$LAYOUT(),
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getDiagnosticLocation"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getDiagnosticLocation(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getDiagnosticLocation$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getDiagnosticSpelling$MH() {
-        return RuntimeHelper.requireNonNull(constants$4.clang_getDiagnosticSpelling$MH,"clang_getDiagnosticSpelling");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getDiagnosticSpelling(CXDiagnostic);
      * }
      */
-    public static MemorySegment clang_getDiagnosticSpelling(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getDiagnosticSpelling$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getDiagnosticSpelling"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getDiagnosticSpelling(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getDiagnosticSpelling$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXTranslationUnit_None = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_None = 0;
      * }
      */
     public static int CXTranslationUnit_None() {
-        return (int)0L;
+        return CXTranslationUnit_None;
     }
+    private static final int CXTranslationUnit_DetailedPreprocessingRecord = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord = 1;
      * }
      */
     public static int CXTranslationUnit_DetailedPreprocessingRecord() {
-        return (int)1L;
+        return CXTranslationUnit_DetailedPreprocessingRecord;
     }
+    private static final int CXTranslationUnit_Incomplete = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_Incomplete = 2;
      * }
      */
     public static int CXTranslationUnit_Incomplete() {
-        return (int)2L;
+        return CXTranslationUnit_Incomplete;
     }
+    private static final int CXTranslationUnit_PrecompiledPreamble = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_PrecompiledPreamble = 4;
      * }
      */
     public static int CXTranslationUnit_PrecompiledPreamble() {
-        return (int)4L;
+        return CXTranslationUnit_PrecompiledPreamble;
     }
+    private static final int CXTranslationUnit_CacheCompletionResults = (int)8L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_CacheCompletionResults = 8;
      * }
      */
     public static int CXTranslationUnit_CacheCompletionResults() {
-        return (int)8L;
+        return CXTranslationUnit_CacheCompletionResults;
     }
+    private static final int CXTranslationUnit_ForSerialization = (int)16L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_ForSerialization = 16;
      * }
      */
     public static int CXTranslationUnit_ForSerialization() {
-        return (int)16L;
+        return CXTranslationUnit_ForSerialization;
     }
+    private static final int CXTranslationUnit_CXXChainedPCH = (int)32L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_CXXChainedPCH = 32;
      * }
      */
     public static int CXTranslationUnit_CXXChainedPCH() {
-        return (int)32L;
+        return CXTranslationUnit_CXXChainedPCH;
     }
+    private static final int CXTranslationUnit_SkipFunctionBodies = (int)64L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_SkipFunctionBodies = 64;
      * }
      */
     public static int CXTranslationUnit_SkipFunctionBodies() {
-        return (int)64L;
+        return CXTranslationUnit_SkipFunctionBodies;
     }
+    private static final int CXTranslationUnit_IncludeBriefCommentsInCodeCompletion = (int)128L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_IncludeBriefCommentsInCodeCompletion = 128;
      * }
      */
     public static int CXTranslationUnit_IncludeBriefCommentsInCodeCompletion() {
-        return (int)128L;
+        return CXTranslationUnit_IncludeBriefCommentsInCodeCompletion;
     }
+    private static final int CXTranslationUnit_CreatePreambleOnFirstParse = (int)256L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_CreatePreambleOnFirstParse = 256;
      * }
      */
     public static int CXTranslationUnit_CreatePreambleOnFirstParse() {
-        return (int)256L;
+        return CXTranslationUnit_CreatePreambleOnFirstParse;
     }
+    private static final int CXTranslationUnit_KeepGoing = (int)512L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_KeepGoing = 512;
      * }
      */
     public static int CXTranslationUnit_KeepGoing() {
-        return (int)512L;
+        return CXTranslationUnit_KeepGoing;
     }
+    private static final int CXTranslationUnit_SingleFileParse = (int)1024L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_SingleFileParse = 1024;
      * }
      */
     public static int CXTranslationUnit_SingleFileParse() {
-        return (int)1024L;
+        return CXTranslationUnit_SingleFileParse;
     }
+    private static final int CXTranslationUnit_LimitSkipFunctionBodiesToPreamble = (int)2048L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_LimitSkipFunctionBodiesToPreamble = 2048;
      * }
      */
     public static int CXTranslationUnit_LimitSkipFunctionBodiesToPreamble() {
-        return (int)2048L;
+        return CXTranslationUnit_LimitSkipFunctionBodiesToPreamble;
     }
+    private static final int CXTranslationUnit_IncludeAttributedTypes = (int)4096L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes = 4096;
      * }
      */
     public static int CXTranslationUnit_IncludeAttributedTypes() {
-        return (int)4096L;
+        return CXTranslationUnit_IncludeAttributedTypes;
     }
+    private static final int CXTranslationUnit_VisitImplicitAttributes = (int)8192L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes = 8192;
      * }
      */
     public static int CXTranslationUnit_VisitImplicitAttributes() {
-        return (int)8192L;
+        return CXTranslationUnit_VisitImplicitAttributes;
     }
+    private static final int CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles = (int)16384L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles = 16384;
      * }
      */
     public static int CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles() {
-        return (int)16384L;
+        return CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles;
     }
+    private static final int CXTranslationUnit_RetainExcludedConditionalBlocks = (int)32768L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_RetainExcludedConditionalBlocks = 32768;
      * }
      */
     public static int CXTranslationUnit_RetainExcludedConditionalBlocks() {
-        return (int)32768L;
-    }
-    public static MethodHandle clang_parseTranslationUnit$MH() {
-        return RuntimeHelper.requireNonNull(constants$4.clang_parseTranslationUnit$MH,"clang_parseTranslationUnit");
+        return CXTranslationUnit_RetainExcludedConditionalBlocks;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXTranslationUnit clang_parseTranslationUnit(CXIndex CIdx, char* source_filename, char** command_line_args, int num_command_line_args, struct CXUnsavedFile* unsaved_files, unsigned int num_unsaved_files, unsigned int options);
      * }
      */
+    public static MethodHandle clang_parseTranslationUnit$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_INT,
+                Index_h.C_POINTER,
+                Index_h.C_INT,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_parseTranslationUnit"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_parseTranslationUnit(MemorySegment CIdx, MemorySegment source_filename, MemorySegment command_line_args, int num_command_line_args, MemorySegment unsaved_files, int num_unsaved_files, int options) {
         var mh$ = clang_parseTranslationUnit$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
+            return (MemorySegment) mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_parseTranslationUnit2$MH() {
-        return RuntimeHelper.requireNonNull(constants$4.clang_parseTranslationUnit2$MH,"clang_parseTranslationUnit2");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXErrorCode clang_parseTranslationUnit2(CXIndex CIdx, char* source_filename, char** command_line_args, int num_command_line_args, struct CXUnsavedFile* unsaved_files, unsigned int num_unsaved_files, unsigned int options, CXTranslationUnit* out_TU);
      * }
      */
+    public static MethodHandle clang_parseTranslationUnit2$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_INT,
+                Index_h.C_POINTER,
+                Index_h.C_INT,
+                Index_h.C_INT,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_parseTranslationUnit2"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_parseTranslationUnit2(MemorySegment CIdx, MemorySegment source_filename, MemorySegment command_line_args, int num_command_line_args, MemorySegment unsaved_files, int num_unsaved_files, int options, MemorySegment out_TU) {
         var mh$ = clang_parseTranslationUnit2$MH();
         try {
-            return (int)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options, out_TU);
+            return (int) mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options, out_TU);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXSaveTranslationUnit_None = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXSaveTranslationUnit_Flags.CXSaveTranslationUnit_None = 0;
      * }
      */
     public static int CXSaveTranslationUnit_None() {
-        return (int)0L;
+        return CXSaveTranslationUnit_None;
     }
+    private static final int CXSaveError_None = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXSaveError.CXSaveError_None = 0;
      * }
      */
     public static int CXSaveError_None() {
-        return (int)0L;
+        return CXSaveError_None;
     }
+    private static final int CXSaveError_Unknown = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXSaveError.CXSaveError_Unknown = 1;
      * }
      */
     public static int CXSaveError_Unknown() {
-        return (int)1L;
+        return CXSaveError_Unknown;
     }
+    private static final int CXSaveError_TranslationErrors = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXSaveError.CXSaveError_TranslationErrors = 2;
      * }
      */
     public static int CXSaveError_TranslationErrors() {
-        return (int)2L;
+        return CXSaveError_TranslationErrors;
     }
+    private static final int CXSaveError_InvalidTU = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXSaveError.CXSaveError_InvalidTU = 3;
      * }
      */
     public static int CXSaveError_InvalidTU() {
-        return (int)3L;
-    }
-    public static MethodHandle clang_saveTranslationUnit$MH() {
-        return RuntimeHelper.requireNonNull(constants$4.clang_saveTranslationUnit$MH,"clang_saveTranslationUnit");
+        return CXSaveError_InvalidTU;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_saveTranslationUnit(CXTranslationUnit TU, char* FileName, unsigned int options);
      * }
      */
+    public static MethodHandle clang_saveTranslationUnit$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_saveTranslationUnit"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_saveTranslationUnit(MemorySegment TU, MemorySegment FileName, int options) {
         var mh$ = clang_saveTranslationUnit$MH();
         try {
-            return (int)mh$.invokeExact(TU, FileName, options);
+            return (int) mh$.invokeExact(TU, FileName, options);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_disposeTranslationUnit$MH() {
-        return RuntimeHelper.requireNonNull(constants$4.clang_disposeTranslationUnit$MH,"clang_disposeTranslationUnit");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_disposeTranslationUnit(CXTranslationUnit);
      * }
      */
+    public static MethodHandle clang_disposeTranslationUnit$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_disposeTranslationUnit"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_disposeTranslationUnit(MemorySegment x0) {
         var mh$ = clang_disposeTranslationUnit$MH();
         try {
             mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXReparse_None = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXReparse_Flags.CXReparse_None = 0;
      * }
      */
     public static int CXReparse_None() {
-        return (int)0L;
-    }
-    public static MethodHandle clang_defaultReparseOptions$MH() {
-        return RuntimeHelper.requireNonNull(constants$5.clang_defaultReparseOptions$MH,"clang_defaultReparseOptions");
+        return CXReparse_None;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_defaultReparseOptions(CXTranslationUnit TU);
      * }
      */
+    public static MethodHandle clang_defaultReparseOptions$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_defaultReparseOptions"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_defaultReparseOptions(MemorySegment TU) {
         var mh$ = clang_defaultReparseOptions$MH();
         try {
-            return (int)mh$.invokeExact(TU);
+            return (int) mh$.invokeExact(TU);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_reparseTranslationUnit$MH() {
-        return RuntimeHelper.requireNonNull(constants$5.clang_reparseTranslationUnit$MH,"clang_reparseTranslationUnit");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_reparseTranslationUnit(CXTranslationUnit TU, unsigned int num_unsaved_files, struct CXUnsavedFile* unsaved_files, unsigned int options);
      * }
      */
+    public static MethodHandle clang_reparseTranslationUnit$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER,
+                Index_h.C_INT,
+                Index_h.C_POINTER,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_reparseTranslationUnit"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_reparseTranslationUnit(MemorySegment TU, int num_unsaved_files, MemorySegment unsaved_files, int options) {
         var mh$ = clang_reparseTranslationUnit$MH();
         try {
-            return (int)mh$.invokeExact(TU, num_unsaved_files, unsaved_files, options);
+            return (int) mh$.invokeExact(TU, num_unsaved_files, unsaved_files, options);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXCursor_UnexposedDecl = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnexposedDecl = 1;
      * }
      */
     public static int CXCursor_UnexposedDecl() {
-        return (int)1L;
+        return CXCursor_UnexposedDecl;
     }
+    private static final int CXCursor_StructDecl = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_StructDecl = 2;
      * }
      */
     public static int CXCursor_StructDecl() {
-        return (int)2L;
+        return CXCursor_StructDecl;
     }
+    private static final int CXCursor_UnionDecl = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnionDecl = 3;
      * }
      */
     public static int CXCursor_UnionDecl() {
-        return (int)3L;
+        return CXCursor_UnionDecl;
     }
+    private static final int CXCursor_ClassDecl = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ClassDecl = 4;
      * }
      */
     public static int CXCursor_ClassDecl() {
-        return (int)4L;
+        return CXCursor_ClassDecl;
     }
+    private static final int CXCursor_EnumDecl = (int)5L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_EnumDecl = 5;
      * }
      */
     public static int CXCursor_EnumDecl() {
-        return (int)5L;
+        return CXCursor_EnumDecl;
     }
+    private static final int CXCursor_FieldDecl = (int)6L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FieldDecl = 6;
      * }
      */
     public static int CXCursor_FieldDecl() {
-        return (int)6L;
+        return CXCursor_FieldDecl;
     }
+    private static final int CXCursor_EnumConstantDecl = (int)7L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_EnumConstantDecl = 7;
      * }
      */
     public static int CXCursor_EnumConstantDecl() {
-        return (int)7L;
+        return CXCursor_EnumConstantDecl;
     }
+    private static final int CXCursor_FunctionDecl = (int)8L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FunctionDecl = 8;
      * }
      */
     public static int CXCursor_FunctionDecl() {
-        return (int)8L;
+        return CXCursor_FunctionDecl;
     }
+    private static final int CXCursor_VarDecl = (int)9L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_VarDecl = 9;
      * }
      */
     public static int CXCursor_VarDecl() {
-        return (int)9L;
+        return CXCursor_VarDecl;
     }
+    private static final int CXCursor_ParmDecl = (int)10L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ParmDecl = 10;
      * }
      */
     public static int CXCursor_ParmDecl() {
-        return (int)10L;
+        return CXCursor_ParmDecl;
     }
+    private static final int CXCursor_ObjCInterfaceDecl = (int)11L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCInterfaceDecl = 11;
      * }
      */
     public static int CXCursor_ObjCInterfaceDecl() {
-        return (int)11L;
+        return CXCursor_ObjCInterfaceDecl;
     }
+    private static final int CXCursor_ObjCCategoryDecl = (int)12L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCCategoryDecl = 12;
      * }
      */
     public static int CXCursor_ObjCCategoryDecl() {
-        return (int)12L;
+        return CXCursor_ObjCCategoryDecl;
     }
+    private static final int CXCursor_ObjCProtocolDecl = (int)13L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCProtocolDecl = 13;
      * }
      */
     public static int CXCursor_ObjCProtocolDecl() {
-        return (int)13L;
+        return CXCursor_ObjCProtocolDecl;
     }
+    private static final int CXCursor_ObjCPropertyDecl = (int)14L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCPropertyDecl = 14;
      * }
      */
     public static int CXCursor_ObjCPropertyDecl() {
-        return (int)14L;
+        return CXCursor_ObjCPropertyDecl;
     }
+    private static final int CXCursor_ObjCIvarDecl = (int)15L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCIvarDecl = 15;
      * }
      */
     public static int CXCursor_ObjCIvarDecl() {
-        return (int)15L;
+        return CXCursor_ObjCIvarDecl;
     }
+    private static final int CXCursor_ObjCInstanceMethodDecl = (int)16L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCInstanceMethodDecl = 16;
      * }
      */
     public static int CXCursor_ObjCInstanceMethodDecl() {
-        return (int)16L;
+        return CXCursor_ObjCInstanceMethodDecl;
     }
+    private static final int CXCursor_ObjCClassMethodDecl = (int)17L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCClassMethodDecl = 17;
      * }
      */
     public static int CXCursor_ObjCClassMethodDecl() {
-        return (int)17L;
+        return CXCursor_ObjCClassMethodDecl;
     }
+    private static final int CXCursor_ObjCImplementationDecl = (int)18L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCImplementationDecl = 18;
      * }
      */
     public static int CXCursor_ObjCImplementationDecl() {
-        return (int)18L;
+        return CXCursor_ObjCImplementationDecl;
     }
+    private static final int CXCursor_ObjCCategoryImplDecl = (int)19L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCCategoryImplDecl = 19;
      * }
      */
     public static int CXCursor_ObjCCategoryImplDecl() {
-        return (int)19L;
+        return CXCursor_ObjCCategoryImplDecl;
     }
+    private static final int CXCursor_TypedefDecl = (int)20L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TypedefDecl = 20;
      * }
      */
     public static int CXCursor_TypedefDecl() {
-        return (int)20L;
+        return CXCursor_TypedefDecl;
     }
+    private static final int CXCursor_CXXMethod = (int)21L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXMethod = 21;
      * }
      */
     public static int CXCursor_CXXMethod() {
-        return (int)21L;
+        return CXCursor_CXXMethod;
     }
+    private static final int CXCursor_Namespace = (int)22L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_Namespace = 22;
      * }
      */
     public static int CXCursor_Namespace() {
-        return (int)22L;
+        return CXCursor_Namespace;
     }
+    private static final int CXCursor_LinkageSpec = (int)23L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LinkageSpec = 23;
      * }
      */
     public static int CXCursor_LinkageSpec() {
-        return (int)23L;
+        return CXCursor_LinkageSpec;
     }
+    private static final int CXCursor_Constructor = (int)24L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_Constructor = 24;
      * }
      */
     public static int CXCursor_Constructor() {
-        return (int)24L;
+        return CXCursor_Constructor;
     }
+    private static final int CXCursor_Destructor = (int)25L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_Destructor = 25;
      * }
      */
     public static int CXCursor_Destructor() {
-        return (int)25L;
+        return CXCursor_Destructor;
     }
+    private static final int CXCursor_ConversionFunction = (int)26L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ConversionFunction = 26;
      * }
      */
     public static int CXCursor_ConversionFunction() {
-        return (int)26L;
+        return CXCursor_ConversionFunction;
     }
+    private static final int CXCursor_TemplateTypeParameter = (int)27L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TemplateTypeParameter = 27;
      * }
      */
     public static int CXCursor_TemplateTypeParameter() {
-        return (int)27L;
+        return CXCursor_TemplateTypeParameter;
     }
+    private static final int CXCursor_NonTypeTemplateParameter = (int)28L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NonTypeTemplateParameter = 28;
      * }
      */
     public static int CXCursor_NonTypeTemplateParameter() {
-        return (int)28L;
+        return CXCursor_NonTypeTemplateParameter;
     }
+    private static final int CXCursor_TemplateTemplateParameter = (int)29L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TemplateTemplateParameter = 29;
      * }
      */
     public static int CXCursor_TemplateTemplateParameter() {
-        return (int)29L;
+        return CXCursor_TemplateTemplateParameter;
     }
+    private static final int CXCursor_FunctionTemplate = (int)30L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FunctionTemplate = 30;
      * }
      */
     public static int CXCursor_FunctionTemplate() {
-        return (int)30L;
+        return CXCursor_FunctionTemplate;
     }
+    private static final int CXCursor_ClassTemplate = (int)31L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ClassTemplate = 31;
      * }
      */
     public static int CXCursor_ClassTemplate() {
-        return (int)31L;
+        return CXCursor_ClassTemplate;
     }
+    private static final int CXCursor_ClassTemplatePartialSpecialization = (int)32L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ClassTemplatePartialSpecialization = 32;
      * }
      */
     public static int CXCursor_ClassTemplatePartialSpecialization() {
-        return (int)32L;
+        return CXCursor_ClassTemplatePartialSpecialization;
     }
+    private static final int CXCursor_NamespaceAlias = (int)33L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NamespaceAlias = 33;
      * }
      */
     public static int CXCursor_NamespaceAlias() {
-        return (int)33L;
+        return CXCursor_NamespaceAlias;
     }
+    private static final int CXCursor_UsingDirective = (int)34L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UsingDirective = 34;
      * }
      */
     public static int CXCursor_UsingDirective() {
-        return (int)34L;
+        return CXCursor_UsingDirective;
     }
+    private static final int CXCursor_UsingDeclaration = (int)35L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UsingDeclaration = 35;
      * }
      */
     public static int CXCursor_UsingDeclaration() {
-        return (int)35L;
+        return CXCursor_UsingDeclaration;
     }
+    private static final int CXCursor_TypeAliasDecl = (int)36L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TypeAliasDecl = 36;
      * }
      */
     public static int CXCursor_TypeAliasDecl() {
-        return (int)36L;
+        return CXCursor_TypeAliasDecl;
     }
+    private static final int CXCursor_ObjCSynthesizeDecl = (int)37L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSynthesizeDecl = 37;
      * }
      */
     public static int CXCursor_ObjCSynthesizeDecl() {
-        return (int)37L;
+        return CXCursor_ObjCSynthesizeDecl;
     }
+    private static final int CXCursor_ObjCDynamicDecl = (int)38L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCDynamicDecl = 38;
      * }
      */
     public static int CXCursor_ObjCDynamicDecl() {
-        return (int)38L;
+        return CXCursor_ObjCDynamicDecl;
     }
+    private static final int CXCursor_CXXAccessSpecifier = (int)39L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXAccessSpecifier = 39;
      * }
      */
     public static int CXCursor_CXXAccessSpecifier() {
-        return (int)39L;
+        return CXCursor_CXXAccessSpecifier;
     }
+    private static final int CXCursor_FirstDecl = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstDecl = 1;
      * }
      */
     public static int CXCursor_FirstDecl() {
-        return (int)1L;
+        return CXCursor_FirstDecl;
     }
+    private static final int CXCursor_LastDecl = (int)39L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastDecl = 39;
      * }
      */
     public static int CXCursor_LastDecl() {
-        return (int)39L;
+        return CXCursor_LastDecl;
     }
+    private static final int CXCursor_FirstRef = (int)40L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstRef = 40;
      * }
      */
     public static int CXCursor_FirstRef() {
-        return (int)40L;
+        return CXCursor_FirstRef;
     }
+    private static final int CXCursor_ObjCSuperClassRef = (int)40L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSuperClassRef = 40;
      * }
      */
     public static int CXCursor_ObjCSuperClassRef() {
-        return (int)40L;
+        return CXCursor_ObjCSuperClassRef;
     }
+    private static final int CXCursor_ObjCProtocolRef = (int)41L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCProtocolRef = 41;
      * }
      */
     public static int CXCursor_ObjCProtocolRef() {
-        return (int)41L;
+        return CXCursor_ObjCProtocolRef;
     }
+    private static final int CXCursor_ObjCClassRef = (int)42L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCClassRef = 42;
      * }
      */
     public static int CXCursor_ObjCClassRef() {
-        return (int)42L;
+        return CXCursor_ObjCClassRef;
     }
+    private static final int CXCursor_TypeRef = (int)43L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TypeRef = 43;
      * }
      */
     public static int CXCursor_TypeRef() {
-        return (int)43L;
+        return CXCursor_TypeRef;
     }
+    private static final int CXCursor_CXXBaseSpecifier = (int)44L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXBaseSpecifier = 44;
      * }
      */
     public static int CXCursor_CXXBaseSpecifier() {
-        return (int)44L;
+        return CXCursor_CXXBaseSpecifier;
     }
+    private static final int CXCursor_TemplateRef = (int)45L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TemplateRef = 45;
      * }
      */
     public static int CXCursor_TemplateRef() {
-        return (int)45L;
+        return CXCursor_TemplateRef;
     }
+    private static final int CXCursor_NamespaceRef = (int)46L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NamespaceRef = 46;
      * }
      */
     public static int CXCursor_NamespaceRef() {
-        return (int)46L;
+        return CXCursor_NamespaceRef;
     }
+    private static final int CXCursor_MemberRef = (int)47L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MemberRef = 47;
      * }
      */
     public static int CXCursor_MemberRef() {
-        return (int)47L;
+        return CXCursor_MemberRef;
     }
+    private static final int CXCursor_LabelRef = (int)48L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LabelRef = 48;
      * }
      */
     public static int CXCursor_LabelRef() {
-        return (int)48L;
+        return CXCursor_LabelRef;
     }
+    private static final int CXCursor_OverloadedDeclRef = (int)49L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OverloadedDeclRef = 49;
      * }
      */
     public static int CXCursor_OverloadedDeclRef() {
-        return (int)49L;
+        return CXCursor_OverloadedDeclRef;
     }
+    private static final int CXCursor_VariableRef = (int)50L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_VariableRef = 50;
      * }
      */
     public static int CXCursor_VariableRef() {
-        return (int)50L;
+        return CXCursor_VariableRef;
     }
+    private static final int CXCursor_LastRef = (int)50L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastRef = 50;
      * }
      */
     public static int CXCursor_LastRef() {
-        return (int)50L;
+        return CXCursor_LastRef;
     }
+    private static final int CXCursor_FirstInvalid = (int)70L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstInvalid = 70;
      * }
      */
     public static int CXCursor_FirstInvalid() {
-        return (int)70L;
+        return CXCursor_FirstInvalid;
     }
+    private static final int CXCursor_InvalidFile = (int)70L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_InvalidFile = 70;
      * }
      */
     public static int CXCursor_InvalidFile() {
-        return (int)70L;
+        return CXCursor_InvalidFile;
     }
+    private static final int CXCursor_NoDeclFound = (int)71L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NoDeclFound = 71;
      * }
      */
     public static int CXCursor_NoDeclFound() {
-        return (int)71L;
+        return CXCursor_NoDeclFound;
     }
+    private static final int CXCursor_NotImplemented = (int)72L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NotImplemented = 72;
      * }
      */
     public static int CXCursor_NotImplemented() {
-        return (int)72L;
+        return CXCursor_NotImplemented;
     }
+    private static final int CXCursor_InvalidCode = (int)73L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_InvalidCode = 73;
      * }
      */
     public static int CXCursor_InvalidCode() {
-        return (int)73L;
+        return CXCursor_InvalidCode;
     }
+    private static final int CXCursor_LastInvalid = (int)73L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastInvalid = 73;
      * }
      */
     public static int CXCursor_LastInvalid() {
-        return (int)73L;
+        return CXCursor_LastInvalid;
     }
+    private static final int CXCursor_FirstExpr = (int)100L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstExpr = 100;
      * }
      */
     public static int CXCursor_FirstExpr() {
-        return (int)100L;
+        return CXCursor_FirstExpr;
     }
+    private static final int CXCursor_UnexposedExpr = (int)100L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnexposedExpr = 100;
      * }
      */
     public static int CXCursor_UnexposedExpr() {
-        return (int)100L;
+        return CXCursor_UnexposedExpr;
     }
+    private static final int CXCursor_DeclRefExpr = (int)101L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DeclRefExpr = 101;
      * }
      */
     public static int CXCursor_DeclRefExpr() {
-        return (int)101L;
+        return CXCursor_DeclRefExpr;
     }
+    private static final int CXCursor_MemberRefExpr = (int)102L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MemberRefExpr = 102;
      * }
      */
     public static int CXCursor_MemberRefExpr() {
-        return (int)102L;
+        return CXCursor_MemberRefExpr;
     }
+    private static final int CXCursor_CallExpr = (int)103L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CallExpr = 103;
      * }
      */
     public static int CXCursor_CallExpr() {
-        return (int)103L;
+        return CXCursor_CallExpr;
     }
+    private static final int CXCursor_ObjCMessageExpr = (int)104L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCMessageExpr = 104;
      * }
      */
     public static int CXCursor_ObjCMessageExpr() {
-        return (int)104L;
+        return CXCursor_ObjCMessageExpr;
     }
+    private static final int CXCursor_BlockExpr = (int)105L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_BlockExpr = 105;
      * }
      */
     public static int CXCursor_BlockExpr() {
-        return (int)105L;
+        return CXCursor_BlockExpr;
     }
+    private static final int CXCursor_IntegerLiteral = (int)106L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IntegerLiteral = 106;
      * }
      */
     public static int CXCursor_IntegerLiteral() {
-        return (int)106L;
+        return CXCursor_IntegerLiteral;
     }
+    private static final int CXCursor_FloatingLiteral = (int)107L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FloatingLiteral = 107;
      * }
      */
     public static int CXCursor_FloatingLiteral() {
-        return (int)107L;
+        return CXCursor_FloatingLiteral;
     }
+    private static final int CXCursor_ImaginaryLiteral = (int)108L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ImaginaryLiteral = 108;
      * }
      */
     public static int CXCursor_ImaginaryLiteral() {
-        return (int)108L;
+        return CXCursor_ImaginaryLiteral;
     }
+    private static final int CXCursor_StringLiteral = (int)109L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_StringLiteral = 109;
      * }
      */
     public static int CXCursor_StringLiteral() {
-        return (int)109L;
+        return CXCursor_StringLiteral;
     }
+    private static final int CXCursor_CharacterLiteral = (int)110L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CharacterLiteral = 110;
      * }
      */
     public static int CXCursor_CharacterLiteral() {
-        return (int)110L;
+        return CXCursor_CharacterLiteral;
     }
+    private static final int CXCursor_ParenExpr = (int)111L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ParenExpr = 111;
      * }
      */
     public static int CXCursor_ParenExpr() {
-        return (int)111L;
+        return CXCursor_ParenExpr;
     }
+    private static final int CXCursor_UnaryOperator = (int)112L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnaryOperator = 112;
      * }
      */
     public static int CXCursor_UnaryOperator() {
-        return (int)112L;
+        return CXCursor_UnaryOperator;
     }
+    private static final int CXCursor_ArraySubscriptExpr = (int)113L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ArraySubscriptExpr = 113;
      * }
      */
     public static int CXCursor_ArraySubscriptExpr() {
-        return (int)113L;
+        return CXCursor_ArraySubscriptExpr;
     }
+    private static final int CXCursor_BinaryOperator = (int)114L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_BinaryOperator = 114;
      * }
      */
     public static int CXCursor_BinaryOperator() {
-        return (int)114L;
+        return CXCursor_BinaryOperator;
     }
+    private static final int CXCursor_CompoundAssignOperator = (int)115L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CompoundAssignOperator = 115;
      * }
      */
     public static int CXCursor_CompoundAssignOperator() {
-        return (int)115L;
+        return CXCursor_CompoundAssignOperator;
     }
+    private static final int CXCursor_ConditionalOperator = (int)116L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ConditionalOperator = 116;
      * }
      */
     public static int CXCursor_ConditionalOperator() {
-        return (int)116L;
+        return CXCursor_ConditionalOperator;
     }
+    private static final int CXCursor_CStyleCastExpr = (int)117L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CStyleCastExpr = 117;
      * }
      */
     public static int CXCursor_CStyleCastExpr() {
-        return (int)117L;
+        return CXCursor_CStyleCastExpr;
     }
+    private static final int CXCursor_CompoundLiteralExpr = (int)118L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CompoundLiteralExpr = 118;
      * }
      */
     public static int CXCursor_CompoundLiteralExpr() {
-        return (int)118L;
+        return CXCursor_CompoundLiteralExpr;
     }
+    private static final int CXCursor_InitListExpr = (int)119L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_InitListExpr = 119;
      * }
      */
     public static int CXCursor_InitListExpr() {
-        return (int)119L;
+        return CXCursor_InitListExpr;
     }
+    private static final int CXCursor_AddrLabelExpr = (int)120L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AddrLabelExpr = 120;
      * }
      */
     public static int CXCursor_AddrLabelExpr() {
-        return (int)120L;
+        return CXCursor_AddrLabelExpr;
     }
+    private static final int CXCursor_StmtExpr = (int)121L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_StmtExpr = 121;
      * }
      */
     public static int CXCursor_StmtExpr() {
-        return (int)121L;
+        return CXCursor_StmtExpr;
     }
+    private static final int CXCursor_GenericSelectionExpr = (int)122L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_GenericSelectionExpr = 122;
      * }
      */
     public static int CXCursor_GenericSelectionExpr() {
-        return (int)122L;
+        return CXCursor_GenericSelectionExpr;
     }
+    private static final int CXCursor_GNUNullExpr = (int)123L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_GNUNullExpr = 123;
      * }
      */
     public static int CXCursor_GNUNullExpr() {
-        return (int)123L;
+        return CXCursor_GNUNullExpr;
     }
+    private static final int CXCursor_CXXStaticCastExpr = (int)124L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXStaticCastExpr = 124;
      * }
      */
     public static int CXCursor_CXXStaticCastExpr() {
-        return (int)124L;
+        return CXCursor_CXXStaticCastExpr;
     }
+    private static final int CXCursor_CXXDynamicCastExpr = (int)125L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXDynamicCastExpr = 125;
      * }
      */
     public static int CXCursor_CXXDynamicCastExpr() {
-        return (int)125L;
+        return CXCursor_CXXDynamicCastExpr;
     }
+    private static final int CXCursor_CXXReinterpretCastExpr = (int)126L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXReinterpretCastExpr = 126;
      * }
      */
     public static int CXCursor_CXXReinterpretCastExpr() {
-        return (int)126L;
+        return CXCursor_CXXReinterpretCastExpr;
     }
+    private static final int CXCursor_CXXConstCastExpr = (int)127L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXConstCastExpr = 127;
      * }
      */
     public static int CXCursor_CXXConstCastExpr() {
-        return (int)127L;
+        return CXCursor_CXXConstCastExpr;
     }
+    private static final int CXCursor_CXXFunctionalCastExpr = (int)128L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXFunctionalCastExpr = 128;
      * }
      */
     public static int CXCursor_CXXFunctionalCastExpr() {
-        return (int)128L;
+        return CXCursor_CXXFunctionalCastExpr;
     }
+    private static final int CXCursor_CXXTypeidExpr = (int)129L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXTypeidExpr = 129;
      * }
      */
     public static int CXCursor_CXXTypeidExpr() {
-        return (int)129L;
+        return CXCursor_CXXTypeidExpr;
     }
+    private static final int CXCursor_CXXBoolLiteralExpr = (int)130L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXBoolLiteralExpr = 130;
      * }
      */
     public static int CXCursor_CXXBoolLiteralExpr() {
-        return (int)130L;
+        return CXCursor_CXXBoolLiteralExpr;
     }
+    private static final int CXCursor_CXXNullPtrLiteralExpr = (int)131L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXNullPtrLiteralExpr = 131;
      * }
      */
     public static int CXCursor_CXXNullPtrLiteralExpr() {
-        return (int)131L;
+        return CXCursor_CXXNullPtrLiteralExpr;
     }
+    private static final int CXCursor_CXXThisExpr = (int)132L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXThisExpr = 132;
      * }
      */
     public static int CXCursor_CXXThisExpr() {
-        return (int)132L;
+        return CXCursor_CXXThisExpr;
     }
+    private static final int CXCursor_CXXThrowExpr = (int)133L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXThrowExpr = 133;
      * }
      */
     public static int CXCursor_CXXThrowExpr() {
-        return (int)133L;
+        return CXCursor_CXXThrowExpr;
     }
+    private static final int CXCursor_CXXNewExpr = (int)134L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXNewExpr = 134;
      * }
      */
     public static int CXCursor_CXXNewExpr() {
-        return (int)134L;
+        return CXCursor_CXXNewExpr;
     }
+    private static final int CXCursor_CXXDeleteExpr = (int)135L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXDeleteExpr = 135;
      * }
      */
     public static int CXCursor_CXXDeleteExpr() {
-        return (int)135L;
+        return CXCursor_CXXDeleteExpr;
     }
+    private static final int CXCursor_UnaryExpr = (int)136L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnaryExpr = 136;
      * }
      */
     public static int CXCursor_UnaryExpr() {
-        return (int)136L;
+        return CXCursor_UnaryExpr;
     }
+    private static final int CXCursor_ObjCStringLiteral = (int)137L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCStringLiteral = 137;
      * }
      */
     public static int CXCursor_ObjCStringLiteral() {
-        return (int)137L;
+        return CXCursor_ObjCStringLiteral;
     }
+    private static final int CXCursor_ObjCEncodeExpr = (int)138L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCEncodeExpr = 138;
      * }
      */
     public static int CXCursor_ObjCEncodeExpr() {
-        return (int)138L;
+        return CXCursor_ObjCEncodeExpr;
     }
+    private static final int CXCursor_ObjCSelectorExpr = (int)139L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSelectorExpr = 139;
      * }
      */
     public static int CXCursor_ObjCSelectorExpr() {
-        return (int)139L;
+        return CXCursor_ObjCSelectorExpr;
     }
+    private static final int CXCursor_ObjCProtocolExpr = (int)140L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCProtocolExpr = 140;
      * }
      */
     public static int CXCursor_ObjCProtocolExpr() {
-        return (int)140L;
+        return CXCursor_ObjCProtocolExpr;
     }
+    private static final int CXCursor_ObjCBridgedCastExpr = (int)141L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCBridgedCastExpr = 141;
      * }
      */
     public static int CXCursor_ObjCBridgedCastExpr() {
-        return (int)141L;
+        return CXCursor_ObjCBridgedCastExpr;
     }
+    private static final int CXCursor_PackExpansionExpr = (int)142L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_PackExpansionExpr = 142;
      * }
      */
     public static int CXCursor_PackExpansionExpr() {
-        return (int)142L;
+        return CXCursor_PackExpansionExpr;
     }
+    private static final int CXCursor_SizeOfPackExpr = (int)143L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SizeOfPackExpr = 143;
      * }
      */
     public static int CXCursor_SizeOfPackExpr() {
-        return (int)143L;
+        return CXCursor_SizeOfPackExpr;
     }
+    private static final int CXCursor_LambdaExpr = (int)144L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LambdaExpr = 144;
      * }
      */
     public static int CXCursor_LambdaExpr() {
-        return (int)144L;
+        return CXCursor_LambdaExpr;
     }
+    private static final int CXCursor_ObjCBoolLiteralExpr = (int)145L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCBoolLiteralExpr = 145;
      * }
      */
     public static int CXCursor_ObjCBoolLiteralExpr() {
-        return (int)145L;
+        return CXCursor_ObjCBoolLiteralExpr;
     }
+    private static final int CXCursor_ObjCSelfExpr = (int)146L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSelfExpr = 146;
      * }
      */
     public static int CXCursor_ObjCSelfExpr() {
-        return (int)146L;
+        return CXCursor_ObjCSelfExpr;
     }
+    private static final int CXCursor_OMPArraySectionExpr = (int)147L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPArraySectionExpr = 147;
      * }
      */
     public static int CXCursor_OMPArraySectionExpr() {
-        return (int)147L;
+        return CXCursor_OMPArraySectionExpr;
     }
+    private static final int CXCursor_ObjCAvailabilityCheckExpr = (int)148L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAvailabilityCheckExpr = 148;
      * }
      */
     public static int CXCursor_ObjCAvailabilityCheckExpr() {
-        return (int)148L;
+        return CXCursor_ObjCAvailabilityCheckExpr;
     }
+    private static final int CXCursor_FixedPointLiteral = (int)149L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FixedPointLiteral = 149;
      * }
      */
     public static int CXCursor_FixedPointLiteral() {
-        return (int)149L;
+        return CXCursor_FixedPointLiteral;
     }
+    private static final int CXCursor_LastExpr = (int)152L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastExpr = 152;
      * }
      */
     public static int CXCursor_LastExpr() {
-        return (int)152L;
+        return CXCursor_LastExpr;
     }
+    private static final int CXCursor_FirstStmt = (int)200L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstStmt = 200;
      * }
      */
     public static int CXCursor_FirstStmt() {
-        return (int)200L;
+        return CXCursor_FirstStmt;
     }
+    private static final int CXCursor_UnexposedStmt = (int)200L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnexposedStmt = 200;
      * }
      */
     public static int CXCursor_UnexposedStmt() {
-        return (int)200L;
+        return CXCursor_UnexposedStmt;
     }
+    private static final int CXCursor_LabelStmt = (int)201L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LabelStmt = 201;
      * }
      */
     public static int CXCursor_LabelStmt() {
-        return (int)201L;
+        return CXCursor_LabelStmt;
     }
+    private static final int CXCursor_CompoundStmt = (int)202L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CompoundStmt = 202;
      * }
      */
     public static int CXCursor_CompoundStmt() {
-        return (int)202L;
+        return CXCursor_CompoundStmt;
     }
+    private static final int CXCursor_CaseStmt = (int)203L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CaseStmt = 203;
      * }
      */
     public static int CXCursor_CaseStmt() {
-        return (int)203L;
+        return CXCursor_CaseStmt;
     }
+    private static final int CXCursor_DefaultStmt = (int)204L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DefaultStmt = 204;
      * }
      */
     public static int CXCursor_DefaultStmt() {
-        return (int)204L;
+        return CXCursor_DefaultStmt;
     }
+    private static final int CXCursor_IfStmt = (int)205L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IfStmt = 205;
      * }
      */
     public static int CXCursor_IfStmt() {
-        return (int)205L;
+        return CXCursor_IfStmt;
     }
+    private static final int CXCursor_SwitchStmt = (int)206L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SwitchStmt = 206;
      * }
      */
     public static int CXCursor_SwitchStmt() {
-        return (int)206L;
+        return CXCursor_SwitchStmt;
     }
+    private static final int CXCursor_WhileStmt = (int)207L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_WhileStmt = 207;
      * }
      */
     public static int CXCursor_WhileStmt() {
-        return (int)207L;
+        return CXCursor_WhileStmt;
     }
+    private static final int CXCursor_DoStmt = (int)208L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DoStmt = 208;
      * }
      */
     public static int CXCursor_DoStmt() {
-        return (int)208L;
+        return CXCursor_DoStmt;
     }
+    private static final int CXCursor_ForStmt = (int)209L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ForStmt = 209;
      * }
      */
     public static int CXCursor_ForStmt() {
-        return (int)209L;
+        return CXCursor_ForStmt;
     }
+    private static final int CXCursor_GotoStmt = (int)210L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_GotoStmt = 210;
      * }
      */
     public static int CXCursor_GotoStmt() {
-        return (int)210L;
+        return CXCursor_GotoStmt;
     }
+    private static final int CXCursor_IndirectGotoStmt = (int)211L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IndirectGotoStmt = 211;
      * }
      */
     public static int CXCursor_IndirectGotoStmt() {
-        return (int)211L;
+        return CXCursor_IndirectGotoStmt;
     }
+    private static final int CXCursor_ContinueStmt = (int)212L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ContinueStmt = 212;
      * }
      */
     public static int CXCursor_ContinueStmt() {
-        return (int)212L;
+        return CXCursor_ContinueStmt;
     }
+    private static final int CXCursor_BreakStmt = (int)213L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_BreakStmt = 213;
      * }
      */
     public static int CXCursor_BreakStmt() {
-        return (int)213L;
+        return CXCursor_BreakStmt;
     }
+    private static final int CXCursor_ReturnStmt = (int)214L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ReturnStmt = 214;
      * }
      */
     public static int CXCursor_ReturnStmt() {
-        return (int)214L;
+        return CXCursor_ReturnStmt;
     }
+    private static final int CXCursor_GCCAsmStmt = (int)215L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_GCCAsmStmt = 215;
      * }
      */
     public static int CXCursor_GCCAsmStmt() {
-        return (int)215L;
+        return CXCursor_GCCAsmStmt;
     }
+    private static final int CXCursor_AsmStmt = (int)215L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AsmStmt = 215;
      * }
      */
     public static int CXCursor_AsmStmt() {
-        return (int)215L;
+        return CXCursor_AsmStmt;
     }
+    private static final int CXCursor_ObjCAtTryStmt = (int)216L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtTryStmt = 216;
      * }
      */
     public static int CXCursor_ObjCAtTryStmt() {
-        return (int)216L;
+        return CXCursor_ObjCAtTryStmt;
     }
+    private static final int CXCursor_ObjCAtCatchStmt = (int)217L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtCatchStmt = 217;
      * }
      */
     public static int CXCursor_ObjCAtCatchStmt() {
-        return (int)217L;
+        return CXCursor_ObjCAtCatchStmt;
     }
+    private static final int CXCursor_ObjCAtFinallyStmt = (int)218L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtFinallyStmt = 218;
      * }
      */
     public static int CXCursor_ObjCAtFinallyStmt() {
-        return (int)218L;
+        return CXCursor_ObjCAtFinallyStmt;
     }
+    private static final int CXCursor_ObjCAtThrowStmt = (int)219L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtThrowStmt = 219;
      * }
      */
     public static int CXCursor_ObjCAtThrowStmt() {
-        return (int)219L;
+        return CXCursor_ObjCAtThrowStmt;
     }
+    private static final int CXCursor_ObjCAtSynchronizedStmt = (int)220L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtSynchronizedStmt = 220;
      * }
      */
     public static int CXCursor_ObjCAtSynchronizedStmt() {
-        return (int)220L;
+        return CXCursor_ObjCAtSynchronizedStmt;
     }
+    private static final int CXCursor_ObjCAutoreleasePoolStmt = (int)221L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAutoreleasePoolStmt = 221;
      * }
      */
     public static int CXCursor_ObjCAutoreleasePoolStmt() {
-        return (int)221L;
+        return CXCursor_ObjCAutoreleasePoolStmt;
     }
+    private static final int CXCursor_ObjCForCollectionStmt = (int)222L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCForCollectionStmt = 222;
      * }
      */
     public static int CXCursor_ObjCForCollectionStmt() {
-        return (int)222L;
+        return CXCursor_ObjCForCollectionStmt;
     }
+    private static final int CXCursor_CXXCatchStmt = (int)223L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXCatchStmt = 223;
      * }
      */
     public static int CXCursor_CXXCatchStmt() {
-        return (int)223L;
+        return CXCursor_CXXCatchStmt;
     }
+    private static final int CXCursor_CXXTryStmt = (int)224L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXTryStmt = 224;
      * }
      */
     public static int CXCursor_CXXTryStmt() {
-        return (int)224L;
+        return CXCursor_CXXTryStmt;
     }
+    private static final int CXCursor_CXXForRangeStmt = (int)225L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXForRangeStmt = 225;
      * }
      */
     public static int CXCursor_CXXForRangeStmt() {
-        return (int)225L;
+        return CXCursor_CXXForRangeStmt;
     }
+    private static final int CXCursor_SEHTryStmt = (int)226L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SEHTryStmt = 226;
      * }
      */
     public static int CXCursor_SEHTryStmt() {
-        return (int)226L;
+        return CXCursor_SEHTryStmt;
     }
+    private static final int CXCursor_SEHExceptStmt = (int)227L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SEHExceptStmt = 227;
      * }
      */
     public static int CXCursor_SEHExceptStmt() {
-        return (int)227L;
+        return CXCursor_SEHExceptStmt;
     }
+    private static final int CXCursor_SEHFinallyStmt = (int)228L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SEHFinallyStmt = 228;
      * }
      */
     public static int CXCursor_SEHFinallyStmt() {
-        return (int)228L;
+        return CXCursor_SEHFinallyStmt;
     }
+    private static final int CXCursor_MSAsmStmt = (int)229L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MSAsmStmt = 229;
      * }
      */
     public static int CXCursor_MSAsmStmt() {
-        return (int)229L;
+        return CXCursor_MSAsmStmt;
     }
+    private static final int CXCursor_NullStmt = (int)230L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NullStmt = 230;
      * }
      */
     public static int CXCursor_NullStmt() {
-        return (int)230L;
+        return CXCursor_NullStmt;
     }
+    private static final int CXCursor_DeclStmt = (int)231L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DeclStmt = 231;
      * }
      */
     public static int CXCursor_DeclStmt() {
-        return (int)231L;
+        return CXCursor_DeclStmt;
     }
+    private static final int CXCursor_OMPParallelDirective = (int)232L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelDirective = 232;
      * }
      */
     public static int CXCursor_OMPParallelDirective() {
-        return (int)232L;
+        return CXCursor_OMPParallelDirective;
     }
+    private static final int CXCursor_OMPSimdDirective = (int)233L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPSimdDirective = 233;
      * }
      */
     public static int CXCursor_OMPSimdDirective() {
-        return (int)233L;
+        return CXCursor_OMPSimdDirective;
     }
+    private static final int CXCursor_OMPForDirective = (int)234L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPForDirective = 234;
      * }
      */
     public static int CXCursor_OMPForDirective() {
-        return (int)234L;
+        return CXCursor_OMPForDirective;
     }
+    private static final int CXCursor_OMPSectionsDirective = (int)235L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPSectionsDirective = 235;
      * }
      */
     public static int CXCursor_OMPSectionsDirective() {
-        return (int)235L;
+        return CXCursor_OMPSectionsDirective;
     }
+    private static final int CXCursor_OMPSectionDirective = (int)236L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPSectionDirective = 236;
      * }
      */
     public static int CXCursor_OMPSectionDirective() {
-        return (int)236L;
+        return CXCursor_OMPSectionDirective;
     }
+    private static final int CXCursor_OMPSingleDirective = (int)237L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPSingleDirective = 237;
      * }
      */
     public static int CXCursor_OMPSingleDirective() {
-        return (int)237L;
+        return CXCursor_OMPSingleDirective;
     }
+    private static final int CXCursor_OMPParallelForDirective = (int)238L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelForDirective = 238;
      * }
      */
     public static int CXCursor_OMPParallelForDirective() {
-        return (int)238L;
+        return CXCursor_OMPParallelForDirective;
     }
+    private static final int CXCursor_OMPParallelSectionsDirective = (int)239L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelSectionsDirective = 239;
      * }
      */
     public static int CXCursor_OMPParallelSectionsDirective() {
-        return (int)239L;
+        return CXCursor_OMPParallelSectionsDirective;
     }
+    private static final int CXCursor_OMPTaskDirective = (int)240L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskDirective = 240;
      * }
      */
     public static int CXCursor_OMPTaskDirective() {
-        return (int)240L;
+        return CXCursor_OMPTaskDirective;
     }
+    private static final int CXCursor_OMPMasterDirective = (int)241L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPMasterDirective = 241;
      * }
      */
     public static int CXCursor_OMPMasterDirective() {
-        return (int)241L;
+        return CXCursor_OMPMasterDirective;
     }
+    private static final int CXCursor_OMPCriticalDirective = (int)242L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPCriticalDirective = 242;
      * }
      */
     public static int CXCursor_OMPCriticalDirective() {
-        return (int)242L;
+        return CXCursor_OMPCriticalDirective;
     }
+    private static final int CXCursor_OMPTaskyieldDirective = (int)243L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskyieldDirective = 243;
      * }
      */
     public static int CXCursor_OMPTaskyieldDirective() {
-        return (int)243L;
+        return CXCursor_OMPTaskyieldDirective;
     }
+    private static final int CXCursor_OMPBarrierDirective = (int)244L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPBarrierDirective = 244;
      * }
      */
     public static int CXCursor_OMPBarrierDirective() {
-        return (int)244L;
+        return CXCursor_OMPBarrierDirective;
     }
+    private static final int CXCursor_OMPTaskwaitDirective = (int)245L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskwaitDirective = 245;
      * }
      */
     public static int CXCursor_OMPTaskwaitDirective() {
-        return (int)245L;
+        return CXCursor_OMPTaskwaitDirective;
     }
+    private static final int CXCursor_OMPFlushDirective = (int)246L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPFlushDirective = 246;
      * }
      */
     public static int CXCursor_OMPFlushDirective() {
-        return (int)246L;
+        return CXCursor_OMPFlushDirective;
     }
+    private static final int CXCursor_SEHLeaveStmt = (int)247L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SEHLeaveStmt = 247;
      * }
      */
     public static int CXCursor_SEHLeaveStmt() {
-        return (int)247L;
+        return CXCursor_SEHLeaveStmt;
     }
+    private static final int CXCursor_OMPOrderedDirective = (int)248L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPOrderedDirective = 248;
      * }
      */
     public static int CXCursor_OMPOrderedDirective() {
-        return (int)248L;
+        return CXCursor_OMPOrderedDirective;
     }
+    private static final int CXCursor_OMPAtomicDirective = (int)249L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPAtomicDirective = 249;
      * }
      */
     public static int CXCursor_OMPAtomicDirective() {
-        return (int)249L;
+        return CXCursor_OMPAtomicDirective;
     }
+    private static final int CXCursor_OMPForSimdDirective = (int)250L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPForSimdDirective = 250;
      * }
      */
     public static int CXCursor_OMPForSimdDirective() {
-        return (int)250L;
+        return CXCursor_OMPForSimdDirective;
     }
+    private static final int CXCursor_OMPParallelForSimdDirective = (int)251L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelForSimdDirective = 251;
      * }
      */
     public static int CXCursor_OMPParallelForSimdDirective() {
-        return (int)251L;
+        return CXCursor_OMPParallelForSimdDirective;
     }
+    private static final int CXCursor_OMPTargetDirective = (int)252L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetDirective = 252;
      * }
      */
     public static int CXCursor_OMPTargetDirective() {
-        return (int)252L;
+        return CXCursor_OMPTargetDirective;
     }
+    private static final int CXCursor_OMPTeamsDirective = (int)253L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDirective = 253;
      * }
      */
     public static int CXCursor_OMPTeamsDirective() {
-        return (int)253L;
+        return CXCursor_OMPTeamsDirective;
     }
+    private static final int CXCursor_OMPTaskgroupDirective = (int)254L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskgroupDirective = 254;
      * }
      */
     public static int CXCursor_OMPTaskgroupDirective() {
-        return (int)254L;
+        return CXCursor_OMPTaskgroupDirective;
     }
+    private static final int CXCursor_OMPCancellationPointDirective = (int)255L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPCancellationPointDirective = 255;
      * }
      */
     public static int CXCursor_OMPCancellationPointDirective() {
-        return (int)255L;
+        return CXCursor_OMPCancellationPointDirective;
     }
+    private static final int CXCursor_OMPCancelDirective = (int)256L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPCancelDirective = 256;
      * }
      */
     public static int CXCursor_OMPCancelDirective() {
-        return (int)256L;
+        return CXCursor_OMPCancelDirective;
     }
+    private static final int CXCursor_OMPTargetDataDirective = (int)257L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetDataDirective = 257;
      * }
      */
     public static int CXCursor_OMPTargetDataDirective() {
-        return (int)257L;
+        return CXCursor_OMPTargetDataDirective;
     }
+    private static final int CXCursor_OMPTaskLoopDirective = (int)258L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskLoopDirective = 258;
      * }
      */
     public static int CXCursor_OMPTaskLoopDirective() {
-        return (int)258L;
+        return CXCursor_OMPTaskLoopDirective;
     }
+    private static final int CXCursor_OMPTaskLoopSimdDirective = (int)259L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskLoopSimdDirective = 259;
      * }
      */
     public static int CXCursor_OMPTaskLoopSimdDirective() {
-        return (int)259L;
+        return CXCursor_OMPTaskLoopSimdDirective;
     }
+    private static final int CXCursor_OMPDistributeDirective = (int)260L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPDistributeDirective = 260;
      * }
      */
     public static int CXCursor_OMPDistributeDirective() {
-        return (int)260L;
+        return CXCursor_OMPDistributeDirective;
     }
+    private static final int CXCursor_OMPTargetEnterDataDirective = (int)261L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetEnterDataDirective = 261;
      * }
      */
     public static int CXCursor_OMPTargetEnterDataDirective() {
-        return (int)261L;
+        return CXCursor_OMPTargetEnterDataDirective;
     }
+    private static final int CXCursor_OMPTargetExitDataDirective = (int)262L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetExitDataDirective = 262;
      * }
      */
     public static int CXCursor_OMPTargetExitDataDirective() {
-        return (int)262L;
+        return CXCursor_OMPTargetExitDataDirective;
     }
+    private static final int CXCursor_OMPTargetParallelDirective = (int)263L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetParallelDirective = 263;
      * }
      */
     public static int CXCursor_OMPTargetParallelDirective() {
-        return (int)263L;
+        return CXCursor_OMPTargetParallelDirective;
     }
+    private static final int CXCursor_OMPTargetParallelForDirective = (int)264L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetParallelForDirective = 264;
      * }
      */
     public static int CXCursor_OMPTargetParallelForDirective() {
-        return (int)264L;
+        return CXCursor_OMPTargetParallelForDirective;
     }
+    private static final int CXCursor_OMPTargetUpdateDirective = (int)265L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetUpdateDirective = 265;
      * }
      */
     public static int CXCursor_OMPTargetUpdateDirective() {
-        return (int)265L;
+        return CXCursor_OMPTargetUpdateDirective;
     }
+    private static final int CXCursor_OMPDistributeParallelForDirective = (int)266L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPDistributeParallelForDirective = 266;
      * }
      */
     public static int CXCursor_OMPDistributeParallelForDirective() {
-        return (int)266L;
+        return CXCursor_OMPDistributeParallelForDirective;
     }
+    private static final int CXCursor_OMPDistributeParallelForSimdDirective = (int)267L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPDistributeParallelForSimdDirective = 267;
      * }
      */
     public static int CXCursor_OMPDistributeParallelForSimdDirective() {
-        return (int)267L;
+        return CXCursor_OMPDistributeParallelForSimdDirective;
     }
+    private static final int CXCursor_OMPDistributeSimdDirective = (int)268L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPDistributeSimdDirective = 268;
      * }
      */
     public static int CXCursor_OMPDistributeSimdDirective() {
-        return (int)268L;
+        return CXCursor_OMPDistributeSimdDirective;
     }
+    private static final int CXCursor_OMPTargetParallelForSimdDirective = (int)269L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetParallelForSimdDirective = 269;
      * }
      */
     public static int CXCursor_OMPTargetParallelForSimdDirective() {
-        return (int)269L;
+        return CXCursor_OMPTargetParallelForSimdDirective;
     }
+    private static final int CXCursor_OMPTargetSimdDirective = (int)270L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetSimdDirective = 270;
      * }
      */
     public static int CXCursor_OMPTargetSimdDirective() {
-        return (int)270L;
+        return CXCursor_OMPTargetSimdDirective;
     }
+    private static final int CXCursor_OMPTeamsDistributeDirective = (int)271L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDistributeDirective = 271;
      * }
      */
     public static int CXCursor_OMPTeamsDistributeDirective() {
-        return (int)271L;
+        return CXCursor_OMPTeamsDistributeDirective;
     }
+    private static final int CXCursor_OMPTeamsDistributeSimdDirective = (int)272L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDistributeSimdDirective = 272;
      * }
      */
     public static int CXCursor_OMPTeamsDistributeSimdDirective() {
-        return (int)272L;
+        return CXCursor_OMPTeamsDistributeSimdDirective;
     }
+    private static final int CXCursor_OMPTeamsDistributeParallelForSimdDirective = (int)273L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDistributeParallelForSimdDirective = 273;
      * }
      */
     public static int CXCursor_OMPTeamsDistributeParallelForSimdDirective() {
-        return (int)273L;
+        return CXCursor_OMPTeamsDistributeParallelForSimdDirective;
     }
+    private static final int CXCursor_OMPTeamsDistributeParallelForDirective = (int)274L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDistributeParallelForDirective = 274;
      * }
      */
     public static int CXCursor_OMPTeamsDistributeParallelForDirective() {
-        return (int)274L;
+        return CXCursor_OMPTeamsDistributeParallelForDirective;
     }
+    private static final int CXCursor_OMPTargetTeamsDirective = (int)275L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDirective = 275;
      * }
      */
     public static int CXCursor_OMPTargetTeamsDirective() {
-        return (int)275L;
+        return CXCursor_OMPTargetTeamsDirective;
     }
+    private static final int CXCursor_OMPTargetTeamsDistributeDirective = (int)276L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDistributeDirective = 276;
      * }
      */
     public static int CXCursor_OMPTargetTeamsDistributeDirective() {
-        return (int)276L;
+        return CXCursor_OMPTargetTeamsDistributeDirective;
     }
+    private static final int CXCursor_OMPTargetTeamsDistributeParallelForDirective = (int)277L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDistributeParallelForDirective = 277;
      * }
      */
     public static int CXCursor_OMPTargetTeamsDistributeParallelForDirective() {
-        return (int)277L;
+        return CXCursor_OMPTargetTeamsDistributeParallelForDirective;
     }
+    private static final int CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective = (int)278L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective = 278;
      * }
      */
     public static int CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective() {
-        return (int)278L;
+        return CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective;
     }
+    private static final int CXCursor_OMPTargetTeamsDistributeSimdDirective = (int)279L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDistributeSimdDirective = 279;
      * }
      */
     public static int CXCursor_OMPTargetTeamsDistributeSimdDirective() {
-        return (int)279L;
+        return CXCursor_OMPTargetTeamsDistributeSimdDirective;
     }
+    private static final int CXCursor_BuiltinBitCastExpr = (int)280L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_BuiltinBitCastExpr = 280;
      * }
      */
     public static int CXCursor_BuiltinBitCastExpr() {
-        return (int)280L;
+        return CXCursor_BuiltinBitCastExpr;
     }
+    private static final int CXCursor_OMPMasterTaskLoopDirective = (int)281L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPMasterTaskLoopDirective = 281;
      * }
      */
     public static int CXCursor_OMPMasterTaskLoopDirective() {
-        return (int)281L;
+        return CXCursor_OMPMasterTaskLoopDirective;
     }
+    private static final int CXCursor_OMPParallelMasterTaskLoopDirective = (int)282L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelMasterTaskLoopDirective = 282;
      * }
      */
     public static int CXCursor_OMPParallelMasterTaskLoopDirective() {
-        return (int)282L;
+        return CXCursor_OMPParallelMasterTaskLoopDirective;
     }
+    private static final int CXCursor_OMPMasterTaskLoopSimdDirective = (int)283L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPMasterTaskLoopSimdDirective = 283;
      * }
      */
     public static int CXCursor_OMPMasterTaskLoopSimdDirective() {
-        return (int)283L;
+        return CXCursor_OMPMasterTaskLoopSimdDirective;
     }
+    private static final int CXCursor_OMPParallelMasterTaskLoopSimdDirective = (int)284L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelMasterTaskLoopSimdDirective = 284;
      * }
      */
     public static int CXCursor_OMPParallelMasterTaskLoopSimdDirective() {
-        return (int)284L;
+        return CXCursor_OMPParallelMasterTaskLoopSimdDirective;
     }
+    private static final int CXCursor_LastStmt = (int)293L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastStmt = 293;
      * }
      */
     public static int CXCursor_LastStmt() {
-        return (int)293L;
+        return CXCursor_LastStmt;
     }
+    private static final int CXCursor_TranslationUnit = (int)300L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TranslationUnit = 300;
      * }
      */
     public static int CXCursor_TranslationUnit() {
-        return (int)300L;
+        return CXCursor_TranslationUnit;
     }
+    private static final int CXCursor_FirstAttr = (int)400L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstAttr = 400;
      * }
      */
     public static int CXCursor_FirstAttr() {
-        return (int)400L;
+        return CXCursor_FirstAttr;
     }
+    private static final int CXCursor_UnexposedAttr = (int)400L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnexposedAttr = 400;
      * }
      */
     public static int CXCursor_UnexposedAttr() {
-        return (int)400L;
+        return CXCursor_UnexposedAttr;
     }
+    private static final int CXCursor_IBActionAttr = (int)401L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IBActionAttr = 401;
      * }
      */
     public static int CXCursor_IBActionAttr() {
-        return (int)401L;
+        return CXCursor_IBActionAttr;
     }
+    private static final int CXCursor_IBOutletAttr = (int)402L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IBOutletAttr = 402;
      * }
      */
     public static int CXCursor_IBOutletAttr() {
-        return (int)402L;
+        return CXCursor_IBOutletAttr;
     }
+    private static final int CXCursor_IBOutletCollectionAttr = (int)403L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IBOutletCollectionAttr = 403;
      * }
      */
     public static int CXCursor_IBOutletCollectionAttr() {
-        return (int)403L;
+        return CXCursor_IBOutletCollectionAttr;
     }
+    private static final int CXCursor_CXXFinalAttr = (int)404L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXFinalAttr = 404;
      * }
      */
     public static int CXCursor_CXXFinalAttr() {
-        return (int)404L;
+        return CXCursor_CXXFinalAttr;
     }
+    private static final int CXCursor_CXXOverrideAttr = (int)405L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXOverrideAttr = 405;
      * }
      */
     public static int CXCursor_CXXOverrideAttr() {
-        return (int)405L;
+        return CXCursor_CXXOverrideAttr;
     }
+    private static final int CXCursor_AnnotateAttr = (int)406L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AnnotateAttr = 406;
      * }
      */
     public static int CXCursor_AnnotateAttr() {
-        return (int)406L;
+        return CXCursor_AnnotateAttr;
     }
+    private static final int CXCursor_AsmLabelAttr = (int)407L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AsmLabelAttr = 407;
      * }
      */
     public static int CXCursor_AsmLabelAttr() {
-        return (int)407L;
+        return CXCursor_AsmLabelAttr;
     }
+    private static final int CXCursor_PackedAttr = (int)408L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_PackedAttr = 408;
      * }
      */
     public static int CXCursor_PackedAttr() {
-        return (int)408L;
+        return CXCursor_PackedAttr;
     }
+    private static final int CXCursor_PureAttr = (int)409L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_PureAttr = 409;
      * }
      */
     public static int CXCursor_PureAttr() {
-        return (int)409L;
+        return CXCursor_PureAttr;
     }
+    private static final int CXCursor_ConstAttr = (int)410L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ConstAttr = 410;
      * }
      */
     public static int CXCursor_ConstAttr() {
-        return (int)410L;
+        return CXCursor_ConstAttr;
     }
+    private static final int CXCursor_NoDuplicateAttr = (int)411L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NoDuplicateAttr = 411;
      * }
      */
     public static int CXCursor_NoDuplicateAttr() {
-        return (int)411L;
+        return CXCursor_NoDuplicateAttr;
     }
+    private static final int CXCursor_CUDAConstantAttr = (int)412L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDAConstantAttr = 412;
      * }
      */
     public static int CXCursor_CUDAConstantAttr() {
-        return (int)412L;
+        return CXCursor_CUDAConstantAttr;
     }
+    private static final int CXCursor_CUDADeviceAttr = (int)413L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDADeviceAttr = 413;
      * }
      */
     public static int CXCursor_CUDADeviceAttr() {
-        return (int)413L;
+        return CXCursor_CUDADeviceAttr;
     }
+    private static final int CXCursor_CUDAGlobalAttr = (int)414L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDAGlobalAttr = 414;
      * }
      */
     public static int CXCursor_CUDAGlobalAttr() {
-        return (int)414L;
+        return CXCursor_CUDAGlobalAttr;
     }
+    private static final int CXCursor_CUDAHostAttr = (int)415L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDAHostAttr = 415;
      * }
      */
     public static int CXCursor_CUDAHostAttr() {
-        return (int)415L;
+        return CXCursor_CUDAHostAttr;
     }
+    private static final int CXCursor_CUDASharedAttr = (int)416L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDASharedAttr = 416;
      * }
      */
     public static int CXCursor_CUDASharedAttr() {
-        return (int)416L;
+        return CXCursor_CUDASharedAttr;
     }
+    private static final int CXCursor_VisibilityAttr = (int)417L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_VisibilityAttr = 417;
      * }
      */
     public static int CXCursor_VisibilityAttr() {
-        return (int)417L;
+        return CXCursor_VisibilityAttr;
     }
+    private static final int CXCursor_DLLExport = (int)418L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DLLExport = 418;
      * }
      */
     public static int CXCursor_DLLExport() {
-        return (int)418L;
+        return CXCursor_DLLExport;
     }
+    private static final int CXCursor_DLLImport = (int)419L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DLLImport = 419;
      * }
      */
     public static int CXCursor_DLLImport() {
-        return (int)419L;
+        return CXCursor_DLLImport;
     }
+    private static final int CXCursor_NSReturnsRetained = (int)420L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSReturnsRetained = 420;
      * }
      */
     public static int CXCursor_NSReturnsRetained() {
-        return (int)420L;
+        return CXCursor_NSReturnsRetained;
     }
+    private static final int CXCursor_NSReturnsNotRetained = (int)421L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSReturnsNotRetained = 421;
      * }
      */
     public static int CXCursor_NSReturnsNotRetained() {
-        return (int)421L;
+        return CXCursor_NSReturnsNotRetained;
     }
+    private static final int CXCursor_NSReturnsAutoreleased = (int)422L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSReturnsAutoreleased = 422;
      * }
      */
     public static int CXCursor_NSReturnsAutoreleased() {
-        return (int)422L;
+        return CXCursor_NSReturnsAutoreleased;
     }
+    private static final int CXCursor_NSConsumesSelf = (int)423L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSConsumesSelf = 423;
      * }
      */
     public static int CXCursor_NSConsumesSelf() {
-        return (int)423L;
+        return CXCursor_NSConsumesSelf;
     }
+    private static final int CXCursor_NSConsumed = (int)424L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSConsumed = 424;
      * }
      */
     public static int CXCursor_NSConsumed() {
-        return (int)424L;
+        return CXCursor_NSConsumed;
     }
+    private static final int CXCursor_ObjCException = (int)425L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCException = 425;
      * }
      */
     public static int CXCursor_ObjCException() {
-        return (int)425L;
+        return CXCursor_ObjCException;
     }
+    private static final int CXCursor_ObjCNSObject = (int)426L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCNSObject = 426;
      * }
      */
     public static int CXCursor_ObjCNSObject() {
-        return (int)426L;
+        return CXCursor_ObjCNSObject;
     }
+    private static final int CXCursor_ObjCIndependentClass = (int)427L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCIndependentClass = 427;
      * }
      */
     public static int CXCursor_ObjCIndependentClass() {
-        return (int)427L;
+        return CXCursor_ObjCIndependentClass;
     }
+    private static final int CXCursor_ObjCPreciseLifetime = (int)428L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCPreciseLifetime = 428;
      * }
      */
     public static int CXCursor_ObjCPreciseLifetime() {
-        return (int)428L;
+        return CXCursor_ObjCPreciseLifetime;
     }
+    private static final int CXCursor_ObjCReturnsInnerPointer = (int)429L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCReturnsInnerPointer = 429;
      * }
      */
     public static int CXCursor_ObjCReturnsInnerPointer() {
-        return (int)429L;
+        return CXCursor_ObjCReturnsInnerPointer;
     }
+    private static final int CXCursor_ObjCRequiresSuper = (int)430L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCRequiresSuper = 430;
      * }
      */
     public static int CXCursor_ObjCRequiresSuper() {
-        return (int)430L;
+        return CXCursor_ObjCRequiresSuper;
     }
+    private static final int CXCursor_ObjCRootClass = (int)431L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCRootClass = 431;
      * }
      */
     public static int CXCursor_ObjCRootClass() {
-        return (int)431L;
+        return CXCursor_ObjCRootClass;
     }
+    private static final int CXCursor_ObjCSubclassingRestricted = (int)432L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSubclassingRestricted = 432;
      * }
      */
     public static int CXCursor_ObjCSubclassingRestricted() {
-        return (int)432L;
+        return CXCursor_ObjCSubclassingRestricted;
     }
+    private static final int CXCursor_ObjCExplicitProtocolImpl = (int)433L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCExplicitProtocolImpl = 433;
      * }
      */
     public static int CXCursor_ObjCExplicitProtocolImpl() {
-        return (int)433L;
+        return CXCursor_ObjCExplicitProtocolImpl;
     }
+    private static final int CXCursor_ObjCDesignatedInitializer = (int)434L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCDesignatedInitializer = 434;
      * }
      */
     public static int CXCursor_ObjCDesignatedInitializer() {
-        return (int)434L;
+        return CXCursor_ObjCDesignatedInitializer;
     }
+    private static final int CXCursor_ObjCRuntimeVisible = (int)435L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCRuntimeVisible = 435;
      * }
      */
     public static int CXCursor_ObjCRuntimeVisible() {
-        return (int)435L;
+        return CXCursor_ObjCRuntimeVisible;
     }
+    private static final int CXCursor_ObjCBoxable = (int)436L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCBoxable = 436;
      * }
      */
     public static int CXCursor_ObjCBoxable() {
-        return (int)436L;
+        return CXCursor_ObjCBoxable;
     }
+    private static final int CXCursor_FlagEnum = (int)437L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FlagEnum = 437;
      * }
      */
     public static int CXCursor_FlagEnum() {
-        return (int)437L;
+        return CXCursor_FlagEnum;
     }
+    private static final int CXCursor_ConvergentAttr = (int)438L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ConvergentAttr = 438;
      * }
      */
     public static int CXCursor_ConvergentAttr() {
-        return (int)438L;
+        return CXCursor_ConvergentAttr;
     }
+    private static final int CXCursor_WarnUnusedAttr = (int)439L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_WarnUnusedAttr = 439;
      * }
      */
     public static int CXCursor_WarnUnusedAttr() {
-        return (int)439L;
+        return CXCursor_WarnUnusedAttr;
     }
+    private static final int CXCursor_WarnUnusedResultAttr = (int)440L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_WarnUnusedResultAttr = 440;
      * }
      */
     public static int CXCursor_WarnUnusedResultAttr() {
-        return (int)440L;
+        return CXCursor_WarnUnusedResultAttr;
     }
+    private static final int CXCursor_AlignedAttr = (int)441L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AlignedAttr = 441;
      * }
      */
     public static int CXCursor_AlignedAttr() {
-        return (int)441L;
+        return CXCursor_AlignedAttr;
     }
+    private static final int CXCursor_LastAttr = (int)441L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastAttr = 441;
      * }
      */
     public static int CXCursor_LastAttr() {
-        return (int)441L;
+        return CXCursor_LastAttr;
     }
+    private static final int CXCursor_PreprocessingDirective = (int)500L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_PreprocessingDirective = 500;
      * }
      */
     public static int CXCursor_PreprocessingDirective() {
-        return (int)500L;
+        return CXCursor_PreprocessingDirective;
     }
+    private static final int CXCursor_MacroDefinition = (int)501L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MacroDefinition = 501;
      * }
      */
     public static int CXCursor_MacroDefinition() {
-        return (int)501L;
+        return CXCursor_MacroDefinition;
     }
+    private static final int CXCursor_MacroExpansion = (int)502L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MacroExpansion = 502;
      * }
      */
     public static int CXCursor_MacroExpansion() {
-        return (int)502L;
+        return CXCursor_MacroExpansion;
     }
+    private static final int CXCursor_MacroInstantiation = (int)502L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MacroInstantiation = 502;
      * }
      */
     public static int CXCursor_MacroInstantiation() {
-        return (int)502L;
+        return CXCursor_MacroInstantiation;
     }
+    private static final int CXCursor_InclusionDirective = (int)503L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_InclusionDirective = 503;
      * }
      */
     public static int CXCursor_InclusionDirective() {
-        return (int)503L;
+        return CXCursor_InclusionDirective;
     }
+    private static final int CXCursor_FirstPreprocessing = (int)500L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstPreprocessing = 500;
      * }
      */
     public static int CXCursor_FirstPreprocessing() {
-        return (int)500L;
+        return CXCursor_FirstPreprocessing;
     }
+    private static final int CXCursor_LastPreprocessing = (int)503L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastPreprocessing = 503;
      * }
      */
     public static int CXCursor_LastPreprocessing() {
-        return (int)503L;
+        return CXCursor_LastPreprocessing;
     }
+    private static final int CXCursor_ModuleImportDecl = (int)600L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ModuleImportDecl = 600;
      * }
      */
     public static int CXCursor_ModuleImportDecl() {
-        return (int)600L;
+        return CXCursor_ModuleImportDecl;
     }
+    private static final int CXCursor_TypeAliasTemplateDecl = (int)601L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TypeAliasTemplateDecl = 601;
      * }
      */
     public static int CXCursor_TypeAliasTemplateDecl() {
-        return (int)601L;
+        return CXCursor_TypeAliasTemplateDecl;
     }
+    private static final int CXCursor_StaticAssert = (int)602L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_StaticAssert = 602;
      * }
      */
     public static int CXCursor_StaticAssert() {
-        return (int)602L;
+        return CXCursor_StaticAssert;
     }
+    private static final int CXCursor_FriendDecl = (int)603L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FriendDecl = 603;
      * }
      */
     public static int CXCursor_FriendDecl() {
-        return (int)603L;
+        return CXCursor_FriendDecl;
     }
+    private static final int CXCursor_FirstExtraDecl = (int)600L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstExtraDecl = 600;
      * }
      */
     public static int CXCursor_FirstExtraDecl() {
-        return (int)600L;
+        return CXCursor_FirstExtraDecl;
     }
+    private static final int CXCursor_LastExtraDecl = (int)603L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastExtraDecl = 603;
      * }
      */
     public static int CXCursor_LastExtraDecl() {
-        return (int)603L;
+        return CXCursor_LastExtraDecl;
     }
+    private static final int CXCursor_OverloadCandidate = (int)700L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OverloadCandidate = 700;
      * }
      */
     public static int CXCursor_OverloadCandidate() {
-        return (int)700L;
-    }
-    public static MethodHandle clang_getNullCursor$MH() {
-        return RuntimeHelper.requireNonNull(constants$5.clang_getNullCursor$MH,"clang_getNullCursor");
+        return CXCursor_OverloadCandidate;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXCursor clang_getNullCursor();
      * }
      */
+    public static MethodHandle clang_getNullCursor$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXCursor.$LAYOUT()        );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getNullCursor"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getNullCursor(SegmentAllocator allocator) {
         var mh$ = clang_getNullCursor$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator);
+            return (MemorySegment) mh$.invokeExact(allocator);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getTranslationUnitCursor$MH() {
-        return RuntimeHelper.requireNonNull(constants$5.clang_getTranslationUnitCursor$MH,"clang_getTranslationUnitCursor");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXCursor clang_getTranslationUnitCursor(CXTranslationUnit);
      * }
      */
-    public static MemorySegment clang_getTranslationUnitCursor(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getTranslationUnitCursor$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXCursor.$LAYOUT(),
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTranslationUnitCursor"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getTranslationUnitCursor(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getTranslationUnitCursor$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_equalCursors$MH() {
-        return RuntimeHelper.requireNonNull(constants$5.clang_equalCursors$MH,"clang_equalCursors");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_equalCursors(CXCursor, CXCursor);
      * }
      */
+    public static MethodHandle clang_equalCursors$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_equalCursors"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_equalCursors(MemorySegment x0, MemorySegment x1) {
         var mh$ = clang_equalCursors$MH();
         try {
-            return (int)mh$.invokeExact(x0, x1);
+            return (int) mh$.invokeExact(x0, x1);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_isNull$MH() {
-        return RuntimeHelper.requireNonNull(constants$5.clang_Cursor_isNull$MH,"clang_Cursor_isNull");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_Cursor_isNull(CXCursor cursor);
      * }
      */
+    public static MethodHandle clang_Cursor_isNull$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_isNull"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Cursor_isNull(MemorySegment cursor) {
         var mh$ = clang_Cursor_isNull$MH();
         try {
-            return (int)mh$.invokeExact(cursor);
+            return (int) mh$.invokeExact(cursor);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorKind$MH() {
-        return RuntimeHelper.requireNonNull(constants$6.clang_getCursorKind$MH,"clang_getCursorKind");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCursorKind clang_getCursorKind(CXCursor);
      * }
      */
+    public static MethodHandle clang_getCursorKind$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorKind"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_getCursorKind(MemorySegment x0) {
         var mh$ = clang_getCursorKind$MH();
         try {
-            return (int)mh$.invokeExact(x0);
+            return (int) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_isDeclaration$MH() {
-        return RuntimeHelper.requireNonNull(constants$6.clang_isDeclaration$MH,"clang_isDeclaration");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_isDeclaration(enum CXCursorKind);
      * }
      */
+    public static MethodHandle clang_isDeclaration$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_isDeclaration"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_isDeclaration(int x0) {
         var mh$ = clang_isDeclaration$MH();
         try {
-            return (int)mh$.invokeExact(x0);
+            return (int) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_isAttribute$MH() {
-        return RuntimeHelper.requireNonNull(constants$6.clang_isAttribute$MH,"clang_isAttribute");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_isAttribute(enum CXCursorKind);
      * }
      */
+    public static MethodHandle clang_isAttribute$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_isAttribute"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_isAttribute(int x0) {
         var mh$ = clang_isAttribute$MH();
         try {
-            return (int)mh$.invokeExact(x0);
+            return (int) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_isInvalid$MH() {
-        return RuntimeHelper.requireNonNull(constants$6.clang_isInvalid$MH,"clang_isInvalid");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_isInvalid(enum CXCursorKind);
      * }
      */
+    public static MethodHandle clang_isInvalid$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_isInvalid"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_isInvalid(int x0) {
         var mh$ = clang_isInvalid$MH();
         try {
-            return (int)mh$.invokeExact(x0);
+            return (int) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_isPreprocessing$MH() {
-        return RuntimeHelper.requireNonNull(constants$6.clang_isPreprocessing$MH,"clang_isPreprocessing");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_isPreprocessing(enum CXCursorKind);
      * }
      */
+    public static MethodHandle clang_isPreprocessing$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_isPreprocessing"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_isPreprocessing(int x0) {
         var mh$ = clang_isPreprocessing$MH();
         try {
-            return (int)mh$.invokeExact(x0);
+            return (int) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXLinkage_Invalid = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_Invalid = 0;
      * }
      */
     public static int CXLinkage_Invalid() {
-        return (int)0L;
+        return CXLinkage_Invalid;
     }
+    private static final int CXLinkage_NoLinkage = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_NoLinkage = 1;
      * }
      */
     public static int CXLinkage_NoLinkage() {
-        return (int)1L;
+        return CXLinkage_NoLinkage;
     }
+    private static final int CXLinkage_Internal = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_Internal = 2;
      * }
      */
     public static int CXLinkage_Internal() {
-        return (int)2L;
+        return CXLinkage_Internal;
     }
+    private static final int CXLinkage_UniqueExternal = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_UniqueExternal = 3;
      * }
      */
     public static int CXLinkage_UniqueExternal() {
-        return (int)3L;
+        return CXLinkage_UniqueExternal;
     }
+    private static final int CXLinkage_External = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_External = 4;
      * }
      */
     public static int CXLinkage_External() {
-        return (int)4L;
-    }
-    public static MethodHandle clang_getCursorLinkage$MH() {
-        return RuntimeHelper.requireNonNull(constants$6.clang_getCursorLinkage$MH,"clang_getCursorLinkage");
+        return CXLinkage_External;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLinkageKind clang_getCursorLinkage(CXCursor cursor);
      * }
      */
+    public static MethodHandle clang_getCursorLinkage$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorLinkage"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_getCursorLinkage(MemorySegment cursor) {
         var mh$ = clang_getCursorLinkage$MH();
         try {
-            return (int)mh$.invokeExact(cursor);
+            return (int) mh$.invokeExact(cursor);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXLanguage_Invalid = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLanguageKind.CXLanguage_Invalid = 0;
      * }
      */
     public static int CXLanguage_Invalid() {
-        return (int)0L;
+        return CXLanguage_Invalid;
     }
+    private static final int CXLanguage_C = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLanguageKind.CXLanguage_C = 1;
      * }
      */
     public static int CXLanguage_C() {
-        return (int)1L;
+        return CXLanguage_C;
     }
+    private static final int CXLanguage_ObjC = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLanguageKind.CXLanguage_ObjC = 2;
      * }
      */
     public static int CXLanguage_ObjC() {
-        return (int)2L;
+        return CXLanguage_ObjC;
     }
+    private static final int CXLanguage_CPlusPlus = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLanguageKind.CXLanguage_CPlusPlus = 3;
      * }
      */
     public static int CXLanguage_CPlusPlus() {
-        return (int)3L;
-    }
-    public static MethodHandle clang_getCursorLanguage$MH() {
-        return RuntimeHelper.requireNonNull(constants$7.clang_getCursorLanguage$MH,"clang_getCursorLanguage");
+        return CXLanguage_CPlusPlus;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXLanguageKind clang_getCursorLanguage(CXCursor cursor);
      * }
      */
+    public static MethodHandle clang_getCursorLanguage$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorLanguage"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_getCursorLanguage(MemorySegment cursor) {
         var mh$ = clang_getCursorLanguage$MH();
         try {
-            return (int)mh$.invokeExact(cursor);
+            return (int) mh$.invokeExact(cursor);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_getTranslationUnit$MH() {
-        return RuntimeHelper.requireNonNull(constants$7.clang_Cursor_getTranslationUnit$MH,"clang_Cursor_getTranslationUnit");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXTranslationUnit clang_Cursor_getTranslationUnit(CXCursor);
      * }
      */
+    public static MethodHandle clang_Cursor_getTranslationUnit$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_POINTER,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_getTranslationUnit"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_Cursor_getTranslationUnit(MemorySegment x0) {
         var mh$ = clang_Cursor_getTranslationUnit$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(x0);
+            return (MemorySegment) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorLocation$MH() {
-        return RuntimeHelper.requireNonNull(constants$7.clang_getCursorLocation$MH,"clang_getCursorLocation");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceLocation clang_getCursorLocation(CXCursor);
      * }
      */
-    public static MemorySegment clang_getCursorLocation(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getCursorLocation$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceLocation.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorLocation"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getCursorLocation(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getCursorLocation$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorExtent$MH() {
-        return RuntimeHelper.requireNonNull(constants$7.clang_getCursorExtent$MH,"clang_getCursorExtent");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceRange clang_getCursorExtent(CXCursor);
      * }
      */
-    public static MemorySegment clang_getCursorExtent(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getCursorExtent$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceRange.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorExtent"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getCursorExtent(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getCursorExtent$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXType_Invalid = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Invalid = 0;
      * }
      */
     public static int CXType_Invalid() {
-        return (int)0L;
+        return CXType_Invalid;
     }
+    private static final int CXType_Unexposed = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Unexposed = 1;
      * }
      */
     public static int CXType_Unexposed() {
-        return (int)1L;
+        return CXType_Unexposed;
     }
+    private static final int CXType_Void = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Void = 2;
      * }
      */
     public static int CXType_Void() {
-        return (int)2L;
+        return CXType_Void;
     }
+    private static final int CXType_Bool = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Bool = 3;
      * }
      */
     public static int CXType_Bool() {
-        return (int)3L;
+        return CXType_Bool;
     }
+    private static final int CXType_Char_U = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Char_U = 4;
      * }
      */
     public static int CXType_Char_U() {
-        return (int)4L;
+        return CXType_Char_U;
     }
+    private static final int CXType_UChar = (int)5L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_UChar = 5;
      * }
      */
     public static int CXType_UChar() {
-        return (int)5L;
+        return CXType_UChar;
     }
+    private static final int CXType_Char16 = (int)6L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Char16 = 6;
      * }
      */
     public static int CXType_Char16() {
-        return (int)6L;
+        return CXType_Char16;
     }
+    private static final int CXType_Char32 = (int)7L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Char32 = 7;
      * }
      */
     public static int CXType_Char32() {
-        return (int)7L;
+        return CXType_Char32;
     }
+    private static final int CXType_UShort = (int)8L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_UShort = 8;
      * }
      */
     public static int CXType_UShort() {
-        return (int)8L;
+        return CXType_UShort;
     }
+    private static final int CXType_UInt = (int)9L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_UInt = 9;
      * }
      */
     public static int CXType_UInt() {
-        return (int)9L;
+        return CXType_UInt;
     }
+    private static final int CXType_ULong = (int)10L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ULong = 10;
      * }
      */
     public static int CXType_ULong() {
-        return (int)10L;
+        return CXType_ULong;
     }
+    private static final int CXType_ULongLong = (int)11L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ULongLong = 11;
      * }
      */
     public static int CXType_ULongLong() {
-        return (int)11L;
+        return CXType_ULongLong;
     }
+    private static final int CXType_UInt128 = (int)12L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_UInt128 = 12;
      * }
      */
     public static int CXType_UInt128() {
-        return (int)12L;
+        return CXType_UInt128;
     }
+    private static final int CXType_Char_S = (int)13L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Char_S = 13;
      * }
      */
     public static int CXType_Char_S() {
-        return (int)13L;
+        return CXType_Char_S;
     }
+    private static final int CXType_SChar = (int)14L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_SChar = 14;
      * }
      */
     public static int CXType_SChar() {
-        return (int)14L;
+        return CXType_SChar;
     }
+    private static final int CXType_WChar = (int)15L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_WChar = 15;
      * }
      */
     public static int CXType_WChar() {
-        return (int)15L;
+        return CXType_WChar;
     }
+    private static final int CXType_Short = (int)16L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Short = 16;
      * }
      */
     public static int CXType_Short() {
-        return (int)16L;
+        return CXType_Short;
     }
+    private static final int CXType_Int = (int)17L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Int = 17;
      * }
      */
     public static int CXType_Int() {
-        return (int)17L;
+        return CXType_Int;
     }
+    private static final int CXType_Long = (int)18L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Long = 18;
      * }
      */
     public static int CXType_Long() {
-        return (int)18L;
+        return CXType_Long;
     }
+    private static final int CXType_LongLong = (int)19L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_LongLong = 19;
      * }
      */
     public static int CXType_LongLong() {
-        return (int)19L;
+        return CXType_LongLong;
     }
+    private static final int CXType_Int128 = (int)20L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Int128 = 20;
      * }
      */
     public static int CXType_Int128() {
-        return (int)20L;
+        return CXType_Int128;
     }
+    private static final int CXType_Float = (int)21L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Float = 21;
      * }
      */
     public static int CXType_Float() {
-        return (int)21L;
+        return CXType_Float;
     }
+    private static final int CXType_Double = (int)22L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Double = 22;
      * }
      */
     public static int CXType_Double() {
-        return (int)22L;
+        return CXType_Double;
     }
+    private static final int CXType_LongDouble = (int)23L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_LongDouble = 23;
      * }
      */
     public static int CXType_LongDouble() {
-        return (int)23L;
+        return CXType_LongDouble;
     }
+    private static final int CXType_NullPtr = (int)24L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_NullPtr = 24;
      * }
      */
     public static int CXType_NullPtr() {
-        return (int)24L;
+        return CXType_NullPtr;
     }
+    private static final int CXType_Overload = (int)25L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Overload = 25;
      * }
      */
     public static int CXType_Overload() {
-        return (int)25L;
+        return CXType_Overload;
     }
+    private static final int CXType_Dependent = (int)26L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Dependent = 26;
      * }
      */
     public static int CXType_Dependent() {
-        return (int)26L;
+        return CXType_Dependent;
     }
+    private static final int CXType_ObjCId = (int)27L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCId = 27;
      * }
      */
     public static int CXType_ObjCId() {
-        return (int)27L;
+        return CXType_ObjCId;
     }
+    private static final int CXType_ObjCClass = (int)28L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCClass = 28;
      * }
      */
     public static int CXType_ObjCClass() {
-        return (int)28L;
+        return CXType_ObjCClass;
     }
+    private static final int CXType_ObjCSel = (int)29L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCSel = 29;
      * }
      */
     public static int CXType_ObjCSel() {
-        return (int)29L;
+        return CXType_ObjCSel;
     }
+    private static final int CXType_Float128 = (int)30L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Float128 = 30;
      * }
      */
     public static int CXType_Float128() {
-        return (int)30L;
+        return CXType_Float128;
     }
+    private static final int CXType_Half = (int)31L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Half = 31;
      * }
      */
     public static int CXType_Half() {
-        return (int)31L;
+        return CXType_Half;
     }
+    private static final int CXType_Float16 = (int)32L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Float16 = 32;
      * }
      */
     public static int CXType_Float16() {
-        return (int)32L;
+        return CXType_Float16;
     }
+    private static final int CXType_ShortAccum = (int)33L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ShortAccum = 33;
      * }
      */
     public static int CXType_ShortAccum() {
-        return (int)33L;
+        return CXType_ShortAccum;
     }
+    private static final int CXType_Accum = (int)34L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Accum = 34;
      * }
      */
     public static int CXType_Accum() {
-        return (int)34L;
+        return CXType_Accum;
     }
+    private static final int CXType_LongAccum = (int)35L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_LongAccum = 35;
      * }
      */
     public static int CXType_LongAccum() {
-        return (int)35L;
+        return CXType_LongAccum;
     }
+    private static final int CXType_UShortAccum = (int)36L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_UShortAccum = 36;
      * }
      */
     public static int CXType_UShortAccum() {
-        return (int)36L;
+        return CXType_UShortAccum;
     }
+    private static final int CXType_UAccum = (int)37L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_UAccum = 37;
      * }
      */
     public static int CXType_UAccum() {
-        return (int)37L;
+        return CXType_UAccum;
     }
+    private static final int CXType_ULongAccum = (int)38L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ULongAccum = 38;
      * }
      */
     public static int CXType_ULongAccum() {
-        return (int)38L;
+        return CXType_ULongAccum;
     }
+    private static final int CXType_FirstBuiltin = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_FirstBuiltin = 2;
      * }
      */
     public static int CXType_FirstBuiltin() {
-        return (int)2L;
+        return CXType_FirstBuiltin;
     }
+    private static final int CXType_LastBuiltin = (int)39L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_LastBuiltin = 39;
      * }
      */
     public static int CXType_LastBuiltin() {
-        return (int)39L;
+        return CXType_LastBuiltin;
     }
+    private static final int CXType_Complex = (int)100L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Complex = 100;
      * }
      */
     public static int CXType_Complex() {
-        return (int)100L;
+        return CXType_Complex;
     }
+    private static final int CXType_Pointer = (int)101L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Pointer = 101;
      * }
      */
     public static int CXType_Pointer() {
-        return (int)101L;
+        return CXType_Pointer;
     }
+    private static final int CXType_BlockPointer = (int)102L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_BlockPointer = 102;
      * }
      */
     public static int CXType_BlockPointer() {
-        return (int)102L;
+        return CXType_BlockPointer;
     }
+    private static final int CXType_LValueReference = (int)103L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_LValueReference = 103;
      * }
      */
     public static int CXType_LValueReference() {
-        return (int)103L;
+        return CXType_LValueReference;
     }
+    private static final int CXType_RValueReference = (int)104L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_RValueReference = 104;
      * }
      */
     public static int CXType_RValueReference() {
-        return (int)104L;
+        return CXType_RValueReference;
     }
+    private static final int CXType_Record = (int)105L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Record = 105;
      * }
      */
     public static int CXType_Record() {
-        return (int)105L;
+        return CXType_Record;
     }
+    private static final int CXType_Enum = (int)106L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Enum = 106;
      * }
      */
     public static int CXType_Enum() {
-        return (int)106L;
+        return CXType_Enum;
     }
+    private static final int CXType_Typedef = (int)107L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Typedef = 107;
      * }
      */
     public static int CXType_Typedef() {
-        return (int)107L;
+        return CXType_Typedef;
     }
+    private static final int CXType_ObjCInterface = (int)108L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCInterface = 108;
      * }
      */
     public static int CXType_ObjCInterface() {
-        return (int)108L;
+        return CXType_ObjCInterface;
     }
+    private static final int CXType_ObjCObjectPointer = (int)109L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCObjectPointer = 109;
      * }
      */
     public static int CXType_ObjCObjectPointer() {
-        return (int)109L;
+        return CXType_ObjCObjectPointer;
     }
+    private static final int CXType_FunctionNoProto = (int)110L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_FunctionNoProto = 110;
      * }
      */
     public static int CXType_FunctionNoProto() {
-        return (int)110L;
+        return CXType_FunctionNoProto;
     }
+    private static final int CXType_FunctionProto = (int)111L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_FunctionProto = 111;
      * }
      */
     public static int CXType_FunctionProto() {
-        return (int)111L;
+        return CXType_FunctionProto;
     }
+    private static final int CXType_ConstantArray = (int)112L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ConstantArray = 112;
      * }
      */
     public static int CXType_ConstantArray() {
-        return (int)112L;
+        return CXType_ConstantArray;
     }
+    private static final int CXType_Vector = (int)113L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Vector = 113;
      * }
      */
     public static int CXType_Vector() {
-        return (int)113L;
+        return CXType_Vector;
     }
+    private static final int CXType_IncompleteArray = (int)114L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_IncompleteArray = 114;
      * }
      */
     public static int CXType_IncompleteArray() {
-        return (int)114L;
+        return CXType_IncompleteArray;
     }
+    private static final int CXType_VariableArray = (int)115L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_VariableArray = 115;
      * }
      */
     public static int CXType_VariableArray() {
-        return (int)115L;
+        return CXType_VariableArray;
     }
+    private static final int CXType_DependentSizedArray = (int)116L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_DependentSizedArray = 116;
      * }
      */
     public static int CXType_DependentSizedArray() {
-        return (int)116L;
+        return CXType_DependentSizedArray;
     }
+    private static final int CXType_MemberPointer = (int)117L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_MemberPointer = 117;
      * }
      */
     public static int CXType_MemberPointer() {
-        return (int)117L;
+        return CXType_MemberPointer;
     }
+    private static final int CXType_Auto = (int)118L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Auto = 118;
      * }
      */
     public static int CXType_Auto() {
-        return (int)118L;
+        return CXType_Auto;
     }
+    private static final int CXType_Elaborated = (int)119L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Elaborated = 119;
      * }
      */
     public static int CXType_Elaborated() {
-        return (int)119L;
+        return CXType_Elaborated;
     }
+    private static final int CXType_Pipe = (int)120L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Pipe = 120;
      * }
      */
     public static int CXType_Pipe() {
-        return (int)120L;
+        return CXType_Pipe;
     }
+    private static final int CXType_OCLImage1dRO = (int)121L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dRO = 121;
      * }
      */
     public static int CXType_OCLImage1dRO() {
-        return (int)121L;
+        return CXType_OCLImage1dRO;
     }
+    private static final int CXType_OCLImage1dArrayRO = (int)122L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dArrayRO = 122;
      * }
      */
     public static int CXType_OCLImage1dArrayRO() {
-        return (int)122L;
+        return CXType_OCLImage1dArrayRO;
     }
+    private static final int CXType_OCLImage1dBufferRO = (int)123L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dBufferRO = 123;
      * }
      */
     public static int CXType_OCLImage1dBufferRO() {
-        return (int)123L;
+        return CXType_OCLImage1dBufferRO;
     }
+    private static final int CXType_OCLImage2dRO = (int)124L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dRO = 124;
      * }
      */
     public static int CXType_OCLImage2dRO() {
-        return (int)124L;
+        return CXType_OCLImage2dRO;
     }
+    private static final int CXType_OCLImage2dArrayRO = (int)125L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayRO = 125;
      * }
      */
     public static int CXType_OCLImage2dArrayRO() {
-        return (int)125L;
+        return CXType_OCLImage2dArrayRO;
     }
+    private static final int CXType_OCLImage2dDepthRO = (int)126L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dDepthRO = 126;
      * }
      */
     public static int CXType_OCLImage2dDepthRO() {
-        return (int)126L;
+        return CXType_OCLImage2dDepthRO;
     }
+    private static final int CXType_OCLImage2dArrayDepthRO = (int)127L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayDepthRO = 127;
      * }
      */
     public static int CXType_OCLImage2dArrayDepthRO() {
-        return (int)127L;
+        return CXType_OCLImage2dArrayDepthRO;
     }
+    private static final int CXType_OCLImage2dMSAARO = (int)128L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAARO = 128;
      * }
      */
     public static int CXType_OCLImage2dMSAARO() {
-        return (int)128L;
+        return CXType_OCLImage2dMSAARO;
     }
+    private static final int CXType_OCLImage2dArrayMSAARO = (int)129L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAARO = 129;
      * }
      */
     public static int CXType_OCLImage2dArrayMSAARO() {
-        return (int)129L;
+        return CXType_OCLImage2dArrayMSAARO;
     }
+    private static final int CXType_OCLImage2dMSAADepthRO = (int)130L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAADepthRO = 130;
      * }
      */
     public static int CXType_OCLImage2dMSAADepthRO() {
-        return (int)130L;
+        return CXType_OCLImage2dMSAADepthRO;
     }
+    private static final int CXType_OCLImage2dArrayMSAADepthRO = (int)131L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAADepthRO = 131;
      * }
      */
     public static int CXType_OCLImage2dArrayMSAADepthRO() {
-        return (int)131L;
+        return CXType_OCLImage2dArrayMSAADepthRO;
     }
+    private static final int CXType_OCLImage3dRO = (int)132L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage3dRO = 132;
      * }
      */
     public static int CXType_OCLImage3dRO() {
-        return (int)132L;
+        return CXType_OCLImage3dRO;
     }
+    private static final int CXType_OCLImage1dWO = (int)133L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dWO = 133;
      * }
      */
     public static int CXType_OCLImage1dWO() {
-        return (int)133L;
+        return CXType_OCLImage1dWO;
     }
+    private static final int CXType_OCLImage1dArrayWO = (int)134L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dArrayWO = 134;
      * }
      */
     public static int CXType_OCLImage1dArrayWO() {
-        return (int)134L;
+        return CXType_OCLImage1dArrayWO;
     }
+    private static final int CXType_OCLImage1dBufferWO = (int)135L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dBufferWO = 135;
      * }
      */
     public static int CXType_OCLImage1dBufferWO() {
-        return (int)135L;
+        return CXType_OCLImage1dBufferWO;
     }
+    private static final int CXType_OCLImage2dWO = (int)136L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dWO = 136;
      * }
      */
     public static int CXType_OCLImage2dWO() {
-        return (int)136L;
+        return CXType_OCLImage2dWO;
     }
+    private static final int CXType_OCLImage2dArrayWO = (int)137L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayWO = 137;
      * }
      */
     public static int CXType_OCLImage2dArrayWO() {
-        return (int)137L;
+        return CXType_OCLImage2dArrayWO;
     }
+    private static final int CXType_OCLImage2dDepthWO = (int)138L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dDepthWO = 138;
      * }
      */
     public static int CXType_OCLImage2dDepthWO() {
-        return (int)138L;
+        return CXType_OCLImage2dDepthWO;
     }
+    private static final int CXType_OCLImage2dArrayDepthWO = (int)139L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayDepthWO = 139;
      * }
      */
     public static int CXType_OCLImage2dArrayDepthWO() {
-        return (int)139L;
+        return CXType_OCLImage2dArrayDepthWO;
     }
+    private static final int CXType_OCLImage2dMSAAWO = (int)140L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAAWO = 140;
      * }
      */
     public static int CXType_OCLImage2dMSAAWO() {
-        return (int)140L;
+        return CXType_OCLImage2dMSAAWO;
     }
+    private static final int CXType_OCLImage2dArrayMSAAWO = (int)141L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAAWO = 141;
      * }
      */
     public static int CXType_OCLImage2dArrayMSAAWO() {
-        return (int)141L;
+        return CXType_OCLImage2dArrayMSAAWO;
     }
+    private static final int CXType_OCLImage2dMSAADepthWO = (int)142L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAADepthWO = 142;
      * }
      */
     public static int CXType_OCLImage2dMSAADepthWO() {
-        return (int)142L;
+        return CXType_OCLImage2dMSAADepthWO;
     }
+    private static final int CXType_OCLImage2dArrayMSAADepthWO = (int)143L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAADepthWO = 143;
      * }
      */
     public static int CXType_OCLImage2dArrayMSAADepthWO() {
-        return (int)143L;
+        return CXType_OCLImage2dArrayMSAADepthWO;
     }
+    private static final int CXType_OCLImage3dWO = (int)144L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage3dWO = 144;
      * }
      */
     public static int CXType_OCLImage3dWO() {
-        return (int)144L;
+        return CXType_OCLImage3dWO;
     }
+    private static final int CXType_OCLImage1dRW = (int)145L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dRW = 145;
      * }
      */
     public static int CXType_OCLImage1dRW() {
-        return (int)145L;
+        return CXType_OCLImage1dRW;
     }
+    private static final int CXType_OCLImage1dArrayRW = (int)146L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dArrayRW = 146;
      * }
      */
     public static int CXType_OCLImage1dArrayRW() {
-        return (int)146L;
+        return CXType_OCLImage1dArrayRW;
     }
+    private static final int CXType_OCLImage1dBufferRW = (int)147L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dBufferRW = 147;
      * }
      */
     public static int CXType_OCLImage1dBufferRW() {
-        return (int)147L;
+        return CXType_OCLImage1dBufferRW;
     }
+    private static final int CXType_OCLImage2dRW = (int)148L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dRW = 148;
      * }
      */
     public static int CXType_OCLImage2dRW() {
-        return (int)148L;
+        return CXType_OCLImage2dRW;
     }
+    private static final int CXType_OCLImage2dArrayRW = (int)149L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayRW = 149;
      * }
      */
     public static int CXType_OCLImage2dArrayRW() {
-        return (int)149L;
+        return CXType_OCLImage2dArrayRW;
     }
+    private static final int CXType_OCLImage2dDepthRW = (int)150L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dDepthRW = 150;
      * }
      */
     public static int CXType_OCLImage2dDepthRW() {
-        return (int)150L;
+        return CXType_OCLImage2dDepthRW;
     }
+    private static final int CXType_OCLImage2dArrayDepthRW = (int)151L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayDepthRW = 151;
      * }
      */
     public static int CXType_OCLImage2dArrayDepthRW() {
-        return (int)151L;
+        return CXType_OCLImage2dArrayDepthRW;
     }
+    private static final int CXType_OCLImage2dMSAARW = (int)152L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAARW = 152;
      * }
      */
     public static int CXType_OCLImage2dMSAARW() {
-        return (int)152L;
+        return CXType_OCLImage2dMSAARW;
     }
+    private static final int CXType_OCLImage2dArrayMSAARW = (int)153L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAARW = 153;
      * }
      */
     public static int CXType_OCLImage2dArrayMSAARW() {
-        return (int)153L;
+        return CXType_OCLImage2dArrayMSAARW;
     }
+    private static final int CXType_OCLImage2dMSAADepthRW = (int)154L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAADepthRW = 154;
      * }
      */
     public static int CXType_OCLImage2dMSAADepthRW() {
-        return (int)154L;
+        return CXType_OCLImage2dMSAADepthRW;
     }
+    private static final int CXType_OCLImage2dArrayMSAADepthRW = (int)155L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAADepthRW = 155;
      * }
      */
     public static int CXType_OCLImage2dArrayMSAADepthRW() {
-        return (int)155L;
+        return CXType_OCLImage2dArrayMSAADepthRW;
     }
+    private static final int CXType_OCLImage3dRW = (int)156L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage3dRW = 156;
      * }
      */
     public static int CXType_OCLImage3dRW() {
-        return (int)156L;
+        return CXType_OCLImage3dRW;
     }
+    private static final int CXType_OCLSampler = (int)157L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLSampler = 157;
      * }
      */
     public static int CXType_OCLSampler() {
-        return (int)157L;
+        return CXType_OCLSampler;
     }
+    private static final int CXType_OCLEvent = (int)158L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLEvent = 158;
      * }
      */
     public static int CXType_OCLEvent() {
-        return (int)158L;
+        return CXType_OCLEvent;
     }
+    private static final int CXType_OCLQueue = (int)159L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLQueue = 159;
      * }
      */
     public static int CXType_OCLQueue() {
-        return (int)159L;
+        return CXType_OCLQueue;
     }
+    private static final int CXType_OCLReserveID = (int)160L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLReserveID = 160;
      * }
      */
     public static int CXType_OCLReserveID() {
-        return (int)160L;
+        return CXType_OCLReserveID;
     }
+    private static final int CXType_ObjCObject = (int)161L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCObject = 161;
      * }
      */
     public static int CXType_ObjCObject() {
-        return (int)161L;
+        return CXType_ObjCObject;
     }
+    private static final int CXType_ObjCTypeParam = (int)162L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCTypeParam = 162;
      * }
      */
     public static int CXType_ObjCTypeParam() {
-        return (int)162L;
+        return CXType_ObjCTypeParam;
     }
+    private static final int CXType_Attributed = (int)163L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_Attributed = 163;
      * }
      */
     public static int CXType_Attributed() {
-        return (int)163L;
+        return CXType_Attributed;
     }
+    private static final int CXType_OCLIntelSubgroupAVCMcePayload = (int)164L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCMcePayload = 164;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCMcePayload() {
-        return (int)164L;
+        return CXType_OCLIntelSubgroupAVCMcePayload;
     }
+    private static final int CXType_OCLIntelSubgroupAVCImePayload = (int)165L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImePayload = 165;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCImePayload() {
-        return (int)165L;
+        return CXType_OCLIntelSubgroupAVCImePayload;
     }
+    private static final int CXType_OCLIntelSubgroupAVCRefPayload = (int)166L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCRefPayload = 166;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCRefPayload() {
-        return (int)166L;
+        return CXType_OCLIntelSubgroupAVCRefPayload;
     }
+    private static final int CXType_OCLIntelSubgroupAVCSicPayload = (int)167L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCSicPayload = 167;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCSicPayload() {
-        return (int)167L;
+        return CXType_OCLIntelSubgroupAVCSicPayload;
     }
+    private static final int CXType_OCLIntelSubgroupAVCMceResult = (int)168L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCMceResult = 168;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCMceResult() {
-        return (int)168L;
+        return CXType_OCLIntelSubgroupAVCMceResult;
     }
+    private static final int CXType_OCLIntelSubgroupAVCImeResult = (int)169L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeResult = 169;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCImeResult() {
-        return (int)169L;
+        return CXType_OCLIntelSubgroupAVCImeResult;
     }
+    private static final int CXType_OCLIntelSubgroupAVCRefResult = (int)170L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCRefResult = 170;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCRefResult() {
-        return (int)170L;
+        return CXType_OCLIntelSubgroupAVCRefResult;
     }
+    private static final int CXType_OCLIntelSubgroupAVCSicResult = (int)171L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCSicResult = 171;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCSicResult() {
-        return (int)171L;
+        return CXType_OCLIntelSubgroupAVCSicResult;
     }
+    private static final int CXType_OCLIntelSubgroupAVCImeResultSingleRefStreamout = (int)172L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeResultSingleRefStreamout = 172;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCImeResultSingleRefStreamout() {
-        return (int)172L;
+        return CXType_OCLIntelSubgroupAVCImeResultSingleRefStreamout;
     }
+    private static final int CXType_OCLIntelSubgroupAVCImeResultDualRefStreamout = (int)173L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeResultDualRefStreamout = 173;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCImeResultDualRefStreamout() {
-        return (int)173L;
+        return CXType_OCLIntelSubgroupAVCImeResultDualRefStreamout;
     }
+    private static final int CXType_OCLIntelSubgroupAVCImeSingleRefStreamin = (int)174L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeSingleRefStreamin = 174;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCImeSingleRefStreamin() {
-        return (int)174L;
+        return CXType_OCLIntelSubgroupAVCImeSingleRefStreamin;
     }
+    private static final int CXType_OCLIntelSubgroupAVCImeDualRefStreamin = (int)175L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeDualRefStreamin = 175;
      * }
      */
     public static int CXType_OCLIntelSubgroupAVCImeDualRefStreamin() {
-        return (int)175L;
+        return CXType_OCLIntelSubgroupAVCImeDualRefStreamin;
     }
+    private static final int CXType_ExtVector = (int)176L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeKind.CXType_ExtVector = 176;
      * }
      */
     public static int CXType_ExtVector() {
-        return (int)176L;
+        return CXType_ExtVector;
     }
+    private static final int CXCallingConv_Default = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Default = 0;
      * }
      */
     public static int CXCallingConv_Default() {
-        return (int)0L;
+        return CXCallingConv_Default;
     }
+    private static final int CXCallingConv_C = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_C = 1;
      * }
      */
     public static int CXCallingConv_C() {
-        return (int)1L;
+        return CXCallingConv_C;
     }
+    private static final int CXCallingConv_X86StdCall = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86StdCall = 2;
      * }
      */
     public static int CXCallingConv_X86StdCall() {
-        return (int)2L;
+        return CXCallingConv_X86StdCall;
     }
+    private static final int CXCallingConv_X86FastCall = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86FastCall = 3;
      * }
      */
     public static int CXCallingConv_X86FastCall() {
-        return (int)3L;
+        return CXCallingConv_X86FastCall;
     }
+    private static final int CXCallingConv_X86ThisCall = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86ThisCall = 4;
      * }
      */
     public static int CXCallingConv_X86ThisCall() {
-        return (int)4L;
+        return CXCallingConv_X86ThisCall;
     }
+    private static final int CXCallingConv_X86Pascal = (int)5L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86Pascal = 5;
      * }
      */
     public static int CXCallingConv_X86Pascal() {
-        return (int)5L;
+        return CXCallingConv_X86Pascal;
     }
+    private static final int CXCallingConv_AAPCS = (int)6L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_AAPCS = 6;
      * }
      */
     public static int CXCallingConv_AAPCS() {
-        return (int)6L;
+        return CXCallingConv_AAPCS;
     }
+    private static final int CXCallingConv_AAPCS_VFP = (int)7L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_AAPCS_VFP = 7;
      * }
      */
     public static int CXCallingConv_AAPCS_VFP() {
-        return (int)7L;
+        return CXCallingConv_AAPCS_VFP;
     }
+    private static final int CXCallingConv_X86RegCall = (int)8L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86RegCall = 8;
      * }
      */
     public static int CXCallingConv_X86RegCall() {
-        return (int)8L;
+        return CXCallingConv_X86RegCall;
     }
+    private static final int CXCallingConv_IntelOclBicc = (int)9L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_IntelOclBicc = 9;
      * }
      */
     public static int CXCallingConv_IntelOclBicc() {
-        return (int)9L;
+        return CXCallingConv_IntelOclBicc;
     }
+    private static final int CXCallingConv_Win64 = (int)10L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Win64 = 10;
      * }
      */
     public static int CXCallingConv_Win64() {
-        return (int)10L;
+        return CXCallingConv_Win64;
     }
+    private static final int CXCallingConv_X86_64Win64 = (int)10L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86_64Win64 = 10;
      * }
      */
     public static int CXCallingConv_X86_64Win64() {
-        return (int)10L;
+        return CXCallingConv_X86_64Win64;
     }
+    private static final int CXCallingConv_X86_64SysV = (int)11L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86_64SysV = 11;
      * }
      */
     public static int CXCallingConv_X86_64SysV() {
-        return (int)11L;
+        return CXCallingConv_X86_64SysV;
     }
+    private static final int CXCallingConv_X86VectorCall = (int)12L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86VectorCall = 12;
      * }
      */
     public static int CXCallingConv_X86VectorCall() {
-        return (int)12L;
+        return CXCallingConv_X86VectorCall;
     }
+    private static final int CXCallingConv_Swift = (int)13L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Swift = 13;
      * }
      */
     public static int CXCallingConv_Swift() {
-        return (int)13L;
+        return CXCallingConv_Swift;
     }
+    private static final int CXCallingConv_PreserveMost = (int)14L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_PreserveMost = 14;
      * }
      */
     public static int CXCallingConv_PreserveMost() {
-        return (int)14L;
+        return CXCallingConv_PreserveMost;
     }
+    private static final int CXCallingConv_PreserveAll = (int)15L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_PreserveAll = 15;
      * }
      */
     public static int CXCallingConv_PreserveAll() {
-        return (int)15L;
+        return CXCallingConv_PreserveAll;
     }
+    private static final int CXCallingConv_AArch64VectorCall = (int)16L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_AArch64VectorCall = 16;
      * }
      */
     public static int CXCallingConv_AArch64VectorCall() {
-        return (int)16L;
+        return CXCallingConv_AArch64VectorCall;
     }
+    private static final int CXCallingConv_Invalid = (int)100L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Invalid = 100;
      * }
      */
     public static int CXCallingConv_Invalid() {
-        return (int)100L;
+        return CXCallingConv_Invalid;
     }
+    private static final int CXCallingConv_Unexposed = (int)200L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Unexposed = 200;
      * }
      */
     public static int CXCallingConv_Unexposed() {
-        return (int)200L;
-    }
-    public static MethodHandle clang_getCursorType$MH() {
-        return RuntimeHelper.requireNonNull(constants$7.clang_getCursorType$MH,"clang_getCursorType");
+        return CXCallingConv_Unexposed;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getCursorType(CXCursor C);
      * }
      */
+    public static MethodHandle clang_getCursorType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getCursorType(SegmentAllocator allocator, MemorySegment C) {
         var mh$ = clang_getCursorType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C);
+            return (MemorySegment) mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getTypeSpelling$MH() {
-        return RuntimeHelper.requireNonNull(constants$7.clang_getTypeSpelling$MH,"clang_getTypeSpelling");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getTypeSpelling(CXType CT);
      * }
      */
+    public static MethodHandle clang_getTypeSpelling$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTypeSpelling"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getTypeSpelling(SegmentAllocator allocator, MemorySegment CT) {
         var mh$ = clang_getTypeSpelling$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, CT);
+            return (MemorySegment) mh$.invokeExact(allocator, CT);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getTypedefDeclUnderlyingType$MH() {
-        return RuntimeHelper.requireNonNull(constants$8.clang_getTypedefDeclUnderlyingType$MH,"clang_getTypedefDeclUnderlyingType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getTypedefDeclUnderlyingType(CXCursor C);
      * }
      */
+    public static MethodHandle clang_getTypedefDeclUnderlyingType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTypedefDeclUnderlyingType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getTypedefDeclUnderlyingType(SegmentAllocator allocator, MemorySegment C) {
         var mh$ = clang_getTypedefDeclUnderlyingType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C);
+            return (MemorySegment) mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getEnumDeclIntegerType$MH() {
-        return RuntimeHelper.requireNonNull(constants$8.clang_getEnumDeclIntegerType$MH,"clang_getEnumDeclIntegerType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getEnumDeclIntegerType(CXCursor C);
      * }
      */
+    public static MethodHandle clang_getEnumDeclIntegerType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getEnumDeclIntegerType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getEnumDeclIntegerType(SegmentAllocator allocator, MemorySegment C) {
         var mh$ = clang_getEnumDeclIntegerType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C);
+            return (MemorySegment) mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getEnumConstantDeclValue$MH() {
-        return RuntimeHelper.requireNonNull(constants$8.clang_getEnumConstantDeclValue$MH,"clang_getEnumConstantDeclValue");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * long long clang_getEnumConstantDeclValue(CXCursor C);
      * }
      */
+    public static MethodHandle clang_getEnumConstantDeclValue$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_LONG_LONG,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getEnumConstantDeclValue"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static long clang_getEnumConstantDeclValue(MemorySegment C) {
         var mh$ = clang_getEnumConstantDeclValue$MH();
         try {
-            return (long)mh$.invokeExact(C);
+            return (long) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getEnumConstantDeclUnsignedValue$MH() {
-        return RuntimeHelper.requireNonNull(constants$8.clang_getEnumConstantDeclUnsignedValue$MH,"clang_getEnumConstantDeclUnsignedValue");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned long long clang_getEnumConstantDeclUnsignedValue(CXCursor C);
      * }
      */
+    public static MethodHandle clang_getEnumConstantDeclUnsignedValue$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_LONG_LONG,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getEnumConstantDeclUnsignedValue"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static long clang_getEnumConstantDeclUnsignedValue(MemorySegment C) {
         var mh$ = clang_getEnumConstantDeclUnsignedValue$MH();
         try {
-            return (long)mh$.invokeExact(C);
+            return (long) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getFieldDeclBitWidth$MH() {
-        return RuntimeHelper.requireNonNull(constants$8.clang_getFieldDeclBitWidth$MH,"clang_getFieldDeclBitWidth");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_getFieldDeclBitWidth(CXCursor C);
      * }
      */
+    public static MethodHandle clang_getFieldDeclBitWidth$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getFieldDeclBitWidth"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_getFieldDeclBitWidth(MemorySegment C) {
         var mh$ = clang_getFieldDeclBitWidth$MH();
         try {
-            return (int)mh$.invokeExact(C);
+            return (int) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_getNumArguments$MH() {
-        return RuntimeHelper.requireNonNull(constants$8.clang_Cursor_getNumArguments$MH,"clang_Cursor_getNumArguments");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_Cursor_getNumArguments(CXCursor C);
      * }
      */
+    public static MethodHandle clang_Cursor_getNumArguments$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_getNumArguments"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Cursor_getNumArguments(MemorySegment C) {
         var mh$ = clang_Cursor_getNumArguments$MH();
         try {
-            return (int)mh$.invokeExact(C);
+            return (int) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_getArgument$MH() {
-        return RuntimeHelper.requireNonNull(constants$9.clang_Cursor_getArgument$MH,"clang_Cursor_getArgument");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXCursor clang_Cursor_getArgument(CXCursor C, unsigned int i);
      * }
      */
+    public static MethodHandle clang_Cursor_getArgument$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXCursor.$LAYOUT(),
+                CXCursor.$LAYOUT(),
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_getArgument"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_Cursor_getArgument(SegmentAllocator allocator, MemorySegment C, int i) {
         var mh$ = clang_Cursor_getArgument$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C, i);
+            return (MemorySegment) mh$.invokeExact(allocator, C, i);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_equalTypes$MH() {
-        return RuntimeHelper.requireNonNull(constants$9.clang_equalTypes$MH,"clang_equalTypes");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_equalTypes(CXType A, CXType B);
      * }
      */
+    public static MethodHandle clang_equalTypes$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXType.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_equalTypes"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_equalTypes(MemorySegment A, MemorySegment B) {
         var mh$ = clang_equalTypes$MH();
         try {
-            return (int)mh$.invokeExact(A, B);
+            return (int) mh$.invokeExact(A, B);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCanonicalType$MH() {
-        return RuntimeHelper.requireNonNull(constants$9.clang_getCanonicalType$MH,"clang_getCanonicalType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getCanonicalType(CXType T);
      * }
      */
+    public static MethodHandle clang_getCanonicalType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCanonicalType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getCanonicalType(SegmentAllocator allocator, MemorySegment T) {
         var mh$ = clang_getCanonicalType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (MemorySegment) mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_isConstQualifiedType$MH() {
-        return RuntimeHelper.requireNonNull(constants$9.clang_isConstQualifiedType$MH,"clang_isConstQualifiedType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_isConstQualifiedType(CXType T);
      * }
      */
+    public static MethodHandle clang_isConstQualifiedType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_isConstQualifiedType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_isConstQualifiedType(MemorySegment T) {
         var mh$ = clang_isConstQualifiedType$MH();
         try {
-            return (int)mh$.invokeExact(T);
+            return (int) mh$.invokeExact(T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_isMacroFunctionLike$MH() {
-        return RuntimeHelper.requireNonNull(constants$9.clang_Cursor_isMacroFunctionLike$MH,"clang_Cursor_isMacroFunctionLike");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_Cursor_isMacroFunctionLike(CXCursor C);
      * }
      */
+    public static MethodHandle clang_Cursor_isMacroFunctionLike$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_isMacroFunctionLike"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Cursor_isMacroFunctionLike(MemorySegment C) {
         var mh$ = clang_Cursor_isMacroFunctionLike$MH();
         try {
-            return (int)mh$.invokeExact(C);
+            return (int) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_isFunctionInlined$MH() {
-        return RuntimeHelper.requireNonNull(constants$9.clang_Cursor_isFunctionInlined$MH,"clang_Cursor_isFunctionInlined");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_Cursor_isFunctionInlined(CXCursor C);
      * }
      */
+    public static MethodHandle clang_Cursor_isFunctionInlined$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_isFunctionInlined"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Cursor_isFunctionInlined(MemorySegment C) {
         var mh$ = clang_Cursor_isFunctionInlined$MH();
         try {
-            return (int)mh$.invokeExact(C);
+            return (int) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_isVolatileQualifiedType$MH() {
-        return RuntimeHelper.requireNonNull(constants$10.clang_isVolatileQualifiedType$MH,"clang_isVolatileQualifiedType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_isVolatileQualifiedType(CXType T);
      * }
      */
+    public static MethodHandle clang_isVolatileQualifiedType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_isVolatileQualifiedType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_isVolatileQualifiedType(MemorySegment T) {
         var mh$ = clang_isVolatileQualifiedType$MH();
         try {
-            return (int)mh$.invokeExact(T);
+            return (int) mh$.invokeExact(T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getTypedefName$MH() {
-        return RuntimeHelper.requireNonNull(constants$10.clang_getTypedefName$MH,"clang_getTypedefName");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getTypedefName(CXType CT);
      * }
      */
+    public static MethodHandle clang_getTypedefName$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTypedefName"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getTypedefName(SegmentAllocator allocator, MemorySegment CT) {
         var mh$ = clang_getTypedefName$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, CT);
+            return (MemorySegment) mh$.invokeExact(allocator, CT);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getPointeeType$MH() {
-        return RuntimeHelper.requireNonNull(constants$10.clang_getPointeeType$MH,"clang_getPointeeType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getPointeeType(CXType T);
      * }
      */
+    public static MethodHandle clang_getPointeeType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getPointeeType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getPointeeType(SegmentAllocator allocator, MemorySegment T) {
         var mh$ = clang_getPointeeType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (MemorySegment) mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getTypeDeclaration$MH() {
-        return RuntimeHelper.requireNonNull(constants$10.clang_getTypeDeclaration$MH,"clang_getTypeDeclaration");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXCursor clang_getTypeDeclaration(CXType T);
      * }
      */
+    public static MethodHandle clang_getTypeDeclaration$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXCursor.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTypeDeclaration"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getTypeDeclaration(SegmentAllocator allocator, MemorySegment T) {
         var mh$ = clang_getTypeDeclaration$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (MemorySegment) mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getTypeKindSpelling$MH() {
-        return RuntimeHelper.requireNonNull(constants$10.clang_getTypeKindSpelling$MH,"clang_getTypeKindSpelling");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getTypeKindSpelling(enum CXTypeKind K);
      * }
      */
+    public static MethodHandle clang_getTypeKindSpelling$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTypeKindSpelling"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getTypeKindSpelling(SegmentAllocator allocator, int K) {
         var mh$ = clang_getTypeKindSpelling$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, K);
+            return (MemorySegment) mh$.invokeExact(allocator, K);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getFunctionTypeCallingConv$MH() {
-        return RuntimeHelper.requireNonNull(constants$10.clang_getFunctionTypeCallingConv$MH,"clang_getFunctionTypeCallingConv");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXCallingConv clang_getFunctionTypeCallingConv(CXType T);
      * }
      */
+    public static MethodHandle clang_getFunctionTypeCallingConv$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getFunctionTypeCallingConv"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_getFunctionTypeCallingConv(MemorySegment T) {
         var mh$ = clang_getFunctionTypeCallingConv$MH();
         try {
-            return (int)mh$.invokeExact(T);
+            return (int) mh$.invokeExact(T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getResultType$MH() {
-        return RuntimeHelper.requireNonNull(constants$11.clang_getResultType$MH,"clang_getResultType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getResultType(CXType T);
      * }
      */
+    public static MethodHandle clang_getResultType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getResultType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getResultType(SegmentAllocator allocator, MemorySegment T) {
         var mh$ = clang_getResultType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (MemorySegment) mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getNumArgTypes$MH() {
-        return RuntimeHelper.requireNonNull(constants$11.clang_getNumArgTypes$MH,"clang_getNumArgTypes");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_getNumArgTypes(CXType T);
      * }
      */
+    public static MethodHandle clang_getNumArgTypes$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getNumArgTypes"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_getNumArgTypes(MemorySegment T) {
         var mh$ = clang_getNumArgTypes$MH();
         try {
-            return (int)mh$.invokeExact(T);
+            return (int) mh$.invokeExact(T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getArgType$MH() {
-        return RuntimeHelper.requireNonNull(constants$11.clang_getArgType$MH,"clang_getArgType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getArgType(CXType T, unsigned int i);
      * }
      */
+    public static MethodHandle clang_getArgType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXType.$LAYOUT(),
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getArgType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getArgType(SegmentAllocator allocator, MemorySegment T, int i) {
         var mh$ = clang_getArgType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T, i);
+            return (MemorySegment) mh$.invokeExact(allocator, T, i);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_isFunctionTypeVariadic$MH() {
-        return RuntimeHelper.requireNonNull(constants$11.clang_isFunctionTypeVariadic$MH,"clang_isFunctionTypeVariadic");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_isFunctionTypeVariadic(CXType T);
      * }
      */
+    public static MethodHandle clang_isFunctionTypeVariadic$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_isFunctionTypeVariadic"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_isFunctionTypeVariadic(MemorySegment T) {
         var mh$ = clang_isFunctionTypeVariadic$MH();
         try {
-            return (int)mh$.invokeExact(T);
+            return (int) mh$.invokeExact(T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorResultType$MH() {
-        return RuntimeHelper.requireNonNull(constants$11.clang_getCursorResultType$MH,"clang_getCursorResultType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getCursorResultType(CXCursor C);
      * }
      */
+    public static MethodHandle clang_getCursorResultType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorResultType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getCursorResultType(SegmentAllocator allocator, MemorySegment C) {
         var mh$ = clang_getCursorResultType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, C);
+            return (MemorySegment) mh$.invokeExact(allocator, C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getElementType$MH() {
-        return RuntimeHelper.requireNonNull(constants$11.clang_getElementType$MH,"clang_getElementType");
-    }
-
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getElementType(CXType T);
      * }
      */
+    public static MethodHandle clang_getElementType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getElementType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getElementType(SegmentAllocator allocator, MemorySegment T) {
         var mh$ = clang_getElementType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (MemorySegment) mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-
-    public static MethodHandle clang_getValueType$MH() {
-        return RuntimeHelper.requireNonNull(constants$11.clang_getValueType$MH,"clang_Type_getValueType");
-    }
-
     /**
-     * {@snippet :
-     * CXType clang_getValueType(CXType T);
-     * }
-     */
-    public static MemorySegment clang_getValueType(SegmentAllocator allocator, MemorySegment T) {
-        var mh$ = clang_getValueType$MH();
-        try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
-        } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
-        }
-    }
-    public static MethodHandle clang_getNumElements$MH() {
-        return RuntimeHelper.requireNonNull(constants$12.clang_getNumElements$MH,"clang_getNumElements");
-    }
-    /**
-     * {@snippet :
+     * {@snippet lang=c :
      * long long clang_getNumElements(CXType T);
      * }
      */
+    public static MethodHandle clang_getNumElements$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_LONG_LONG,
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getNumElements"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static long clang_getNumElements(MemorySegment T) {
         var mh$ = clang_getNumElements$MH();
         try {
-            return (long)mh$.invokeExact(T);
+            return (long) mh$.invokeExact(T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getArrayElementType$MH() {
-        return RuntimeHelper.requireNonNull(constants$12.clang_getArrayElementType$MH,"clang_getArrayElementType");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXType clang_getArrayElementType(CXType T);
      * }
      */
+    public static MethodHandle clang_getArrayElementType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getArrayElementType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getArrayElementType(SegmentAllocator allocator, MemorySegment T) {
         var mh$ = clang_getArrayElementType$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, T);
+            return (MemorySegment) mh$.invokeExact(allocator, T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getArraySize$MH() {
-        return RuntimeHelper.requireNonNull(constants$12.clang_getArraySize$MH,"clang_getArraySize");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * long long clang_getArraySize(CXType T);
      * }
      */
+    public static MethodHandle clang_getArraySize$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_LONG_LONG,
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getArraySize"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static long clang_getArraySize(MemorySegment T) {
         var mh$ = clang_getArraySize$MH();
         try {
-            return (long)mh$.invokeExact(T);
+            return (long) mh$.invokeExact(T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXTypeNullability_NonNull = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeNullabilityKind.CXTypeNullability_NonNull = 0;
      * }
      */
     public static int CXTypeNullability_NonNull() {
-        return (int)0L;
+        return CXTypeNullability_NonNull;
     }
+    private static final int CXTypeNullability_Nullable = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeNullabilityKind.CXTypeNullability_Nullable = 1;
      * }
      */
     public static int CXTypeNullability_Nullable() {
-        return (int)1L;
+        return CXTypeNullability_Nullable;
     }
+    private static final int CXTypeNullability_Unspecified = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeNullabilityKind.CXTypeNullability_Unspecified = 2;
      * }
      */
     public static int CXTypeNullability_Unspecified() {
-        return (int)2L;
+        return CXTypeNullability_Unspecified;
     }
+    private static final int CXTypeNullability_Invalid = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeNullabilityKind.CXTypeNullability_Invalid = 3;
      * }
      */
     public static int CXTypeNullability_Invalid() {
-        return (int)3L;
+        return CXTypeNullability_Invalid;
     }
+    private static final int CXTypeLayoutError_Invalid = (int)-1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_Invalid = -1;
      * }
      */
     public static int CXTypeLayoutError_Invalid() {
-        return (int)-1L;
+        return CXTypeLayoutError_Invalid;
     }
+    private static final int CXTypeLayoutError_Incomplete = (int)-2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_Incomplete = -2;
      * }
      */
     public static int CXTypeLayoutError_Incomplete() {
-        return (int)-2L;
+        return CXTypeLayoutError_Incomplete;
     }
+    private static final int CXTypeLayoutError_Dependent = (int)-3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_Dependent = -3;
      * }
      */
     public static int CXTypeLayoutError_Dependent() {
-        return (int)-3L;
+        return CXTypeLayoutError_Dependent;
     }
+    private static final int CXTypeLayoutError_NotConstantSize = (int)-4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_NotConstantSize = -4;
      * }
      */
     public static int CXTypeLayoutError_NotConstantSize() {
-        return (int)-4L;
+        return CXTypeLayoutError_NotConstantSize;
     }
+    private static final int CXTypeLayoutError_InvalidFieldName = (int)-5L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_InvalidFieldName = -5;
      * }
      */
     public static int CXTypeLayoutError_InvalidFieldName() {
-        return (int)-5L;
+        return CXTypeLayoutError_InvalidFieldName;
     }
+    private static final int CXTypeLayoutError_Undeduced = (int)-6L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_Undeduced = -6;
      * }
      */
     public static int CXTypeLayoutError_Undeduced() {
-        return (int)-6L;
-    }
-    public static MethodHandle clang_Type_getSizeOf$MH() {
-        return RuntimeHelper.requireNonNull(constants$12.clang_Type_getSizeOf$MH,"clang_Type_getSizeOf");
+        return CXTypeLayoutError_Undeduced;
     }
     /**
-     * {@snippet :
-     * long long clang_Type_getSizeOf(CXType T);
-     * }
-     */
-    public static long clang_Type_getSizeOf(MemorySegment T) {
-        var mh$ = clang_Type_getSizeOf$MH();
-        try {
-            return (long)mh$.invokeExact(T);
-        } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
-        }
-    }
-    public static MethodHandle clang_Type_getAlignOf$MH() {
-        return RuntimeHelper.requireNonNull(constants$12.clang_Type_getAlignOf$MH,"clang_Type_getAlignOf");
-    }
-    /**
-     * {@snippet :
+     * {@snippet lang=c :
      * long long clang_Type_getAlignOf(CXType T);
      * }
      */
+    public static MethodHandle clang_Type_getAlignOf$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_LONG_LONG,
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Type_getAlignOf"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static long clang_Type_getAlignOf(MemorySegment T) {
         var mh$ = clang_Type_getAlignOf$MH();
         try {
-            return (long)mh$.invokeExact(T);
+            return (long) mh$.invokeExact(T);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Type_getOffsetOf$MH() {
-        return RuntimeHelper.requireNonNull(constants$12.clang_Type_getOffsetOf$MH,"clang_Type_getOffsetOf");
+    /**
+     * {@snippet lang=c :
+     * long long clang_Type_getSizeOf(CXType T);
+     * }
+     */
+    public static MethodHandle clang_Type_getSizeOf$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_LONG_LONG,
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Type_getSizeOf"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static long clang_Type_getSizeOf(MemorySegment T) {
+        var mh$ = clang_Type_getSizeOf$MH();
+        try {
+            return (long) mh$.invokeExact(T);
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * long long clang_Type_getOffsetOf(CXType T, char* S);
      * }
      */
+    public static MethodHandle clang_Type_getOffsetOf$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_LONG_LONG,
+                CXType.$LAYOUT(),
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Type_getOffsetOf"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static long clang_Type_getOffsetOf(MemorySegment T, MemorySegment S) {
         var mh$ = clang_Type_getOffsetOf$MH();
         try {
-            return (long)mh$.invokeExact(T, S);
+            return (long) mh$.invokeExact(T, S);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_isAnonymous$MH() {
-        return RuntimeHelper.requireNonNull(constants$12.clang_Cursor_isAnonymous$MH,"clang_Cursor_isAnonymous");
+    /**
+     * {@snippet lang=c :
+     * CXType clang_Type_getValueType(CXType CT);
+     * }
+     */
+    public static MethodHandle clang_Type_getValueType$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXType.$LAYOUT(),
+                CXType.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Type_getValueType"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_Type_getValueType(SegmentAllocator allocator, MemorySegment CT) {
+        var mh$ = clang_Type_getValueType$MH();
+        try {
+            return (MemorySegment) mh$.invokeExact(allocator, CT);
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymous(CXCursor C);
      * }
      */
+    public static MethodHandle clang_Cursor_isAnonymous$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_isAnonymous"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Cursor_isAnonymous(MemorySegment C) {
         var mh$ = clang_Cursor_isAnonymous$MH();
         try {
-            return (int)mh$.invokeExact(C);
+            return (int) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_isAnonymousRecordDecl$MH() {
-        return RuntimeHelper.requireNonNull(constants$13.clang_Cursor_isAnonymousRecordDecl$MH,"clang_Cursor_isAnonymousRecordDecl");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymousRecordDecl(CXCursor C);
      * }
      */
+    public static MethodHandle clang_Cursor_isAnonymousRecordDecl$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_isAnonymousRecordDecl"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Cursor_isAnonymousRecordDecl(MemorySegment C) {
         var mh$ = clang_Cursor_isAnonymousRecordDecl$MH();
         try {
-            return (int)mh$.invokeExact(C);
+            return (int) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_isBitField$MH() {
-        return RuntimeHelper.requireNonNull(constants$13.clang_Cursor_isBitField$MH,"clang_Cursor_isBitField");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_Cursor_isBitField(CXCursor C);
      * }
      */
+    public static MethodHandle clang_Cursor_isBitField$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_isBitField"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Cursor_isBitField(MemorySegment C) {
         var mh$ = clang_Cursor_isBitField$MH();
         try {
-            return (int)mh$.invokeExact(C);
+            return (int) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXChildVisit_Break = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXChildVisitResult.CXChildVisit_Break = 0;
      * }
      */
     public static int CXChildVisit_Break() {
-        return (int)0L;
+        return CXChildVisit_Break;
     }
+    private static final int CXChildVisit_Continue = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXChildVisitResult.CXChildVisit_Continue = 1;
      * }
      */
     public static int CXChildVisit_Continue() {
-        return (int)1L;
+        return CXChildVisit_Continue;
     }
+    private static final int CXChildVisit_Recurse = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXChildVisitResult.CXChildVisit_Recurse = 2;
      * }
      */
     public static int CXChildVisit_Recurse() {
-        return (int)2L;
-    }
-    public static MethodHandle clang_visitChildren$MH() {
-        return RuntimeHelper.requireNonNull(constants$13.clang_visitChildren$MH,"clang_visitChildren");
+        return CXChildVisit_Recurse;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_visitChildren(CXCursor parent, CXCursorVisitor visitor, CXClientData client_data);
      * }
      */
+    public static MethodHandle clang_visitChildren$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT(),
+                Index_h.C_POINTER,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_visitChildren"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_visitChildren(MemorySegment parent, MemorySegment visitor, MemorySegment client_data) {
         var mh$ = clang_visitChildren$MH();
         try {
-            return (int)mh$.invokeExact(parent, visitor, client_data);
+            return (int) mh$.invokeExact(parent, visitor, client_data);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorUSR$MH() {
-        return RuntimeHelper.requireNonNull(constants$13.clang_getCursorUSR$MH,"clang_getCursorUSR");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getCursorUSR(CXCursor);
      * }
      */
-    public static MemorySegment clang_getCursorUSR(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getCursorUSR$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorUSR"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getCursorUSR(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getCursorUSR$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorSpelling$MH() {
-        return RuntimeHelper.requireNonNull(constants$14.clang_getCursorSpelling$MH,"clang_getCursorSpelling");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getCursorSpelling(CXCursor);
      * }
      */
-    public static MemorySegment clang_getCursorSpelling(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getCursorSpelling$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorSpelling"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getCursorSpelling(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getCursorSpelling$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXPrintingPolicy_Indentation = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Indentation = 0;
      * }
      */
     public static int CXPrintingPolicy_Indentation() {
-        return (int)0L;
+        return CXPrintingPolicy_Indentation;
     }
+    private static final int CXPrintingPolicy_SuppressSpecifiers = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressSpecifiers = 1;
      * }
      */
     public static int CXPrintingPolicy_SuppressSpecifiers() {
-        return (int)1L;
+        return CXPrintingPolicy_SuppressSpecifiers;
     }
+    private static final int CXPrintingPolicy_SuppressTagKeyword = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressTagKeyword = 2;
      * }
      */
     public static int CXPrintingPolicy_SuppressTagKeyword() {
-        return (int)2L;
+        return CXPrintingPolicy_SuppressTagKeyword;
     }
+    private static final int CXPrintingPolicy_IncludeTagDefinition = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_IncludeTagDefinition = 3;
      * }
      */
     public static int CXPrintingPolicy_IncludeTagDefinition() {
-        return (int)3L;
+        return CXPrintingPolicy_IncludeTagDefinition;
     }
+    private static final int CXPrintingPolicy_SuppressScope = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressScope = 4;
      * }
      */
     public static int CXPrintingPolicy_SuppressScope() {
-        return (int)4L;
+        return CXPrintingPolicy_SuppressScope;
     }
+    private static final int CXPrintingPolicy_SuppressUnwrittenScope = (int)5L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressUnwrittenScope = 5;
      * }
      */
     public static int CXPrintingPolicy_SuppressUnwrittenScope() {
-        return (int)5L;
+        return CXPrintingPolicy_SuppressUnwrittenScope;
     }
+    private static final int CXPrintingPolicy_SuppressInitializers = (int)6L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressInitializers = 6;
      * }
      */
     public static int CXPrintingPolicy_SuppressInitializers() {
-        return (int)6L;
+        return CXPrintingPolicy_SuppressInitializers;
     }
+    private static final int CXPrintingPolicy_ConstantArraySizeAsWritten = (int)7L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_ConstantArraySizeAsWritten = 7;
      * }
      */
     public static int CXPrintingPolicy_ConstantArraySizeAsWritten() {
-        return (int)7L;
+        return CXPrintingPolicy_ConstantArraySizeAsWritten;
     }
+    private static final int CXPrintingPolicy_AnonymousTagLocations = (int)8L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_AnonymousTagLocations = 8;
      * }
      */
     public static int CXPrintingPolicy_AnonymousTagLocations() {
-        return (int)8L;
+        return CXPrintingPolicy_AnonymousTagLocations;
     }
+    private static final int CXPrintingPolicy_SuppressStrongLifetime = (int)9L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressStrongLifetime = 9;
      * }
      */
     public static int CXPrintingPolicy_SuppressStrongLifetime() {
-        return (int)9L;
+        return CXPrintingPolicy_SuppressStrongLifetime;
     }
+    private static final int CXPrintingPolicy_SuppressLifetimeQualifiers = (int)10L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressLifetimeQualifiers = 10;
      * }
      */
     public static int CXPrintingPolicy_SuppressLifetimeQualifiers() {
-        return (int)10L;
+        return CXPrintingPolicy_SuppressLifetimeQualifiers;
     }
+    private static final int CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors = (int)11L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors = 11;
      * }
      */
     public static int CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors() {
-        return (int)11L;
+        return CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors;
     }
+    private static final int CXPrintingPolicy_Bool = (int)12L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Bool = 12;
      * }
      */
     public static int CXPrintingPolicy_Bool() {
-        return (int)12L;
+        return CXPrintingPolicy_Bool;
     }
+    private static final int CXPrintingPolicy_Restrict = (int)13L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Restrict = 13;
      * }
      */
     public static int CXPrintingPolicy_Restrict() {
-        return (int)13L;
+        return CXPrintingPolicy_Restrict;
     }
+    private static final int CXPrintingPolicy_Alignof = (int)14L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Alignof = 14;
      * }
      */
     public static int CXPrintingPolicy_Alignof() {
-        return (int)14L;
+        return CXPrintingPolicy_Alignof;
     }
+    private static final int CXPrintingPolicy_UnderscoreAlignof = (int)15L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_UnderscoreAlignof = 15;
      * }
      */
     public static int CXPrintingPolicy_UnderscoreAlignof() {
-        return (int)15L;
+        return CXPrintingPolicy_UnderscoreAlignof;
     }
+    private static final int CXPrintingPolicy_UseVoidForZeroParams = (int)16L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_UseVoidForZeroParams = 16;
      * }
      */
     public static int CXPrintingPolicy_UseVoidForZeroParams() {
-        return (int)16L;
+        return CXPrintingPolicy_UseVoidForZeroParams;
     }
+    private static final int CXPrintingPolicy_TerseOutput = (int)17L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_TerseOutput = 17;
      * }
      */
     public static int CXPrintingPolicy_TerseOutput() {
-        return (int)17L;
+        return CXPrintingPolicy_TerseOutput;
     }
+    private static final int CXPrintingPolicy_PolishForDeclaration = (int)18L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_PolishForDeclaration = 18;
      * }
      */
     public static int CXPrintingPolicy_PolishForDeclaration() {
-        return (int)18L;
+        return CXPrintingPolicy_PolishForDeclaration;
     }
+    private static final int CXPrintingPolicy_Half = (int)19L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Half = 19;
      * }
      */
     public static int CXPrintingPolicy_Half() {
-        return (int)19L;
+        return CXPrintingPolicy_Half;
     }
+    private static final int CXPrintingPolicy_MSWChar = (int)20L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_MSWChar = 20;
      * }
      */
     public static int CXPrintingPolicy_MSWChar() {
-        return (int)20L;
+        return CXPrintingPolicy_MSWChar;
     }
+    private static final int CXPrintingPolicy_IncludeNewlines = (int)21L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_IncludeNewlines = 21;
      * }
      */
     public static int CXPrintingPolicy_IncludeNewlines() {
-        return (int)21L;
+        return CXPrintingPolicy_IncludeNewlines;
     }
+    private static final int CXPrintingPolicy_MSVCFormatting = (int)22L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_MSVCFormatting = 22;
      * }
      */
     public static int CXPrintingPolicy_MSVCFormatting() {
-        return (int)22L;
+        return CXPrintingPolicy_MSVCFormatting;
     }
+    private static final int CXPrintingPolicy_ConstantsAsWritten = (int)23L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_ConstantsAsWritten = 23;
      * }
      */
     public static int CXPrintingPolicy_ConstantsAsWritten() {
-        return (int)23L;
+        return CXPrintingPolicy_ConstantsAsWritten;
     }
+    private static final int CXPrintingPolicy_SuppressImplicitBase = (int)24L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressImplicitBase = 24;
      * }
      */
     public static int CXPrintingPolicy_SuppressImplicitBase() {
-        return (int)24L;
+        return CXPrintingPolicy_SuppressImplicitBase;
     }
+    private static final int CXPrintingPolicy_FullyQualifiedName = (int)25L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_FullyQualifiedName = 25;
      * }
      */
     public static int CXPrintingPolicy_FullyQualifiedName() {
-        return (int)25L;
+        return CXPrintingPolicy_FullyQualifiedName;
     }
+    private static final int CXPrintingPolicy_LastProperty = (int)25L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_LastProperty = 25;
      * }
      */
     public static int CXPrintingPolicy_LastProperty() {
-        return (int)25L;
-    }
-    public static MethodHandle clang_PrintingPolicy_getProperty$MH() {
-        return RuntimeHelper.requireNonNull(constants$14.clang_PrintingPolicy_getProperty$MH,"clang_PrintingPolicy_getProperty");
+        return CXPrintingPolicy_LastProperty;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_PrintingPolicy_getProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property);
      * }
      */
+    public static MethodHandle clang_PrintingPolicy_getProperty$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_PrintingPolicy_getProperty"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_PrintingPolicy_getProperty(MemorySegment Policy, int Property) {
         var mh$ = clang_PrintingPolicy_getProperty$MH();
         try {
-            return (int)mh$.invokeExact(Policy, Property);
+            return (int) mh$.invokeExact(Policy, Property);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_PrintingPolicy_setProperty$MH() {
-        return RuntimeHelper.requireNonNull(constants$14.clang_PrintingPolicy_setProperty$MH,"clang_PrintingPolicy_setProperty");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_PrintingPolicy_setProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property, unsigned int Value);
      * }
      */
+    public static MethodHandle clang_PrintingPolicy_setProperty$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                Index_h.C_POINTER,
+                Index_h.C_INT,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_PrintingPolicy_setProperty"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_PrintingPolicy_setProperty(MemorySegment Policy, int Property, int Value) {
         var mh$ = clang_PrintingPolicy_setProperty$MH();
         try {
             mh$.invokeExact(Policy, Property, Value);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorPrintingPolicy$MH() {
-        return RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrintingPolicy$MH,"clang_getCursorPrintingPolicy");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXPrintingPolicy clang_getCursorPrintingPolicy(CXCursor);
      * }
      */
+    public static MethodHandle clang_getCursorPrintingPolicy$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_POINTER,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorPrintingPolicy"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getCursorPrintingPolicy(MemorySegment x0) {
         var mh$ = clang_getCursorPrintingPolicy$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(x0);
+            return (MemorySegment) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_PrintingPolicy_dispose$MH() {
-        return RuntimeHelper.requireNonNull(constants$14.clang_PrintingPolicy_dispose$MH,"clang_PrintingPolicy_dispose");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_PrintingPolicy_dispose(CXPrintingPolicy Policy);
      * }
      */
+    public static MethodHandle clang_PrintingPolicy_dispose$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_PrintingPolicy_dispose"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_PrintingPolicy_dispose(MemorySegment Policy) {
         var mh$ = clang_PrintingPolicy_dispose$MH();
         try {
             mh$.invokeExact(Policy);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorPrettyPrinted$MH() {
-        return RuntimeHelper.requireNonNull(constants$14.clang_getCursorPrettyPrinted$MH,"clang_getCursorPrettyPrinted");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getCursorPrettyPrinted(CXCursor Cursor, CXPrintingPolicy Policy);
      * }
      */
+    public static MethodHandle clang_getCursorPrettyPrinted$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                CXCursor.$LAYOUT(),
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorPrettyPrinted"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getCursorPrettyPrinted(SegmentAllocator allocator, MemorySegment Cursor, MemorySegment Policy) {
         var mh$ = clang_getCursorPrettyPrinted$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, Cursor, Policy);
+            return (MemorySegment) mh$.invokeExact(allocator, Cursor, Policy);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorDisplayName$MH() {
-        return RuntimeHelper.requireNonNull(constants$15.clang_getCursorDisplayName$MH,"clang_getCursorDisplayName");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getCursorDisplayName(CXCursor);
      * }
      */
-    public static MemorySegment clang_getCursorDisplayName(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getCursorDisplayName$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorDisplayName"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getCursorDisplayName(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getCursorDisplayName$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorReferenced$MH() {
-        return RuntimeHelper.requireNonNull(constants$15.clang_getCursorReferenced$MH,"clang_getCursorReferenced");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXCursor clang_getCursorReferenced(CXCursor);
      * }
      */
-    public static MemorySegment clang_getCursorReferenced(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getCursorReferenced$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXCursor.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorReferenced"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getCursorReferenced(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getCursorReferenced$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorDefinition$MH() {
-        return RuntimeHelper.requireNonNull(constants$15.clang_getCursorDefinition$MH,"clang_getCursorDefinition");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXCursor clang_getCursorDefinition(CXCursor);
      * }
      */
-    public static MemorySegment clang_getCursorDefinition(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_getCursorDefinition$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXCursor.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorDefinition"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getCursorDefinition(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_getCursorDefinition$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_isCursorDefinition$MH() {
-        return RuntimeHelper.requireNonNull(constants$15.clang_isCursorDefinition$MH,"clang_isCursorDefinition");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_isCursorDefinition(CXCursor);
      * }
      */
+    public static MethodHandle clang_isCursorDefinition$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_isCursorDefinition"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_isCursorDefinition(MemorySegment x0) {
         var mh$ = clang_isCursorDefinition$MH();
         try {
-            return (int)mh$.invokeExact(x0);
+            return (int) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_isVariadic$MH() {
-        return RuntimeHelper.requireNonNull(constants$15.clang_Cursor_isVariadic$MH,"clang_Cursor_isVariadic");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_Cursor_isVariadic(CXCursor C);
      * }
      */
+    public static MethodHandle clang_Cursor_isVariadic$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_isVariadic"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_Cursor_isVariadic(MemorySegment C) {
         var mh$ = clang_Cursor_isVariadic$MH();
         try {
-            return (int)mh$.invokeExact(C);
+            return (int) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_getMangling$MH() {
-        return RuntimeHelper.requireNonNull(constants$15.clang_Cursor_getMangling$MH,"clang_Cursor_getMangling");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_Cursor_getMangling(CXCursor);
      * }
      */
-    public static MemorySegment clang_Cursor_getMangling(SegmentAllocator allocator, MemorySegment x1) {
+    public static MethodHandle clang_Cursor_getMangling$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_getMangling"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_Cursor_getMangling(SegmentAllocator allocator, MemorySegment x0) {
         var mh$ = clang_Cursor_getMangling$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1);
+            return (MemorySegment) mh$.invokeExact(allocator, x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXToken_Punctuation = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Punctuation = 0;
      * }
      */
     public static int CXToken_Punctuation() {
-        return (int)0L;
+        return CXToken_Punctuation;
     }
+    private static final int CXToken_Keyword = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Keyword = 1;
      * }
      */
     public static int CXToken_Keyword() {
-        return (int)1L;
+        return CXToken_Keyword;
     }
+    private static final int CXToken_Identifier = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Identifier = 2;
      * }
      */
     public static int CXToken_Identifier() {
-        return (int)2L;
+        return CXToken_Identifier;
     }
+    private static final int CXToken_Literal = (int)3L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Literal = 3;
      * }
      */
     public static int CXToken_Literal() {
-        return (int)3L;
+        return CXToken_Literal;
     }
+    private static final int CXToken_Comment = (int)4L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Comment = 4;
      * }
      */
     public static int CXToken_Comment() {
-        return (int)4L;
-    }
-    public static MethodHandle clang_getTokenKind$MH() {
-        return RuntimeHelper.requireNonNull(constants$16.clang_getTokenKind$MH,"clang_getTokenKind");
+        return CXToken_Comment;
     }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXTokenKind clang_getTokenKind(CXToken);
      * }
      */
+    public static MethodHandle clang_getTokenKind$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                CXToken.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTokenKind"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_getTokenKind(MemorySegment x0) {
         var mh$ = clang_getTokenKind$MH();
         try {
-            return (int)mh$.invokeExact(x0);
+            return (int) mh$.invokeExact(x0);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getTokenSpelling$MH() {
-        return RuntimeHelper.requireNonNull(constants$16.clang_getTokenSpelling$MH,"clang_getTokenSpelling");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getTokenSpelling(CXTranslationUnit, CXToken);
      * }
      */
-    public static MemorySegment clang_getTokenSpelling(SegmentAllocator allocator, MemorySegment x1, MemorySegment x2) {
+    public static MethodHandle clang_getTokenSpelling$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                Index_h.C_POINTER,
+                CXToken.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTokenSpelling"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getTokenSpelling(SegmentAllocator allocator, MemorySegment x0, MemorySegment x1) {
         var mh$ = clang_getTokenSpelling$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
+            return (MemorySegment) mh$.invokeExact(allocator, x0, x1);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getTokenLocation$MH() {
-        return RuntimeHelper.requireNonNull(constants$16.clang_getTokenLocation$MH,"clang_getTokenLocation");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceLocation clang_getTokenLocation(CXTranslationUnit, CXToken);
      * }
      */
-    public static MemorySegment clang_getTokenLocation(SegmentAllocator allocator, MemorySegment x1, MemorySegment x2) {
+    public static MethodHandle clang_getTokenLocation$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceLocation.$LAYOUT(),
+                Index_h.C_POINTER,
+                CXToken.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTokenLocation"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getTokenLocation(SegmentAllocator allocator, MemorySegment x0, MemorySegment x1) {
         var mh$ = clang_getTokenLocation$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
+            return (MemorySegment) mh$.invokeExact(allocator, x0, x1);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getTokenExtent$MH() {
-        return RuntimeHelper.requireNonNull(constants$16.clang_getTokenExtent$MH,"clang_getTokenExtent");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXSourceRange clang_getTokenExtent(CXTranslationUnit, CXToken);
      * }
      */
-    public static MemorySegment clang_getTokenExtent(SegmentAllocator allocator, MemorySegment x1, MemorySegment x2) {
+    public static MethodHandle clang_getTokenExtent$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXSourceRange.$LAYOUT(),
+                Index_h.C_POINTER,
+                CXToken.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getTokenExtent"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
+    public static MemorySegment clang_getTokenExtent(SegmentAllocator allocator, MemorySegment x0, MemorySegment x1) {
         var mh$ = clang_getTokenExtent$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, x1, x2);
+            return (MemorySegment) mh$.invokeExact(allocator, x0, x1);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_tokenize$MH() {
-        return RuntimeHelper.requireNonNull(constants$16.clang_tokenize$MH,"clang_tokenize");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_tokenize(CXTranslationUnit TU, CXSourceRange Range, CXToken** Tokens, unsigned int* NumTokens);
      * }
      */
+    public static MethodHandle clang_tokenize$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                Index_h.C_POINTER,
+                CXSourceRange.$LAYOUT(),
+                Index_h.C_POINTER,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_tokenize"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_tokenize(MemorySegment TU, MemorySegment Range, MemorySegment Tokens, MemorySegment NumTokens) {
         var mh$ = clang_tokenize$MH();
         try {
             mh$.invokeExact(TU, Range, Tokens, NumTokens);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_disposeTokens$MH() {
-        return RuntimeHelper.requireNonNull(constants$16.clang_disposeTokens$MH,"clang_disposeTokens");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_disposeTokens(CXTranslationUnit TU, CXToken* Tokens, unsigned int NumTokens);
      * }
      */
+    public static MethodHandle clang_disposeTokens$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                Index_h.C_POINTER,
+                Index_h.C_POINTER,
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_disposeTokens"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_disposeTokens(MemorySegment TU, MemorySegment Tokens, int NumTokens) {
         var mh$ = clang_disposeTokens$MH();
         try {
             mh$.invokeExact(TU, Tokens, NumTokens);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getCursorKindSpelling$MH() {
-        return RuntimeHelper.requireNonNull(constants$17.clang_getCursorKindSpelling$MH,"clang_getCursorKindSpelling");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getCursorKindSpelling(enum CXCursorKind Kind);
      * }
      */
+    public static MethodHandle clang_getCursorKindSpelling$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT(),
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getCursorKindSpelling"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getCursorKindSpelling(SegmentAllocator allocator, int Kind) {
         var mh$ = clang_getCursorKindSpelling$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator, Kind);
+            return (MemorySegment) mh$.invokeExact(allocator, Kind);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_getClangVersion$MH() {
-        return RuntimeHelper.requireNonNull(constants$17.clang_getClangVersion$MH,"clang_getClangVersion");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXString clang_getClangVersion();
      * }
      */
+    public static MethodHandle clang_getClangVersion$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                CXString.$LAYOUT()        );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_getClangVersion"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_getClangVersion(SegmentAllocator allocator) {
         var mh$ = clang_getClangVersion$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(allocator);
+            return (MemorySegment) mh$.invokeExact(allocator);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_toggleCrashRecovery$MH() {
-        return RuntimeHelper.requireNonNull(constants$17.clang_toggleCrashRecovery$MH,"clang_toggleCrashRecovery");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_toggleCrashRecovery(unsigned int isEnabled);
      * }
      */
+    public static MethodHandle clang_toggleCrashRecovery$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                Index_h.C_INT
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_toggleCrashRecovery"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_toggleCrashRecovery(int isEnabled) {
         var mh$ = clang_toggleCrashRecovery$MH();
         try {
             mh$.invokeExact(isEnabled);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_Cursor_Evaluate$MH() {
-        return RuntimeHelper.requireNonNull(constants$17.clang_Cursor_Evaluate$MH,"clang_Cursor_Evaluate");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXEvalResult clang_Cursor_Evaluate(CXCursor C);
      * }
      */
+    public static MethodHandle clang_Cursor_Evaluate$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_POINTER,
+                CXCursor.$LAYOUT()
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_Cursor_Evaluate"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_Cursor_Evaluate(MemorySegment C) {
         var mh$ = clang_Cursor_Evaluate$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(C);
+            return (MemorySegment) mh$.invokeExact(C);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_EvalResult_getKind$MH() {
-        return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getKind$MH,"clang_EvalResult_getKind");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * CXEvalResultKind clang_EvalResult_getKind(CXEvalResult E);
      * }
      */
+    public static MethodHandle clang_EvalResult_getKind$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_EvalResult_getKind"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_EvalResult_getKind(MemorySegment E) {
         var mh$ = clang_EvalResult_getKind$MH();
         try {
-            return (int)mh$.invokeExact(E);
+            return (int) mh$.invokeExact(E);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_EvalResult_getAsInt$MH() {
-        return RuntimeHelper.requireNonNull(constants$17.clang_EvalResult_getAsInt$MH,"clang_EvalResult_getAsInt");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * int clang_EvalResult_getAsInt(CXEvalResult E);
      * }
      */
+    public static MethodHandle clang_EvalResult_getAsInt$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_EvalResult_getAsInt"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_EvalResult_getAsInt(MemorySegment E) {
         var mh$ = clang_EvalResult_getAsInt$MH();
         try {
-            return (int)mh$.invokeExact(E);
+            return (int) mh$.invokeExact(E);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_EvalResult_getAsLongLong$MH() {
-        return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsLongLong$MH,"clang_EvalResult_getAsLongLong");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * long long clang_EvalResult_getAsLongLong(CXEvalResult E);
      * }
      */
+    public static MethodHandle clang_EvalResult_getAsLongLong$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_LONG_LONG,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_EvalResult_getAsLongLong"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static long clang_EvalResult_getAsLongLong(MemorySegment E) {
         var mh$ = clang_EvalResult_getAsLongLong$MH();
         try {
-            return (long)mh$.invokeExact(E);
+            return (long) mh$.invokeExact(E);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_EvalResult_isUnsignedInt$MH() {
-        return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_isUnsignedInt$MH,"clang_EvalResult_isUnsignedInt");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned int clang_EvalResult_isUnsignedInt(CXEvalResult E);
      * }
      */
+    public static MethodHandle clang_EvalResult_isUnsignedInt$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_INT,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_EvalResult_isUnsignedInt"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static int clang_EvalResult_isUnsignedInt(MemorySegment E) {
         var mh$ = clang_EvalResult_isUnsignedInt$MH();
         try {
-            return (int)mh$.invokeExact(E);
+            return (int) mh$.invokeExact(E);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_EvalResult_getAsUnsigned$MH() {
-        return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsUnsigned$MH,"clang_EvalResult_getAsUnsigned");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned long long clang_EvalResult_getAsUnsigned(CXEvalResult E);
      * }
      */
+    public static MethodHandle clang_EvalResult_getAsUnsigned$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_LONG_LONG,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_EvalResult_getAsUnsigned"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static long clang_EvalResult_getAsUnsigned(MemorySegment E) {
         var mh$ = clang_EvalResult_getAsUnsigned$MH();
         try {
-            return (long)mh$.invokeExact(E);
+            return (long) mh$.invokeExact(E);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_EvalResult_getAsDouble$MH() {
-        return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsDouble$MH,"clang_EvalResult_getAsDouble");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * double clang_EvalResult_getAsDouble(CXEvalResult E);
      * }
      */
+    public static MethodHandle clang_EvalResult_getAsDouble$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_DOUBLE,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_EvalResult_getAsDouble"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static double clang_EvalResult_getAsDouble(MemorySegment E) {
         var mh$ = clang_EvalResult_getAsDouble$MH();
         try {
-            return (double)mh$.invokeExact(E);
+            return (double) mh$.invokeExact(E);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_EvalResult_getAsStr$MH() {
-        return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_getAsStr$MH,"clang_EvalResult_getAsStr");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * char* clang_EvalResult_getAsStr(CXEvalResult E);
      * }
      */
+    public static MethodHandle clang_EvalResult_getAsStr$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.of(
+                Index_h.C_POINTER,
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_EvalResult_getAsStr"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static MemorySegment clang_EvalResult_getAsStr(MemorySegment E) {
         var mh$ = clang_EvalResult_getAsStr$MH();
         try {
-            return (java.lang.foreign.MemorySegment)mh$.invokeExact(E);
+            return (MemorySegment) mh$.invokeExact(E);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
-    public static MethodHandle clang_EvalResult_dispose$MH() {
-        return RuntimeHelper.requireNonNull(constants$18.clang_EvalResult_dispose$MH,"clang_EvalResult_dispose");
-    }
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * void clang_EvalResult_dispose(CXEvalResult E);
      * }
      */
+    public static MethodHandle clang_EvalResult_dispose$MH() {
+        class Holder {
+            static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+                Index_h.C_POINTER
+            );
+
+            static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    Index_h.findOrThrow("clang_EvalResult_dispose"),
+                    DESC);
+        }
+        return Holder.MH;
+    }
+
     public static void clang_EvalResult_dispose(MemorySegment E) {
         var mh$ = clang_EvalResult_dispose$MH();
         try {
             mh$.invokeExact(E);
         } catch (Throwable ex$) {
-            throw new AssertionError("should not reach here", ex$);
+           throw new AssertionError("should not reach here", ex$);
         }
     }
+    private static final int CXResult_Success = (int)0L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum .CXResult_Success = 0;
      * }
      */
     public static int CXResult_Success() {
-        return (int)0L;
+        return CXResult_Success;
     }
+    private static final int CXResult_Invalid = (int)1L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum .CXResult_Invalid = 1;
      * }
      */
     public static int CXResult_Invalid() {
-        return (int)1L;
+        return CXResult_Invalid;
     }
+    private static final int CXResult_VisitBreak = (int)2L;
+
     /**
-     * {@snippet :
+     * {@snippet lang=c :
      * enum .CXResult_VisitBreak = 2;
      * }
      */
     public static int CXResult_VisitBreak() {
-        return (int)2L;
+        return CXResult_VisitBreak;
     }
 }
-
 

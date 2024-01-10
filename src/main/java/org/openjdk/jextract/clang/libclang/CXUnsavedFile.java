@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -28,12 +28,14 @@
 package org.openjdk.jextract.clang.libclang;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+
 /**
- * {@snippet :
+ * {@snippet lang=c :
  * struct CXUnsavedFile {
  *     char* Filename;
  *     char* Contents;
@@ -43,104 +45,120 @@ import static java.lang.foreign.ValueLayout.*;
  */
 public class CXUnsavedFile {
 
-    static final StructLayout $struct$LAYOUT = MemoryLayout.structLayout(
-        Constants$root.C_POINTER$LAYOUT.withName("Filename"),
-        Constants$root.C_POINTER$LAYOUT.withName("Contents"),
-        Constants$root.C_LONG_LONG$LAYOUT.withName("Length")
+    CXUnsavedFile() {
+        // Suppresses public default constructor, ensuring non-instantiability,
+        // but allows generated subclasses in same package.
+    }
+
+    private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
+        Index_h.C_POINTER.withName("Filename"),
+        Index_h.C_POINTER.withName("Contents"),
+        Index_h.C_LONG.withName("Length")
     ).withName("CXUnsavedFile");
-    public static MemoryLayout $LAYOUT() {
-        return CXUnsavedFile.$struct$LAYOUT;
+
+    public static final GroupLayout $LAYOUT() {
+        return $LAYOUT;
     }
-    static final VarHandle Filename$VH = $struct$LAYOUT.varHandle(MemoryLayout.PathElement.groupElement("Filename"));
-    public static VarHandle Filename$VH() {
-        return CXUnsavedFile.Filename$VH;
-    }
+
+    private static final long Filename$OFFSET = 0;
+
     /**
      * Getter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * char* Filename;
      * }
      */
     public static MemorySegment Filename$get(MemorySegment seg) {
-        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Filename$VH.get(seg, 0L);
+        return seg.get(Index_h.C_POINTER, Filename$OFFSET);
     }
+
+    public static MemorySegment Filename$get(MemorySegment seg, long index) {
+        return seg.get(Index_h.C_POINTER, Filename$OFFSET + (index * sizeof()));
+    }
+
     /**
      * Setter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * char* Filename;
      * }
      */
     public static void Filename$set(MemorySegment seg, MemorySegment x) {
-        CXUnsavedFile.Filename$VH.set(seg, 0L, x);
+        seg.set(Index_h.C_POINTER, Filename$OFFSET, x);
     }
-    public static MemorySegment Filename$get(MemorySegment seg, long index) {
-        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Filename$VH.get(seg.asSlice(index*sizeof()));
-    }
+
     public static void Filename$set(MemorySegment seg, long index, MemorySegment x) {
-        CXUnsavedFile.Filename$VH.set(seg.asSlice(index*sizeof()), x);
+        seg.set(Index_h.C_POINTER, Filename$OFFSET + (index * sizeof()), x);
     }
-    static final VarHandle Contents$VH = $struct$LAYOUT.varHandle(MemoryLayout.PathElement.groupElement("Contents"));
-    public static VarHandle Contents$VH() {
-        return CXUnsavedFile.Contents$VH;
-    }
+
+    private static final long Contents$OFFSET = 8;
+
     /**
      * Getter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * char* Contents;
      * }
      */
     public static MemorySegment Contents$get(MemorySegment seg) {
-        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Contents$VH.get(seg, 0L);
+        return seg.get(Index_h.C_POINTER, Contents$OFFSET);
     }
+
+    public static MemorySegment Contents$get(MemorySegment seg, long index) {
+        return seg.get(Index_h.C_POINTER, Contents$OFFSET + (index * sizeof()));
+    }
+
     /**
      * Setter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * char* Contents;
      * }
      */
     public static void Contents$set(MemorySegment seg, MemorySegment x) {
-        CXUnsavedFile.Contents$VH.set(seg, 0L, x);
+        seg.set(Index_h.C_POINTER, Contents$OFFSET, x);
     }
-    public static MemorySegment Contents$get(MemorySegment seg, long index) {
-        return (java.lang.foreign.MemorySegment)CXUnsavedFile.Contents$VH.get(seg.asSlice(index*sizeof()));
-    }
+
     public static void Contents$set(MemorySegment seg, long index, MemorySegment x) {
-        CXUnsavedFile.Contents$VH.set(seg.asSlice(index*sizeof()), x);
+        seg.set(Index_h.C_POINTER, Contents$OFFSET + (index * sizeof()), x);
     }
-    static final VarHandle Length$VH = $struct$LAYOUT.varHandle(MemoryLayout.PathElement.groupElement("Length"));
-    public static VarHandle Length$VH() {
-        return CXUnsavedFile.Length$VH;
-    }
+
+    private static final long Length$OFFSET = 16;
+
     /**
      * Getter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned long Length;
      * }
      */
     public static long Length$get(MemorySegment seg) {
-        return (long)CXUnsavedFile.Length$VH.get(seg, 0L);
+        return seg.get(Index_h.C_LONG, Length$OFFSET);
     }
+
+    public static long Length$get(MemorySegment seg, long index) {
+        return seg.get(Index_h.C_LONG, Length$OFFSET + (index * sizeof()));
+    }
+
     /**
      * Setter for field:
-     * {@snippet :
+     * {@snippet lang=c :
      * unsigned long Length;
      * }
      */
     public static void Length$set(MemorySegment seg, long x) {
-        CXUnsavedFile.Length$VH.set(seg, 0L, x);
+        seg.set(Index_h.C_LONG, Length$OFFSET, x);
     }
-    public static long Length$get(MemorySegment seg, long index) {
-        return (long)CXUnsavedFile.Length$VH.get(seg.asSlice(index*sizeof()));
-    }
+
     public static void Length$set(MemorySegment seg, long index, long x) {
-        CXUnsavedFile.Length$VH.set(seg.asSlice(index*sizeof()), x);
+        seg.set(Index_h.C_LONG, Length$OFFSET + (index * sizeof()), x);
     }
+
     public static long sizeof() { return $LAYOUT().byteSize(); }
     public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
+
     public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
         return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
     }
-    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) { return RuntimeHelper.asArray(addr, $LAYOUT(), 1, scope); }
-}
 
+    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
+        return addr.reinterpret($LAYOUT().byteSize(), scope, null);
+    }
+}
 
