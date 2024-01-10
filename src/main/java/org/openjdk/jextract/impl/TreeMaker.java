@@ -238,7 +238,7 @@ class TreeMaker {
             valueString = STR."\"\{valueString}\"";
         } else if (Utils.isPointer(type)) {
             // add pointer cast to make it look different from a numeric constant
-            valueString = STR."(\{valueString})";
+            valueString = STR."(void*) \{valueString}";
         }
         DeclarationString.with(macro, STR."#define \{name} \{valueString}");
         return macro;
@@ -489,7 +489,7 @@ class TreeMaker {
         return decl;
     }
 
-    String declarationString(Cursor cursor, boolean expandNestedDecls) {
+    private String declarationString(Cursor cursor, boolean expandNestedDecls) {
         PrintingPolicy pp = cursor.getPrintingPolicy();
         if (expandNestedDecls) {
             pp.setProperty(PrintingPolicyProperty.IncludeTagDefinition, true);
@@ -498,7 +498,7 @@ class TreeMaker {
         return cursor.prettyPrinted(pp);
     }
 
-    String enumConstantString(String enumName, Declaration.Constant enumConstant) {
+    private String enumConstantString(String enumName, Declaration.Constant enumConstant) {
         if (enumName.isEmpty()) {
             enumName = "<anonymous>";
         }
