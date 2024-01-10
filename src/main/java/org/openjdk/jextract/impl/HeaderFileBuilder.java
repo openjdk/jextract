@@ -377,9 +377,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private String constantValue(Class<?> type, Object value) {
         if (value instanceof String) {
-            return STR."Arena.ofAuto().allocateFrom(\"\{Utils.quote(Objects.toString(value))}\");";
+            return STR."Arena.ofAuto().allocateFrom(\"\{Utils.quote(Objects.toString(value))}\")";
         } else if (type == MemorySegment.class) {
-            return STR."MemorySegment.ofAddress(\{((Number)value).longValue()}L);";
+            return STR."MemorySegment.ofAddress(\{((Number)value).longValue()}L)";
         } else {
             StringBuilder buf = new StringBuilder();
             if (type == float.class) {
