@@ -130,6 +130,7 @@ task createJextractImage(type: Exec) {
          "--add-modules=org.openjdk.jextract,jdk.compiler,jdk.zipfs",
          "--output=${jextract_app_dir}",
          "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
+         "--strip-debug", "--no-man-pages", "--no-header-files",
          "--add-options",
          "${quote_jlink_opts}"
     ]
