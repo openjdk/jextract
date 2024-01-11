@@ -23,10 +23,6 @@
 
 typedef struct tagFoo Foo;
 
-struct Bar {
-    int x;
-};
-
 typedef struct tagFoo {
     struct Baz { int y; } bar;
 } Foo;
