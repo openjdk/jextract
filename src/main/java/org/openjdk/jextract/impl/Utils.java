@@ -28,15 +28,13 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Constant;
-import org.openjdk.jextract.Declaration.Typedef;
-import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Delegated.Kind;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
-import org.openjdk.jextract.impl.DeclarationImpl.NestedTypes;
+import org.openjdk.jextract.impl.DeclarationImpl.NestedDeclarations;
 
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
@@ -113,8 +111,8 @@ class Utils {
     }
 
     static void forEachNested(Declaration declaration, Consumer<Declaration> nestedDeclAction) {
-        NestedTypes.get(declaration).ifPresent(decls ->
-            decls.stream().map(Type.Declared::tree).forEach(nestedDeclAction));
+        NestedDeclarations.get(declaration).ifPresent(decls ->
+            decls.forEach(nestedDeclAction));
     }
 
     static boolean isStructOrUnion(Declaration declaration) {

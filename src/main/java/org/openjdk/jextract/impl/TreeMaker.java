@@ -57,7 +57,7 @@ import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangSizeOf;
-import org.openjdk.jextract.impl.DeclarationImpl.NestedTypes;
+import org.openjdk.jextract.impl.DeclarationImpl.NestedDeclarations;
 import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 
 /**
@@ -454,12 +454,12 @@ class TreeMaker {
     private <D extends Declaration> D withNestedTypes(D d, Cursor c, boolean ignoreNestedParams) {
         List<Declaration> nestedDefinitions = new ArrayList<>();
         collectNestedTypes(c, nestedDefinitions, ignoreNestedParams);
-        List<Type.Declared> nestedTypes = nestedDefinitions.stream()
+        List<Scoped> nestedDecls = nestedDefinitions.stream()
                 .filter(m -> m instanceof Scoped)
-                .map(s -> Type.declared((Scoped)s))
+                .map(Scoped.class::cast)
                 .toList();
-        if (!nestedTypes.isEmpty()) {
-            NestedTypes.with(d, nestedTypes);
+        if (!nestedDecls.isEmpty()) {
+            NestedDeclarations.with(d, nestedDecls);
         }
         return d;
     }
