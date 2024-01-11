@@ -25,8 +25,12 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Typedef;
+import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
+import org.openjdk.jextract.Type.Function;
+import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
@@ -136,42 +140,46 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
         for (Declaration.Variable param : func.parameters()) {
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
-                String declFiName = func.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
-                JavaFunctionalInterfaceName.with(param, declFiName);
+                String fiName = func.name() + "$" + (param.name().isEmpty() ? "x" + i : param.name());
+                JavaFunctionalInterfaceName.with(param, fiName);
                 i++;
             }
             JavaName.with(param, makeJavaName(param));
+            Utils.forEachNested(param, s -> s.accept(this, func));
         }
+
         Type.Function returnFunc = Utils.getAsFunctionPointer(func.type().returnType());
         if (returnFunc != null) {
             JavaFunctionalInterfaceName.with(func, func.name() + "$return");
         }
+        Utils.forEachNested(func, s -> s.accept(this, func));
 
         return null;
     }
 
     @Override
     public Void visitScoped(Declaration.Scoped scoped, Declaration parent) {
-        String name = scoped.name();
-        if (name.isEmpty() && parent != null) {
-            name = parent.name();
-        }
-        if (JavaName.isPresent(scoped)) {
-            //skip struct that's seen already
-            return null;
-        }
+        if (Utils.isEnum(scoped)) {
+            scoped.members().forEach(fieldTree -> fieldTree.accept(this, null));
+        } else if (Utils.isStructOrUnion(scoped)) {
+            if (JavaName.isPresent(scoped)) {
+                //skip struct that's seen already
+                return null;
+            }
 
-        Scope oldScope = curScope;
-        boolean isNestedAnonStruct = scoped.name().isEmpty() &&
-            (parent instanceof Declaration.Scoped);
-        if (!isNestedAnonStruct) {
-            this.curScope = Scope.newStruct(oldScope, name);
-            JavaName.with(scoped, curScope.fullName());
-        }
-        try {
-            scoped.members().forEach(fieldTree -> fieldTree.accept(this, scoped));
-        } finally {
-            this.curScope = oldScope;
+            Scope oldScope = curScope;
+            if (!AnonymousStruct.isPresent(scoped)) {
+                String name = scoped.name().isEmpty() ?
+                        fallbackNameFor(parent, scoped) :
+                        scoped.name();
+                this.curScope = Scope.newStruct(oldScope, name);
+                JavaName.with(scoped, curScope.fullName());
+            }
+            try {
+                scoped.members().forEach(fieldTree -> fieldTree.accept(this, null));
+            } finally {
+                this.curScope = oldScope;
+            }
         }
 
         return null;
@@ -184,9 +192,6 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
 
-        // handle if this typedef is of a struct/union/enum etc.
-        Utils.declarationFor(typedef.type()).ifPresent(s -> s.accept(this, typedef));
-
         // We may potentially generate a class for a typedef. Make sure
         // class name is unique in the current nesting context.
         String javaName = curScope.uniqueNestedClassName(typedef.name());
@@ -196,24 +201,56 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
            JavaFunctionalInterfaceName.with(typedef, javaName);
            functionTypeDefNames.put(typedef.type(), javaName);
         }
+
+        // handle if this typedef is of a struct/union/enum etc.
+        Utils.forEachNested(typedef, d -> {
+            d.accept(this, typedef);
+        });
         return null;
+    }
+
+    private String fallbackNameFor(Declaration parent, Declaration.Scoped nested) {
+        String nestedName = parent.name();
+        Function func = switch (parent) {
+            case Declaration.Function f -> f.type();
+            case Variable v -> Utils.getAsFunctionPointer(v.type());
+            case Typedef t -> Utils.getAsFunctionPointer(t.type());
+            default -> null;
+        };
+        if (func != null) {
+            // if this is a function pointer type def, try to use better fallback names for any
+            // anon struct/union that might be defined as part of this typedef
+            String suffix = null;
+            for (int i = 0 ; i < func.argumentTypes().size() ; i++) {
+                if (func.argumentTypes().get(i) instanceof Type.Declared declared && declared.tree() == nested) {
+                    // it's a function argument
+                    suffix = "$x" + i;
+                }
+            }
+            if (suffix == null) {
+                // not found, assume it's the function return
+                suffix = "$return";
+            }
+            nestedName = nestedName + suffix;
+        }
+        return nestedName;
     }
 
     @Override
     public Void visitVariable(Declaration.Variable variable, Declaration parent) {
         JavaName.with(variable, makeJavaName(variable));
         var type = variable.type();
-        Utils.declarationFor(type).ifPresent(s -> s.accept(this, variable));
         Type.Function func = Utils.getAsFunctionPointer(type);
         if (func != null) {
-            String fiName = curScope.uniqueNestedClassName(variable.name());
-            JavaFunctionalInterfaceName.with(variable, fiName);
+            String declFiName = curScope.uniqueNestedClassName(variable.name());
+            JavaFunctionalInterfaceName.with(variable, declFiName);
         } else if (variable.type() instanceof Delegated delegatedType) {
             String typedefName = functionTypeDefNames.get(delegatedType.type());
             if (typedefName != null) {
                 JavaFunctionalInterfaceName.with(variable, typedefName);
             }
         }
+        Utils.forEachNested(variable, s -> s.accept(this, variable));
         return null;
     }
 

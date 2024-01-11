@@ -70,6 +70,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitFunction(Function funcTree, Declaration firstNamedParent) {
+        Utils.forEachNested(funcTree, s -> s.accept(this, firstNamedParent));
+
         //generate static wrapper for function
         Type unsupportedType = firstUnsupportedType(funcTree.type(), false);
         if (unsupportedType != null) {
@@ -80,6 +82,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
         // check function pointers in parameters and return types
         for (Declaration.Variable param : funcTree.parameters()) {
+            Utils.forEachNested(param, s -> s.accept(this, firstNamedParent));
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null && !checkFunctionTypeSupported(param, f, funcTree.name())) {
                 Skip.with(funcTree);
@@ -103,8 +106,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitVariable(Variable varTree, Declaration firstNamedParent) {
-        Type type = varTree.type();
-        Utils.declarationFor(type).ifPresent(s -> s.accept(this, varTree));
+        Utils.forEachNested(varTree, s -> s.accept(this, varTree));
 
         Type unsupportedType = firstUnsupportedType(varTree.type(), false);
         String name = fieldName(firstNamedParent, varTree);

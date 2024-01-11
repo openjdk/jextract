@@ -115,8 +115,8 @@ public class TestClassGeneration extends JextractToolRunner {
             { "Foo", C_LONG_LONG.withName("ll"), long.class,          10L },
             { "Foo", C_FLOAT.withName("f"),     float.class,         10F },
             { "Foo", C_DOUBLE.withName("d"),    double.class,        10D },
-            { "Bar", C_INT.withName("a"),       int.class,           10 },
-            { "Bar", C_INT.withName("b"),       int.class,           10 },
+            { "Bar$0", C_INT.withName("a"),       int.class,           10 },
+            { "Bar$0", C_INT.withName("b"),       int.class,           10 },
         };
     }
 

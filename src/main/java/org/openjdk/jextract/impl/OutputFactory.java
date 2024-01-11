@@ -43,18 +43,15 @@ import java.util.Optional;
 public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     protected final ToplevelBuilder toplevelBuilder;
     protected Builder currentBuilder;
-    private final String pkgName;
 
     static JavaFileObject[] generateWrapped(Declaration.Scoped decl,
                 String pkgName, List<String> libraryNames) {
         String clsName = JavaName.getOrThrow(decl);
         ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName, libraryNames);
-        return new OutputFactory(pkgName, toplevelBuilder).
-            generate(decl);
+        return new OutputFactory(toplevelBuilder).generate(decl);
     }
 
-    private OutputFactory(String pkgName, ToplevelBuilder toplevelBuilder) {
-        this.pkgName = pkgName;
+    private OutputFactory(ToplevelBuilder toplevelBuilder) {
         this.toplevelBuilder = toplevelBuilder;
         this.currentBuilder = toplevelBuilder;
     }
@@ -121,11 +118,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
         // check for function pointer type arguments
         for (Declaration.Variable param : funcTree.parameters()) {
+            Utils.forEachNested(param, s -> s.accept(this, param));
             Type.Function f = Utils.getAsFunctionPointer(param.type());
             if (f != null) {
                 generateFunctionalInterface(param, f);
             }
         }
+
+        Utils.forEachNested(funcTree, s -> s.accept(this, funcTree));
 
         // return type could be a function pointer type
         Type.Function returnFunc = Utils.getAsFunctionPointer(funcTree.type().returnType());
@@ -143,32 +143,11 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             return null;
         }
         Type type = tree.type();
-        Optional<Declaration.Scoped> optScoped = Utils.declarationFor(type);
-        if (optScoped.isPresent()) {
-            Declaration.Scoped scoped = optScoped.get();
-            if (!scoped.name().equals(tree.name())) {
-                switch (scoped.kind()) {
-                    case STRUCT, UNION -> {
-                        if (scoped.name().isEmpty()) {
-                            visitScoped(scoped, tree);
-                        } else {
-                            /*
-                             * If typedef is seen after the struct/union definition, we can generate subclass
-                             * right away. If not, we've to save it and revisit after all the declarations are
-                             * seen. This is to support forward declaration of typedefs.
-                             *
-                             * typedef struct Foo Bar;
-                             *
-                             * struct Foo {
-                             *     int x, y;
-                             * };
-                             */
-                            toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(scoped));
-                        }
-                    }
-                    default -> visitScoped(scoped, tree);
-                }
-            }
+        Utils.forEachNested(tree, s -> s.accept(this, null));
+
+        Declaration.Scoped structOrUnionDecl = Utils.structOrUnionDecl(type);
+        if (structOrUnionDecl != null) {
+            toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(structOrUnionDecl));
         } else if (type instanceof Type.Primitive) {
             toplevelBuilder.addTypedef(tree, null);
         } else {
@@ -194,7 +173,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
         Type type = tree.type();
 
-        Utils.declarationFor(type).ifPresent(s -> s.accept(this, tree));
+        Utils.forEachNested(tree, s -> s.accept(this, tree));
 
         final String fieldName = tree.name();
         assert !fieldName.isEmpty();
