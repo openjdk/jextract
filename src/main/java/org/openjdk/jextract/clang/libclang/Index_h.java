@@ -40,7 +40,8 @@ public class Index_h {
             = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
 
     static {
-        System.loadLibrary("clang");
+        String libName = System.getProperty("os.name").startsWith("Windows")? "libclang" : "clang";
+        System.loadLibrary(libName);
     }
 
     Index_h() {
@@ -8263,4 +8264,3 @@ public class Index_h {
         return CXResult_VisitBreak;
     }
 }
-
