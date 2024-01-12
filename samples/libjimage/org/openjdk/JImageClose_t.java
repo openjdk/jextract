@@ -3,31 +3,42 @@
 package org.openjdk;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+
 /**
- * {@snippet :
- * void (*JImageClose_t)(struct JImageFile* jimage);
+ * {@snippet lang=c :
+ * typedef void (*JImageClose_t)(JImageFile *)
  * }
  */
 public interface JImageClose_t {
 
-    void apply(java.lang.foreign.MemorySegment jimage);
+    void apply(MemorySegment jimage);
+
+    FunctionDescriptor $DESC = FunctionDescriptor.ofVoid(
+        jimage_h.C_POINTER
+    );
+
+    MethodHandle UP$MH = jimage_h.upcallHandle(JImageClose_t.class, "apply", $DESC);
+
     static MemorySegment allocate(JImageClose_t fi, Arena scope) {
-        return RuntimeHelper.upcallStub(constants$1.const$0, fi, constants$0.const$4, scope);
+        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
     }
+
+    MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
     static JImageClose_t ofAddress(MemorySegment addr, Arena arena) {
         MemorySegment symbol = addr.reinterpret(arena, null);
-        return (java.lang.foreign.MemorySegment _jimage) -> {
+        return (MemorySegment _jimage) -> {
             try {
-                constants$1.const$1.invokeExact(symbol, _jimage);
+                 DOWN$MH.invokeExact(symbol, _jimage);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
         };
     }
 }
-
 

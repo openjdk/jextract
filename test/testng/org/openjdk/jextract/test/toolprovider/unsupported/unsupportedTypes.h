@@ -45,3 +45,6 @@ void accepts_undefined_func(void (*)(struct undefined));
 typedef struct undefined undefined_typedef;
 
 extern struct undefined GLOBAL_UNDECLARED;
+
+#define INT_128_NUM (__int128)42
+

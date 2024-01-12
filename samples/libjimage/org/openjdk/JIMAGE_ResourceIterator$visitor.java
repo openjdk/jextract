@@ -11,15 +11,17 @@ import static java.lang.foreign.ValueLayout.*;
 
 /**
  * {@snippet lang=c :
- * typedef JImageLocationRef (*JImageFindResource_t)(JImageFile *, const char *, const char *, const char *, jlong *)
+ * JImageResourceVisitor_t visitor
  * }
  */
-public interface JImageFindResource_t {
+public interface JIMAGE_ResourceIterator$visitor {
 
-    long apply(MemorySegment jimage, MemorySegment module_name, MemorySegment version, MemorySegment name, MemorySegment size);
+    int apply(MemorySegment _x0, MemorySegment _x1, MemorySegment _x2, MemorySegment _x3, MemorySegment _x4, MemorySegment _x5, MemorySegment _x6);
 
     FunctionDescriptor $DESC = FunctionDescriptor.of(
-        jimage_h.C_LONG_LONG,
+        jimage_h.C_INT,
+        jimage_h.C_POINTER,
+        jimage_h.C_POINTER,
         jimage_h.C_POINTER,
         jimage_h.C_POINTER,
         jimage_h.C_POINTER,
@@ -27,19 +29,19 @@ public interface JImageFindResource_t {
         jimage_h.C_POINTER
     );
 
-    MethodHandle UP$MH = jimage_h.upcallHandle(JImageFindResource_t.class, "apply", $DESC);
+    MethodHandle UP$MH = jimage_h.upcallHandle(JIMAGE_ResourceIterator$visitor.class, "apply", $DESC);
 
-    static MemorySegment allocate(JImageFindResource_t fi, Arena scope) {
+    static MemorySegment allocate(JIMAGE_ResourceIterator$visitor fi, Arena scope) {
         return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
     }
 
     MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
-    static JImageFindResource_t ofAddress(MemorySegment addr, Arena arena) {
+    static JIMAGE_ResourceIterator$visitor ofAddress(MemorySegment addr, Arena arena) {
         MemorySegment symbol = addr.reinterpret(arena, null);
-        return (MemorySegment _jimage, MemorySegment _module_name, MemorySegment _version, MemorySegment _name, MemorySegment _size) -> {
+        return (MemorySegment __x0, MemorySegment __x1, MemorySegment __x2, MemorySegment __x3, MemorySegment __x4, MemorySegment __x5, MemorySegment __x6) -> {
             try {
-                return (long) DOWN$MH.invokeExact(symbol, _jimage, _module_name, _version, _name, _size);
+                return (int) DOWN$MH.invokeExact(symbol, __x0, __x1, __x2, __x3, __x4, __x5, __x6);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }

@@ -66,6 +66,7 @@ public class TestUnsupportedTypes extends JextractToolRunner {
             {"accepts_undefined_func",           REASON_UNSUPPORTED_TYPE},
             {"GLOBAL_UNDECLARED",                REASON_UNSUPPORTED_TYPE},
             {"undefined_typedef",                REASON_UNSUPPORTED_TYPE},
+            {"INT_128_NUM",                      REASON_UNSUPPORTED_TYPE}
         };
     }
 }

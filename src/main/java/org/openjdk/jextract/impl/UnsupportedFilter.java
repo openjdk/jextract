@@ -175,6 +175,14 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitConstant(Constant d, Declaration firstNamedParent) {
+        Type unsupportedType = firstUnsupportedType(d.type(), false);
+        String name = fieldName(firstNamedParent, d);
+        if (unsupportedType != null) {
+            warnSkip(name, STR."unsupported type usage: \{unsupportedType}");
+            Skip.with(d);
+            return null;
+        }
+
         return null;
     }
 
