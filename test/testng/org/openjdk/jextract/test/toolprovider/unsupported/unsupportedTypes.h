@@ -45,3 +45,6 @@ void accepts_undefined_func(void (*)(struct undefined));
 typedef struct undefined undefined_typedef;
 
 extern struct undefined GLOBAL_UNDECLARED;
+
+#define LONG_DOUBLE_PI 3.1415926535897932384626433832795029L
+
