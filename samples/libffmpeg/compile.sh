@@ -1,5 +1,5 @@
 jextract -t libffmpeg \
-  -I /usr/local/Cellar/ffmpeg@4/4.4.4/include \
+  -I /usr/local/Cellar/ffmpeg@4/4.4.4_4/include \
   -l avcodec \
   -l avformat \
   -l avutil \

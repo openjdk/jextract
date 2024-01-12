@@ -3,31 +3,44 @@
 package org.openjdk;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.lang.foreign.*;
 import static java.lang.foreign.ValueLayout.*;
+
 /**
- * {@snippet :
- * struct JImageFile* (*JImageOpen_t)(char* name,int* error);
+ * {@snippet lang=c :
+ * typedef JImageFile *(*JImageOpen_t)(const char *, jint *)
  * }
  */
 public interface JImageOpen_t {
 
-    java.lang.foreign.MemorySegment apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment package_name);
+    MemorySegment apply(MemorySegment name, MemorySegment error);
+
+    FunctionDescriptor $DESC = FunctionDescriptor.of(
+        jimage_h.C_POINTER,
+        jimage_h.C_POINTER,
+        jimage_h.C_POINTER
+    );
+
+    MethodHandle UP$MH = jimage_h.upcallHandle(JImageOpen_t.class, "apply", $DESC);
+
     static MemorySegment allocate(JImageOpen_t fi, Arena scope) {
-        return RuntimeHelper.upcallStub(constants$0.const$2, fi, constants$0.const$0, scope);
+        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
     }
+
+    MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
     static JImageOpen_t ofAddress(MemorySegment addr, Arena arena) {
         MemorySegment symbol = addr.reinterpret(arena, null);
-        return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _package_name) -> {
+        return (MemorySegment _name, MemorySegment _error) -> {
             try {
-                return (java.lang.foreign.MemorySegment)constants$0.const$3.invokeExact(symbol, _jimage, _package_name);
+                return (MemorySegment) DOWN$MH.invokeExact(symbol, _name, _error);
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
         };
     }
 }
-
 
