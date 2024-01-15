@@ -41,7 +41,7 @@ public class Test8261578 extends JextractToolRunner {
             Class<?> ndpi_class = loader.loadClass("ndpi_flow_tcp_struct");
             assertNotNull(ndpi_class);
 
-            checkMethod(ndpi_class, "gnutella_msg_id$slice", MemorySegment.class, MemorySegment.class);
+            checkMethod(ndpi_class, "gnutella_msg_id", MemorySegment.class, MemorySegment.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }
@@ -56,7 +56,7 @@ public class Test8261578 extends JextractToolRunner {
             Class<?> foo_class = loader.loadClass("foo");
             assertNotNull(foo_class);
 
-            checkMethod(foo_class, "clear_color$slice", MemorySegment.class, MemorySegment.class);
+            checkMethod(foo_class, "clear_color", MemorySegment.class, MemorySegment.class);
             checkMethod(foo_class, "clear_z", int.class, MemorySegment.class);
             checkMethod(foo_class, "clear_z", void.class, MemorySegment.class, int.class);
             checkMethod(foo_class, "clear_s", byte.class, MemorySegment.class);

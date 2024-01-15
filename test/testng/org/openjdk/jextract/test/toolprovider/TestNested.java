@@ -153,7 +153,7 @@ public class TestNested extends JextractToolRunner {
                                        MemoryLayout fieldLayout) {
         try {
             if (type == MemorySegment.class) {
-                Method slicer = cls.getMethod(fieldName + "$slice", MemorySegment.class);
+                Method slicer = cls.getMethod(fieldName, MemorySegment.class);
                 assertEquals(slicer.getReturnType(), MemorySegment.class);
                 try (Arena arena = Arena.ofConfined()) {
                     MemorySegment struct = arena.allocate(layout);
