@@ -44,14 +44,12 @@ public class Test8260929 extends JextractToolRunner {
             assertNotNull(rab2Class);
 
             checkMethod(rab2Class, "y$get", int.class, MemorySegment.class);
-            checkMethod(rab2Class, "y$get", int.class, MemorySegment.class, long.class);
             checkMethod(rab2Class, "y$set", void.class, MemorySegment.class, int.class);
-            checkMethod(rab2Class, "y$set", void.class, MemorySegment.class, long.class, int.class);
 
             checkMethod(rab2Class, "x$get", short.class, MemorySegment.class);
-            checkMethod(rab2Class, "x$get", short.class, MemorySegment.class, long.class);
             checkMethod(rab2Class, "x$set", void.class, MemorySegment.class, short.class);
-            checkMethod(rab2Class, "x$set", void.class, MemorySegment.class, long.class, short.class);
+
+            checkMethod(rab2Class, "$at", MemorySegment.class, MemorySegment.class, long.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }

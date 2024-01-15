@@ -88,6 +88,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     void end() {
         if (!inAnonymousNested()) {
+            emitAt();
             appendBlankLine();
             emitSizeof();
             emitAllocatorAllocate();
@@ -141,9 +142,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             emitSegmentGetter(javaName, offsetField, sizeField);
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
             emitFieldGetter(javaName, varTree, offsetField);
-            emitIndexedFieldGetter(javaName, varTree.type(), offsetField);
             emitFieldSetter(javaName, varTree, offsetField);
-            emitIndexedFieldSetter(javaName, varTree.type(), offsetField);
             fiName.ifPresent(s -> emitFunctionalInterfaceGetter(s, javaName));
         } else {
             throw new IllegalArgumentException(STR."Type not supported: \{varTree.type()}");
@@ -196,6 +195,15 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
             public static MemorySegment \{javaName}$slice(MemorySegment \{seg}) {
                 return \{seg}.asSlice(\{offsetField}, \{sizeField});
+            }
+            """);
+    }
+
+    private void emitAt() {
+        appendIndentedLines(STR."""
+
+            public static MemorySegment $at(MemorySegment ptr, long index) {
+                return ptr.asSlice($LAYOUT().byteSize() * index);
             }
             """);
     }

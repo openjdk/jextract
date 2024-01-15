@@ -39,15 +39,12 @@ public class Test8260717 extends JextractToolRunner {
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> FooClass = loader.loadClass("foo_t");
             checkMethod(FooClass, "s$get", short.class, MemorySegment.class);
-            checkMethod(FooClass, "s$get", short.class, MemorySegment.class, long.class);
             checkMethod(FooClass, "s$set", void.class, MemorySegment.class, short.class);
-            checkMethod(FooClass, "s$set", void.class, MemorySegment.class, long.class, short.class);
 
             checkMethod(FooClass, "ptr$get", MemorySegment.class, MemorySegment.class);
-            checkMethod(FooClass, "ptr$get", MemorySegment.class, MemorySegment.class, long.class);
             checkMethod(FooClass, "ptr$set", void.class, MemorySegment.class, MemorySegment.class);
-            checkMethod(FooClass, "ptr$set", void.class, MemorySegment.class, long.class, MemorySegment.class);
 
+            checkMethod(FooClass, "$at", MemorySegment.class, MemorySegment.class, long.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }

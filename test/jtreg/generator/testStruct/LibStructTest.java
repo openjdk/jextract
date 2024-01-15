@@ -25,6 +25,8 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
+import java.lang.foreign.MemorySegment;
+
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -74,12 +76,14 @@ public class LibStructTest {
         try (Arena arena = Arena.ofConfined()) {
             var seg = Point.allocateArray(3, arena);
             for (int i = 0; i < 3; i++) {
-                Point.x$set(seg, i, 56 + i);
-                Point.y$set(seg, i, 65 + i);
+                MemorySegment point = Point.$at(seg, i);
+                Point.x$set(point, 56 + i);
+                Point.y$set(point, 65 + i);
             }
             for (int i = 0; i < 3; i++) {
-                assertEquals(Point.x$get(seg, i), 56 + i);
-                assertEquals(Point.y$get(seg, i), 65 + i);
+                MemorySegment point = Point.$at(seg, i);
+                assertEquals(Point.x$get(point), 56 + i);
+                assertEquals(Point.y$get(point), 65 + i);
             }
         }
     }
