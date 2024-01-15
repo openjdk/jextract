@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -42,20 +42,16 @@ public class Test8260705 extends JextractToolRunner {
         run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> FooClass = loader.loadClass("Foo");
-            checkMethod(FooClass, "c$get", byte.class, MemorySegment.class);
-            checkMethod(FooClass, "c$get", byte.class, MemorySegment.class, long.class);
-            checkMethod(FooClass, "c$set", void.class, MemorySegment.class, byte.class);
-            checkMethod(FooClass, "c$set", void.class, MemorySegment.class, long.class, byte.class);
+            checkMethod(FooClass, "c", byte.class, MemorySegment.class);
+            checkMethod(FooClass, "c", void.class, MemorySegment.class, byte.class);
+            checkMethod(FooClass, "asSlice", MemorySegment.class, MemorySegment.class, long.class);
 
             Class<?> Foo2Class = loader.loadClass("Foo2");
-            checkMethod(Foo2Class, "z$get", int.class, MemorySegment.class);
-            checkMethod(Foo2Class, "z$get", int.class, MemorySegment.class, long.class);
-            checkMethod(Foo2Class, "z$set", void.class, MemorySegment.class, int.class);
-            checkMethod(Foo2Class, "z$set", void.class, MemorySegment.class, long.class, int.class);
-            checkMethod(Foo2Class, "w$get", int.class, MemorySegment.class);
-            checkMethod(Foo2Class, "w$get", int.class, MemorySegment.class, long.class);
-            checkMethod(Foo2Class, "w$set", void.class, MemorySegment.class, int.class);
-            checkMethod(Foo2Class, "w$set", void.class, MemorySegment.class, long.class, int.class);
+            checkMethod(Foo2Class, "z", int.class, MemorySegment.class);
+            checkMethod(Foo2Class, "z", void.class, MemorySegment.class, int.class);
+            checkMethod(Foo2Class, "w", int.class, MemorySegment.class);
+            checkMethod(Foo2Class, "w", void.class, MemorySegment.class, int.class);
+            checkMethod(Foo2Class, "asSlice", MemorySegment.class, MemorySegment.class, long.class);
 
             assertNotNull(loader.loadClass("Foo3"));
 
@@ -79,4 +75,3 @@ public class Test8260705 extends JextractToolRunner {
         }
     }
 }
-

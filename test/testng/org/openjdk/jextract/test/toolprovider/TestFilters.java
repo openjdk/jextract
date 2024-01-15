@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -106,7 +106,7 @@ public class TestFilters extends JextractToolRunner {
         Object get(Class<?> headerClass) {
             return switch (this) {
                 case FUNCTION, MACRO_CONSTANT, ENUM_CONSTANT -> findMethod(headerClass, symbolName);
-                case VAR -> findMethod(headerClass, symbolName + "$get");
+                case VAR -> findMethod(headerClass, symbolName);
                 case TYPEDEF -> findField(headerClass, symbolName);
                 case STRUCT, UNION -> {
                     try {

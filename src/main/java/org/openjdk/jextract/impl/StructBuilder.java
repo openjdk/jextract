@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -41,7 +41,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -88,6 +87,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     void end() {
         if (!inAnonymousNested()) {
+            emitAsSlice();
             appendBlankLine();
             emitSizeof();
             emitAllocatorAllocate();
@@ -132,7 +132,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     @Override
     public void addVar(Declaration.Variable varTree) {
-        Optional<String> fiName = JavaFunctionalInterfaceName.get(varTree);
         String javaName = JavaName.getOrThrow(varTree);
         appendBlankLine();
         String offsetField = emitOffsetFieldDecl(varTree);
@@ -141,10 +140,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             emitSegmentGetter(javaName, offsetField, sizeField);
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
             emitFieldGetter(javaName, varTree, offsetField);
-            emitIndexedFieldGetter(javaName, varTree.type(), offsetField);
             emitFieldSetter(javaName, varTree, offsetField);
-            emitIndexedFieldSetter(javaName, varTree.type(), offsetField);
-            fiName.ifPresent(s -> emitFunctionalInterfaceGetter(s, javaName));
         } else {
             throw new IllegalArgumentException(STR."Type not supported: \{varTree.type()}");
         }
@@ -156,22 +152,13 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         decrAlign();
     }
 
-    private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        appendIndentedLines(STR."""
-
-            public static \{fiName} \{javaName}(MemorySegment segment, Arena scope) {
-                return \{fiName}.ofAddress(\{javaName}$get(segment), scope);
-            }
-            """);
-    }
-
     private void emitFieldGetter(String javaName, Declaration.Variable varTree, String offsetField) {
         String seg = safeParameterName("seg");
         Class<?> type = Utils.carrierFor(varTree.type());
         appendBlankLine();
         emitFieldDocComment(varTree, "Getter for field:");
         appendIndentedLines(STR."""
-            public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}) {
+            public static \{type.getSimpleName()} \{javaName}(MemorySegment \{seg}) {
                 return \{seg}.get(\{layoutString(varTree.type())}, \{offsetField});
             }
             """);
@@ -184,7 +171,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         appendBlankLine();
         emitFieldDocComment(varTree, "Setter for field:");
         appendIndentedLines(STR."""
-            public static void \{javaName}$set(MemorySegment \{seg}, \{type.getSimpleName()} \{x}) {
+            public static void \{javaName}(MemorySegment \{seg}, \{type.getSimpleName()} \{x}) {
                 \{seg}.set(\{layoutString(varTree.type())}, \{offsetField}, \{x});
             }
             """);
@@ -194,8 +181,17 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String seg = safeParameterName("seg");
         appendIndentedLines(STR."""
 
-            public static MemorySegment \{javaName}$slice(MemorySegment \{seg}) {
+            public static MemorySegment \{javaName}(MemorySegment \{seg}) {
                 return \{seg}.asSlice(\{offsetField}, \{sizeField});
+            }
+            """);
+    }
+
+    private void emitAsSlice() {
+        appendIndentedLines(STR."""
+
+            public static MemorySegment asSlice(MemorySegment ptr, long index) {
+                return ptr.asSlice($LAYOUT().byteSize() * index);
             }
             """);
     }
@@ -226,31 +222,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
             public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
                 return addr.reinterpret($LAYOUT().byteSize(), scope, null);
-            }
-            """);
-    }
-
-    private void emitIndexedFieldGetter(String javaName, Type varType, String offsetField) {
-        String index = safeParameterName("index");
-        String seg = safeParameterName("seg");
-        Class<?> type = Utils.carrierFor(varType);
-        appendIndentedLines(STR."""
-
-            public static \{type.getSimpleName()} \{javaName}$get(MemorySegment \{seg}, long \{index}) {
-                return \{seg}.get(\{layoutString(varType)}, \{offsetField} + (\{index} * sizeof()));
-            }
-            """);
-    }
-
-    private void emitIndexedFieldSetter(String javaName, Type varType, String offsetField) {
-        String index = safeParameterName("index");
-        String seg = safeParameterName("seg");
-        String x = safeParameterName("x");
-        Class<?> type = Utils.carrierFor(varType);
-        appendIndentedLines(STR."""
-
-            public static void \{javaName}$set(MemorySegment \{seg}, long \{index}, \{type.getSimpleName()} \{x}) {
-                \{seg}.set(\{layoutString(varType)}, \{offsetField} + (\{index} * sizeof()), \{x});
             }
             """);
     }

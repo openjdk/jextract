@@ -9,7 +9,7 @@ jextract `
   --dump-includes 'includes_all.conf' `
   "$curlpath\include\curl\curl.h"
   
-Select-String -Path 'includes_all.conf' -Pattern 'curl' | %{ $_.Line } | Out-File -FilePath 'includes_filtered.conf' -Encoding ascii
+Select-String -Path 'includes_all.conf' -Pattern '(curl|sockaddr )' | %{ $_.Line } | Out-File -FilePath 'includes_filtered.conf' -Encoding ascii
 
 jextract `
   -t org.jextract `

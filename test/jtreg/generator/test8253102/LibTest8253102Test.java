@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -54,8 +54,8 @@ public class LibTest8253102Test {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment addr = make(14, 99);
             MemorySegment seg = Point.ofAddress(addr, arena);
-            assertEquals(Point.x$get(seg), 14);
-            assertEquals(Point.y$get(seg), 99);
+            assertEquals(Point.x(seg), 14);
+            assertEquals(Point.y(seg), 99);
             freePoint(addr);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -38,16 +38,13 @@ public class Test8260717 extends JextractToolRunner {
         run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> FooClass = loader.loadClass("foo_t");
-            checkMethod(FooClass, "s$get", short.class, MemorySegment.class);
-            checkMethod(FooClass, "s$get", short.class, MemorySegment.class, long.class);
-            checkMethod(FooClass, "s$set", void.class, MemorySegment.class, short.class);
-            checkMethod(FooClass, "s$set", void.class, MemorySegment.class, long.class, short.class);
+            checkMethod(FooClass, "s", short.class, MemorySegment.class);
+            checkMethod(FooClass, "s", void.class, MemorySegment.class, short.class);
 
-            checkMethod(FooClass, "ptr$get", MemorySegment.class, MemorySegment.class);
-            checkMethod(FooClass, "ptr$get", MemorySegment.class, MemorySegment.class, long.class);
-            checkMethod(FooClass, "ptr$set", void.class, MemorySegment.class, MemorySegment.class);
-            checkMethod(FooClass, "ptr$set", void.class, MemorySegment.class, long.class, MemorySegment.class);
+            checkMethod(FooClass, "ptr", MemorySegment.class, MemorySegment.class);
+            checkMethod(FooClass, "ptr", void.class, MemorySegment.class, MemorySegment.class);
 
+            checkMethod(FooClass, "asSlice", MemorySegment.class, MemorySegment.class, long.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }

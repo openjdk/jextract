@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -402,11 +402,6 @@ public abstract class DeclarationImpl implements Declaration {
     record JavaFunctionalInterfaceName(String fiName) {
         public static void with(Declaration declaration, String fiName) {
             declaration.addAttribute(new JavaFunctionalInterfaceName(fiName));
-        }
-
-        public static Optional<String> get(Declaration declaration) {
-            return declaration.getAttribute(JavaFunctionalInterfaceName.class)
-                    .map(JavaFunctionalInterfaceName::fiName);
         }
 
         public static String getOrThrow(Declaration declaration) {

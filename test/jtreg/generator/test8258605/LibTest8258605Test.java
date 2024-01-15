@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -68,7 +68,7 @@ public class LibTest8258605Test {
              // get struct Foo instance
              var foo = getFoo(arena);
              // make sure that foo.bar is not NULL
-             assertFalse(Foo.bar$get(foo).equals(NULL));
+             assertFalse(Foo.bar(foo).equals(NULL));
 
              f2(foo, CB.allocate(i -> {
                  assertTrue(i == 42);

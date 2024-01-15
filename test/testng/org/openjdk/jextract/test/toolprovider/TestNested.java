@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -153,7 +153,7 @@ public class TestNested extends JextractToolRunner {
                                        MemoryLayout fieldLayout) {
         try {
             if (type == MemorySegment.class) {
-                Method slicer = cls.getMethod(fieldName + "$slice", MemorySegment.class);
+                Method slicer = cls.getMethod(fieldName, MemorySegment.class);
                 assertEquals(slicer.getReturnType(), MemorySegment.class);
                 try (Arena arena = Arena.ofConfined()) {
                     MemorySegment struct = arena.allocate(layout);
@@ -161,9 +161,9 @@ public class TestNested extends JextractToolRunner {
                     assertEquals(slice.byteSize(), fieldLayout.byteSize());
                 }
             } else {
-                Method getter = cls.getMethod(fieldName + "$get", MemorySegment.class);
+                Method getter = cls.getMethod(fieldName, MemorySegment.class);
                 assertEquals(getter.getReturnType(), type);
-                Method setter = cls.getMethod(fieldName + "$set", MemorySegment.class, type);
+                Method setter = cls.getMethod(fieldName, MemorySegment.class, type);
                 assertEquals(setter.getReturnType(), void.class);
 
                 Object zero = MethodHandles.zero(type).invoke();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -53,10 +53,10 @@ public class Test8244938 {
          try (Arena arena = Arena.ofConfined()) {
              var seg = func(arena);
              assertEquals(seg.byteSize(), Point.sizeof());
-             assertEquals(Point.k$get(seg), 44);
-             var point2dSeg = Point.point2d$slice(seg);
-             assertEquals(Point2D.i$get(point2dSeg), 567);
-             assertEquals(Point2D.j$get(point2dSeg), 33);
+             assertEquals(Point.k(seg), 44);
+             var point2dSeg = Point.point2d(seg);
+             assertEquals(Point2D.i(point2dSeg), 567);
+             assertEquals(Point2D.j(point2dSeg), 33);
          }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -46,10 +46,10 @@ import static test.jextract.redef.redef_h.*;
 public class TestGlobalRedefinition {
     @Test
     public void test() throws Throwable {
-        Method mGet = redef_h.class.getMethod("x$get");
+        Method mGet = redef_h.class.getMethod("x");
         assertEquals(mGet.getReturnType(), int.class);
 
-        Method mSet = redef_h.class.getMethod("x$set", int.class);
+        Method mSet = redef_h.class.getMethod("x", int.class);
         assertEquals(mSet.getParameterTypes()[0], int.class);
     }
 }

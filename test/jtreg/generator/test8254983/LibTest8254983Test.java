@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -53,8 +53,8 @@ public class LibTest8254983Test {
         try (Arena arena = Arena.ofConfined()) {
             assertEquals(((GroupLayout)Foo._struct.$LAYOUT()).memberLayouts().size(), 1);
             MemorySegment str = Foo._struct.allocate(arena);
-            Foo._struct.x$set(str, 42);
-            assertEquals(Foo._struct.x$get(str), 42);
+            Foo._struct.x(str, 42);
+            assertEquals(Foo._struct.x(str), 42);
         }
     }
 
@@ -63,8 +63,8 @@ public class LibTest8254983Test {
         assertEquals(((GroupLayout)Foo._union._struct.$LAYOUT()).memberLayouts().size(), 2);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment str = Foo._union._struct.allocate(arena);
-            Foo._union._struct.x$set(str, 42);
-            assertEquals(Foo._union._struct.x$get(str), 42);
+            Foo._union._struct.x(str, 42);
+            assertEquals(Foo._union._struct.x(str), 42);
         }
     }
 }

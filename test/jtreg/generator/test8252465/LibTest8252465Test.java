@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -52,11 +52,11 @@ public class LibTest8252465Test {
     public void test() {
         try (var arena = Arena.ofConfined()) {
             var foo = Foo.allocate(arena);
-            Foo.x$set(foo, 3.14f);
-            assertEquals(Foo.x$get(foo), 3.14f, 0.001f);
+            Foo.x(foo, 3.14f);
+            assertEquals(Foo.x(foo), 3.14f, 0.001f);
             var bar = Bar.allocate(arena);
-            Bar.x$set(bar, -42);
-            assertEquals(Bar.x$get(bar), -42);
+            Bar.x(bar, -42);
+            assertEquals(Bar.x(bar), -42);
         }
     }
 }

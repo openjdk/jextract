@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -61,7 +61,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     public void addVar(Declaration.Variable varTree) {
-        Optional<String> fiName = JavaFunctionalInterfaceName.get(varTree);
         String nativeName = varTree.name();
         String javaName = JavaName.getOrThrow(varTree);
         String layoutVar = emitVarLayout(varTree.type(), javaName);
@@ -71,7 +70,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName, null);
             emitGlobalGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
             emitGlobalSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
-            fiName.ifPresent(s -> emitFunctionalInterfaceGetter(s, javaName));
         } else {
             throw new IllegalArgumentException("Tree type not handled: " + varTree.type());
         }
@@ -211,14 +209,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        appendIndentedLines(STR."""
-            public static \{fiName} \{javaName}() {
-                return \{fiName}.ofAddress(\{javaName}$get(), Arena.global());
-            }
-            """);
-    }
-
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {
         emitPrimitiveTypedefLayout(name, primType, typedefTree);
     }
@@ -309,7 +299,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
-            public static \{type.getSimpleName()} \{javaName}$get() {
+            public static \{type.getSimpleName()} \{javaName}() {
                 return \{segmentConstant}.get(\{layoutVar}, 0L);
             }
             """);
@@ -322,7 +312,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
-            public static void \{javaName}$set(\{type.getSimpleName()} x) {
+            public static void \{javaName}(\{type.getSimpleName()} x) {
                 \{segmentConstant}.set(\{layoutVar}, 0L, x);
             }
             """);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -43,15 +43,13 @@ public class Test8260929 extends JextractToolRunner {
             Class<?> rab2Class = loader.loadClass("rab2");
             assertNotNull(rab2Class);
 
-            checkMethod(rab2Class, "y$get", int.class, MemorySegment.class);
-            checkMethod(rab2Class, "y$get", int.class, MemorySegment.class, long.class);
-            checkMethod(rab2Class, "y$set", void.class, MemorySegment.class, int.class);
-            checkMethod(rab2Class, "y$set", void.class, MemorySegment.class, long.class, int.class);
+            checkMethod(rab2Class, "y", int.class, MemorySegment.class);
+            checkMethod(rab2Class, "y", void.class, MemorySegment.class, int.class);
 
-            checkMethod(rab2Class, "x$get", short.class, MemorySegment.class);
-            checkMethod(rab2Class, "x$get", short.class, MemorySegment.class, long.class);
-            checkMethod(rab2Class, "x$set", void.class, MemorySegment.class, short.class);
-            checkMethod(rab2Class, "x$set", void.class, MemorySegment.class, long.class, short.class);
+            checkMethod(rab2Class, "x", short.class, MemorySegment.class);
+            checkMethod(rab2Class, "x", void.class, MemorySegment.class, short.class);
+
+            checkMethod(rab2Class, "asSlice", MemorySegment.class, MemorySegment.class, long.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }

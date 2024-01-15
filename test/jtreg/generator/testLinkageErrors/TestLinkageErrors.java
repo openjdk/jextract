@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -63,8 +63,8 @@ public class TestLinkageErrors {
     public void nullChecksTest() {
         assertThrowsULE(() -> func(), "func");
         assertThrowsULE(() -> func$MH(), "func");
-        assertThrowsULE(() -> x$get(), "x");
-        assertThrowsULE(() -> x$set(1), "x");
+        assertThrowsULE(() -> x(), "x");
+        assertThrowsULE(() -> x(1), "x");
         assertThrowsULE(() -> x$SEGMENT(), "x");
         assertThrowsULE(() -> y$SEGMENT(), "y");
         assertThrowsULE(() -> pt$SEGMENT(), "pt");

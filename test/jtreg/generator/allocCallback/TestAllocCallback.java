@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -52,11 +52,11 @@ public class TestAllocCallback {
         try (Arena arena = Arena.ofConfined()) {
             var foo = alloc_callback_h.foo$SEGMENT();
 
-            var barA = Foo.a(foo, arena).apply();
-            var barB = Foo.b(foo, arena).apply(100);
+            var barA = Foo.a.ofAddress(Foo.a(foo), arena).apply();
+            var barB = Foo.b.ofAddress(Foo.b(foo), arena).apply(100);
 
-            assertEquals(Bar.a$get(barA), 5);
-            assertEquals(Bar.a$get(barB), 100);
+            assertEquals(Bar.a(barA), 5);
+            assertEquals(Bar.a(barB), 100);
         }
     }
 }

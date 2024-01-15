@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -45,9 +45,8 @@ public class Test8251943 extends JextractToolRunner {
             assertNotNull(findMethod(headerClass, "tzname$SEGMENT"));
 
             Class<?> fooClass = loader.loadClass("Foo");
-            assertNotNull(findMethod(fooClass, "bar$get", MemorySegment.class));
-            assertNull(findMethod(fooClass, "names$get", MemorySegment.class));
-            assertNotNull(findMethod(fooClass, "names$slice", MemorySegment.class));
+            assertNotNull(findMethod(fooClass, "bar", MemorySegment.class));
+            assertNotNull(findMethod(fooClass, "names", MemorySegment.class));
         } finally {
             TestUtils.deleteDir(outputPath);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -40,13 +40,9 @@ public class Test8248415 extends JextractToolRunner {
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> nodeClass = loader.loadClass("Node");
 
-            // Check if getters for pointer fields were generated
-            checkMethod(nodeClass, "next$get", MemorySegment.class, MemorySegment.class);
-            checkMethod(nodeClass, "next$get", MemorySegment.class, MemorySegment.class, long.class);
-
-            // Check if setters for pointer fields were generated
-            checkMethod(nodeClass, "next$set", void.class, MemorySegment.class, MemorySegment.class);
-            checkMethod(nodeClass, "next$set", void.class, MemorySegment.class, long.class, MemorySegment.class);
+            checkMethod(nodeClass, "next", MemorySegment.class, MemorySegment.class);
+            checkMethod(nodeClass, "next", void.class, MemorySegment.class, MemorySegment.class);
+            checkMethod(nodeClass, "asSlice", MemorySegment.class, MemorySegment.class, long.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }

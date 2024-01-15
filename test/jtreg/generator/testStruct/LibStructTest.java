@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,6 +25,8 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
+import java.lang.foreign.MemorySegment;
+
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -53,8 +55,8 @@ public class LibStructTest {
     public void testMakePoint() {
         try (Arena arena = Arena.ofConfined()) {
             var seg = makePoint(arena, 42, -39);
-            assertEquals(Point.x$get(seg), 42);
-            assertEquals(Point.y$get(seg), -39);
+            assertEquals(Point.x(seg), 42);
+            assertEquals(Point.y(seg), -39);
         }
     }
 
@@ -62,10 +64,10 @@ public class LibStructTest {
     public void testAllocate() {
         try (Arena arena = Arena.ofConfined()) {
             var seg = Point.allocate(arena);
-            Point.x$set(seg, 56);
-            Point.y$set(seg, 65);
-            assertEquals(Point.x$get(seg), 56);
-            assertEquals(Point.y$get(seg), 65);
+            Point.x(seg, 56);
+            Point.y(seg, 65);
+            assertEquals(Point.x(seg), 56);
+            assertEquals(Point.y(seg), 65);
         }
     }
 
@@ -74,12 +76,14 @@ public class LibStructTest {
         try (Arena arena = Arena.ofConfined()) {
             var seg = Point.allocateArray(3, arena);
             for (int i = 0; i < 3; i++) {
-                Point.x$set(seg, i, 56 + i);
-                Point.y$set(seg, i, 65 + i);
+                MemorySegment point = Point.asSlice(seg, i);
+                Point.x(point, 56 + i);
+                Point.y(point, 65 + i);
             }
             for (int i = 0; i < 3; i++) {
-                assertEquals(Point.x$get(seg, i), 56 + i);
-                assertEquals(Point.y$get(seg, i), 65 + i);
+                MemorySegment point = Point.asSlice(seg, i);
+                assertEquals(Point.x(point), 56 + i);
+                assertEquals(Point.y(point), 65 + i);
             }
         }
     }
