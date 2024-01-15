@@ -38,11 +38,11 @@ public class Test8260717 extends JextractToolRunner {
         run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> FooClass = loader.loadClass("foo_t");
-            checkMethod(FooClass, "s$get", short.class, MemorySegment.class);
-            checkMethod(FooClass, "s$set", void.class, MemorySegment.class, short.class);
+            checkMethod(FooClass, "s", short.class, MemorySegment.class);
+            checkMethod(FooClass, "s", void.class, MemorySegment.class, short.class);
 
-            checkMethod(FooClass, "ptr$get", MemorySegment.class, MemorySegment.class);
-            checkMethod(FooClass, "ptr$set", void.class, MemorySegment.class, MemorySegment.class);
+            checkMethod(FooClass, "ptr", MemorySegment.class, MemorySegment.class);
+            checkMethod(FooClass, "ptr", void.class, MemorySegment.class, MemorySegment.class);
 
             checkMethod(FooClass, "$at", MemorySegment.class, MemorySegment.class, long.class);
         } finally {

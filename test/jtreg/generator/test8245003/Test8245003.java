@@ -52,16 +52,16 @@ public class Test8245003 {
     public void testStructAccessor() {
         var seg = special_pt$SEGMENT();
         assertEquals(seg.byteSize(), Point.sizeof());
-        assertEquals(Point.x$get(seg), 56);
-        assertEquals(Point.y$get(seg), 75);
+        assertEquals(Point.x(seg), 56);
+        assertEquals(Point.y(seg), 75);
 
         seg = special_pt3d$SEGMENT();
         assertEquals(seg.byteSize(), Point3D.sizeof());
-        assertEquals(Point3D.z$get(seg), 35);
-        var pointSeg = Point3D.p$slice(seg);
+        assertEquals(Point3D.z(seg), 35);
+        var pointSeg = Point3D.pSlice(seg);
         assertEquals(pointSeg.byteSize(), Point.sizeof());
-        assertEquals(Point.x$get(pointSeg), 43);
-        assertEquals(Point.y$get(pointSeg), 45);
+        assertEquals(Point.x(pointSeg), 43);
+        assertEquals(Point.y(pointSeg), 45);
     }
 
     @Test
@@ -78,8 +78,8 @@ public class Test8245003 {
 
         seg = foo$SEGMENT();
         assertEquals(seg.byteSize(), Foo.sizeof());
-        assertEquals(Foo.count$get(seg), 37);
-        var greeting = Foo.greeting$slice(seg);
+        assertEquals(Foo.count(seg), 37);
+        var greeting = Foo.greetingSlice(seg);
         byte[] barr = greeting.toArray(C_CHAR);
         assertEquals(new String(barr), "hello");
     }

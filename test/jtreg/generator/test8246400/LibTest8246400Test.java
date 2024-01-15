@@ -53,21 +53,21 @@ public class LibTest8246400Test {
         MemorySegment sum = null;
         try (Arena arena = Arena.ofConfined()) {
             var v1 = Vector.allocate(arena);
-            Vector.x$set(v1, 1.0);
-            Vector.y$set(v1, 0.0);
+            Vector.x(v1, 1.0);
+            Vector.y(v1, 0.0);
 
             var v2 = Vector.allocate(arena);
-            Vector.x$set(v2, 0.0);
-            Vector.y$set(v2, 1.0);
+            Vector.x(v2, 0.0);
+            Vector.y(v2, 1.0);
 
             sum = add(arena, v1, v2);
 
-            assertEquals(Vector.x$get(sum), 1.0, 0.1);
-            assertEquals(Vector.y$get(sum), 1.0, 0.1);
+            assertEquals(Vector.x(sum), 1.0, 0.1);
+            assertEquals(Vector.y(sum), 1.0, 0.1);
 
             MemorySegment callback = cosine_similarity$dot.allocate((a, b) -> {
-                return (Vector.x$get(a) * Vector.x$get(b)) +
-                    (Vector.y$get(a) * Vector.y$get(b));
+                return (Vector.x(a) * Vector.x(b)) +
+                    (Vector.y(a) * Vector.y(b));
             }, arena);
 
             var value = cosine_similarity(v1, v2, callback);

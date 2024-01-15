@@ -40,8 +40,8 @@ public class Test8248415 extends JextractToolRunner {
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> nodeClass = loader.loadClass("Node");
 
-            checkMethod(nodeClass, "next$get", MemorySegment.class, MemorySegment.class);
-            checkMethod(nodeClass, "next$set", void.class, MemorySegment.class, MemorySegment.class);
+            checkMethod(nodeClass, "next", MemorySegment.class, MemorySegment.class);
+            checkMethod(nodeClass, "next", void.class, MemorySegment.class, MemorySegment.class);
             checkMethod(nodeClass, "$at", MemorySegment.class, MemorySegment.class, long.class);
         } finally {
             TestUtils.deleteDir(outputPath);

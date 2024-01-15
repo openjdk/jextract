@@ -54,8 +54,8 @@ public class LibTest8253102Test {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment addr = make(14, 99);
             MemorySegment seg = Point.ofAddress(addr, arena);
-            assertEquals(Point.x$get(seg), 14);
-            assertEquals(Point.y$get(seg), 99);
+            assertEquals(Point.x(seg), 14);
+            assertEquals(Point.y(seg), 99);
             freePoint(addr);
         }
     }

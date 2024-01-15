@@ -68,7 +68,7 @@ public class LibTest8258605Test {
              // get struct Foo instance
              var foo = getFoo(arena);
              // make sure that foo.bar is not NULL
-             assertFalse(Foo.bar$get(foo).equals(NULL));
+             assertFalse(Foo.bar(foo).equals(NULL));
 
              f2(foo, CB.allocate(i -> {
                  assertTrue(i == 42);

@@ -55,8 +55,8 @@ public class LibStructTest {
     public void testMakePoint() {
         try (Arena arena = Arena.ofConfined()) {
             var seg = makePoint(arena, 42, -39);
-            assertEquals(Point.x$get(seg), 42);
-            assertEquals(Point.y$get(seg), -39);
+            assertEquals(Point.x(seg), 42);
+            assertEquals(Point.y(seg), -39);
         }
     }
 
@@ -64,10 +64,10 @@ public class LibStructTest {
     public void testAllocate() {
         try (Arena arena = Arena.ofConfined()) {
             var seg = Point.allocate(arena);
-            Point.x$set(seg, 56);
-            Point.y$set(seg, 65);
-            assertEquals(Point.x$get(seg), 56);
-            assertEquals(Point.y$get(seg), 65);
+            Point.x(seg, 56);
+            Point.y(seg, 65);
+            assertEquals(Point.x(seg), 56);
+            assertEquals(Point.y(seg), 65);
         }
     }
 
@@ -77,13 +77,13 @@ public class LibStructTest {
             var seg = Point.allocateArray(3, arena);
             for (int i = 0; i < 3; i++) {
                 MemorySegment point = Point.$at(seg, i);
-                Point.x$set(point, 56 + i);
-                Point.y$set(point, 65 + i);
+                Point.x(point, 56 + i);
+                Point.y(point, 65 + i);
             }
             for (int i = 0; i < 3; i++) {
                 MemorySegment point = Point.$at(seg, i);
-                assertEquals(Point.x$get(point), 56 + i);
-                assertEquals(Point.y$get(point), 65 + i);
+                assertEquals(Point.x(point), 56 + i);
+                assertEquals(Point.y(point), 65 + i);
             }
         }
     }

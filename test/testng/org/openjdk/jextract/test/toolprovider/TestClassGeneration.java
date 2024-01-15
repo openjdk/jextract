@@ -191,8 +191,8 @@ public class TestClassGeneration extends JextractToolRunner {
             assertEquals(offsetField.getType(), long.class);
             assertEquals(offsetField.get(null), structLayout.byteOffset(PathElement.groupElement(memberName)));
 
-            Method getter = checkMethod(structCls, memberName + "$get", expectedType, MemorySegment.class);
-            Method setter = checkMethod(structCls, memberName + "$set", void.class, MemorySegment.class, expectedType);
+            Method getter = checkMethod(structCls, memberName + "", expectedType, MemorySegment.class);
+            Method setter = checkMethod(structCls, memberName + "", void.class, MemorySegment.class, expectedType);
             MemorySegment addr = struct;
             setter.invoke(null, addr, testValue);
             assertEquals(getter.invoke(null, addr), testValue);

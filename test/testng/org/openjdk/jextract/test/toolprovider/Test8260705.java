@@ -42,15 +42,15 @@ public class Test8260705 extends JextractToolRunner {
         run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> FooClass = loader.loadClass("Foo");
-            checkMethod(FooClass, "c$get", byte.class, MemorySegment.class);
-            checkMethod(FooClass, "c$set", void.class, MemorySegment.class, byte.class);
+            checkMethod(FooClass, "c", byte.class, MemorySegment.class);
+            checkMethod(FooClass, "c", void.class, MemorySegment.class, byte.class);
             checkMethod(FooClass, "$at", MemorySegment.class, MemorySegment.class, long.class);
 
             Class<?> Foo2Class = loader.loadClass("Foo2");
-            checkMethod(Foo2Class, "z$get", int.class, MemorySegment.class);
-            checkMethod(Foo2Class, "z$set", void.class, MemorySegment.class, int.class);
-            checkMethod(Foo2Class, "w$get", int.class, MemorySegment.class);
-            checkMethod(Foo2Class, "w$set", void.class, MemorySegment.class, int.class);
+            checkMethod(Foo2Class, "z", int.class, MemorySegment.class);
+            checkMethod(Foo2Class, "z", void.class, MemorySegment.class, int.class);
+            checkMethod(Foo2Class, "w", int.class, MemorySegment.class);
+            checkMethod(Foo2Class, "w", void.class, MemorySegment.class, int.class);
             checkMethod(Foo2Class, "$at", MemorySegment.class, MemorySegment.class, long.class);
 
             assertNotNull(loader.loadClass("Foo3"));

@@ -61,10 +61,10 @@ public class LibUnsupportedTest {
     public void testAllocateFoo() {
         try (Arena arena = Arena.ofConfined()) {
             var seg = Foo.allocate(arena);
-            Foo.i$set(seg, 32);
-            Foo.c$set(seg, (byte)'z');
-            assertEquals(Foo.i$get(seg), 32);
-            assertEquals(Foo.c$get(seg), (byte)'z');
+            Foo.i(seg, 32);
+            Foo.c(seg, (byte)'z');
+            assertEquals(Foo.i(seg), 32);
+            assertEquals(Foo.c(seg), (byte)'z');
         }
     }
 
@@ -72,10 +72,10 @@ public class LibUnsupportedTest {
     public void testGetFoo() {
         try (Arena arena = Arena.ofConfined()) {
             var seg = Foo.ofAddress(getFoo(), arena);
-            Foo.i$set(seg, 42);
-            Foo.c$set(seg, (byte)'j');
-            assertEquals(Foo.i$get(seg), 42);
-            assertEquals(Foo.c$get(seg), (byte)'j');
+            Foo.i(seg, 42);
+            Foo.c(seg, (byte)'j');
+            assertEquals(Foo.i(seg), 42);
+            assertEquals(Foo.c(seg), (byte)'j');
         }
     }
 

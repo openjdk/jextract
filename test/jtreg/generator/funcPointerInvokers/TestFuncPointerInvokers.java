@@ -52,7 +52,7 @@ public class TestFuncPointerInvokers {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(arena);
-            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), arena));
+            Bar.foo(bar, Foo.allocate((i) -> val.set(i), arena));
             Bar.foo(bar, arena).apply(42);
             assertEquals(val.get(), 42);
         }
@@ -63,8 +63,8 @@ public class TestFuncPointerInvokers {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(arena);
-            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), arena));
-            Foo.ofAddress(Bar.foo$get(bar), arena).apply(42);
+            Bar.foo(bar, Foo.allocate((i) -> val.set(i), arena));
+            Foo.ofAddress(Bar.foo(bar), arena).apply(42);
             assertEquals(val.get(), 42);
         }
     }
@@ -94,7 +94,7 @@ public class TestFuncPointerInvokers {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(arena);
-            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), arena));
+            Baz.fp(baz, Baz.fp.allocate((i) -> val.set(i), arena));
             Baz.fp(baz, arena).apply(42);
             assertEquals(val.get(), 42);
         }
@@ -105,8 +105,8 @@ public class TestFuncPointerInvokers {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(arena);
-            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), arena));
-            Baz.fp.ofAddress(Baz.fp$get(baz), arena).apply(42);
+            Baz.fp(baz, Baz.fp.allocate((i) -> val.set(i), arena));
+            Baz.fp.ofAddress(Baz.fp(baz), arena).apply(42);
             assertEquals(val.get(), 42);
         }
     }
