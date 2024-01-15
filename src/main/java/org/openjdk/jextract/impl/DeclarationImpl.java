@@ -404,11 +404,6 @@ public abstract class DeclarationImpl implements Declaration {
             declaration.addAttribute(new JavaFunctionalInterfaceName(fiName));
         }
 
-        public static Optional<String> get(Declaration declaration) {
-            return declaration.getAttribute(JavaFunctionalInterfaceName.class)
-                    .map(JavaFunctionalInterfaceName::fiName);
-        }
-
         public static String getOrThrow(Declaration declaration) {
             return declaration.getAttribute(JavaFunctionalInterfaceName.class)
                     .map(JavaFunctionalInterfaceName::fiName).get();

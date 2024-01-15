@@ -27,7 +27,6 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 
 import java.lang.invoke.MethodType;
 import java.util.List;

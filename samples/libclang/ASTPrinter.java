@@ -63,7 +63,7 @@ public class ASTPrinter {
                 var kindName = asJavaString(clang_getCursorKindSpelling(arena, kind));
                 System.out.printf("%s %s %s", " ".repeat(level[0]), kindName, name);
                 var type = clang_getCursorType(arena, cursor);
-                if (CXType.kind$get(type) != CXType_Invalid()) {
+                if (CXType.kind(type) != CXType_Invalid()) {
                     var typeName = asJavaString(clang_getTypeSpelling(arena, type));
                     System.out.printf(" <%s>", typeName);
                 }

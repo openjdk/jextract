@@ -61,7 +61,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     public void addVar(Declaration.Variable varTree) {
-        Optional<String> fiName = JavaFunctionalInterfaceName.get(varTree);
         String nativeName = varTree.name();
         String javaName = JavaName.getOrThrow(varTree);
         String layoutVar = emitVarLayout(varTree.type(), javaName);
@@ -71,7 +70,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName, null);
             emitGlobalGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
             emitGlobalSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
-            fiName.ifPresent(s -> emitFunctionalInterfaceGetter(s, javaName));
         } else {
             throw new IllegalArgumentException("Tree type not handled: " + varTree.type());
         }
@@ -209,14 +207,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 """);
         }
         decrAlign();
-    }
-
-    private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        appendIndentedLines(STR."""
-            public static \{fiName} \{javaName}(Arena scope) {
-                return \{fiName}.ofAddress(\{javaName}(), scope);
-            }
-            """);
     }
 
     void emitPrimitiveTypedef(Declaration.Typedef typedefTree, Type.Primitive primType, String name) {

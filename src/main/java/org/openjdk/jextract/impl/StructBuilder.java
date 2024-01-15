@@ -133,7 +133,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     @Override
     public void addVar(Declaration.Variable varTree) {
-        Optional<String> fiName = JavaFunctionalInterfaceName.get(varTree);
         String javaName = JavaName.getOrThrow(varTree);
         appendBlankLine();
         String offsetField = emitOffsetFieldDecl(varTree);
@@ -143,7 +142,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
             emitFieldGetter(javaName, varTree, offsetField);
             emitFieldSetter(javaName, varTree, offsetField);
-            fiName.ifPresent(s -> emitFunctionalInterfaceGetter(s, javaName));
         } else {
             throw new IllegalArgumentException(STR."Type not supported: \{varTree.type()}");
         }
@@ -153,15 +151,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         incrAlign();
         emitDocComment(varTree, header);
         decrAlign();
-    }
-
-    private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
-        appendIndentedLines(STR."""
-
-            public static \{fiName} \{javaName}(MemorySegment segment, Arena scope) {
-                return \{fiName}.ofAddress(\{javaName}(segment), scope);
-            }
-            """);
     }
 
     private void emitFieldGetter(String javaName, Declaration.Variable varTree, String offsetField) {

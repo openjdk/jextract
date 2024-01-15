@@ -47,16 +47,6 @@ import test.jextract.funcpointers.*;
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestFuncPointerInvokers
  */
 public class TestFuncPointerInvokers {
-    @Test
-    public void testStructFieldTypedef() {
-        try (Arena arena = Arena.ofConfined()) {
-            AtomicInteger val = new AtomicInteger(-1);
-            MemorySegment bar = Bar.allocate(arena);
-            Bar.foo(bar, Foo.allocate((i) -> val.set(i), arena));
-            Bar.foo(bar, arena).apply(42);
-            assertEquals(val.get(), 42);
-        }
-    }
 
     @Test
     public void testStructFieldFITypedef() {
@@ -65,16 +55,6 @@ public class TestFuncPointerInvokers {
             MemorySegment bar = Bar.allocate(arena);
             Bar.foo(bar, Foo.allocate((i) -> val.set(i), arena));
             Foo.ofAddress(Bar.foo(bar), arena).apply(42);
-            assertEquals(val.get(), 42);
-        }
-    }
-
-    @Test
-    public void testGlobalTypedef() {
-        try (Arena arena = Arena.ofConfined()) {
-            AtomicInteger val = new AtomicInteger(-1);
-            f(Foo.allocate((i) -> val.set(i), arena));
-            f(arena).apply(42);
             assertEquals(val.get(), 42);
         }
     }
@@ -90,33 +70,12 @@ public class TestFuncPointerInvokers {
     }
 
     @Test
-    public void testStructFieldFunctionPointer() {
-        try (Arena arena = Arena.ofConfined()) {
-            AtomicInteger val = new AtomicInteger(-1);
-            MemorySegment baz = Baz.allocate(arena);
-            Baz.fp(baz, Baz.fp.allocate((i) -> val.set(i), arena));
-            Baz.fp(baz, arena).apply(42);
-            assertEquals(val.get(), 42);
-        }
-    }
-
-    @Test
     public void testStructFieldFIFunctionPointer() {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(arena);
             Baz.fp(baz, Baz.fp.allocate((i) -> val.set(i), arena));
             Baz.fp.ofAddress(Baz.fp(baz), arena).apply(42);
-            assertEquals(val.get(), 42);
-        }
-    }
-
-    @Test
-    public void testGlobalFunctionPointer() {
-        try (Arena arena = Arena.ofConfined()) {
-            AtomicInteger val = new AtomicInteger(-1);
-            fp(fp.allocate((i) -> val.set(i), arena));
-            fp(arena).apply(42);
             assertEquals(val.get(), 42);
         }
     }
