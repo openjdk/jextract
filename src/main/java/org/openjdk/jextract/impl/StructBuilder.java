@@ -41,7 +41,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -88,7 +87,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     void end() {
         if (!inAnonymousNested()) {
-            emitAt();
+            asSlice();
             appendBlankLine();
             emitSizeof();
             emitAllocatorAllocate();
@@ -188,10 +187,10 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitAt() {
+    private void asSlice() {
         appendIndentedLines(STR."""
 
-            public static MemorySegment $at(MemorySegment ptr, long index) {
+            public static MemorySegment asSlice(MemorySegment ptr, long index) {
                 return ptr.asSlice($LAYOUT().byteSize() * index);
             }
             """);

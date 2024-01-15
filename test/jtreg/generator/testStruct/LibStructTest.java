@@ -76,12 +76,12 @@ public class LibStructTest {
         try (Arena arena = Arena.ofConfined()) {
             var seg = Point.allocateArray(3, arena);
             for (int i = 0; i < 3; i++) {
-                MemorySegment point = Point.$at(seg, i);
+                MemorySegment point = Point.asSlice(seg, i);
                 Point.x(point, 56 + i);
                 Point.y(point, 65 + i);
             }
             for (int i = 0; i < 3; i++) {
-                MemorySegment point = Point.$at(seg, i);
+                MemorySegment point = Point.asSlice(seg, i);
                 assertEquals(Point.x(point), 56 + i);
                 assertEquals(Point.y(point), 65 + i);
             }

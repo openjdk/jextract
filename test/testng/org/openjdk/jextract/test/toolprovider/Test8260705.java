@@ -44,14 +44,14 @@ public class Test8260705 extends JextractToolRunner {
             Class<?> FooClass = loader.loadClass("Foo");
             checkMethod(FooClass, "c", byte.class, MemorySegment.class);
             checkMethod(FooClass, "c", void.class, MemorySegment.class, byte.class);
-            checkMethod(FooClass, "$at", MemorySegment.class, MemorySegment.class, long.class);
+            checkMethod(FooClass, "asSlice", MemorySegment.class, MemorySegment.class, long.class);
 
             Class<?> Foo2Class = loader.loadClass("Foo2");
             checkMethod(Foo2Class, "z", int.class, MemorySegment.class);
             checkMethod(Foo2Class, "z", void.class, MemorySegment.class, int.class);
             checkMethod(Foo2Class, "w", int.class, MemorySegment.class);
             checkMethod(Foo2Class, "w", void.class, MemorySegment.class, int.class);
-            checkMethod(Foo2Class, "$at", MemorySegment.class, MemorySegment.class, long.class);
+            checkMethod(Foo2Class, "asSlice", MemorySegment.class, MemorySegment.class, long.class);
 
             assertNotNull(loader.loadClass("Foo3"));
 

@@ -44,7 +44,7 @@ public class Test8260717 extends JextractToolRunner {
             checkMethod(FooClass, "ptr", MemorySegment.class, MemorySegment.class);
             checkMethod(FooClass, "ptr", void.class, MemorySegment.class, MemorySegment.class);
 
-            checkMethod(FooClass, "$at", MemorySegment.class, MemorySegment.class, long.class);
+            checkMethod(FooClass, "asSlice", MemorySegment.class, MemorySegment.class, long.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }

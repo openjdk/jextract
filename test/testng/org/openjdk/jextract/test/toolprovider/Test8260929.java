@@ -49,7 +49,7 @@ public class Test8260929 extends JextractToolRunner {
             checkMethod(rab2Class, "x", short.class, MemorySegment.class);
             checkMethod(rab2Class, "x", void.class, MemorySegment.class, short.class);
 
-            checkMethod(rab2Class, "$at", MemorySegment.class, MemorySegment.class, long.class);
+            checkMethod(rab2Class, "asSlice", MemorySegment.class, MemorySegment.class, long.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }
