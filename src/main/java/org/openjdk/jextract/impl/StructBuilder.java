@@ -87,7 +87,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     void end() {
         if (!inAnonymousNested()) {
-            asSlice();
+            emitAsSlice();
             appendBlankLine();
             emitSizeof();
             emitAllocatorAllocate();
@@ -187,7 +187,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void asSlice() {
+    private void emitAsSlice() {
         appendIndentedLines(STR."""
 
             public static MemorySegment asSlice(MemorySegment ptr, long index) {
