@@ -71,11 +71,12 @@ final class SourceFileBuilder {
 
     void emitImportSection() {
         appendLines("""
-            import java.lang.invoke.MethodHandle;
-            import java.lang.invoke.MethodHandles;
-            import java.lang.invoke.VarHandle;
-            import java.nio.ByteOrder;
+            import java.lang.invoke.*;
             import java.lang.foreign.*;
+            import java.nio.ByteOrder;
+            import java.util.*;
+            import java.util.stream.*;
+
             import static java.lang.foreign.ValueLayout.*;
             """);
     }

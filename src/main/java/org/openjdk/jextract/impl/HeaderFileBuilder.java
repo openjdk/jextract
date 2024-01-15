@@ -42,10 +42,13 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -148,6 +151,10 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             returnExpr = STR."return (\{retType}) ";
         }
         String getterName = mangleName(javaName, MethodHandle.class);
+        String paramList = String.join(", ", finalParamNames);
+        String traceArgList = paramList.isEmpty() ?
+                STR."\"\{nativeName}\"" :
+                STR."\"\{nativeName}\", \{paramList}";
         incrAlign();
         if (!isVarArg) {
             emitDocComment(decl);
@@ -166,7 +173,10 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
                     var mh$ = \{getterName}();
                     try {
-                        \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
+                        if (TRACE_DOWNCALLS) {
+                            traceDowncall(\{traceArgList});
+                        }
+                        \{returnExpr}mh$.invokeExact(\{paramList});
                     } catch (Throwable ex$) {
                        throw new AssertionError("should not reach here", ex$);
                     }
@@ -189,7 +199,10 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     var mh$ = \{runtimeHelperName()}.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
                     return (\{paramExprs}) -> {
                         try {
-                            \{returnExpr}mh$.invokeExact(\{String.join(", ", finalParamNames)});
+                            if (TRACE_DOWNCALLS) {
+                                traceDowncall(\{traceArgList});
+                            }
+                            \{returnExpr}mh$.invokeExact(\{paramList});
                         } catch(IllegalArgumentException ex$)  {
                             throw ex$; // rethrow IAE from passing wrong number/type of args
                         } catch (Throwable ex$) {
@@ -253,6 +266,15 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     void emitRuntimeHelperMethods() {
         appendIndentedLines("""
+            
+            static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
+            
+            static void traceDowncall(String name, Object... args) {
+                 String traceArgs = Arrays.stream(args)
+                               .map(Object::toString)
+                               .collect(Collectors.joining(", "));
+                 System.out.printf("%s(%s)\\n", name, traceArgs);
+            }
 
             static MemorySegment findOrThrow(String symbol) {
                 return SYMBOL_LOOKUP.find(symbol)
