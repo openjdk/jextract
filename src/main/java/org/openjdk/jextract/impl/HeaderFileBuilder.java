@@ -266,9 +266,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     void emitRuntimeHelperMethods() {
         appendIndentedLines("""
-            
+
             static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
-            
+
             static void traceDowncall(String name, Object... args) {
                  String traceArgs = Arrays.stream(args)
                                .map(Object::toString)
