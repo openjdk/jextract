@@ -170,11 +170,10 @@ public class TestClassGeneration extends JextractToolRunner {
         Method addr_getter = checkMethod(cls, name + "$SEGMENT", MemorySegment.class);
         MemorySegment segment = (MemorySegment)addr_getter.invoke(null);
 
-        Method getter = checkMethod(cls, name + "$get", expectedType);
+        Method getter = checkMethod(cls, name, expectedType);
         assertEquals(getter.invoke(segment), expectedValue);
 
-        checkMethod(cls, name + "$get", expectedType);
-        checkMethod(cls, name + "$set", void.class, expectedType);
+        checkMethod(cls, name, void.class, expectedType);
     }
 
     @Test(dataProvider = "structMembers")
@@ -191,8 +190,8 @@ public class TestClassGeneration extends JextractToolRunner {
             assertEquals(offsetField.getType(), long.class);
             assertEquals(offsetField.get(null), structLayout.byteOffset(PathElement.groupElement(memberName)));
 
-            Method getter = checkMethod(structCls, memberName + "", expectedType, MemorySegment.class);
-            Method setter = checkMethod(structCls, memberName + "", void.class, MemorySegment.class, expectedType);
+            Method getter = checkMethod(structCls, memberName, expectedType, MemorySegment.class);
+            Method setter = checkMethod(structCls, memberName, void.class, MemorySegment.class, expectedType);
             MemorySegment addr = struct;
             setter.invoke(null, addr, testValue);
             assertEquals(getter.invoke(null, addr), testValue);

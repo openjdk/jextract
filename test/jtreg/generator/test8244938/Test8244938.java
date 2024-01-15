@@ -54,7 +54,7 @@ public class Test8244938 {
              var seg = func(arena);
              assertEquals(seg.byteSize(), Point.sizeof());
              assertEquals(Point.k(seg), 44);
-             var point2dSeg = Point.point2dSlice(seg);
+             var point2dSeg = Point.point2d$slice(seg);
              assertEquals(Point2D.i(point2dSeg), 567);
              assertEquals(Point2D.j(point2dSeg), 33);
          }

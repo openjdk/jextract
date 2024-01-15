@@ -58,7 +58,7 @@ public class Test8245003 {
         seg = special_pt3d$SEGMENT();
         assertEquals(seg.byteSize(), Point3D.sizeof());
         assertEquals(Point3D.z(seg), 35);
-        var pointSeg = Point3D.pSlice(seg);
+        var pointSeg = Point3D.p$slice(seg);
         assertEquals(pointSeg.byteSize(), Point.sizeof());
         assertEquals(Point.x(pointSeg), 43);
         assertEquals(Point.y(pointSeg), 45);
@@ -79,7 +79,7 @@ public class Test8245003 {
         seg = foo$SEGMENT();
         assertEquals(seg.byteSize(), Foo.sizeof());
         assertEquals(Foo.count(seg), 37);
-        var greeting = Foo.greetingSlice(seg);
+        var greeting = Foo.greeting$slice(seg);
         byte[] barr = greeting.toArray(C_CHAR);
         assertEquals(new String(barr), "hello");
     }

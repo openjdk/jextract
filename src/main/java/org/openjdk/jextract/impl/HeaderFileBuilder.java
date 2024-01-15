@@ -213,8 +213,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalInterfaceGetter(String fiName, String javaName) {
         appendIndentedLines(STR."""
-            public static \{fiName} \{javaName}() {
-                return \{fiName}.ofAddress(\{javaName}$get(), Arena.global());
+            public static \{fiName} \{javaName}(Arena scope) {
+                return \{fiName}.ofAddress(\{javaName}(), scope);
             }
             """);
     }
@@ -309,7 +309,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
-            public static \{type.getSimpleName()} \{javaName}$get() {
+            public static \{type.getSimpleName()} \{javaName}() {
                 return \{segmentConstant}.get(\{layoutVar}, 0L);
             }
             """);
@@ -322,7 +322,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
-            public static void \{javaName}$set(\{type.getSimpleName()} x) {
+            public static void \{javaName}(\{type.getSimpleName()} x) {
                 \{segmentConstant}.set(\{layoutVar}, 0L, x);
             }
             """);

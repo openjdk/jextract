@@ -73,8 +73,8 @@ public class TestFuncPointerInvokers {
     public void testGlobalTypedef() {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            f$set(Foo.allocate((i) -> val.set(i), arena));
-            f().apply(42);
+            f(Foo.allocate((i) -> val.set(i), arena));
+            f(arena).apply(42);
             assertEquals(val.get(), 42);
         }
     }
@@ -83,8 +83,8 @@ public class TestFuncPointerInvokers {
     public void testGlobalFITypedef() {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            f$set(Foo.allocate((i) -> val.set(i), arena));
-            Foo.ofAddress(f$get(), arena).apply(42);
+            f(Foo.allocate((i) -> val.set(i), arena));
+            Foo.ofAddress(f(), arena).apply(42);
             assertEquals(val.get(), 42);
         }
     }
@@ -115,8 +115,8 @@ public class TestFuncPointerInvokers {
     public void testGlobalFunctionPointer() {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            fp$set(fp.allocate((i) -> val.set(i), arena));
-            fp().apply(42);
+            fp(fp.allocate((i) -> val.set(i), arena));
+            fp(arena).apply(42);
             assertEquals(val.get(), 42);
         }
     }
@@ -125,8 +125,8 @@ public class TestFuncPointerInvokers {
     public void testGlobalFIFunctionPointer() {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            fp$set(fp.allocate((i) -> val.set(i), arena));
-            fp.ofAddress(fp$get(), arena).apply(42);
+            fp(fp.allocate((i) -> val.set(i), arena));
+            fp.ofAddress(fp(), arena).apply(42);
             assertEquals(val.get(), 42);
         }
     }
@@ -134,8 +134,8 @@ public class TestFuncPointerInvokers {
     @Test
     public void testGlobalFIFunctionPointerAddress() {
         try (Arena arena = Arena.ofConfined()) {
-            fp_addr$set(fp_addr.allocate((addr) -> MemorySegment.ofAddress(addr.address() + 1), arena));
-            assertEquals(fp_addr.ofAddress(fp_addr$get(), arena).apply(MemorySegment.ofAddress(42)), MemorySegment.ofAddress(43));
+            fp_addr(fp_addr.allocate((addr) -> MemorySegment.ofAddress(addr.address() + 1), arena));
+            assertEquals(fp_addr.ofAddress(fp_addr(), arena).apply(MemorySegment.ofAddress(42)), MemorySegment.ofAddress(43));
         }
     }
 }

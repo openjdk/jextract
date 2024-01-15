@@ -106,7 +106,7 @@ public class TestFilters extends JextractToolRunner {
         Object get(Class<?> headerClass) {
             return switch (this) {
                 case FUNCTION, MACRO_CONSTANT, ENUM_CONSTANT -> findMethod(headerClass, symbolName);
-                case VAR -> findMethod(headerClass, symbolName + "$get");
+                case VAR -> findMethod(headerClass, symbolName);
                 case TYPEDEF -> findField(headerClass, symbolName);
                 case STRUCT, UNION -> {
                     try {

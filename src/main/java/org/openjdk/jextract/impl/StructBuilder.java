@@ -193,7 +193,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String seg = safeParameterName("seg");
         appendIndentedLines(STR."""
 
-            public static MemorySegment \{javaName}Slice(MemorySegment \{seg}) {
+            public static MemorySegment \{javaName}$slice(MemorySegment \{seg}) {
                 return \{seg}.asSlice(\{offsetField}, \{sizeField});
             }
             """);

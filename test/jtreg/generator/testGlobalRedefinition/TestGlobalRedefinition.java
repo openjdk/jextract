@@ -46,10 +46,10 @@ import static test.jextract.redef.redef_h.*;
 public class TestGlobalRedefinition {
     @Test
     public void test() throws Throwable {
-        Method mGet = redef_h.class.getMethod("x$get");
+        Method mGet = redef_h.class.getMethod("x");
         assertEquals(mGet.getReturnType(), int.class);
 
-        Method mSet = redef_h.class.getMethod("x$set", int.class);
+        Method mSet = redef_h.class.getMethod("x", int.class);
         assertEquals(mSet.getParameterTypes()[0], int.class);
     }
 }

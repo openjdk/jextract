@@ -64,10 +64,10 @@ public class RepeatedDeclsTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "distance", MemorySegment.class));
 
             // check a getter method for "i"
-            assertNotNull(findMethod(cls, "i$get"));
+            assertNotNull(findMethod(cls, "i"));
 
             // check a setter method for "i"
-            assertNotNull(findMethod(cls, "i$set", int.class));
+            assertNotNull(findMethod(cls, "i", int.class));
 
             // make sure that enum constants are generated fine
             checkIntGetter(cls, "R", 0);
