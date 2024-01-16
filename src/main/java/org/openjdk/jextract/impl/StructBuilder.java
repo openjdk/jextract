@@ -140,11 +140,29 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             emitSegmentGetter(javaName, varTree, offsetField, sizeField);
             emitSegmentSetter(javaName, varTree, offsetField, sizeField);
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
-            emitFieldGetter(javaName, varTree, offsetField);
-            emitFieldSetter(javaName, varTree, offsetField);
+            String layoutField = emitLayoutFieldDecl(varTree);
+            emitFieldGetter(javaName, varTree, layoutField, offsetField);
+            emitFieldSetter(javaName, varTree, layoutField, offsetField);
         } else {
             throw new IllegalArgumentException(STR."Type not supported: \{varTree.type()}");
         }
+    }
+
+    private List<String> prefixNamesList() {
+        return nestedAnonDeclarations.stream()
+                .map(d -> AnonymousStruct.anonName((Declaration.Scoped)d))
+                .toList().reversed();
+    }
+
+    private String fieldElementPaths(String nativeName) {
+        StringBuilder builder = new StringBuilder();
+        String prefix = "";
+        for (String prefixElementName : prefixNamesList()) {
+            builder.append(prefix + "groupElement(\"" + prefixElementName + "\")");
+            prefix = ", ";
+        }
+        builder.append(prefix + "groupElement(\"" + nativeName + "\")");
+        return builder.toString();
     }
 
     private void emitFieldDocComment(Declaration.Variable varTree, String header) {
@@ -157,19 +175,19 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         return structTree.kind() == Scoped.Kind.STRUCT ? "struct" : "union";
     }
 
-    private void emitFieldGetter(String javaName, Declaration.Variable varTree, String offsetField) {
+    private void emitFieldGetter(String javaName, Declaration.Variable varTree, String layoutField, String offsetField) {
         String segmentParam = safeParameterName(kindName());
         Class<?> type = Utils.carrierFor(varTree.type());
         appendBlankLine();
         emitFieldDocComment(varTree, "Getter for field:");
         appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}(MemorySegment \{segmentParam}) {
-                return \{segmentParam}.get(\{layoutString(varTree.type())}, \{offsetField});
+                return \{segmentParam}.get(\{layoutField}, \{offsetField});
             }
             """);
     }
 
-    private void emitFieldSetter(String javaName, Declaration.Variable varTree, String offsetField) {
+    private void emitFieldSetter(String javaName, Declaration.Variable varTree, String layoutField, String offsetField) {
         String segmentParam = safeParameterName(kindName());
         String valueParam = safeParameterName("fieldValue");
         Class<?> type = Utils.carrierFor(varTree.type());
@@ -177,7 +195,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         emitFieldDocComment(varTree, "Setter for field:");
         appendIndentedLines(STR."""
             public static void \{javaName}(MemorySegment \{segmentParam}, \{type.getSimpleName()} \{valueParam}) {
-                \{segmentParam}.set(\{layoutString(varTree.type())}, \{offsetField}, \{valueParam});
+                \{segmentParam}.set(\{layoutField}, \{offsetField}, \{valueParam});
             }
             """);
     }
@@ -272,6 +290,15 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             private static final long \{offsetFieldName} = \{ClangOffsetOf.getOrThrow(field) / 8};
             """);
         return offsetFieldName;
+    }
+
+    private String emitLayoutFieldDecl(Declaration.Variable field) {
+        String layoutFieldName = STR."\{field.name()}$LAYOUT";
+        String layoutType = Utils.layoutCarrierFor(field.type()).getSimpleName();
+        appendIndentedLines(STR."""
+            private static final \{layoutType} \{layoutFieldName} = (\{layoutType})$LAYOUT.select(\{fieldElementPaths(field.name())});
+            """);
+        return layoutFieldName;
     }
 
     private String emitSizeFieldDecl(Declaration field) {
