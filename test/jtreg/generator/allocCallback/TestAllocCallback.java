@@ -52,8 +52,8 @@ public class TestAllocCallback {
         try (Arena arena = Arena.ofConfined()) {
             var foo = alloc_callback_h.foo$SEGMENT();
 
-            var barA = Foo.a.ofAddress(Foo.a(foo), arena).apply();
-            var barB = Foo.b.ofAddress(Foo.b(foo), arena).apply(100);
+            var barA = Foo.a.invoke(Foo.a(foo), arena);
+            var barB = Foo.b.invoke(Foo.b(foo), arena, 100);
 
             assertEquals(Bar.a(barA), 5);
             assertEquals(Bar.a(barB), 100);
