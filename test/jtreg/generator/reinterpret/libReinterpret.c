@@ -21,7 +21,7 @@
  * questions.
  */
 
-#include "test8253102.h"
+#include "reinterpret.h"
 #include <stdlib.h>
 
 EXPORT Point* make(int x, int y) {
@@ -32,4 +32,13 @@ EXPORT Point* make(int x, int y) {
 
 EXPORT void freePoint(struct Point* ptr) {
     free(ptr);
+}
+
+EXPORT Point* makeArray(int count) {
+    Point* p = (Point*)calloc(count, sizeof(Point));
+    for (int i = 0; i < count; i++) {
+        p[i].x = i;
+        p[i].y = i + 1;
+    }
+    return p;
 }

@@ -40,6 +40,8 @@ EXPORT Point* make(int x, int y);
 
 EXPORT void freePoint(struct Point*);
 
+EXPORT Point* makeArray(int count);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

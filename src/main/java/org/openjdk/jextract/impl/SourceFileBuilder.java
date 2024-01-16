@@ -75,6 +75,7 @@ final class SourceFileBuilder {
             import java.lang.foreign.*;
             import java.nio.ByteOrder;
             import java.util.*;
+            import java.util.function.*;
             import java.util.stream.*;
 
             import static java.lang.foreign.ValueLayout.*;
