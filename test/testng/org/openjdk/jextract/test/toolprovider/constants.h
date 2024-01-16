@@ -70,4 +70,5 @@
 enum AnEnum {
     SEVEN = 7,
     #define SEVEN SEVEN
+    #define EIGHT SEVEN + 1
 };
