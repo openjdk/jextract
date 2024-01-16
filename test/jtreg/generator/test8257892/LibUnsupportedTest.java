@@ -71,7 +71,7 @@ public class LibUnsupportedTest {
     @Test
     public void testGetFoo() {
         try (Arena arena = Arena.ofConfined()) {
-            var seg = Foo.ofAddress(getFoo(), arena);
+            var seg = Foo.reinterpret(getFoo(), arena, null);
             Foo.i(seg, 42);
             Foo.c(seg, (byte)'j');
             assertEquals(Foo.i(seg), 42);

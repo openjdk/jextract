@@ -51,8 +51,7 @@ public class Test8261511 {
     public void test() {
         try (Arena arena = Arena.ofConfined()) {
             var funcPtr = Foo.sum(get_foo(arena));
-            var sumIface = Foo.sum.ofAddress(funcPtr, arena);
-            assertEquals(sumIface.apply(15,20), 35);
+            assertEquals(Foo.sum.invoke(funcPtr, 15, 20), 35);
             assertEquals(sum(1.2, 4.5), 5.7, 0.001);
         }
     }
