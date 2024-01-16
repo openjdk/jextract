@@ -221,7 +221,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         appendIndentedLines("""
 
             public static MemorySegment reinterpret(MemorySegment addr, Arena scope, Consumer<MemorySegment> cleanup) {
-                return addr.reinterpret($LAYOUT().byteSize(), scope, cleanup);
+                return reinterpret(addr, 1, scope, cleanup);
             }
 
             public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena scope, Consumer<MemorySegment> cleanup) {
