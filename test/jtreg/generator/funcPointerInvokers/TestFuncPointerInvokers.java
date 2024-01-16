@@ -54,7 +54,7 @@ public class TestFuncPointerInvokers {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(arena);
             Bar.foo(bar, Foo.allocate((i) -> val.set(i), arena));
-            Foo.ofAddress(Bar.foo(bar), arena).apply(42);
+            Foo.invoke(Bar.foo(bar), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -64,7 +64,7 @@ public class TestFuncPointerInvokers {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             f(Foo.allocate((i) -> val.set(i), arena));
-            Foo.ofAddress(f(), arena).apply(42);
+            Foo.invoke(f(), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -75,7 +75,7 @@ public class TestFuncPointerInvokers {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(arena);
             Baz.fp(baz, Baz.fp.allocate((i) -> val.set(i), arena));
-            Baz.fp.ofAddress(Baz.fp(baz), arena).apply(42);
+            Baz.fp.invoke(Baz.fp(baz), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -85,7 +85,7 @@ public class TestFuncPointerInvokers {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             fp(fp.allocate((i) -> val.set(i), arena));
-            fp.ofAddress(fp(), arena).apply(42);
+            fp.invoke(fp(), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -94,7 +94,7 @@ public class TestFuncPointerInvokers {
     public void testGlobalFIFunctionPointerAddress() {
         try (Arena arena = Arena.ofConfined()) {
             fp_addr(fp_addr.allocate((addr) -> MemorySegment.ofAddress(addr.address() + 1), arena));
-            assertEquals(fp_addr.ofAddress(fp_addr(), arena).apply(MemorySegment.ofAddress(42)), MemorySegment.ofAddress(43));
+            assertEquals(fp_addr.invoke(fp_addr(), MemorySegment.ofAddress(42)), MemorySegment.ofAddress(43));
         }
     }
 }

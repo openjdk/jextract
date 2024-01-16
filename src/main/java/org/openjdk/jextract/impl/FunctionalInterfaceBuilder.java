@@ -58,14 +58,14 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         fib.emitFunctionalInterfaceMethod();
         fib.emitDescriptorDecl();
         fib.emitFunctionalFactories();
-        fib.emitFunctionalFactoryForPointer();
+        fib.emitInvoke();
         fib.classEnd();
     }
 
     private void emitFunctionalInterfaceMethod() {
         appendIndentedLines(STR."""
 
-            \{methodType.returnType().getSimpleName()} apply(\{paramExprs("")});
+            \{methodType.returnType().getSimpleName()} apply(\{paramExprs()});
             """);
     }
 
@@ -80,22 +80,21 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             """);
     }
 
-    private void emitFunctionalFactoryForPointer() {
+    private void emitInvoke() {
         boolean needsAllocator = Utils.isStructOrUnion(funcType.returnType());
-        String allocArg = needsAllocator ? ", (SegmentAllocator)arena" : "";
+        String allocParam = needsAllocator ? ", SegmentAllocator alloc" : "";
+        String allocArg = needsAllocator ? ", alloc" : "";
+        String paramStr = methodType.parameterCount() != 0 ? STR.",\{paramExprs()}" : "";
         appendIndentedLines(STR."""
 
             MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
-            static \{className()} ofAddress(MemorySegment addr, Arena arena) {
-                MemorySegment symbol = addr.reinterpret(arena, null);
-                return (\{paramExprs("_")}) -> {
-                    try {
-                        \{retExpr()} DOWN$MH.invokeExact(symbol\{allocArg}\{otherArgExprs()});
-                    } catch (Throwable ex$) {
-                        throw new AssertionError("should not reach here", ex$);
-                    }
-                };
+            static \{methodType.returnType().getSimpleName()} invoke(MemorySegment funcPtr\{allocParam}\{paramStr}) {
+                try {
+                    \{retExpr()} DOWN$MH.invokeExact(funcPtr\{allocArg}\{otherArgExprs()});
+                } catch (Throwable ex$) {
+                    throw new AssertionError("should not reach here", ex$);
+                }
             }
             """);
     }
@@ -109,13 +108,13 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         return name.isEmpty()? "_x" + i : name;
     }
 
-    private String paramExprs(String paramNamePrefix) {
+    private String paramExprs() {
         StringBuilder result = new StringBuilder();
         String delim = "";
         for (int i = 0 ; i < methodType.parameterCount(); i++) {
             result.append(delim).append(methodType.parameterType(i).getSimpleName());
             result.append(" ");
-            result.append(paramNamePrefix).append(parameterName(i));
+            result.append(parameterName(i));
             delim = ", ";
         }
         return result.toString();
@@ -133,7 +132,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         String argsExprs = "";
         if (methodType.parameterCount() > 0) {
             argsExprs += ", " + IntStream.range(0, methodType.parameterCount())
-                    .mapToObj(i -> "_" + parameterName(i))
+                    .mapToObj(this::parameterName)
                     .collect(Collectors.joining(", "));
         }
         return argsExprs;
