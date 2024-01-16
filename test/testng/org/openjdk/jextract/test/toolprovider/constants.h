@@ -66,3 +66,9 @@
 #define F_PTR (void*) 0xFFFFFFFFFFFFFFFFLL; // all 1s
 
 #define ARRAY { 0, 1, 2, 3, 4, 5 }
+
+enum AnEnum {
+    SEVEN = 7,
+    #define SEVEN SEVEN
+    #define EIGHT SEVEN + 1
+};

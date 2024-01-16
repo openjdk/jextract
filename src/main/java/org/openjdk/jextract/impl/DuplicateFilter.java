@@ -109,6 +109,15 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
         return null;
     }
 
+    @java.lang.Override
+    public Void visitScoped(Declaration.Scoped d, Void aVoid) {
+        if (Utils.isEnum(d)) {
+            // enum constants might clash with macro constants with same name
+            d.members().forEach(m -> m.accept(this, null));
+        }
+        return null;
+    }
+
     @Override
     public Void visitDeclaration(Declaration decl, Void ignored) {
         return null;
