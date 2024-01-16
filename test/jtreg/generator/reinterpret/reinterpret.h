@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,15 +21,27 @@
  * questions.
  */
 
-#include "test8253102.h"
-#include <stdlib.h>
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-EXPORT Point* make(int x, int y) {
-    Point* p = (Point*)malloc(sizeof(Point));
-    p->x = x; p->y = y;
-    return p;
-}
+#ifdef _WIN64
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
 
-EXPORT void freePoint(struct Point* ptr) {
-    free(ptr);
+typedef struct Point {
+    int x;
+    int y;
+} Point;
+
+EXPORT Point* make(int x, int y);
+
+EXPORT void freePoint(struct Point*);
+
+EXPORT Point* makeArray(int count);
+
+#ifdef __cplusplus
 }
+#endif // __cplusplus

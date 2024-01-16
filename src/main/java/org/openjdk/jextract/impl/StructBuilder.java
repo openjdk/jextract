@@ -92,7 +92,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             emitSizeof();
             emitAllocatorAllocate();
             emitAllocatorAllocateArray();
-            emitOfAddressScoped();
+            emitReinterpret();
             classEnd();
             if (isNested()) {
                 // we are nested. Decrease align
@@ -217,11 +217,15 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private void emitOfAddressScoped() {
+    private void emitReinterpret() {
         appendIndentedLines("""
 
-            public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
-                return addr.reinterpret($LAYOUT().byteSize(), scope, null);
+            public static MemorySegment reinterpret(MemorySegment addr, Arena scope, Consumer<MemorySegment> cleanup) {
+                return reinterpret(addr, 1, scope, cleanup);
+            }
+
+            public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena scope, Consumer<MemorySegment> cleanup) {
+                return addr.reinterpret($LAYOUT().byteSize() * elementCount, scope, cleanup);
             }
             """);
     }

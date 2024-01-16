@@ -27,36 +27,49 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
-import static test.jextract.test8253102.test8253102_h.*;
-import test.jextract.test8253102.*;
+import static test.jextract.reinterpret.reinterpret_h.*;
+import test.jextract.reinterpret.*;
 
 /*
  * @test id=classes
- * @bug 8253102
- * @summary jextract should emit address to segment utility method on struct classes
+ * @bug 8253102 7903626
+ * @summary jextract should emit reinterpret utility method on struct classes
  * @library /lib
- * @run main/othervm JtregJextract -l Test8253102 -t test.jextract.test8253102 test8253102.h
- * @build LibTest8253102Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8253102Test
+ * @run main/othervm JtregJextract -l Reinterpret -t test.jextract.reinterpret reinterpret.h
+ * @build TestReinterpret
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestReinterpret
  */
 /*
  * @test id=sources
- * @bug 8253102
- * @summary jextract should emit address to segment utility method on struct classes
+ * @bug 8253102 7903626
+ * @summary jextract should emit reinterpret utility method on struct classes
  * @library /lib
- * @run main/othervm JtregJextractSources -l Test8253102 -t test.jextract.test8253102 test8253102.h
- * @build LibTest8253102Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8253102Test
+ * @run main/othervm JtregJextractSources -l Reinterpret -t test.jextract.reinterpret reinterpret.h
+ * @build TestReinterpret
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestReinterpret
  */
-public class LibTest8253102Test {
+public class TestReinterpret {
     @Test
-    public void test() {
+    public void testSingleStruct() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment addr = make(14, 99);
-            MemorySegment seg = Point.ofAddress(addr, arena);
+            MemorySegment seg = Point.reinterpret(addr, arena, reinterpret_h::freePoint);
             assertEquals(Point.x(seg), 14);
             assertEquals(Point.y(seg), 99);
-            freePoint(addr);
+        }
+    }
+
+    @Test
+    public void testStructArray() {
+        try (Arena arena = Arena.ofConfined()) {
+            int elementCount = 10;
+            MemorySegment addr = makeArray(elementCount);
+            MemorySegment array = Point.reinterpret(addr, elementCount, arena, reinterpret_h::freePoint);
+            for (int i = 0; i < elementCount; i++) {
+                MemorySegment point = Point.asSlice(array, i);
+                assertEquals(Point.x(point), i);
+                assertEquals(Point.y(point), i + 1);
+            }
         }
     }
 }
