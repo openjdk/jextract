@@ -139,11 +139,29 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             String sizeField = emitSizeFieldDecl(varTree);
             emitSegmentGetter(javaName, offsetField, sizeField);
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
-            emitFieldGetter(javaName, varTree, offsetField);
-            emitFieldSetter(javaName, varTree, offsetField);
+            String layoutField = emitLayoutFieldDecl(varTree);
+            emitFieldGetter(javaName, varTree, layoutField, offsetField);
+            emitFieldSetter(javaName, varTree, layoutField, offsetField);
         } else {
             throw new IllegalArgumentException(STR."Type not supported: \{varTree.type()}");
         }
+    }
+
+    private List<String> prefixNamesList() {
+        return nestedAnonDeclarations.stream()
+                .map(d -> AnonymousStruct.anonName((Declaration.Scoped)d))
+                .toList().reversed();
+    }
+
+    private String fieldElementPaths(String nativeName) {
+        StringBuilder builder = new StringBuilder();
+        String prefix = "";
+        for (String prefixElementName : prefixNamesList()) {
+            builder.append(prefix + "groupElement(\"" + prefixElementName + "\")");
+            prefix = ", ";
+        }
+        builder.append(prefix + "groupElement(\"" + nativeName + "\")");
+        return builder.toString();
     }
 
     private void emitFieldDocComment(Declaration.Variable varTree, String header) {
@@ -152,19 +170,19 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         decrAlign();
     }
 
-    private void emitFieldGetter(String javaName, Declaration.Variable varTree, String offsetField) {
+    private void emitFieldGetter(String javaName, Declaration.Variable varTree, String layoutField, String offsetField) {
         String seg = safeParameterName("seg");
         Class<?> type = Utils.carrierFor(varTree.type());
         appendBlankLine();
         emitFieldDocComment(varTree, "Getter for field:");
         appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}(MemorySegment \{seg}) {
-                return \{seg}.get(\{layoutString(varTree.type())}, \{offsetField});
+                return \{seg}.get(\{layoutField}, \{offsetField});
             }
             """);
     }
 
-    private void emitFieldSetter(String javaName, Declaration.Variable varTree, String offsetField) {
+    private void emitFieldSetter(String javaName, Declaration.Variable varTree, String layoutField, String offsetField) {
         String seg = safeParameterName("seg");
         String x = safeParameterName("x");
         Class<?> type = Utils.carrierFor(varTree.type());
@@ -172,7 +190,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         emitFieldDocComment(varTree, "Setter for field:");
         appendIndentedLines(STR."""
             public static void \{javaName}(MemorySegment \{seg}, \{type.getSimpleName()} \{x}) {
-                \{seg}.set(\{layoutString(varTree.type())}, \{offsetField}, \{x});
+                \{seg}.set(\{layoutField}, \{offsetField}, \{x});
             }
             """);
     }
@@ -240,7 +258,16 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private String emitOffsetFieldDecl(Declaration field) {
         String offsetFieldName = STR."\{field.name()}$OFFSET";
         appendIndentedLines(STR."""
-            private static final long \{offsetFieldName} = \{ClangOffsetOf.getOrThrow(field) / 8};
+            private static final long \{offsetFieldName} = $LAYOUT.byteOffset(\{fieldElementPaths(field.name())});
+            """);
+        return offsetFieldName;
+    }
+
+    private String emitLayoutFieldDecl(Declaration.Variable field) {
+        String offsetFieldName = STR."\{field.name()}$LAYOUT";
+        String layoutType = Utils.layoutCarrierFor(field.type()).getSimpleName();
+        appendIndentedLines(STR."""
+            private static final \{layoutType} \{offsetFieldName} = (\{layoutType})$LAYOUT.select(\{fieldElementPaths(field.name())});
             """);
         return offsetFieldName;
     }

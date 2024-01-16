@@ -78,6 +78,7 @@ final class SourceFileBuilder {
             import java.util.stream.*;
 
             import static java.lang.foreign.ValueLayout.*;
+            import static java.lang.foreign.MemoryLayout.PathElement.*;
             """);
     }
 
