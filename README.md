@@ -87,39 +87,29 @@ import org.jextract.Point2d;
 class TestPoint {
     public static void main(String[] args) {
         try (Arena arena = Arena.ofConfined()) {
-           MemorySegment point = arena.allocate(Point2d.$LAYOUT());
-           Point2d.x$set(point, 3d);
-           Point2d.y$set(point, 4d);
+           MemorySegment point = Point2d.allocate(arena);
+           Point2d.x(point, 3d);
+           Point2d.y(point, 4d);
            distance(point);
         }
     }
 }
 ```
 
-As we can see, the `jextract` tool generated a `Point2d` class, modelling the C struct, and a `point_h` class which contains static native function wrappers, such as `distance`. If we look inside the generated code for `distance` we can find the following:
+As we can see, the `jextract` tool generated a `Point2d` class, modelling the C struct, and a `point_h` class which contains static native function wrappers, such as `distance`. If we look inside the generated code for `distance` we can find the following (for clarity, some details have been omitted):
 
 ```java
-static final FunctionDescriptor distance$FUNC = FunctionDescriptor.of(Constants$root.C_DOUBLE$LAYOUT,
-    MemoryLayout.structLayout(
-         Constants$root.C_DOUBLE$LAYOUT.withName("x"),
-         Constants$root.C_DOUBLE$LAYOUT.withName("y")
-    ).withName("Point2d")
-);
-static final MethodHandle distance$MH = RuntimeHelper.downcallHandle(
-    "distance",
-    constants$0.distance$FUNC
+static final FunctionDescriptor DESC = FunctionDescriptor.of(
+        foo_h.C_DOUBLE,
+        Point2d.$LAYOUT()
 );
 
-public static MethodHandle distance$MH() {
-    return RuntimeHelper.requireNonNull(constants$0.distance$MH,"distance");
-}
-public static double distance ( MemorySegment x0) {
-    var mh$ = distance$MH();
-    try {
-        return (double)mh$.invokeExact(x0);
-    } catch (Throwable ex$) {
-        throw new AssertionError("should not reach here", ex$);
-    }
+static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+        foo_h.findOrThrow("distance"),
+        DESC);
+
+public static double distance(MemorySegment x0) {
+    return (double) mh$.invokeExact(x0);
 }
 ```
 
