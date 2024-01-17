@@ -203,9 +203,9 @@ public class LibffmpegMain {
                         // Did we get a video frame?
                         if (frameFinished != 0) {
                             // Convert the image from its native format to RGB
-                            sws_scale(sws_ctx, AVFrame.data$slice(pFrame),
-                                    AVFrame.linesize$slice(pFrame), 0, height,
-                                    AVFrame.data$slice(pFrameRGB), AVFrame.linesize$slice(pFrameRGB));
+                            sws_scale(sws_ctx, AVFrame.data(pFrame),
+                                    AVFrame.linesize(pFrame), 0, height,
+                                    AVFrame.data(pFrameRGB), AVFrame.linesize(pFrameRGB));
 
                             // Save the frame to disk
                             if (++i <= NUM_FRAMES_TO_CAPTURE) {
@@ -266,11 +266,11 @@ public class LibffmpegMain {
         try (var os = Files.newOutputStream(path)) {
             System.out.println("writing " + path.toString());
             os.write(header.getBytes());
-            var data = AVFrame.data$slice(frameRGB);
+            var data = AVFrame.data(frameRGB);
             // frameRGB.data[0]
             var pdata = data.get(C_POINTER, 0);
             // frameRGB.linespace[0]
-            var linesize = AVFrame.linesize$slice(frameRGB).get(C_INT, 0);
+            var linesize = AVFrame.linesize(frameRGB).get(C_INT, 0);
             // Write pixel data
             for (int y = 0; y < height; y++) {
                 // frameRGB.data[0] + y*frameRGB.linesize[0] is the pointer. And 3*width size of data
