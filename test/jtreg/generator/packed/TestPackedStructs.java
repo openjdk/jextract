@@ -31,16 +31,9 @@ import static org.testng.Assert.*;
 import test.jextract.packedstructs.*;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.packedstructs packedstructs.h
- * @build TestPackedStructs
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPackedStructs
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.packedstructs packedstructs.h
  * @build TestPackedStructs
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPackedStructs
  */

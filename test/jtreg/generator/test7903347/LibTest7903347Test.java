@@ -25,20 +25,11 @@ import org.testng.annotations.Test;
 import static test.jextract.test7903347.test7903347_h.*;
 
 /*
- * @test id=classes
+ * @test id
  * @bug 7903347
  * @summary add long name option for all single letter options and expand help on default values for various options
  * @library /lib
  * @run main/othervm JtregJextract --library Test7903347 -t test.jextract.test7903347 test7903347.h
- * @build LibTest7903347Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest7903347Test
- */
-/*
- * @test id=sources
- * @bug 7903347
- * @summary add long name option for all single letter options and expand help on default values for various options
- * @library /lib
- * @run main/othervm JtregJextractSources --library Test7903347 -t test.jextract.test7903347 test7903347.h
  * @build LibTest7903347Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest7903347Test
  */

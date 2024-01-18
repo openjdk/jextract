@@ -30,16 +30,9 @@ import test.jextract.dedup.*;
 import java.lang.foreign.GroupLayout;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.dedup macro_fields.h
- * @build TestDedup
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestDedup
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.dedup macro_fields.h
  * @build TestDedup
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestDedup
  */

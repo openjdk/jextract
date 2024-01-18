@@ -26,20 +26,11 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8253390.test8253390_h.*;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @bug 8253390
  * @summary jextract should quote string literals
  * @run main/othervm JtregJextract -t test.jextract.test8253390 test8253390.h
- * @build LibTest8253390Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8253390Test
- */
-/*
- * @test id=sources
- * @library /lib
- * @bug 8253390
- * @summary jextract should quote string literals
- * @run main/othervm JtregJextractSources -t test.jextract.test8253390 test8253390.h
  * @build LibTest8253390Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8253390Test
  */

@@ -31,9 +31,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.spi.ToolProvider;
 
@@ -41,8 +44,9 @@ import java.lang.foreign.AddressLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.ValueLayout;
+import java.util.stream.Stream;
+
 import org.openjdk.jextract.JextractTool;
-import org.openjdk.jextract.Type;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
@@ -53,6 +57,8 @@ import static org.testng.Assert.fail;
 public class JextractToolRunner {
 
     public static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+    private static final ToolProvider JAVAC_TOOL = ToolProvider.findFirst("javac")
+            .orElseThrow(() ->  new RuntimeException("javac tool not found"));
 
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
     public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
@@ -139,11 +145,55 @@ public class JextractToolRunner {
         }
     }
 
-    protected static JextractResult run(Object... options) {
-        return run(Arrays.stream(options).map(Objects::toString).toArray(String[]::new));
+    protected static JextractResult runAndCompile(Path outputDir, Object... options) {
+        return runAndCompile(outputDir, Arrays.stream(options).map(Objects::toString).toArray(String[]::new));
     }
 
-    protected static JextractResult run(String... options) {
+    protected static JextractResult runAndCompile(Path outputDir, String... options) {
+        JextractResult jextractResult = run(outputDir, options).checkSuccess();
+        compile(outputDir, outputDir);
+        return jextractResult;
+    }
+
+    protected static JextractResult run(Path outputDir, String... options) {
+        String[] extendedOptions = new String[options.length + 2];
+        extendedOptions[0] = "--output";
+        extendedOptions[1] = outputDir.toString();
+        System.arraycopy(options, 0, extendedOptions, 2, options.length);
+        return runNoOuput(extendedOptions);
+    }
+
+    protected static void compile(Path sourcePath, Path outputDir) {
+        List<String> files;
+        try (Stream<Path> filesStream = Files.find(sourcePath.toAbsolutePath(), 999, (path, ignored) -> path.toString().endsWith(".java"))) {
+            files = filesStream.map(p -> p.toAbsolutePath().toString()).toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        StringWriter writer = new StringWriter();
+        PrintWriter pw = new PrintWriter(writer);
+
+        try {
+            System.err.println("compiling jextracted sources @ " + sourcePath.toAbsolutePath());
+            List<String> commands = new ArrayList<>();
+            commands.add("-parameters");
+            commands.add("--source=22");
+            commands.add("--enable-preview");
+            commands.add("-d");
+            commands.add(outputDir.toAbsolutePath().toString());
+            commands.addAll(files);
+            int result = JAVAC_TOOL.run(pw, pw, commands.toArray(new String[0]));
+            if (result != 0) {
+                System.err.println(writer);
+                throw new RuntimeException("javac returns non-zero value");
+            }
+        } catch (Throwable t) {
+            throw new AssertionError(t);
+        }
+    }
+
+    protected static JextractResult runNoOuput(String... options) {
         StringWriter writer = new StringWriter();
         PrintWriter pw = new PrintWriter(writer);
         int result = JEXTRACT_TOOL.run(pw, pw, options);

@@ -36,7 +36,7 @@ public class Test7903285 extends JextractToolRunner {
     public void testStaticSymbols() {
         Path test7903285Output = getOutputFilePath("test7903285gen");
         Path test7903285H = getInputFilePath("test7903285.h");
-        run("--output", test7903285Output.toString(), test7903285H.toString()).checkSuccess();
+        runAndCompile(test7903285Output, test7903285H.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(test7903285Output)) {
             Class<?> cls = loader.loadClass("test7903285_h");
             assertNull(findMethod(cls, "func", int.class));

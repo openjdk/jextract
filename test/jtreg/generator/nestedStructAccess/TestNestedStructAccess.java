@@ -31,16 +31,9 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 
 /*
- * @test id=classes
+ * @test id
   * @library /lib
  * @run main/othervm JtregJextract -l Func -t test.jextract.nestedaccess nestedStructAccess.h
- * @build TestNestedStructAccess
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedStructAccess
- */
-/*
- * @test id=sources
-  * @library /lib
- * @run main/othervm JtregJextractSources -l Func -t test.jextract.nestedaccess nestedStructAccess.h
  * @build TestNestedStructAccess
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedStructAccess
  */

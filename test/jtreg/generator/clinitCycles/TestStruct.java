@@ -29,16 +29,9 @@ import java.lang.foreign.ValueLayout;
 import static org.testng.Assert.*;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_struct.h
- * @build TestStruct
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestStruct
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_struct.h
  * @build TestStruct
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestStruct
  */

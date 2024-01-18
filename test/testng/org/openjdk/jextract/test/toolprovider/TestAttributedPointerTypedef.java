@@ -36,8 +36,8 @@ public class TestAttributedPointerTypedef extends JextractToolRunner {
         Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
         try {
             Files.write(compileFlagsTxt, List.of("-fms-extensions"));
-            run("--output", getOutputFilePath("attributedPointerTypedef").toString(),
-                getInputFilePath("attributedPointerTypedef.h").toString()).checkSuccess();
+            runAndCompile(getOutputFilePath("attributedPointerTypedef"),
+                getInputFilePath("attributedPointerTypedef.h").toString());
         } finally {
             Files.delete(compileFlagsTxt);
         }

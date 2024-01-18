@@ -29,16 +29,9 @@ import test.jextract.clinit.*;
 import java.lang.foreign.ValueLayout;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @run main/othervm JtregJextract -l Func -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_typedef.h
- * @build TestTypedef
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestTypedef
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_typedef.h
  * @build TestTypedef
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestTypedef
  */

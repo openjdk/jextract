@@ -30,16 +30,9 @@ import test.jextract.nested.typedef.*;
 import java.lang.foreign.GroupLayout;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.nested.typedef nestedStructTypedef.h
- * @build TestNestedStructTypedef
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedStructTypedef
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.nested.typedef nestedStructTypedef.h
  * @build TestNestedStructTypedef
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedStructTypedef
  */

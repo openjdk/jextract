@@ -33,7 +33,7 @@ public class TestTypedefIsFunctionProto extends JextractToolRunner {
     public void testVoidTypedef() {
         Path outputPath = getOutputFilePath("outputTDIFP");
         Path headerFile = getInputFilePath("funcproto.h");
-        run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
+        runAndCompile(outputPath, headerFile.toString());
         // nothing is generated that we can check, so we just check that jextract ran successfully
         TestUtils.deleteDir(outputPath);
     }

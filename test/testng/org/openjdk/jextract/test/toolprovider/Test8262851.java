@@ -35,7 +35,7 @@ public class Test8262851 extends JextractToolRunner {
     public void test() {
         Path output = getOutputFilePath("8262851gen");
         Path outputH = getInputFilePath("test8262851.h");
-        run("--output", output.toString(), outputH.toString()).checkSuccess();
+        runAndCompile(output, outputH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
             assertNotNull(loader.loadClass("test8262851_h"));
             assertNotNull(loader.loadClass("Odd"));

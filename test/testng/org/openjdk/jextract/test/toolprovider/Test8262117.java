@@ -23,7 +23,6 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
-import java.lang.reflect.Method;
 import java.nio.file.Path;
 
 import testlib.TestUtils;
@@ -39,7 +38,7 @@ public class Test8262117 extends JextractToolRunner {
     public void testNameClash() {
         Path test8262117Output = getOutputFilePath("test8262117_gen");
         Path test8262117H = getInputFilePath("test8262117.h");
-        run("--output", test8262117Output.toString(), test8262117H.toString()).checkSuccess();
+        runAndCompile(test8262117Output, test8262117H.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(test8262117Output)) {
             Class<?> cls = loader.loadClass("test8262117_h");
             assertNotNull(cls);

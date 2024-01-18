@@ -34,22 +34,12 @@ import static test.jextract.struct.struct_h.*;
 import test.jextract.struct.*;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @run main/othervm JtregJextract -l Struct -t test.jextract.struct struct.h
  * @build LibStructTest
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibStructTest
  */
-
-/*
- * @test id=sources
- * @library /lib
- *
- * @run main/othervm JtregJextractSources -l Struct -t test.jextract.struct struct.h
- * @build LibStructTest
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibStructTest
- */
-
 public class LibStructTest {
     @Test
     public void testMakePoint() {

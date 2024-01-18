@@ -43,8 +43,7 @@ public class TestNestedAnonOffset extends JextractToolRunner {
     public void beforeClass() {
         Path output = getOutputFilePath("TestAnon-anonymousStructs.h");
         Path outputH = getInputFilePath("anonymousStructs.h");
-        run("--output",
-            output.toString(), outputH.toString()).checkSuccess();
+        runAndCompile(output, outputH.toString());
 
         loader = classLoader(output);
     }

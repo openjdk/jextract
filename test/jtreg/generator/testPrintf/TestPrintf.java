@@ -33,18 +33,10 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.printf.printf_h.*;
 
 /*
- * @test id=classes
+ * @test id
  *
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.printf -l Printf printf.h
- * @build TestPrintf
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPrintf
- */
-/*
- * @test id=sources
- *
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.printf -l Printf printf.h
  * @build TestPrintf
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPrintf
  */

@@ -36,7 +36,7 @@ public class Test8240657 extends JextractToolRunner {
     public void testKeywordIdentifiers() {
         Path exportsOutput = getOutputFilePath("exportsgen");
         Path exportsH = getInputFilePath("exports.h");
-        run("--output", exportsOutput.toString(), exportsH.toString()).checkSuccess();
+        runAndCompile(exportsOutput, exportsH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(exportsOutput)) {
             Class<?> cls = loader.loadClass("exports_h");
             assertNotNull(cls);

@@ -26,20 +26,11 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8239918.test8239918_h.*;
 
 /*
- * @test id=classes
+ * @test id
  * @bug 8239918
  * @summary jextract generates uncompilable code for no argument C function
  * @library /lib
  * @run main/othervm JtregJextract -l Test8239918 -t test.jextract.test8239918 test8239918.h
- * @build LibTest8239918Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8239918Test
- */
-/*
- * @test id=sources
- * @bug 8239918
- * @summary jextract generates uncompilable code for no argument C function
- * @library /lib
- * @run main/othervm JtregJextractSources -l Test8239918 -t test.jextract.test8239918 test8239918.h
  * @build LibTest8239918Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8239918Test
  */

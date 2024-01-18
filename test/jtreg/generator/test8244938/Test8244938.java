@@ -29,21 +29,11 @@ import static test.jextract.test8244938.test8244938_h.*;
 import test.jextract.test8244938.*;
 
 /*
- * @test id=classes
+ * @test id
  * @bug 8244938
  * @summary Crash in foreign ABI CallArranger class when a test native function returns a nested struct
  * @library /lib
  * @run main/othervm JtregJextract -l Test8244938 -t test.jextract.test8244938 test8244938.h
- * @build Test8244938
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8244938
- */
-
-/*
- * @test id=sources
- * @bug 8244938
- * @summary Crash in foreign ABI CallArranger class when a test native function returns a nested struct
- * @library /lib
- * @run main/othervm JtregJextractSources -l Test8244938 -t test.jextract.test8244938 test8244938.h
  * @build Test8244938
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8244938
  */

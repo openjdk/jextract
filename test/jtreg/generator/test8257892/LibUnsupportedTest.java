@@ -37,22 +37,12 @@ import static test.jextract.unsupported.unsupported_h.*;
 import test.jextract.unsupported.*;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @run main/othervm JtregJextract -l Unsupported -t test.jextract.unsupported unsupported.h
  * @build LibUnsupportedTest
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibUnsupportedTest
  */
-
-/*
- * @test id=sources
- * @library /lib
- *
- * @run main/othervm JtregJextractSources -l Unsupported -t test.jextract.unsupported unsupported.h
- * @build LibUnsupportedTest
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibUnsupportedTest
- */
-
 public class LibUnsupportedTest {
 
     private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");

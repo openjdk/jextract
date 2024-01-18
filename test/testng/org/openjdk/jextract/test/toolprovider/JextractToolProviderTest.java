@@ -39,21 +39,21 @@ import static org.testng.Assert.assertNotNull;
 public class JextractToolProviderTest extends JextractToolRunner {
     @Test
     public void testHelp() {
-        run().checkFailure(OPTION_ERROR); // no options
-        run("--help").checkSuccess();
-        run("-h").checkSuccess();
-        run("-?").checkSuccess();
+        runNoOuput().checkFailure(OPTION_ERROR); // no options
+        runNoOuput("--help").checkSuccess();
+        runNoOuput("-h").checkSuccess();
+        runNoOuput("-?").checkSuccess();
     }
 
     @Test
     public void testVersion() {
-        run("--version").checkSuccess();
+        runNoOuput("--version").checkSuccess();
     }
 
     // error for non-existent args file
     @Test
     public void testNonExistentArgsFile() {
-        run("@non_existent_args")
+        runNoOuput("@non_existent_args")
             .checkFailure(OPTION_ERROR)
             .checkContainsOutput("reading @argfile failed");
     }
@@ -61,7 +61,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
     // error for non-existent header file
     @Test
     public void testNonExistentHeader() {
-        run(getInputFilePath("non_existent.h").toString())
+        runNoOuput(getInputFilePath("non_existent.h").toString())
             .checkFailure(INPUT_ERROR)
             .checkContainsOutput("cannot read header file");
     }
@@ -69,14 +69,14 @@ public class JextractToolProviderTest extends JextractToolRunner {
     // error for header including non_existent.h file
     @Test
     public void testNonExistentIncluder() {
-        run(getInputFilePath("non_existent_includer.h").toString())
+        runNoOuput(getInputFilePath("non_existent_includer.h").toString())
             .checkFailure(CLANG_ERROR)
             .checkContainsOutput("file not found");
     }
 
     @Test
     public void testDirectoryAsHeader() {
-        run(getInputFilePath("directory.h").toString())
+        runNoOuput(getInputFilePath("directory.h").toString())
             .checkFailure(INPUT_ERROR)
             .checkContainsOutput("not a file");
     }
@@ -84,7 +84,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
     // error for header with parser errors
     @Test
     public void testHeaderWithDeclarationErrors() {
-        run(getInputFilePath("illegal_decls.h").toString())
+        runNoOuput(getInputFilePath("illegal_decls.h").toString())
             .checkFailure(CLANG_ERROR)
             .checkContainsOutput("cannot combine with previous 'short' declaration specifier");
     }
@@ -96,7 +96,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
         Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
         try {
             Files.write(compileFlagsTxt, List.of("-xc++"));
-            run(getInputFilePath("unsupported_lang.h").toString())
+            runNoOuput(getInputFilePath("unsupported_lang.h").toString())
                 .checkFailure(RUNTIME_ERROR)
                 .checkContainsOutput("Unsupported language: C++");
         } finally {
@@ -108,7 +108,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
     public void testOutputClass() {
         Path helloOutput = getOutputFilePath("hellogen");
         Path helloH = getInputFilePath("hello.h");
-        run("--output", helloOutput.toString(), helloH.toString()).checkSuccess();
+        runAndCompile(helloOutput, helloH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
             Class<?> cls = loader.loadClass("hello_h");
             // check a method for "void func(int)"
@@ -127,9 +127,9 @@ public class JextractToolProviderTest extends JextractToolRunner {
     @Test
     public void testArgsFile() {
         Path helloOutput = getOutputFilePath("hellogen");
-        run("--output", helloOutput.toString(),
+        runAndCompile(helloOutput,
             "@" + getInputFilePath("helloargs").toString(),
-            getInputFilePath("hello.h").toString()).checkSuccess();
+            getInputFilePath("hello.h").toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
             Class<?> cls = loader.loadClass("com.acme.hello_h");
             assertNotNull(cls);
@@ -141,8 +141,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
     private void testTargetPackage(String targetPkgOption) {
         Path helloOutput = getOutputFilePath("hellogen");
         Path helloH = getInputFilePath("hello.h");
-        run(targetPkgOption, "com.acme", "--output",
-            helloOutput.toString(), helloH.toString()).checkSuccess();
+        runAndCompile(helloOutput, targetPkgOption, "com.acme", helloH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
             Class<?> cls = loader.loadClass("com.acme.hello_h");
             // check a method for "void func(int)"
@@ -172,8 +171,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
     public void testHeaderClassName() {
         Path helloOutput = getOutputFilePath("hellogen");
         Path helloH = getInputFilePath("hello.h");
-        run("--header-class-name", "MyHello", "-t", "com.acme", "--output",
-            helloOutput.toString(), helloH.toString()).checkSuccess();
+        runAndCompile(helloOutput, "--header-class-name", "MyHello", "-t", "com.acme", helloH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
             Class<?> cls = loader.loadClass("com.acme.MyHello");
             // check a method for "void func(int)"
@@ -193,8 +191,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
     public void tesIncludeDirOption() {
         Path includerOutput = getOutputFilePath("includergen");
         Path includerH = getInputFilePath("includer.h");
-        run("-I", includerH.getParent().resolve("inc").toString(),
-            "--output", includerOutput.toString(), includerH.toString()).checkSuccess();
+        runAndCompile(includerOutput, "-I", includerH.getParent().resolve("inc").toString(),
+            includerH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(includerOutput)) {
             Class<?> cls = loader.loadClass("includer_h");
             // check a method for "void included_func(int)"
@@ -208,8 +206,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
     public void tesIncludeDirOption2() {
         Path includerOutput = getOutputFilePath("includergen2");
         Path includerH = getInputFilePath("includer.h");
-        run("--include-dir", includerH.getParent().resolve("inc").toString(),
-            "--output", includerOutput.toString(), includerH.toString()).checkSuccess();
+        runAndCompile(includerOutput, "--include-dir", includerH.getParent().resolve("inc").toString(),
+            includerH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(includerOutput)) {
             Class<?> cls = loader.loadClass("includer_h");
             // check a method for "void included_func(int)"

@@ -44,27 +44,10 @@ public final class Writer {
         this.dest = dest;
     }
 
-    private List<JavaFileObject> ensureSourcesCompiled() {
-        List<JavaFileObject> sources = sources();
-        if (sources.isEmpty()) {
-            return List.of();
-        } else {
-            return InMemoryJavaCompiler.compile(sources,
-                "--enable-preview",
-                "--source", "22",
-                "-d", dest.toAbsolutePath().toString(),
-                "-cp", dest.toAbsolutePath().toString());
-        }
-    }
-
-    public void writeAll(boolean compileSources) throws IOException {
+    public void writeAll() throws IOException {
         writeClassFiles(resources());
         writeClassFiles(classes());
-        if (compileSources) {
-            writeClassFiles(ensureSourcesCompiled());
-        } else {
-            writeSourceFiles();
-        }
+        writeSourceFiles();
     }
 
     void writeClassFiles(List<JavaFileObject> files) throws IOException {

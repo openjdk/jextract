@@ -36,7 +36,7 @@ public class Test7903339 extends JextractToolRunner {
     public void testPrimitiveTypedefs() {
         Path test7903339Output = getOutputFilePath("test7903339gen");
         Path test7903339H = getInputFilePath("test7903339.h");
-        run("--output", test7903339Output.toString(), test7903339H.toString()).checkSuccess();
+        runAndCompile(test7903339Output, test7903339H.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(test7903339Output)) {
             Class<?> headerCls = loader.loadClass("test7903339_h");
             assertNotNull(findField(headerCls, "S_SHORT"));

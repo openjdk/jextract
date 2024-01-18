@@ -26,11 +26,11 @@ import static org.testng.Assert.assertEquals;
 import test.jextract.test8282235.*;
 
 /*
- * @test id=sources
+ * @test id
  * @bug 8282235
  * @summary jextract crashes when a Java keyword is used in as a function pointer typedef parameter name
  * @library /lib
- * @run main/othervm JtregJextractSources -l Test8282235 -t test.jextract.test8282235 test8282235.h
+ * @run main/othervm JtregJextract -l Test8282235 -t test.jextract.test8282235 test8282235.h
  * @build Test8282235
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8282235
  */

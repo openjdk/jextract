@@ -29,16 +29,9 @@ import java.lang.foreign.GroupLayout;
 import static org.testng.Assert.*;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.out.typedef out_of_order_typedef.h
- * @build TestOutOfOrderTypedef
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestOutOfOrderTypedef
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.out.typedef out_of_order_typedef.h
  * @build TestOutOfOrderTypedef
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestOutOfOrderTypedef
  */

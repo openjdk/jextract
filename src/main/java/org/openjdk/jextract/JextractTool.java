@@ -130,12 +130,11 @@ public final class JextractTool {
     /**
      * Write resulting {@link JavaFileObject} instances into specified destination path.
      * @param dest the destination path.
-     * @param compileSources whether to compile .java sources or not
      * @param files the {@link JavaFileObject} instances to be written.
      */
-    public static void write(Path dest, boolean compileSources, List<JavaFileObject> files) throws UncheckedIOException {
+    public static void write(Path dest, List<JavaFileObject> files) throws UncheckedIOException {
         try {
-            new Writer(dest, files).writeAll(compileSources);
+            new Writer(dest, files).writeAll();
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
@@ -344,7 +343,6 @@ public final class JextractTool {
         parser.accepts("-I", List.of("--include-dir"), format("help.I"), true);
         parser.accepts("-l", List.of("--library"), format("help.l"), true);
         parser.accepts("--output", format("help.output"), true);
-        parser.accepts("--source", format("help.source"), false);
         parser.accepts("-t", List.of("--target-package"), format("help.t"), true);
         parser.accepts("--version", format("help.version"), false);
 
@@ -427,9 +425,6 @@ public final class JextractTool {
             builder.setOutputDir(optionSet.valueOf("--output"));
         }
 
-        if (optionSet.has("--source")) {
-            builder.setGenerateSource();
-        }
         boolean librariesSpecified = optionSet.has("-l");
         if (librariesSpecified) {
             for (String lib : optionSet.valuesOf("-l")) {
@@ -496,7 +491,7 @@ public final class JextractTool {
                 options.includeHelper.dumpIncludes();
             } else {
                 Path output = Path.of(options.outputDir);
-                write(output, !options.source, files);
+                write(output, files);
             }
         } catch (UncheckedIOException uioe) {
             err.println(uioe.getMessage());

@@ -30,20 +30,11 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.test8258605.funcParam_h.*;
 
 /*
- * @test id=classes
+ * @test id
  * @bug 8258605
  * @summary regression: jextract can not handle function prototypes as function arguments
  * @library /lib
  * @run main/othervm JtregJextract -l FuncParam -t test.jextract.test8258605 funcParam.h
- * @build LibTest8258605Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8258605Test
- */
-/*
- * @test id=sources
- * @bug 8258605
- * @summary regression: jextract can not handle function prototypes as function arguments
- * @library /lib
- * @run main/othervm JtregJextractSources -l FuncParam -t test.jextract.test8258605 funcParam.h
  * @build LibTest8258605Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8258605Test
  */

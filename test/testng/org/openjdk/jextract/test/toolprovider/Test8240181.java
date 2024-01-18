@@ -34,7 +34,7 @@ public class Test8240181 extends JextractToolRunner {
     public void testAnonymousEnum() {
         Path anonenumOutput = getOutputFilePath("anonenumgen");
         Path anonenumH = getInputFilePath("anonenum.h");
-        run("--output", anonenumOutput.toString(), anonenumH.toString()).checkSuccess();
+        runAndCompile(anonenumOutput, anonenumH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(anonenumOutput)) {
             Class<?> cls = loader.loadClass("anonenum_h");
             checkIntGetter(cls, "RED", 0xff0000);

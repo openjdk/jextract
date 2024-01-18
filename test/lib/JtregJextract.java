@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,48 +21,41 @@
  * questions.
  */
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.spi.ToolProvider;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openjdk.jextract.JextractTool;
-
-import java.util.Date;
-
 
 public class JtregJextract {
 
     private static final ToolProvider JEXTRACT_TOOL = new JextractTool.JextractToolProvider();
+    private static final ToolProvider JAVAC_TOOL = ToolProvider.findFirst("javac")
+            .orElseThrow(() ->  new RuntimeException("javac tool not found"));
 
     private final Path inputDir;
     private final Path outputDir;
 
-    JtregJextract() {
-        this(null, null);
-    }
-
     JtregJextract(Path input, Path output) {
-        inputDir = (input != null) ? input :
-                Paths.get(System.getProperty("test.src", "."));
-        outputDir = (output != null) ? output :
-                Paths.get(System.getProperty("test.classes", "."));
-
+        inputDir = input;
+        outputDir = output;
     }
 
-    protected String[] processArgs(String... args) {
+    private String[] processArgs(String... args) {
         Pattern sysPropPattern = Pattern.compile("'?\\$\\((.*)\\)'?");
         ArrayList<String> jextrOpts = new ArrayList<>();
 
-        jextrOpts.clear();
         // FIXME jextrOpts.add("-C-nostdinc");
         jextrOpts.add("-I");
         jextrOpts.add(inputDir.toAbsolutePath().toString());
@@ -107,16 +100,15 @@ public class JtregJextract {
         return jextrOpts.toArray(String[]::new);
     }
 
-    protected int jextract(String... options) {
+    private void jextract(String... options) {
         try {
             StringWriter writer = new StringWriter();
             PrintWriter pw = new PrintWriter(writer);
             int result = JEXTRACT_TOOL.run(pw, pw, processArgs(options));
             if (result != 0) {
-                System.err.println(writer.toString());
+                System.err.println(writer);
                 throw new RuntimeException("jextract returns non-zero value");
             }
-            return result;
         } catch (Throwable t) {
             throw new AssertionError(t);
         }
@@ -126,8 +118,46 @@ public class JtregJextract {
         return inputDir.resolve(filename).toAbsolutePath();
     }
 
-    public static int main(String[] args) {
-        JtregJextract jj =  new JtregJextract();
-        return jj.jextract(args);
+    private static Path getJextractSourcePath() {
+        Path testSrc = Path.of(System.getProperty("test.file"));
+        return Path.of(testSrc.toFile().getName() + "_sources");
+    }
+
+    public static int main(String[] args) throws IOException {
+        System.err.println("jextract");
+        Path sourcePath = getJextractSourcePath();
+        JtregJextract jj =  new JtregJextract(
+            Paths.get(System.getProperty("test.src", ".")),
+            sourcePath);
+        jj.jextract(args);
+
+        Path outputDir = Paths.get(System.getProperty("test.classes", "."));
+
+        List<String> files;
+        try (Stream<Path> filesStream = Files.find(sourcePath.toAbsolutePath(), 999, (path, ignored) -> path.toString().endsWith(".java"))) {
+            files = filesStream.map(p -> p.toAbsolutePath().toString()).toList();
+        }
+
+        StringWriter writer = new StringWriter();
+        PrintWriter pw = new PrintWriter(writer);
+
+        try {
+            System.err.println("compiling jextracted sources @ " + sourcePath.toAbsolutePath());
+            List<String> commands = new ArrayList<>();
+            commands.add("-parameters");
+            commands.add("--source=22");
+            commands.add("--enable-preview");
+            commands.add("-d");
+            commands.add(outputDir.toAbsolutePath().toString());
+            commands.addAll(files);
+            int result = JAVAC_TOOL.run(pw, pw, commands.toArray(new String[0]));
+            if (result != 0) {
+                System.err.println(writer);
+                throw new RuntimeException("javac returns non-zero value");
+            }
+            return result;
+        } catch (Throwable t) {
+            throw new AssertionError(t);
+        }
     }
 }

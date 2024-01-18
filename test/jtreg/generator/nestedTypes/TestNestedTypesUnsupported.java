@@ -32,16 +32,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 /*
- * @test id=classes
+ * @test id
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.nestedtypes.unsupported nested_types_unsupported.h
- * @build TestNestedTypesUnsupported
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedTypesUnsupported
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.nestedtypes.unsupported nested_types_unsupported.h
  * @build TestNestedTypesUnsupported
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedTypesUnsupported
  */

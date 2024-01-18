@@ -26,11 +26,11 @@ import static org.testng.Assert.assertEquals;
 import test.jextract.test8281764.*;
 
 /*
- * @test id=sources
+ * @test id
  * @bug 8281764
  * @summary jextract does not generate parameter names for function pointer typedefs
  * @library /lib
- * @run main/othervm JtregJextractSources -l Test8281764 -t test.jextract.test8281764 test8281764.h
+ * @run main/othervm JtregJextract -l Test8281764 -t test.jextract.test8281764 test8281764.h
  * @build Test8281764
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8281764
  */
