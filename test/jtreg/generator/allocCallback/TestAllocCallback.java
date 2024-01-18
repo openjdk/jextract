@@ -50,7 +50,7 @@ public class TestAllocCallback {
     @Test
     public void testOfAddress() {
         try (Arena arena = Arena.ofConfined()) {
-            var foo = alloc_callback_h.foo$SEGMENT();
+            var foo = alloc_callback_h.foo();
 
             var barA = Foo.a.invoke(Foo.a(foo), arena);
             var barB = Foo.b.invoke(Foo.b(foo), arena, 100);

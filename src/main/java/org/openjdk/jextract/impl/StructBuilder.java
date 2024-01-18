@@ -228,14 +228,14 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         appendIndentedLines(STR."""
 
             public static MemorySegment asSlice(MemorySegment \{arrayParam}, long index) {
-                return \{arrayParam}.asSlice($LAYOUT().byteSize() * index);
+                return \{arrayParam}.asSlice(layout().byteSize() * index);
             }
             """);
     }
 
     private void emitSizeof() {
         appendIndentedLines("""
-            public static long sizeof() { return $LAYOUT().byteSize(); }
+            public static long sizeof() { return layout().byteSize(); }
             """);
     }
 
@@ -244,7 +244,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         appendIndentedLines(STR."""
 
             public static MemorySegment allocate(SegmentAllocator \{allocatorParam}) {
-                return \{allocatorParam}.allocate($LAYOUT());
+                return \{allocatorParam}.allocate(layout());
             }
             """);
     }
@@ -255,7 +255,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         appendIndentedLines(STR."""
 
             public static MemorySegment allocateArray(long \{elementCountParam}, SegmentAllocator \{allocatorParam}) {
-                return \{allocatorParam}.allocate(MemoryLayout.sequenceLayout(\{elementCountParam}, $LAYOUT()));
+                return \{allocatorParam}.allocate(MemoryLayout.sequenceLayout(\{elementCountParam}, layout()));
             }
             """);
     }
@@ -268,7 +268,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             }
 
             public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena scope, Consumer<MemorySegment> cleanup) {
-                return addr.reinterpret($LAYOUT().byteSize() * elementCount, scope, cleanup);
+                return addr.reinterpret(layout().byteSize() * elementCount, scope, cleanup);
             }
             """);
     }
@@ -278,7 +278,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
             private static final GroupLayout $LAYOUT = \{structOrUnionLayoutString(structType)};
 
-            public static final GroupLayout $LAYOUT() {
+            public static final GroupLayout layout() {
                 return $LAYOUT;
             }
             """);

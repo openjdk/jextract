@@ -51,7 +51,7 @@ public class LibTest8254983Test {
     @Test
     public void testOuterStruct() {
         try (Arena arena = Arena.ofConfined()) {
-            assertEquals(((GroupLayout)Foo._struct.$LAYOUT()).memberLayouts().size(), 1);
+            assertEquals(((GroupLayout)Foo._struct.layout()).memberLayouts().size(), 1);
             MemorySegment str = Foo._struct.allocate(arena);
             Foo._struct.x(str, 42);
             assertEquals(Foo._struct.x(str), 42);
@@ -60,7 +60,7 @@ public class LibTest8254983Test {
 
     @Test
     public void testInnerStruct() {
-        assertEquals(((GroupLayout)Foo._union._struct.$LAYOUT()).memberLayouts().size(), 2);
+        assertEquals(((GroupLayout)Foo._union._struct.layout()).memberLayouts().size(), 2);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment str = Foo._union._struct.allocate(arena);
             Foo._union._struct.x(str, 42);

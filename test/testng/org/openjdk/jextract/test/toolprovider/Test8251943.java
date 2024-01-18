@@ -42,7 +42,7 @@ public class Test8251943 extends JextractToolRunner {
         run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> headerClass = loader.loadClass("test8251943_h");
-            assertNotNull(findMethod(headerClass, "tzname$SEGMENT"));
+            assertNotNull(findMethod(headerClass, "tzname"));
 
             Class<?> fooClass = loader.loadClass("Foo");
             assertNotNull(findMethod(fooClass, "bar", MemorySegment.class));

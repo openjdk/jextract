@@ -55,9 +55,6 @@ public class Test8240811 extends JextractToolRunner {
             checkField(fooLayout, "y",  C_INT);
             checkField(fooLayout, "z",  C_INT);
 
-            MemoryLayout fooVarLayout = findLayout(cls, "foo");
-            assertNotNull(fooVarLayout);
-
             // check foo2 layout
             Class<?> foo2Cls = loader.loadClass("foo2");
             MemoryLayout foo2Layout = findLayout(foo2Cls);
@@ -66,12 +63,6 @@ public class Test8240811 extends JextractToolRunner {
             checkField(foo2Layout, "i", C_INT);
             checkField(foo2Layout, "l", C_LONG);
 
-            MemoryLayout foo2VarLayout = findLayout(cls, "foo2");
-            assertNotNull(foo2VarLayout);
-
-            MemoryLayout barVarLayout = findLayout(cls, "bar");
-            assertNotNull(barVarLayout);
-
             // check bar layout
             Class<?> barCls = loader.loadClass("bar");
             MemoryLayout barLayout = findLayout(barCls);
@@ -79,9 +70,6 @@ public class Test8240811 extends JextractToolRunner {
             assertTrue(barLayout instanceof StructLayout);
             checkField(barLayout, "f1", C_FLOAT);
             checkField(barLayout, "f2", C_FLOAT);
-
-            MemoryLayout bar2VarLayout = findLayout(cls, "bar2");
-            assertNotNull(bar2VarLayout);
 
             // check bar layout
             Class<?> bar2Cls = loader.loadClass("bar2");

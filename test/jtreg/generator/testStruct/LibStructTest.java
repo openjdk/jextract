@@ -94,7 +94,7 @@ public class LibStructTest {
 
     @Test
     public void testFieldTypes() {
-        GroupLayout g = (GroupLayout)AllTypes.$LAYOUT();
+        GroupLayout g = (GroupLayout)AllTypes.layout();
         checkField(g, "sc", C_CHAR);
         checkField(g, "uc", C_CHAR);
         checkField(g, "s",  C_SHORT);

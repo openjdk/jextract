@@ -42,7 +42,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
                                        String runtimeHelperName, Type.Function funcType) {
-        super(builder, "public", Kind.INTERFACE, className, null, enclosing, runtimeHelperName);
+        super(builder, "public", Kind.CLASS, className, null, enclosing, runtimeHelperName);
         this.parameterNames = funcType.parameterNames().map(NameMangler::javaSafeIdentifiers);
         this.funcType = funcType;
         this.methodType = Utils.methodTypeFor(funcType);
@@ -55,26 +55,28 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         fib.appendBlankLine();
         fib.emitDocComment(parentDecl);
         fib.classBegin();
-        fib.emitFunctionalInterfaceMethod();
+        fib.emitFunctionalInterface();
         fib.emitDescriptorDecl();
         fib.emitFunctionalFactories();
         fib.emitInvoke();
         fib.classEnd();
     }
 
-    private void emitFunctionalInterfaceMethod() {
+    private void emitFunctionalInterface() {
         appendIndentedLines(STR."""
 
-            \{methodType.returnType().getSimpleName()} apply(\{paramExprs()});
+            public interface Function {
+                \{methodType.returnType().getSimpleName()} apply(\{paramExprs()});
+            }
             """);
     }
 
     private void emitFunctionalFactories() {
         appendIndentedLines(STR."""
 
-            MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.class, "apply", $DESC);
+            private static final MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.Function.class, "apply", $DESC);
 
-            static MemorySegment allocate(\{className()} fi, Arena scope) {
+            public static MemorySegment allocate(\{className()}.Function fi, Arena scope) {
                 return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
             }
             """);
@@ -87,9 +89,9 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         String paramStr = methodType.parameterCount() != 0 ? STR.",\{paramExprs()}" : "";
         appendIndentedLines(STR."""
 
-            MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+            private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
-            static \{methodType.returnType().getSimpleName()} invoke(MemorySegment funcPtr\{allocParam}\{paramStr}) {
+            public static \{methodType.returnType().getSimpleName()} invoke(MemorySegment funcPtr\{allocParam}\{paramStr}) {
                 try {
                     \{retExpr()} DOWN$MH.invokeExact(funcPtr\{allocArg}\{otherArgExprs()});
                 } catch (Throwable ex$) {
@@ -141,7 +143,11 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private void emitDescriptorDecl() {
         appendIndentedLines(STR."""
 
-            FunctionDescriptor $DESC = \{functionDescriptorString(0, funcType)};
+            private static final FunctionDescriptor $DESC = \{functionDescriptorString(0, funcType)};
+
+            public static FunctionDescriptor descriptor() {
+                return $DESC;
+            }
             """);
     }
 }

@@ -68,9 +68,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         String javaName = JavaName.getOrThrow(varTree);
         String layoutVar = emitVarLayout(varTree.type(), javaName);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
-            emitGlobalSegment(layoutVar, javaName, nativeName, varTree);
+            String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName);
+            emitGlobalSegmentGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
+            emitGlobalSegmentSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
-            String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName, null);
+            String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName);
             emitGlobalGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
             emitGlobalSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
         } else {
@@ -157,7 +159,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         if (!isVarArg) {
             emitDocComment(decl);
             appendLines(STR."""
-                \{MEMBER_MODS} MethodHandle \{getterName}() {
+                private static MethodHandle \{getterName}() {
                     class Holder {
                         static final FunctionDescriptor DESC = \{functionDescriptorString(2, decl.type())};
 
@@ -317,6 +319,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private void emitGlobalGetter(String segmentConstant, String layoutVar, String javaName,
                                   Declaration.Variable decl, String docHeader) {
+        appendBlankLine();
         incrAlign();
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
@@ -330,6 +333,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private void emitGlobalSetter(String segmentConstant, String layoutVar, String javaName,
                                   Declaration.Variable decl, String docHeader) {
+        appendBlankLine();
         incrAlign();
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
@@ -341,14 +345,37 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    public String emitGlobalSegment(String layout, String javaName, String nativeName, Declaration declaration) {
-        String mangledName = mangleName(javaName, MemorySegment.class);
+    private void emitGlobalSegmentGetter(String segmentConstant, String layoutVar, String javaName,
+                                         Declaration.Variable varTree, String docHeader) {
+        appendBlankLine();
         incrAlign();
-        if (declaration != null) {
-            emitDocComment(declaration);
-        }
+        emitDocComment(varTree, docHeader);
         appendLines(STR."""
-            \{MEMBER_MODS} MemorySegment \{mangledName}() {
+            public static MemorySegment \{javaName}() {
+                return \{segmentConstant};
+            }
+            """);
+        decrAlign();
+    }
+
+    private void emitGlobalSegmentSetter(String segmentConstant, String layoutVar, String javaName,
+                                         Declaration.Variable varTree, String docHeader) {
+        appendBlankLine();
+        incrAlign();
+        emitDocComment(varTree, docHeader);
+        appendLines(STR."""
+            public static void \{javaName}(MemorySegment varValue) {
+                MemorySegment.copy(varValue, 0L, \{segmentConstant}, 0L, \{layoutVar}.byteSize());
+            }
+            """);
+        decrAlign();
+    }
+
+    public String emitGlobalSegment(String layout, String javaName, String nativeName) {
+        String mangledName = mangleName(javaName, MemorySegment.class);
+        appendIndentedLines(STR."""
+
+            private static MemorySegment \{mangledName}() {
                 class Holder {
                     static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{nativeName}")
                         .reinterpret(\{layout}.byteSize());
@@ -356,7 +383,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 return Holder.SEGMENT;
             }
             """);
-        decrAlign();
         return STR."\{mangledName}()";
     }
 
@@ -364,7 +390,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         String mangledName = mangleName(javaName, MemoryLayout.class);
         String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
         appendIndentedLines(STR."""
-            \{MEMBER_MODS} \{layoutType} \{mangledName}() {
+            private static \{layoutType} \{mangledName}() {
                 class Holder {
                     static final \{layoutType} LAYOUT = \{layoutString(varType)};
                 }

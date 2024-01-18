@@ -85,7 +85,7 @@ public class LibUnsupportedTest {
 
     @Test
     public void testFieldTypes() {
-        GroupLayout g = (GroupLayout)Foo.$LAYOUT();
+        GroupLayout g = (GroupLayout)Foo.layout();
         checkField(g, "i", C_INT);
         checkField(g, "c", C_CHAR);
     }

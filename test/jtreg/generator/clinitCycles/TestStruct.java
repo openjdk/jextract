@@ -48,7 +48,7 @@ public class TestStruct {
     public void TestStruct() {
         ValueLayout layout = clinit_struct_h.C_INT;
         assertNotNull(layout);
-        GroupLayout pointLayout = Point.$LAYOUT();
+        GroupLayout pointLayout = Point.layout();
         assertNotNull(pointLayout);
         assertEquals(pointLayout.memberLayouts().get(0).withoutName(), layout);
         assertEquals(pointLayout.memberLayouts().get(1).withoutName(), layout);

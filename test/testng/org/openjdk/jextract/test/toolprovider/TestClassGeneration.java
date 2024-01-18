@@ -150,28 +150,14 @@ public class TestClassGeneration extends JextractToolRunner {
 
     @Test(dataProvider = "method")
     public void testMethod(String name, MethodType expectedType, Object expectedReturn, Object[] args) throws Throwable {
-        Method mh_getter = checkMethod(cls, name + "$MH", MethodHandle.class);
-        MethodHandle mh = (MethodHandle) mh_getter.invoke(null);
-        assertEquals(mh.type(), expectedType);
-
-        Object actualReturn = mh.invokeWithArguments(args);
-        assertEquals(actualReturn.getClass(), expectedReturn.getClass());
-        assertEquals(actualReturn, expectedReturn);
-
         Method func = checkMethod(cls, name, expectedType);
         assertEquals(func.invoke(null, args), expectedReturn);
     }
 
     @Test(dataProvider = "globals")
     public void testGlobal(String name, Class<?> expectedType, MemoryLayout expectedLayout, Object expectedValue) throws Throwable {
-        Method layout_getter = checkMethod(cls, name + "$LAYOUT", MemoryLayout.class);
-        assertEquals(layout_getter.invoke(null), expectedLayout);
-
-        Method addr_getter = checkMethod(cls, name + "$SEGMENT", MemorySegment.class);
-        MemorySegment segment = (MemorySegment)addr_getter.invoke(null);
-
         Method getter = checkMethod(cls, name, expectedType);
-        assertEquals(getter.invoke(segment), expectedValue);
+        assertEquals(getter.invoke(null), expectedValue);
 
         checkMethod(cls, name, void.class, expectedType);
     }
@@ -181,7 +167,7 @@ public class TestClassGeneration extends JextractToolRunner {
         String memberName = memberLayout.name().orElseThrow();
 
         Class<?> structCls = loader.loadClass("com.acme." + structName);
-        Method layout_getter = checkMethod(structCls, "$LAYOUT", MemoryLayout.class);
+        Method layout_getter = checkMethod(structCls, "layout", MemoryLayout.class);
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment struct = arena.allocate(structLayout);
@@ -200,10 +186,12 @@ public class TestClassGeneration extends JextractToolRunner {
 
     @Test(dataProvider = "functionalInterfaces")
     public void testFunctionalInterface(String name, MethodType type) {
-        Class<?> fiClass = loader.loadClass("com.acme." + name);
+        Class<?> fiClass = loader.loadClass("com.acme." + name + "$Function");
         assertNotNull(fiClass);
         checkMethod(fiClass, "apply", type);
-        checkMethod(fiClass, "allocate", MemorySegment.class, fiClass, Arena.class);
+        Class<?> cbClass = loader.loadClass("com.acme." + name);
+        assertNotNull(cbClass);
+        checkMethod(cbClass, "allocate", MemorySegment.class, fiClass, Arena.class);
     }
 
     @BeforeClass

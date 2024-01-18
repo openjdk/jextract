@@ -46,11 +46,11 @@ public class TestOutOfOrderTypedef {
 
     @Test
     public void testFoo() {
-        checkLayout(Foo.$LAYOUT());
+        checkLayout(Foo.layout());
     }
 
     void checkLayout(GroupLayout layout) {
         assertEquals(layout.memberLayouts().get(0).withoutName(),
-                Foo.Baz.$LAYOUT().withoutName());
+                Foo.Baz.layout().withoutName());
     }
 }

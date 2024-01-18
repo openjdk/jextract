@@ -62,11 +62,10 @@ public class TestLinkageErrors {
     @Test
     public void nullChecksTest() {
         assertThrowsULE(() -> func(), "func");
-        assertThrowsULE(() -> func$MH(), "func");
         assertThrowsULE(() -> x(), "x");
         assertThrowsULE(() -> x(1), "x");
-        assertThrowsULE(() -> x$SEGMENT(), "x");
-        assertThrowsULE(() -> y$SEGMENT(), "y");
-        assertThrowsULE(() -> pt$SEGMENT(), "pt");
+        assertThrowsULE(() -> x(), "x");
+        assertThrowsULE(() -> y(), "y");
+        assertThrowsULE(() -> pt(), "pt");
     }
 }

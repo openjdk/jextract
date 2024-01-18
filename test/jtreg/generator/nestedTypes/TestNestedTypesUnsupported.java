@@ -53,12 +53,12 @@ public class TestNestedTypesUnsupported {
 
     @Test
     public void testTypeNamesAndLayouts() {
-        checkLayout(Outer.$LAYOUT(), UNDEFINED_STRUCT);
-        checkLayout(outer_var.$LAYOUT(), UNDEFINED_STRUCT);
-        checkLayout(outer_td.$LAYOUT(), UNDEFINED_STRUCT);
-        checkLayout(outer_td$0.$LAYOUT(), UNDEFINED_STRUCT);
-        checkLayout(f2$return.$LAYOUT(), UNDEFINED_STRUCT);
-        checkLayout(f3$x0.$LAYOUT(), UNDEFINED_STRUCT);
+        checkLayout(Outer.layout(), UNDEFINED_STRUCT);
+        checkLayout(outer_var.layout(), UNDEFINED_STRUCT);
+        checkLayout(outer_td.layout(), UNDEFINED_STRUCT);
+        checkLayout(outer_td$0.layout(), UNDEFINED_STRUCT);
+        checkLayout(f2$return.layout(), UNDEFINED_STRUCT);
+        checkLayout(f3$x0.layout(), UNDEFINED_STRUCT);
     }
 
     void checkLayout(MemoryLayout found, MemoryLayout expected) {

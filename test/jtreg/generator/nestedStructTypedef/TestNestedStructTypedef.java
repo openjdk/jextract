@@ -47,7 +47,7 @@ public class TestNestedStructTypedef {
 
     @Test
     public void testMacroFields() {
-        checkLayout(T.$LAYOUT());
+        checkLayout(T.layout());
     }
 
     void checkLayout(GroupLayout layout) {

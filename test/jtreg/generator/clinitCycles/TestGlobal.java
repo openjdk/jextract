@@ -31,14 +31,14 @@ import java.lang.foreign.ValueLayout;
 /*
  * @test id=classes
  * @library /lib
- * @run main/othervm JtregJextract -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_global.h
+ * @run main/othervm JtregJextract -t test.jextract.clinit --library ClinitGlobal -Djextract.decls.per.header=1 clinit_global.h
  * @build TestGlobal
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestGlobal
  */
 /*
  * @test id=sources
  * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_global.h
+ * @run main/othervm JtregJextractSources -t test.jextract.clinit --library ClinitGlobal -Djextract.decls.per.header=1 clinit_global.h
  * @build TestGlobal
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestGlobal
  */
@@ -48,7 +48,7 @@ public class TestGlobal {
     public void testGlobal() {
         ValueLayout layout = clinit_global_h.C_INT;
         assertNotNull(layout);
-        assertEquals(layout, clinit_global_h.global1$LAYOUT());
-        assertEquals(layout, clinit_global_h.global2$LAYOUT());
+        clinit_global_h.global1(1);
+        clinit_global_h.global2(2);
     }
 }

@@ -49,9 +49,9 @@ public class TestNestedTypes {
 
     @Test
     public void testNestedTypes() {
-        checkNestedLayout(NestedStructArray.$LAYOUT());
-        checkNestedLayout(NestedStructArrayTypedef.$LAYOUT());
-        checkNestedLayout(NestedStructArrayTypedefTypedef.$LAYOUT());
+        checkNestedLayout(NestedStructArray.layout());
+        checkNestedLayout(NestedStructArrayTypedef.layout());
+        checkNestedLayout(NestedStructArrayTypedefTypedef.layout());
     }
 
     void checkNestedLayout(MemoryLayout layout) {
