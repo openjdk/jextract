@@ -23,14 +23,21 @@
 package testlib;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.spi.ToolProvider;
+import java.util.stream.Stream;
 
 public class TestUtils {
+
+    private static final ToolProvider JAVAC_TOOL = ToolProvider.findFirst("javac")
+        .orElseThrow(() ->  new RuntimeException("javac tool not found"));
 
     public static Loader classLoader(Path... paths) {
         try {
@@ -45,6 +52,36 @@ public class TestUtils {
             throw re;
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void compile(Path sourcePath, Path outputDir) {
+        List<String> files;
+        try (Stream<Path> filesStream = Files.find(sourcePath.toAbsolutePath(), 999, (path, ignored) -> path.toString().endsWith(".java"))) {
+            files = filesStream.map(p -> p.toAbsolutePath().toString()).toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        StringWriter writer = new StringWriter();
+        PrintWriter pw = new PrintWriter(writer);
+
+        try {
+            System.err.println("compiling jextracted sources @ " + sourcePath.toAbsolutePath());
+            List<String> commands = new ArrayList<>();
+            commands.add("-parameters");
+            commands.add("--source=22");
+            commands.add("--enable-preview");
+            commands.add("-d");
+            commands.add(outputDir.toAbsolutePath().toString());
+            commands.addAll(files);
+            int result = JAVAC_TOOL.run(pw, pw, commands.toArray(new String[0]));
+            if (result != 0) {
+                System.err.println(writer);
+                throw new RuntimeException("javac returns non-zero value");
+            }
+        } catch (Throwable t) {
+            throw new AssertionError(t);
         }
     }
 

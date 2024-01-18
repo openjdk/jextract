@@ -36,6 +36,8 @@ import java.util.spi.ToolProvider;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import testlib.TestUtils;
+
 import org.openjdk.jextract.JextractTool;
 
 public class JtregJextract {
@@ -133,31 +135,7 @@ public class JtregJextract {
 
         Path outputDir = Paths.get(System.getProperty("test.classes", "."));
 
-        List<String> files;
-        try (Stream<Path> filesStream = Files.find(sourcePath.toAbsolutePath(), 999, (path, ignored) -> path.toString().endsWith(".java"))) {
-            files = filesStream.map(p -> p.toAbsolutePath().toString()).toList();
-        }
-
-        StringWriter writer = new StringWriter();
-        PrintWriter pw = new PrintWriter(writer);
-
-        try {
-            System.err.println("compiling jextracted sources @ " + sourcePath.toAbsolutePath());
-            List<String> commands = new ArrayList<>();
-            commands.add("-parameters");
-            commands.add("--source=22");
-            commands.add("--enable-preview");
-            commands.add("-d");
-            commands.add(outputDir.toAbsolutePath().toString());
-            commands.addAll(files);
-            int result = JAVAC_TOOL.run(pw, pw, commands.toArray(new String[0]));
-            if (result != 0) {
-                System.err.println(writer);
-                throw new RuntimeException("javac returns non-zero value");
-            }
-            return result;
-        } catch (Throwable t) {
-            throw new AssertionError(t);
-        }
+        TestUtils.compile(sourcePath, outputDir);
+        return 0;
     }
 }
