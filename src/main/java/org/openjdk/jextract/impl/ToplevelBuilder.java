@@ -25,15 +25,14 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.JavaSourceFile;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
-import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -85,10 +84,10 @@ class ToplevelBuilder implements OutputFactory.Builder {
         return first;
     }
 
-    public List<JavaFileObject> toFiles() {
+    public List<JavaSourceFile> toFiles() {
         lastHeader.classEnd();
 
-        List<JavaFileObject> files = new ArrayList<>();
+        List<JavaSourceFile> files = new ArrayList<>();
 
         if (headerBuilders.size() == 1) {
             files.add(headerBuilders.get(0).toFile(s -> s.replace("#{SUFFIX}", "")));

@@ -26,47 +26,28 @@
 
 package org.openjdk.jextract.impl;
 
-import javax.tools.JavaFileObject;
+import org.openjdk.jextract.JavaSourceFile;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class Writer {
-    private final List<? extends JavaFileObject> files;
+    private final List<JavaSourceFile> files;
     private final Path dest;
 
-    public Writer(Path dest, List<? extends JavaFileObject> files) {
+    public Writer(Path dest, List<JavaSourceFile> files) {
         this.files = files;
         this.dest = dest;
     }
 
-    public void writeAll() throws IOException {
-        writeClassFiles(resources());
-        writeClassFiles(classes());
-        writeSourceFiles();
-    }
-
-    void writeClassFiles(List<JavaFileObject> files) throws IOException {
+    public void write() throws IOException {
         Path destDir = createOutputDir();
         for (var entry : files) {
-            String path = entry.getName();
-            Path fullPath = destDir.resolve(path).normalize();
-            Files.createDirectories(fullPath.getParent());
-            try (InputStream is = entry.openInputStream()) {
-                Files.write(fullPath, is.readAllBytes());
-            }
-        }
-    }
-
-    void writeSourceFiles() throws IOException {
-        Path destDir = createOutputDir();
-        for (var entry : sources()) {
-            String srcPath = entry.getName();
-            Path fullPath = destDir.resolve(srcPath).normalize();
+            String packagePath = packageNameToPath(entry.packageName());
+            Path fullPath = destDir.resolve(packagePath, entry.className() + ".java").normalize();
             Path dir = fullPath.getParent();
             // In case the folder exist and is a link to a folder, this should be OK
             // Case in point, /tmp on MacOS link to /private/tmp
@@ -77,26 +58,12 @@ public final class Writer {
             } else {
                 Files.createDirectories(fullPath.getParent());
             }
-            Files.write(fullPath, List.of(entry.getCharContent(false)));
+            Files.write(fullPath, List.of(entry.contents()));
         }
     }
 
-    private List<JavaFileObject> sources() {
-        return files.stream()
-                .filter(jfo -> jfo.getKind() == JavaFileObject.Kind.SOURCE)
-                .collect(Collectors.toList());
-    }
-
-    private List<JavaFileObject> classes() {
-        return files.stream()
-                .filter(jfo -> jfo.getKind() == JavaFileObject.Kind.CLASS)
-                .collect(Collectors.toList());
-    }
-
-    private List<JavaFileObject> resources() {
-        return files.stream()
-                .filter(jfo -> (jfo.getKind() == JavaFileObject.Kind.HTML || jfo.getKind() == JavaFileObject.Kind.OTHER))
-                .collect(Collectors.toList());
+    private static String packageNameToPath(String packageName) {
+        return packageName.isEmpty() ? "" : packageName.replaceAll("\\.", "/") + "/";
     }
 
     private Path createOutputDir() throws IOException {

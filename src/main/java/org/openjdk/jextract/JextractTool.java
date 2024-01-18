@@ -34,7 +34,6 @@ import org.openjdk.jextract.impl.Parser;
 import org.openjdk.jextract.impl.Options;
 import org.openjdk.jextract.impl.Writer;
 
-import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -116,25 +115,25 @@ public final class JextractTool {
         return new Parser().parse(source, Stream.of(parserOptions).collect(Collectors.toList()));
     }
 
-    public static List<JavaFileObject> generate(Declaration.Scoped decl, String headerName,
+    public static List<JavaSourceFile> generate(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, List<String> libNames, PrintWriter errStream) {
         return List.of(CodeGenerator.generate(decl, headerName, targetPkg, new IncludeHelper(), libNames, errStream));
     }
 
-    private static List<JavaFileObject> generateInternal(Declaration.Scoped decl, String headerName,
+    private static List<JavaSourceFile> generateInternal(Declaration.Scoped decl, String headerName,
                                                          String targetPkg, IncludeHelper includeHelper,
                                                          List<String> libNames, PrintWriter errStream) {
         return List.of(CodeGenerator.generate(decl, headerName, targetPkg, includeHelper, libNames, errStream));
     }
 
     /**
-     * Write resulting {@link JavaFileObject} instances into specified destination path.
+     * Write resulting {@link JavaSourceFile} instances into specified destination path.
      * @param dest the destination path.
-     * @param files the {@link JavaFileObject} instances to be written.
+     * @param files the {@link JavaSourceFile} instances to be written.
      */
-    public static void write(Path dest, List<JavaFileObject> files) throws UncheckedIOException {
+    public static void write(Path dest, List<JavaSourceFile> files) throws UncheckedIOException {
         try {
-            new Writer(dest, files).writeAll();
+            new Writer(dest, files).write();
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
@@ -457,7 +456,7 @@ public final class JextractTool {
             return INPUT_ERROR;
         }
 
-        List<JavaFileObject> files = null;
+        List<JavaSourceFile> files;
         try {
             Declaration.Scoped toplevel = parse(List.of(header), options.clangArgs.toArray(new String[0]));
 
@@ -549,4 +548,5 @@ public final class JextractTool {
 
         return Optional.empty();
     }
+
 }

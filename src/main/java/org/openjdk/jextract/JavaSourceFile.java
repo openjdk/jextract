@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,27 +22,14 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package org.openjdk.jextract.impl;
+package org.openjdk.jextract;
 
-import org.openjdk.jextract.Declaration;
-import org.openjdk.jextract.JavaSourceFile;
-
-import java.io.PrintWriter;
-import java.util.List;
-import java.util.stream.Stream;
-
-public final class CodeGenerator {
-    private CodeGenerator() {}
-
-    public static JavaSourceFile[] generate(Declaration.Scoped decl, String headerName,
-                                            String targetPkg, IncludeHelper includeHelper,
-                                            List<String> libNames, PrintWriter errStream) {
-        var transformedDecl = Stream.of(decl)
-                .map(new IncludeFilter(includeHelper)::scan)
-                .map(new DuplicateFilter()::scan)
-                .map(new NameMangler(headerName)::scan)
-                .map(new UnsupportedFilter(errStream)::scan)
-                .findFirst().get();
-        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libNames);
-    }
+/**
+ * A class representing a Java source file.
+ *
+ * @param className the name of the top-level public class in this source file.
+ * @param packageName the name of the package the top-level class in this source file resides in.
+ * @param contents the contents of the source file.
+ */
+public record JavaSourceFile(String className, String packageName, String contents) {
 }

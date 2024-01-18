@@ -25,15 +25,13 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.JavaSourceFile;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
-import javax.tools.JavaFileObject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /*
  * Scan a header file and generate Java source items for entities defined in that header
@@ -44,8 +42,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     protected final ToplevelBuilder toplevelBuilder;
     protected Builder currentBuilder;
 
-    static JavaFileObject[] generateWrapped(Declaration.Scoped decl,
-                String pkgName, List<String> libraryNames) {
+    static JavaSourceFile[] generateWrapped(Declaration.Scoped decl,
+                                            String pkgName, List<String> libraryNames) {
         String clsName = JavaName.getOrThrow(decl);
         ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName, libraryNames);
         return new OutputFactory(toplevelBuilder).generate(decl);
@@ -56,11 +54,11 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         this.currentBuilder = toplevelBuilder;
     }
 
-    JavaFileObject[] generate(Declaration.Scoped decl) {
+    JavaSourceFile[] generate(Declaration.Scoped decl) {
         //generate all decls
         decl.members().forEach(this::generateDecl);
-        List<JavaFileObject> files = new ArrayList<>(toplevelBuilder.toFiles());
-        return files.toArray(new JavaFileObject[0]);
+        List<JavaSourceFile> files = new ArrayList<>(toplevelBuilder.toFiles());
+        return files.toArray(JavaSourceFile[]::new);
     }
 
     private void generateDecl(Declaration tree) {
