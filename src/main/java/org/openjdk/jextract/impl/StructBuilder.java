@@ -263,12 +263,12 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private void emitReinterpret() {
         appendIndentedLines("""
 
-            public static MemorySegment reinterpret(MemorySegment addr, Arena scope, Consumer<MemorySegment> cleanup) {
-                return reinterpret(addr, 1, scope, cleanup);
+            public static MemorySegment reinterpret(MemorySegment addr, Arena arena, Consumer<MemorySegment> cleanup) {
+                return reinterpret(addr, 1, arena, cleanup);
             }
 
-            public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena scope, Consumer<MemorySegment> cleanup) {
-                return addr.reinterpret(layout().byteSize() * elementCount, scope, cleanup);
+            public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+                return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
             }
             """);
     }

@@ -157,9 +157,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 STR."\"\{nativeName}\", \{paramList}";
         incrAlign();
         if (!isVarArg) {
-            emitDocComment(decl);
             appendLines(STR."""
-                private static MethodHandle \{getterName}() {
+
+                \{MEMBER_MODS} MethodHandle \{getterName}() {
                     class Holder {
                         static final FunctionDescriptor DESC = \{functionDescriptorString(2, decl.type())};
 
@@ -169,7 +169,10 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     }
                     return Holder.MH;
                 }
-
+                """);
+                appendBlankLine();
+                emitDocComment(decl);
+                appendLines(STR."""
                 public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
                     var mh$ = \{getterName}();
                     try {
