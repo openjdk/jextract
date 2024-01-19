@@ -41,14 +41,14 @@ public class TestPackedStructs {
 
     @Test
     public void testPackedStructs() {
-        checkLayout(S1.$LAYOUT());
-        checkLayout(S2.$LAYOUT());
-        checkLayout(S3.$LAYOUT());
-        checkLayout(S4.$LAYOUT());
-        checkLayout(S5.$LAYOUT());
-        checkLayout(S6.$LAYOUT());
-        checkLayout(S7.$LAYOUT());
-        checkLayout(S8.$LAYOUT());
+        checkLayout(S1.layout());
+        checkLayout(S2.layout());
+        checkLayout(S3.layout());
+        checkLayout(S4.layout());
+        checkLayout(S5.layout());
+        checkLayout(S6.layout());
+        checkLayout(S7.layout());
+        checkLayout(S8.layout());
     }
 
     private void checkLayout(MemoryLayout layout) {

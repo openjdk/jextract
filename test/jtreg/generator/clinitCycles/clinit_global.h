@@ -26,5 +26,5 @@
 #define EXPORT
 #endif
 
-EXPORT int global1;
-EXPORT int global2;
+EXPORT extern int global1;
+EXPORT extern int global2;

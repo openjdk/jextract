@@ -41,11 +41,11 @@ public class Test8258405 extends JextractToolRunner {
             Class<?> cls = loader.loadClass("test8258405_h");
             assertNotNull(cls);
             // check global function pointer variable 'func'
-            cls = loader.loadClass("func");
+            cls = loader.loadClass("func$Function");
             assertNotNull(cls);
             assertNotNull(findMethod(cls, "apply", int.class));
             // check function pointer member 'bar' of struct 'Foo'
-            cls = loader.loadClass("Foo$bar");
+            cls = loader.loadClass("Foo$bar$Function");
             assertNotNull(cls);
             assertNotNull(findMethod(cls, "apply", float.class, double.class));
         } finally {

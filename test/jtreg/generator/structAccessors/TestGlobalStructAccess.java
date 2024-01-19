@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,32 +22,41 @@
  */
 
 import org.testng.annotations.Test;
-import test.jextract.allocCallback.*;
+import test.jextract.globalaccess.*;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
+import static test.jextract.globalaccess.globalStructAccess_h.*;
 
 /*
  * @test
- * @bug 7903239
- * @summary ofAddress factory of function pointer type is wrong for struct returns
  * @library /lib
- * @run main/othervm JtregJextract -l AllocCallback -t test.jextract.allocCallback alloc_callback.h
- * @build TestAllocCallback
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestAllocCallback
+ * @run main/othervm JtregJextract -l StructGlobal -t test.jextract.globalaccess globalStructAccess.h
+ * @build TestGlobalStructAccess
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestGlobalStructAccess
  */
-public class TestAllocCallback {
+public class TestGlobalStructAccess {
+
     @Test
-    public void testOfAddress() {
+    public void testGlobalStructAccess() {
         try (Arena arena = Arena.ofConfined()) {
-            var foo = alloc_callback_h.foo();
+            MemorySegment gPoint = p();
+            assertEquals(Point.x(gPoint), 1);
+            assertEquals(Point.y(gPoint), 2);
 
-            var barA = Foo.a.invoke(Foo.a(foo), arena);
-            var barB = Foo.b.invoke(Foo.b(foo), arena, 100);
-
-            assertEquals(Bar.a(barA), 5);
-            assertEquals(Bar.a(barB), 100);
+            MemorySegment newPoint = allocatePoint(3, 4, arena);
+            p(newPoint);
+            assertEquals(Point.x(gPoint), 3);
+            assertEquals(Point.y(gPoint), 4);
         }
+    }
+
+    static MemorySegment allocatePoint(int x, int y, Arena arena) {
+        MemorySegment point = Point.allocate(arena);
+        Point.x(point, x);
+        Point.y(point, y);
+        return point;
     }
 }

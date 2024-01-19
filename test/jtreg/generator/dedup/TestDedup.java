@@ -40,8 +40,8 @@ public class TestDedup {
 
     @Test
     public void testMacroFields() {
-        checkLayout(PointA.$LAYOUT());
-        checkLayout(PointB.$LAYOUT());
+        checkLayout(PointA.layout());
+        checkLayout(PointB.layout());
     }
 
     void checkLayout(GroupLayout layout) {

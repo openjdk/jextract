@@ -268,7 +268,16 @@ public class JextractToolRunner {
     }
 
     protected static MemoryLayout findLayout(Class<?> cls) {
-        return findLayout(cls, "");
+        Method method = findMethod(cls, "layout");
+        assertNotNull(method);
+        assertTrue(MemoryLayout.class.isAssignableFrom(method.getReturnType()));
+        try {
+            return (MemoryLayout)method.invoke(null);
+        } catch (Exception exp) {
+            System.err.println(exp);
+            assertTrue(false, "should not reach here");
+        }
+        return null;
     }
 
     protected static void checkField(MemoryLayout group, String fieldName, MemoryLayout expected) {

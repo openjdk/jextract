@@ -190,7 +190,7 @@ abstract class ClassSourceBuilder {
         return switch (type) {
             case Primitive p -> primitiveLayoutString(p, align);
             case Declared d when Utils.isEnum(d) -> layoutString(((Constant)d.tree().members().get(0)).type(), align);
-            case Declared d when Utils.isStructOrUnion(d) -> STR."\{JavaName.getFullNameOrThrow(d.tree())}.$LAYOUT()";
+            case Declared d when Utils.isStructOrUnion(d) -> STR."\{JavaName.getFullNameOrThrow(d.tree())}.layout()";
             case Delegated d when d.kind() == Delegated.Kind.POINTER -> STR."\{runtimeHelperName()}.C_POINTER";
             case Delegated d -> layoutString(d.type(), align);
             case Function _ -> STR."\{runtimeHelperName()}.C_POINTER";

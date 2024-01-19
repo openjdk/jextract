@@ -39,11 +39,11 @@ public class TestNestedInsideAnon {
 
     @Test
     public void testAnonField() {
-        checkLayout(P.$LAYOUT());
+        checkLayout(P.layout());
     }
 
     void checkLayout(GroupLayout layout) {
         assertEquals(((GroupLayout)layout.memberLayouts().get(0)).memberLayouts().get(0).withoutName(),
-                P.Flags.$LAYOUT().withoutName());
+                P.Flags.layout().withoutName());
     }
 }

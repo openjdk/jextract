@@ -78,11 +78,16 @@ public class TestDocComments extends JextractToolRunner {
     public void testArrays() throws IOException {
         var comments = getDocComments("arrays.h", "arrays_h.java");
         assertEquals(comments, List.of(
-            "int abc[10]",
-            "float numbers[3]",
-            "char *msg[5]",
-            "int pixels[200][100]",
-            "int points[10][20][30]"));
+            "Getter for variable: int abc[10]",
+            "Setter for variable: int abc[10]",
+            "Getter for variable: float numbers[3]",
+            "Setter for variable: float numbers[3]",
+            "Getter for variable: char *msg[5]",
+            "Setter for variable: char *msg[5]",
+            "Getter for variable: int pixels[200][100]",
+            "Setter for variable: int pixels[200][100]",
+            "Getter for variable: int points[10][20][30]",
+            "Setter for variable: int points[10][20][30]"));
     }
 
     @Test

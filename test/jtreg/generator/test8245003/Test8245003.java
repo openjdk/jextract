@@ -41,12 +41,12 @@ import static java.lang.foreign.Linker.*;
 public class Test8245003 {
     @Test
     public void testStructAccessor() {
-        var seg = special_pt$SEGMENT();
+        var seg = special_pt();
         assertEquals(seg.byteSize(), Point.sizeof());
         assertEquals(Point.x(seg), 56);
         assertEquals(Point.y(seg), 75);
 
-        seg = special_pt3d$SEGMENT();
+        seg = special_pt3d();
         assertEquals(seg.byteSize(), Point3D.sizeof());
         assertEquals(Point3D.z(seg), 35);
         var pointSeg = Point3D.p(seg);
@@ -57,7 +57,7 @@ public class Test8245003 {
 
     @Test
     public void testArrayAccessor() {
-        var seg = iarr$SEGMENT();
+        var seg = iarr();
         assertEquals(seg.byteSize(), C_INT.byteSize()*5);
         int[] arr = seg.toArray(C_INT);
         assertEquals(arr.length, 5);
@@ -67,7 +67,7 @@ public class Test8245003 {
         assertEquals(arr[3], -42);
         assertEquals(arr[4], 345);
 
-        seg = foo$SEGMENT();
+        seg = foo();
         assertEquals(seg.byteSize(), Foo.sizeof());
         assertEquals(Foo.count(seg), 37);
         var greeting = Foo.greeting(seg);

@@ -37,9 +37,9 @@ import test.jextract.test8281764.*;
 public class Test8281764 {
     @Test
     public void testFunctionalInterfaceParameterNames() throws NoSuchMethodException {
-        var apply = func.class.getMethod("apply", int.class);
+        var apply = func.Function.class.getMethod("apply", int.class);
         assertEquals(apply.getParameters()[0].getName(), "foo");
-        apply = fptr.class.getMethod("apply", int.class, int.class);
+        apply = fptr.Function.class.getMethod("apply", int.class, int.class);
         assertEquals(apply.getParameters()[0].getName(), "x");
         assertEquals(apply.getParameters()[1].getName(), "y");
     }
