@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 import static test.jextract.test7903347.test7903347_h.*;
 
 /*
- * @test id
+ * @test
  * @bug 7903347
  * @summary add long name option for all single letter options and expand help on default values for various options
  * @library /lib

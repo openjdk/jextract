@@ -33,7 +33,7 @@ import test.jextract.test8244412.*;
 import static test.jextract.test8244412.test8244412_h.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @bug 8244412
  * @summary jextract should generate static utils class for primitive typedefs

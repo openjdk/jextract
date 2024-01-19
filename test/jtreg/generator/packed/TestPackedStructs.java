@@ -31,7 +31,7 @@ import static org.testng.Assert.*;
 import test.jextract.packedstructs.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.packedstructs packedstructs.h
  * @build TestPackedStructs

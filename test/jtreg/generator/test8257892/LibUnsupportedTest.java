@@ -37,7 +37,7 @@ import static test.jextract.unsupported.unsupported_h.*;
 import test.jextract.unsupported.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -l Unsupported -t test.jextract.unsupported unsupported.h
  * @build LibUnsupportedTest

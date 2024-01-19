@@ -32,7 +32,7 @@ import static org.testng.Assert.*;
 import test.jextract.nestedtypes.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.nestedtypes nested_types.h
  * @build TestNestedTypes

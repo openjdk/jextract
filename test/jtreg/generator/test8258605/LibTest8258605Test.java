@@ -30,7 +30,7 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.test8258605.funcParam_h.*;
 
 /*
- * @test id
+ * @test
  * @bug 8258605
  * @summary regression: jextract can not handle function prototypes as function arguments
  * @library /lib

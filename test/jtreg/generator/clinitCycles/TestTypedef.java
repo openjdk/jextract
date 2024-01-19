@@ -29,7 +29,7 @@ import test.jextract.clinit.*;
 import java.lang.foreign.ValueLayout;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -l Func -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_typedef.h
  * @build TestTypedef

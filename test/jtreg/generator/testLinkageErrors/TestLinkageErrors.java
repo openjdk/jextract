@@ -28,7 +28,7 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.testLinkageErrors.testLinkageErrors_h.*;
 
 /*
- * @test id
+ * @test
  * @bug 8259473
  * @summary jextract generated code should throw exception for unfound native symbols from calls, variable access, set immediately
  * @library /lib

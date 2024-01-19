@@ -29,7 +29,7 @@ import java.lang.foreign.ValueLayout;
 import static org.testng.Assert.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_struct.h
  * @build TestStruct

@@ -30,7 +30,7 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.test8246400.test8246400_h.*;
 
 /*
- * @test id
+ * @test
  * @bug 8246400
  * @summary jextract should generate a utility to manage mutliple MemorySegments
  * @library /lib

@@ -30,7 +30,7 @@ import static test.jextract.test8254983.test8254983_h.*;
 import test.jextract.test8254983.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @bug 8254983
  * @summary jextract fails to hande layout paths nested structs/union

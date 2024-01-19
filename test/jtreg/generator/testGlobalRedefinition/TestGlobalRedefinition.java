@@ -30,7 +30,7 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.redef.redef_h.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.redef redef.h
  * @build TestGlobalRedefinition

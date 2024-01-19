@@ -33,7 +33,7 @@ import static test.jextract.funcpointers.func_h.*;
 import test.jextract.funcpointers.*;
 
 /*
- * @test id
+ * @test
   * @library /lib
  * @run main/othervm JtregJextract -l Func -t test.jextract.funcpointers func.h
  * @build TestFuncPointerInvokers

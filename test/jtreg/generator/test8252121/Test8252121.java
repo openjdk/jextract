@@ -32,7 +32,7 @@ import test.jextract.arrayparam.*;
 import static test.jextract.arrayparam.arrayparam_h.*;
 
 /*
- * @test id
+ * @test
  * @bug 8252121
  * @summary jextract generated code fails with ABI for typedefed array type parameters
  * @library /lib

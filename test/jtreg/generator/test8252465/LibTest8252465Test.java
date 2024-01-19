@@ -30,7 +30,7 @@ import static test.jextract.test8252465.test8252465_h.*;
 import test.jextract.test8252465.*;
 
 /*
- * @test id
+ * @test
  * @bug 8252465
  * @summary jextract generates wrong layout and varhandle when different structs have same named field
  * @library /lib

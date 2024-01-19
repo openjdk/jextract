@@ -31,7 +31,7 @@ import static test.jextract.reinterpret.reinterpret_h.*;
 import test.jextract.reinterpret.*;
 
 /*
- * @test id
+ * @test
  * @bug 8253102 7903626
  * @summary jextract should emit reinterpret utility method on struct classes
  * @library /lib

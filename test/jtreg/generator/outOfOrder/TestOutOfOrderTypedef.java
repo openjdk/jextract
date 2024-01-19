@@ -29,7 +29,7 @@ import java.lang.foreign.GroupLayout;
 import static org.testng.Assert.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.out.typedef out_of_order_typedef.h
  * @build TestOutOfOrderTypedef

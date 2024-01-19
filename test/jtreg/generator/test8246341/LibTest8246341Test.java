@@ -30,7 +30,7 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.test8246341.test8246341_h.*;
 
 /*
- * @test id
+ * @test
  * @bug 8246341
  * @summary jextract should generate Cpointer utilities class
  * @library /lib

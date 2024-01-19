@@ -26,7 +26,7 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8253390.test8253390_h.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @bug 8253390
  * @summary jextract should quote string literals

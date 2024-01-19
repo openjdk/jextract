@@ -28,16 +28,20 @@ package org.openjdk.jextract;
 import org.openjdk.jextract.clang.LibClang;
 import org.openjdk.jextract.impl.ClangException;
 import org.openjdk.jextract.impl.CommandLine;
+import org.openjdk.jextract.impl.DuplicateFilter;
+import org.openjdk.jextract.impl.IncludeFilter;
 import org.openjdk.jextract.impl.IncludeHelper;
-import org.openjdk.jextract.impl.CodeGenerator;
+import org.openjdk.jextract.impl.NameMangler;
+import org.openjdk.jextract.impl.OutputFactory;
 import org.openjdk.jextract.impl.Parser;
 import org.openjdk.jextract.impl.Options;
-import org.openjdk.jextract.impl.Writer;
+import org.openjdk.jextract.impl.UnsupportedFilter;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -117,13 +121,25 @@ public final class JextractTool {
 
     public static List<JavaSourceFile> generate(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, List<String> libNames, PrintWriter errStream) {
-        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, new IncludeHelper(), libNames, errStream));
+        return List.of(generate(decl, headerName, targetPkg, new IncludeHelper(), libNames, errStream));
     }
 
     private static List<JavaSourceFile> generateInternal(Declaration.Scoped decl, String headerName,
                                                          String targetPkg, IncludeHelper includeHelper,
                                                          List<String> libNames, PrintWriter errStream) {
-        return List.of(CodeGenerator.generate(decl, headerName, targetPkg, includeHelper, libNames, errStream));
+        return List.of(generate(decl, headerName, targetPkg, includeHelper, libNames, errStream));
+    }
+
+    private static JavaSourceFile[] generate(Declaration.Scoped decl, String headerName,
+                                            String targetPkg, IncludeHelper includeHelper,
+                                            List<String> libNames, PrintWriter errStream) {
+        var transformedDecl = Stream.of(decl)
+                .map(new IncludeFilter(includeHelper)::scan)
+                .map(new DuplicateFilter()::scan)
+                .map(new NameMangler(headerName)::scan)
+                .map(new UnsupportedFilter(errStream)::scan)
+                .findFirst().get();
+        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libNames);
     }
 
     /**
@@ -131,12 +147,38 @@ public final class JextractTool {
      * @param dest the destination path.
      * @param files the {@link JavaSourceFile} instances to be written.
      */
-    public static void write(Path dest, List<JavaSourceFile> files) throws UncheckedIOException {
-        try {
-            new Writer(dest, files).write();
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+    public static void write(Path dest, List<JavaSourceFile> files) throws IOException {
+        Path destDir = createOutputDir(dest);
+        for (var entry : files) {
+            String packagePath = packageNameToPath(entry.packageName());
+            Path fullPath = destDir.resolve(packagePath, entry.className() + ".java").normalize();
+            Path dir = fullPath.getParent();
+            // In case the folder exist and is a link to a folder, this should be OK
+            // Case in point, /tmp on MacOS link to /private/tmp
+            if (Files.exists(dir)) {
+                if (!Files.isDirectory(dir)) {
+                    throw new FileAlreadyExistsException(dir.toAbsolutePath().toString());
+                }
+            } else {
+                Files.createDirectories(fullPath.getParent());
+            }
+            Files.write(fullPath, List.of(entry.contents()));
         }
+    }
+
+    private static String packageNameToPath(String packageName) {
+        return packageName.isEmpty() ? "" : packageName.replaceAll("\\.", "/") + "/";
+    }
+
+    private static Path createOutputDir(Path dest) throws IOException {
+        Path absDest = dest.toAbsolutePath();
+        if (!Files.exists(absDest)) {
+            Files.createDirectories(absDest);
+        }
+        if (!Files.isDirectory(absDest)) {
+            throw new IOException("Not a directory: " + dest);
+        }
+        return absDest;
     }
 
     private int printHelp(int exitCode) {
@@ -490,14 +532,16 @@ public final class JextractTool {
                 options.includeHelper.dumpIncludes();
             } else {
                 Path output = Path.of(options.outputDir);
-                write(output, files);
+                try {
+                    write(output, files);
+                } catch (IOException e) {
+                    err.println(e.getMessage());
+                    if (JextractTool.DEBUG) {
+                        e.printStackTrace(err);
+                    }
+                    return OUTPUT_ERROR;
+                }
             }
-        } catch (UncheckedIOException uioe) {
-            err.println(uioe.getMessage());
-            if (JextractTool.DEBUG) {
-                uioe.printStackTrace(err);
-            }
-            return OUTPUT_ERROR;
         } catch (RuntimeException re) {
             err.println(re.getMessage());
             if (JextractTool.DEBUG) {

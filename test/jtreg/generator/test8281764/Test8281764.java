@@ -26,7 +26,7 @@ import static org.testng.Assert.assertEquals;
 import test.jextract.test8281764.*;
 
 /*
- * @test id
+ * @test
  * @bug 8281764
  * @summary jextract does not generate parameter names for function pointer typedefs
  * @library /lib

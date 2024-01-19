@@ -33,7 +33,7 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.printf.printf_h.*;
 
 /*
- * @test id
+ * @test
  *
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.printf -l Printf printf.h

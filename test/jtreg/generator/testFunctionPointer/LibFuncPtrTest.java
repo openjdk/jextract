@@ -29,7 +29,7 @@ import static test.jextract.fp.funcPtr_h.*;
 import test.jextract.fp.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -l FuncPtr -t test.jextract.fp funcPtr.h
  * @build LibFuncPtrTest

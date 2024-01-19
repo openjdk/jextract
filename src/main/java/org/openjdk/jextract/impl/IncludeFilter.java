@@ -30,10 +30,10 @@ import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 /*
  * This visitor marks declarations to be skipped, based on --include options specified.
  */
-final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
+public final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
     private final IncludeHelper includeHelper;
 
-    IncludeFilter(IncludeHelper includeHelper) {
+    public IncludeFilter(IncludeHelper includeHelper) {
         this.includeHelper = includeHelper;
     }
 

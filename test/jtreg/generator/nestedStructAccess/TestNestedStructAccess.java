@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 
 /*
- * @test id
+ * @test
   * @library /lib
  * @run main/othervm JtregJextract -l Func -t test.jextract.nestedaccess nestedStructAccess.h
  * @build TestNestedStructAccess

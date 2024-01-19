@@ -29,7 +29,7 @@ import static test.jextract.test8244938.test8244938_h.*;
 import test.jextract.test8244938.*;
 
 /*
- * @test id
+ * @test
  * @bug 8244938
  * @summary Crash in foreign ABI CallArranger class when a test native function returns a nested struct
  * @library /lib

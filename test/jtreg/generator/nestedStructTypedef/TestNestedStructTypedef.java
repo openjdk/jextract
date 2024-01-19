@@ -30,7 +30,7 @@ import test.jextract.nested.typedef.*;
 import java.lang.foreign.GroupLayout;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.nested.typedef nestedStructTypedef.h
  * @build TestNestedStructTypedef

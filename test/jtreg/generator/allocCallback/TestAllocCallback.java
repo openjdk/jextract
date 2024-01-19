@@ -29,7 +29,7 @@ import java.lang.foreign.Arena;
 import static org.testng.Assert.assertEquals;
 
 /*
- * @test id
+ * @test
  * @bug 7903239
  * @summary ofAddress factory of function pointer type is wrong for struct returns
  * @library /lib

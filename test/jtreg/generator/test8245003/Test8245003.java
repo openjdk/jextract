@@ -30,7 +30,7 @@ import static test.jextract.test8245003.test8245003_h.*;
 import static java.lang.foreign.Linker.*;
 
 /*
- * @test id
+ * @test
  * @bug 8245003
  * @summary jextract does not generate accessor for MemorySegement typed values
  * @library /lib

@@ -30,7 +30,7 @@ import test.jextract.dedup.*;
 import java.lang.foreign.GroupLayout;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.dedup macro_fields.h
  * @build TestDedup

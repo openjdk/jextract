@@ -35,7 +35,7 @@ import java.util.Set;
 /*
  * This visitor filters duplicate top-level variables, constants and functions.
  */
-final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
+public final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
     // To detect duplicate Variable and Function declarations.
     private final Set<String> constants = new HashSet<>();
     private final Set<String> variables = new HashSet<>();
@@ -62,7 +62,7 @@ final class DuplicateFilter implements Declaration.Visitor<Void, Void> {
         return !typedefs.add(tree.name());
     }
 
-    DuplicateFilter() {
+    public DuplicateFilter() {
     }
 
     public Declaration.Scoped scan(Declaration.Scoped header) {

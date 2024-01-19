@@ -34,7 +34,7 @@ import static test.jextract.struct.struct_h.*;
 import test.jextract.struct.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -l Struct -t test.jextract.struct struct.h
  * @build LibStructTest

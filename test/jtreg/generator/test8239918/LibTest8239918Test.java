@@ -26,7 +26,7 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8239918.test8239918_h.*;
 
 /*
- * @test id
+ * @test
  * @bug 8239918
  * @summary jextract generates uncompilable code for no argument C function
  * @library /lib

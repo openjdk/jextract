@@ -26,7 +26,7 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8249757.test8249757_h.*;
 
 /*
- * @test id
+ * @test
  * @library /lib
  * @bug 8249757
  * @summary jextract should expose a way to load library from a given absolute path

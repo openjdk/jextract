@@ -26,7 +26,7 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.test8240373.test8240373_h.*;
 
 /*
- * @test id
+ * @test
  * @bug 8240373
  * @summary Jextract assigns type "Void" to enum macros
  * @library /lib

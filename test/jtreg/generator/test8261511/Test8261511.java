@@ -29,7 +29,7 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8261511.test8261511_h.*;
 
 /*
- * @test id
+ * @test
  * @bug 8261511
  * @summary jextract does not generate accessor for MemorySegement typed values
  * @library /lib
