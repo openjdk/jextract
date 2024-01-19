@@ -28,6 +28,7 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Constant;
+import org.openjdk.jextract.JavaSourceFile;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Delegated.Kind;
@@ -36,16 +37,12 @@ import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.impl.DeclarationImpl.NestedDeclarations;
 
-import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
 import java.lang.foreign.AddressLayout;
-import java.io.IOException;
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodType;
-import java.net.URI;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -53,20 +50,6 @@ import java.util.function.Consumer;
  * General utility functions
  */
 class Utils {
-    private static URI fileName(String pkgName, String clsName, String extension) {
-        String pkgPrefix = pkgName.isEmpty() ? "" : pkgName.replaceAll("\\.", "/") + "/";
-        return URI.create(pkgPrefix + clsName + extension);
-    }
-
-    static JavaFileObject fileFromString(String pkgName, String clsName, String contents) {
-        return new SimpleJavaFileObject(fileName(pkgName, clsName, ".java"), JavaFileObject.Kind.SOURCE) {
-            @Override
-            public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
-                return contents;
-            }
-        };
-    }
-
     static boolean isFlattenable(Cursor c) {
         return c.isAnonymousStruct() || c.kind() == CursorKind.FieldDecl;
     }

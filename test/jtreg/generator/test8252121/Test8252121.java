@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,20 +32,11 @@ import test.jextract.arrayparam.*;
 import static test.jextract.arrayparam.arrayparam_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8252121
  * @summary jextract generated code fails with ABI for typedefed array type parameters
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.arrayparam -l Arrayparam arrayparam.h
- * @build Test8252121
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8252121
- */
-/*
- * @test id=sources
- * @bug 8252121
- * @summary jextract generated code fails with ABI for typedefed array type parameters
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.arrayparam -l Arrayparam arrayparam.h
  * @build Test8252121
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8252121
  */

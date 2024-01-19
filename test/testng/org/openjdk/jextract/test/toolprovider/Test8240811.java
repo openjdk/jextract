@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@ package org.openjdk.jextract.test.toolprovider;
 
 import java.nio.file.Path;
 
-import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.StructLayout;
 import java.lang.foreign.UnionLayout;
@@ -41,7 +40,7 @@ public class Test8240811 extends JextractToolRunner {
     public void testNameCollision() {
         Path nameCollisionOutput = getOutputFilePath("name_collision_gen");
         Path nameCollisionH = getInputFilePath("name_collision.h");
-        run("--output", nameCollisionOutput.toString(), nameCollisionH.toString()).checkSuccess();
+        runAndCompile(nameCollisionOutput, nameCollisionH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(nameCollisionOutput)) {
             Class<?> cls = loader.loadClass("name_collision_h");
             assertNotNull(cls);

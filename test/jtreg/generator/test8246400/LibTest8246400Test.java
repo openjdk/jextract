@@ -30,22 +30,13 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.test8246400.test8246400_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8246400
  * @summary jextract should generate a utility to manage mutliple MemorySegments
  * @library /lib
  * @run main/othervm JtregJextract -l Test8246400 -t test.jextract.test8246400 test8246400.h
  * @build LibTest8246400Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED  LibTest8246400Test
- */
-/*
- * @test id=sources
- * @bug 8246400
- * @summary jextract should generate a utility to manage mutliple MemorySegments
- * @library /lib
- * @run main/othervm JtregJextractSources -l Test8246400 -t test.jextract.test8246400 test8246400.h
- * @build LibTest8246400Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8246400Test
  */
 public class LibTest8246400Test {
     @Test

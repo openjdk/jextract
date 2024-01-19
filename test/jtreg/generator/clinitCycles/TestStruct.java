@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+/* Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,16 +29,9 @@ import java.lang.foreign.ValueLayout;
 import static org.testng.Assert.*;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_struct.h
- * @build TestStruct
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestStruct
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_struct.h
  * @build TestStruct
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestStruct
  */

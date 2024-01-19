@@ -30,20 +30,11 @@ import static test.jextract.test8254983.test8254983_h.*;
 import test.jextract.test8254983.*;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
  * @bug 8254983
  * @summary jextract fails to hande layout paths nested structs/union
  * @run main/othervm JtregJextract -t test.jextract.test8254983 test8254983.h
- * @build LibTest8254983Test
- * @run testng/othervm -Dforeign.restricted=permit LibTest8254983Test
- */
-/*
- * @test id=sources
- * @library /lib
- * @bug 8254983
- * @summary jextract fails to hande layout paths nested structs/union
- * @run main/othervm JtregJextractSources -t test.jextract.test8254983 test8254983.h
  * @build LibTest8254983Test
  * @run testng/othervm -Dforeign.restricted=permit LibTest8254983Test
  */

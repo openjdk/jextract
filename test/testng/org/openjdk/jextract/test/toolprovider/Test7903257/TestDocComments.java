@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -28,7 +28,6 @@ import testlib.TestUtils;
 import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -181,8 +180,7 @@ public class TestDocComments extends JextractToolRunner {
             throws IOException {
         var output = getOutputFilePath("7903257-parse-" + header);
         var outputH = getInputFilePath(header);
-        run("--source", "--output",
-            output.toString(), outputH.toString()).checkSuccess();
+        run(output, outputH.toString());
         try {
             return findDocComments(Files.readString(output.resolve(outputFile)));
         } finally {

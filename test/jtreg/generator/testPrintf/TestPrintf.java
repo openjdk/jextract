@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -33,18 +33,10 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.printf.printf_h.*;
 
 /*
- * @test id=classes
+ * @test
  *
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.printf -l Printf printf.h
- * @build TestPrintf
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPrintf
- */
-/*
- * @test id=sources
- *
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.printf -l Printf printf.h
  * @build TestPrintf
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPrintf
  */

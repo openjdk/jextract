@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,7 +23,6 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 
@@ -66,7 +65,7 @@ public class Test8240752 extends JextractToolRunner {
     public void testConstants() {
         Path floatConstsOutput = getOutputFilePath("floatconstsgen");
         Path floatConstsH = getInputFilePath("float_constants.h");
-        run("--output", floatConstsOutput.toString(), floatConstsH.toString()).checkSuccess();
+        runAndCompile(floatConstsOutput, floatConstsH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(floatConstsOutput)) {
             Class<?> cls = loader.loadClass("float_constants_h");
             assertNotNull(cls);

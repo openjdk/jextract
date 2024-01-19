@@ -47,7 +47,7 @@ import javax.lang.model.SourceVersion;
  * in the corresponding declaration. The mangled name is later retrieved by
  * OutputFactory via the lookup methods provided by this class.
  */
-final class NameMangler implements Declaration.Visitor<Void, Declaration> {
+public final class NameMangler implements Declaration.Visitor<Void, Declaration> {
     private final String headerName;
 
     /*
@@ -113,12 +113,12 @@ final class NameMangler implements Declaration.Visitor<Void, Declaration> {
 
     private Scope curScope;
 
-    NameMangler(String headerName) {
+    public NameMangler(String headerName) {
         this.headerName = headerName;
     }
 
     // entry point for this visitor
-    Declaration.Scoped scan(Declaration.Scoped header) {
+    public Declaration.Scoped scan(Declaration.Scoped header) {
         String javaName = javaSafeIdentifier(headerName.replace(".h", "_h"), true);
         curScope = Scope.newHeader(javaName);
         JavaName.with(header, List.of(javaName));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,16 +30,9 @@ import test.jextract.nested.typedef.*;
 import java.lang.foreign.GroupLayout;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.nested.typedef nestedStructTypedef.h
- * @build TestNestedStructTypedef
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedStructTypedef
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.nested.typedef nestedStructTypedef.h
  * @build TestNestedStructTypedef
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedStructTypedef
  */

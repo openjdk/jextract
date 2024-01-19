@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -41,8 +41,8 @@ import java.lang.foreign.AddressLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.ValueLayout;
+
 import org.openjdk.jextract.JextractTool;
-import org.openjdk.jextract.Type;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
@@ -139,11 +139,25 @@ public class JextractToolRunner {
         }
     }
 
-    protected static JextractResult run(Object... options) {
-        return run(Arrays.stream(options).map(Objects::toString).toArray(String[]::new));
+    protected static JextractResult runAndCompile(Path outputDir, Object... options) {
+        return runAndCompile(outputDir, Arrays.stream(options).map(Objects::toString).toArray(String[]::new));
     }
 
-    protected static JextractResult run(String... options) {
+    protected static JextractResult runAndCompile(Path outputDir, String... options) {
+        JextractResult jextractResult = run(outputDir, options).checkSuccess();
+        TestUtils.compile(outputDir, outputDir);
+        return jextractResult;
+    }
+
+    protected static JextractResult run(Path outputDir, String... options) {
+        String[] extendedOptions = new String[options.length + 2];
+        extendedOptions[0] = "--output";
+        extendedOptions[1] = outputDir.toString();
+        System.arraycopy(options, 0, extendedOptions, 2, options.length);
+        return runNoOuput(extendedOptions);
+    }
+
+    protected static JextractResult runNoOuput(String... options) {
         StringWriter writer = new StringWriter();
         PrintWriter pw = new PrintWriter(writer);
         int result = JEXTRACT_TOOL.run(pw, pw, options);

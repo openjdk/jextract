@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+/* Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,16 +29,9 @@ import test.jextract.clinit.*;
 import java.lang.foreign.ValueLayout;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.clinit --library ClinitGlobal -Djextract.decls.per.header=1 clinit_global.h
- * @build TestGlobal
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestGlobal
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.clinit --library ClinitGlobal -Djextract.decls.per.header=1 clinit_global.h
  * @build TestGlobal
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestGlobal
  */
@@ -48,7 +41,7 @@ public class TestGlobal {
     public void testGlobal() {
         ValueLayout layout = clinit_global_h.C_INT;
         assertNotNull(layout);
-        clinit_global_h.global1(1);
-        clinit_global_h.global2(2);
+        assertEquals(clinit_global_h.global1(), 1);
+        assertEquals(clinit_global_h.global2(), 2);
     }
 }

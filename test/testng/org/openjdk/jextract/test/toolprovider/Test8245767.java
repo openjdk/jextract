@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -37,7 +37,7 @@ public class Test8245767 extends JextractToolRunner {
     public void testTypedefs() {
         Path test8245767Output = getOutputFilePath("test8245767_gen");
         Path test8245767H = getInputFilePath("test8245767.h");
-        run("--output", test8245767Output.toString(), test8245767H.toString()).checkSuccess();
+        runAndCompile(test8245767Output, test8245767H.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(test8245767Output)) {
             Class<?> cls = loader.loadClass("test8245767_h");
             assertNotNull(cls);

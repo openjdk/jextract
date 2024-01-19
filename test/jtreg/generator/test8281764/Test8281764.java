@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,11 +26,11 @@ import static org.testng.Assert.assertEquals;
 import test.jextract.test8281764.*;
 
 /*
- * @test id=sources
+ * @test
  * @bug 8281764
  * @summary jextract does not generate parameter names for function pointer typedefs
  * @library /lib
- * @run main/othervm JtregJextractSources -l Test8281764 -t test.jextract.test8281764 test8281764.h
+ * @run main/othervm JtregJextract -l Test8281764 -t test.jextract.test8281764 test8281764.h
  * @build Test8281764
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8281764
  */
