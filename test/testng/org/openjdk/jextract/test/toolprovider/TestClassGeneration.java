@@ -26,7 +26,7 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.Arena;
+
 import testlib.TestUtils;
 import org.testng.annotations.*;
 import testlib.JextractToolRunner;
@@ -210,12 +210,11 @@ public class TestClassGeneration extends JextractToolRunner {
     public void setup() {
         outputDir = getOutputFilePath("exmples_out");
         Path inputHeader = getInputFilePath("examples.h");
-        run(
+        runAndCompile(outputDir,
             "-t", "com.acme",
-            "--output", outputDir,
             "-l", "Examples",
             inputHeader
-        ).checkSuccess();
+        );
         loader = TestUtils.classLoader(outputDir);
         cls = loader.loadClass("com.acme.examples_h");
     }

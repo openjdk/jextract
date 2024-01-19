@@ -25,7 +25,7 @@ package org.openjdk.jextract.test.toolprovider;
 
 import java.nio.file.Path;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySegment;
+
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
@@ -39,7 +39,7 @@ public class Test8251943 extends JextractToolRunner {
     public void test() {
         Path outputPath = getOutputFilePath("output");
         Path headerFile = getInputFilePath("test8251943.h");
-        run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
+        runAndCompile(outputPath, headerFile.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> headerClass = loader.loadClass("test8251943_h");
             assertNotNull(findMethod(headerClass, "tzname$SEGMENT"));

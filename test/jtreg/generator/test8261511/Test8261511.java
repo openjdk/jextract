@@ -29,20 +29,11 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8261511.test8261511_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8261511
  * @summary jextract does not generate accessor for MemorySegement typed values
  * @library /lib
  * @run main/othervm JtregJextract -l Test8261511 -t test.jextract.test8261511 test8261511.h
- * @build Test8261511
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8261511
- */
-/*
- * @test id=sources
- * @bug 8261511
- * @summary jextract does not generate accessor for MemorySegement typed values
- * @library /lib
- * @run main/othervm JtregJextractSources -l Test8261511 -t test.jextract.test8261511 test8261511.h
  * @build Test8261511
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8261511
  */

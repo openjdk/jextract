@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,20 +26,11 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8249757.test8249757_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
  * @bug 8249757
  * @summary jextract should expose a way to load library from a given absolute path
  * @run main/othervm JtregJextract -libpath Test8249757 -t test.jextract.test8249757 test8249757.h
- * @build LibTest8249757Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8249757Test
- */
-/*
- * @test id=sources
- * @library /lib
- * @bug 8249757
- * @summary jextract should expose a way to load library from a given absolute path
- * @run main/othervm JtregJextractSources -libpath Test8249757 -t test.jextract.test8249757 test8249757.h
  * @build LibTest8249757Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8249757Test
  */

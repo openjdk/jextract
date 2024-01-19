@@ -45,7 +45,7 @@ public class TestNested extends JextractToolRunner {
     public void testNestedStructs() {
         Path nestedOutput = getOutputFilePath("nestedgen");
         Path nestedH = getInputFilePath("nested.h");
-        run("--output", nestedOutput.toString(), nestedH.toString()).checkSuccess();
+        runAndCompile(nestedOutput, nestedH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(nestedOutput)) {
             checkClass(loader, "Foo",
                 checkField("bar", MemorySegment.class, 0),

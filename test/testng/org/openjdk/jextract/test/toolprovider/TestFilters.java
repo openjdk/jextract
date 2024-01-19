@@ -43,7 +43,7 @@ public class TestFilters extends JextractToolRunner {
         for (FilterKind expectedKind : FilterKind.values()) {
             Path filterOutput = getOutputFilePath("filters_" + expectedKind);
             Path filterH = getInputFilePath("filters.h");
-            run("--output", filterOutput.toString(), expectedKind.filterOption, expectedKind.symbolName, filterH.toString()).checkSuccess();
+            runAndCompile(filterOutput, expectedKind.filterOption, expectedKind.symbolName, filterH.toString());
             try (TestUtils.Loader loader = TestUtils.classLoader(filterOutput)) {
                 Class<?> cls = loader.loadClass("filters_h");
                 for (FilterKind kind : FilterKind.values()) {
@@ -67,7 +67,7 @@ public class TestFilters extends JextractToolRunner {
             Files.createDirectory(filterOutput);
             Path includes = filterOutput.resolve("test.conf");
             Path filterH = getInputFilePath("filters.h");
-            run("--dump-includes", includes.toString(), filterH.toString()).checkSuccess();
+            runNoOuput("--dump-includes", includes.toString(), filterH.toString()).checkSuccess();
             List<String> includeLines = Files.readAllLines(includes);
             outer: for (FilterKind kind : FilterKind.values()) {
                 String filterLine = kind.filterOption + " " + kind.symbolName;

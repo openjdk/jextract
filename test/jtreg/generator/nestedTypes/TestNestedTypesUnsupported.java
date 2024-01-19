@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,16 +32,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.nestedtypes.unsupported nested_types_unsupported.h
- * @build TestNestedTypesUnsupported
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedTypesUnsupported
- */
-/*
- * @test id=sources
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.nestedtypes.unsupported nested_types_unsupported.h
  * @build TestNestedTypesUnsupported
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedTypesUnsupported
  */

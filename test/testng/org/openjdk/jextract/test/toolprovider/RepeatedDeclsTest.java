@@ -28,9 +28,7 @@ import testlib.TestUtils;
 import org.testng.annotations.Test;
 
 import java.nio.file.Path;
-import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemorySegment;
 import java.lang.foreign.StructLayout;
 import testlib.JextractToolRunner;
 
@@ -42,7 +40,7 @@ public class RepeatedDeclsTest extends JextractToolRunner {
     public void repeatedDecls() throws Throwable {
         Path repeatedDeclsOutput = getOutputFilePath("repeatedDeclsgen");
         Path repeatedDeclsH = getInputFilePath("repeatedDecls.h");
-        run("--output", repeatedDeclsOutput.toString(), repeatedDeclsH.toString()).checkSuccess();
+        runAndCompile(repeatedDeclsOutput, repeatedDeclsH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(repeatedDeclsOutput)) {
             Class<?> cls = loader.loadClass("repeatedDecls_h");
             // check a method for "void func(int)"

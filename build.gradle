@@ -127,7 +127,7 @@ task createJextractImage(type: Exec) {
     executable = "${jdk22_home}/bin/jlink"
     args = [
          "--module-path=$jmods_dir",
-         "--add-modules=org.openjdk.jextract,jdk.compiler,jdk.zipfs",
+         "--add-modules=org.openjdk.jextract",
          "--output=${jextract_app_dir}",
          "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
          "--strip-debug", "--no-man-pages", "--no-header-files",

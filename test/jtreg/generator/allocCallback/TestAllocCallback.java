@@ -29,20 +29,11 @@ import java.lang.foreign.Arena;
 import static org.testng.Assert.assertEquals;
 
 /*
- * @test id=classes
+ * @test
  * @bug 7903239
  * @summary ofAddress factory of function pointer type is wrong for struct returns
  * @library /lib
  * @run main/othervm JtregJextract -l AllocCallback -t test.jextract.allocCallback alloc_callback.h
- * @build TestAllocCallback
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestAllocCallback
- */
-/*
- * @test id=sources
- * @bug 7903239
- * @summary ofAddress factory of function pointer type is wrong for struct returns
- * @library /lib
- * @run main/othervm JtregJextractSources -l AllocCallback -t test.jextract.allocCallback alloc_callback.h
  * @build TestAllocCallback
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestAllocCallback
  */

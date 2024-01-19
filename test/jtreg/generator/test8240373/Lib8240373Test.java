@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,7 +26,7 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.test8240373.test8240373_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8240373
  * @summary Jextract assigns type "Void" to enum macros
  * @library /lib
@@ -34,18 +34,6 @@ import static test.jextract.test8240373.test8240373_h.*;
  * @build Lib8240373Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Lib8240373Test
  */
-
-/*
- * @test id=sources
- * @bug 8240373
- * @summary Jextract assigns type "Void" to enum macros
- * @library /lib
- *
- * @run main/othervm JtregJextractSources -t test.jextract.test8240373 test8240373.h
- * @build Lib8240373Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Lib8240373Test
- */
-
 public class Lib8240373Test {
     @Test
     public void test() {

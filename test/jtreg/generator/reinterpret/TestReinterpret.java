@@ -31,20 +31,11 @@ import static test.jextract.reinterpret.reinterpret_h.*;
 import test.jextract.reinterpret.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8253102 7903626
  * @summary jextract should emit reinterpret utility method on struct classes
  * @library /lib
  * @run main/othervm JtregJextract -l Reinterpret -t test.jextract.reinterpret reinterpret.h
- * @build TestReinterpret
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestReinterpret
- */
-/*
- * @test id=sources
- * @bug 8253102 7903626
- * @summary jextract should emit reinterpret utility method on struct classes
- * @library /lib
- * @run main/othervm JtregJextractSources -l Reinterpret -t test.jextract.reinterpret reinterpret.h
  * @build TestReinterpret
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestReinterpret
  */

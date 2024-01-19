@@ -24,7 +24,8 @@
  */
 package org.openjdk.jextract.impl;
 
-import javax.tools.JavaFileObject;
+import org.openjdk.jextract.JavaSourceFile;
+
 import java.util.function.Function;
 
 final class SourceFileBuilder {
@@ -94,15 +95,15 @@ final class SourceFileBuilder {
         align--;
     }
 
-    public JavaFileObject toFile(String suffix, Function<String, String> finisher) {
-        return Utils.fileFromString(packageName, STR."\{className}\{suffix}", finisher.apply(sb.toString()));
+    public JavaSourceFile toFile(String suffix, Function<String, String> finisher) {
+        return new JavaSourceFile(STR."\{className}\{suffix}", packageName, finisher.apply(sb.toString()));
     }
 
-    public JavaFileObject toFile(Function<String, String> finisher) {
+    public JavaSourceFile toFile(Function<String, String> finisher) {
         return toFile("", finisher);
     }
 
-    public JavaFileObject toFile() {
+    public JavaSourceFile toFile() {
         return toFile(s -> s);
     }
 
