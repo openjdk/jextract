@@ -159,7 +159,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         if (!isVarArg) {
             appendLines(STR."""
 
-                \{MEMBER_MODS} MethodHandle \{getterName}() {
+                private static MethodHandle \{getterName}() {
                     class Holder {
                         static final FunctionDescriptor DESC = \{functionDescriptorString(2, decl.type())};
 
@@ -173,7 +173,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 appendBlankLine();
                 emitDocComment(decl);
                 appendLines(STR."""
-                public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
+                \{MEMBER_MODS} \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
                     var mh$ = \{getterName}();
                     try {
                         if (TRACE_DOWNCALLS) {
@@ -327,7 +327,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
-            public static \{type.getSimpleName()} \{javaName}() {
+            \{MEMBER_MODS} \{type.getSimpleName()} \{javaName}() {
                 return \{segmentConstant}.get(\{layoutVar}, 0L);
             }
             """);
@@ -341,7 +341,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
-            public static void \{javaName}(\{type.getSimpleName()} x) {
+            \{MEMBER_MODS} void \{javaName}(\{type.getSimpleName()} x) {
                 \{segmentConstant}.set(\{layoutVar}, 0L, x);
             }
             """);
@@ -354,7 +354,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         incrAlign();
         emitDocComment(varTree, docHeader);
         appendLines(STR."""
-            public static MemorySegment \{javaName}() {
+            \{MEMBER_MODS} MemorySegment \{javaName}() {
                 return \{segmentConstant};
             }
             """);
@@ -367,7 +367,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         incrAlign();
         emitDocComment(varTree, docHeader);
         appendLines(STR."""
-            public static void \{javaName}(MemorySegment varValue) {
+            \{MEMBER_MODS} void \{javaName}(MemorySegment varValue) {
                 MemorySegment.copy(varValue, 0L, \{segmentConstant}, 0L, \{layoutVar}.byteSize());
             }
             """);
