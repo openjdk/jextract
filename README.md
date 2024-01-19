@@ -6,7 +6,7 @@
 
 Pre-built binaries for jextract are periodically released [here](https://jdk.java.net/jextract). These binaries are built from the `master` branch of this repo, and target the foreign memory access and function API in the latest mainline JDK (for which binaries can be found [here](https://jdk.java.net)).
 
-Alternatively, to build jextract from the latest sources (which include all the latest updates and fixes) please refer to the [building](#building--testing) section below.
+Alternatively, to build jextract from the latest sources (which include all the latest updates and fixes) please refer to the [building](#building) section below.
 
 ---
 
@@ -154,7 +154,7 @@ glutSolidTeapot(0.5)
 
 ---
 
-### Building & Testing
+### Building
 
 `jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/434), so a suitable [jdk 22 distribution](https://jdk.java.net/22/) is also required.
 
@@ -201,7 +201,7 @@ $ build/jextract/bin/jextract
 Expected a header file
 ```
 
-#### Testing
+### Testing
 
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
