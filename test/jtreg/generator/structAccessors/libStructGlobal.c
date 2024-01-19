@@ -21,7 +21,6 @@
  * questions.
  */
 
-#include <clinit_global.h>
+#include "globalStructAccess.h"
 
-int global1 = 1;
-int global2 = 2;
+struct Point p = { 1, 2 };

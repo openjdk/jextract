@@ -33,7 +33,7 @@ import static org.testng.Assert.assertEquals;
 /*
  * @test
   * @library /lib
- * @run main/othervm JtregJextract -l Func -t test.jextract.nestedaccess nestedStructAccess.h
+ * @run main/othervm JtregJextract -t test.jextract.nestedaccess nestedStructAccess.h
  * @build TestNestedStructAccess
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedStructAccess
  */

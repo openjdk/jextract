@@ -21,7 +21,9 @@
  * questions.
  */
 
-#include <clinit_global.h>
+struct Point {
+   int x;
+   int y;
+};
 
-int global1 = 1;
-int global2 = 2;
+extern struct Point p;
