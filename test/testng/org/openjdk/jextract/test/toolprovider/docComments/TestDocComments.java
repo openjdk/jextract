@@ -21,7 +21,7 @@
  * questions.
  */
 
-package org.openjdk.jextract.test.toolprovider.Test7903257;
+package org.openjdk.jextract.test.toolprovider.docComments;
 
 import testlib.JextractToolRunner;
 import testlib.TestUtils;
@@ -170,6 +170,20 @@ public class TestDocComments extends JextractToolRunner {
     }
 
     @Test
+    public void testNestedAnon() throws IOException {
+        var comments = getDocComments("structs.h", "NestedAnon.java");
+        assertEquals(comments, List.of(
+            "struct NestedAnon { struct { int l; long long h; } u; }",
+            "struct { int l; long long h; }",
+            "Getter for field: int l",
+            "Setter for field: int l",
+            "Getter for field: long long h",
+            "Setter for field: long long h",
+            "Getter for field: struct { int l; long long h; } u",
+            "Setter for field: struct { int l; long long h; } u"));
+    }
+
+    @Test
     public void testStructTypdef() throws IOException {
         var comments = getDocComments("structs.h", "Point_t.java");
         assertEquals(comments, List.of(
@@ -178,7 +192,7 @@ public class TestDocComments extends JextractToolRunner {
 
     private List<String> getDocComments(String header, String outputFile)
             throws IOException {
-        var output = getOutputFilePath("7903257-parse-" + header);
+        var output = getOutputFilePath("TestDocComments-parse-" + header);
         var outputH = getInputFilePath(header);
         run(output, outputH.toString());
         try {

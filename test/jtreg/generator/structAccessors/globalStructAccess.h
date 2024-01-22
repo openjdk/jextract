@@ -21,9 +21,15 @@
  * questions.
  */
 
+#ifdef _WIN64
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
+
 struct Point {
    int x;
    int y;
 };
 
-extern struct Point p;
+EXPORT extern struct Point p;
