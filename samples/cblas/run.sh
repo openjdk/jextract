@@ -1,3 +1,3 @@
-time java --enable-native-access=ALL-UNNAMED \
+java --enable-native-access=ALL-UNNAMED \
     -Djava.library.path=/usr/local/opt/openblas/lib \
     TestBlas.java
