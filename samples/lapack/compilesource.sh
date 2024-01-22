@@ -1,5 +1,5 @@
-jextract --output src --source \
+jextract --output src \
    -l lapacke -t lapack \
    /usr/local/opt/lapack/include/lapacke.h 
 
-javac --enable-preview --source=22 -d . src/lapack/*.java
+javac --source=22 -d . src/lapack/*.java

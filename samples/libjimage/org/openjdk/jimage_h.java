@@ -2,12 +2,15 @@
 
 package org.openjdk;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 public class jimage_h {
 
@@ -42,6 +45,15 @@ public class jimage_h {
     public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
             .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
     public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;
+
+    static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
+
+    static void traceDowncall(String name, Object... args) {
+         String traceArgs = Arrays.stream(args)
+                       .map(Object::toString)
+                       .collect(Collectors.joining(", "));
+         System.out.printf("%s(%s)\n", name, traceArgs);
+    }
 
     static MemorySegment findOrThrow(String symbol) {
         return SYMBOL_LOOKUP.find(symbol)
@@ -117,11 +129,7 @@ public class jimage_h {
      * }
      */
     public static final OfLong JImageLocationRef = jimage_h.C_LONG_LONG;
-    /**
-     * {@snippet lang=c :
-     * JImageFile *JIMAGE_Open(const char *name, jint *error)
-     * }
-     */
+
     public static MethodHandle JIMAGE_Open$MH() {
         class Holder {
             static final FunctionDescriptor DESC = FunctionDescriptor.of(
@@ -137,19 +145,23 @@ public class jimage_h {
         return Holder.MH;
     }
 
+    /**
+     * {@snippet lang=c :
+     * JImageFile *JIMAGE_Open(const char *name, jint *error)
+     * }
+     */
     public static MemorySegment JIMAGE_Open(MemorySegment name, MemorySegment error) {
         var mh$ = JIMAGE_Open$MH();
         try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("JIMAGE_Open", name, error);
+            }
             return (MemorySegment) mh$.invokeExact(name, error);
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
     }
-    /**
-     * {@snippet lang=c :
-     * void JIMAGE_Close(JImageFile *jimage)
-     * }
-     */
+
     public static MethodHandle JIMAGE_Close$MH() {
         class Holder {
             static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
@@ -163,19 +175,23 @@ public class jimage_h {
         return Holder.MH;
     }
 
+    /**
+     * {@snippet lang=c :
+     * void JIMAGE_Close(JImageFile *jimage)
+     * }
+     */
     public static void JIMAGE_Close(MemorySegment jimage) {
         var mh$ = JIMAGE_Close$MH();
         try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("JIMAGE_Close", jimage);
+            }
             mh$.invokeExact(jimage);
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
     }
-    /**
-     * {@snippet lang=c :
-     * const char *JIMAGE_PackageToModule(JImageFile *jimage, const char *package_name)
-     * }
-     */
+
     public static MethodHandle JIMAGE_PackageToModule$MH() {
         class Holder {
             static final FunctionDescriptor DESC = FunctionDescriptor.of(
@@ -191,19 +207,23 @@ public class jimage_h {
         return Holder.MH;
     }
 
+    /**
+     * {@snippet lang=c :
+     * const char *JIMAGE_PackageToModule(JImageFile *jimage, const char *package_name)
+     * }
+     */
     public static MemorySegment JIMAGE_PackageToModule(MemorySegment jimage, MemorySegment package_name) {
         var mh$ = JIMAGE_PackageToModule$MH();
         try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("JIMAGE_PackageToModule", jimage, package_name);
+            }
             return (MemorySegment) mh$.invokeExact(jimage, package_name);
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
     }
-    /**
-     * {@snippet lang=c :
-     * JImageLocationRef JIMAGE_FindResource(JImageFile *jimage, const char *module_name, const char *version, const char *name, jlong *size)
-     * }
-     */
+
     public static MethodHandle JIMAGE_FindResource$MH() {
         class Holder {
             static final FunctionDescriptor DESC = FunctionDescriptor.of(
@@ -222,19 +242,23 @@ public class jimage_h {
         return Holder.MH;
     }
 
+    /**
+     * {@snippet lang=c :
+     * JImageLocationRef JIMAGE_FindResource(JImageFile *jimage, const char *module_name, const char *version, const char *name, jlong *size)
+     * }
+     */
     public static long JIMAGE_FindResource(MemorySegment jimage, MemorySegment module_name, MemorySegment version, MemorySegment name, MemorySegment size) {
         var mh$ = JIMAGE_FindResource$MH();
         try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("JIMAGE_FindResource", jimage, module_name, version, name, size);
+            }
             return (long) mh$.invokeExact(jimage, module_name, version, name, size);
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
     }
-    /**
-     * {@snippet lang=c :
-     * jlong JIMAGE_GetResource(JImageFile *jimage, JImageLocationRef location, char *buffer, jlong size)
-     * }
-     */
+
     public static MethodHandle JIMAGE_GetResource$MH() {
         class Holder {
             static final FunctionDescriptor DESC = FunctionDescriptor.of(
@@ -252,19 +276,23 @@ public class jimage_h {
         return Holder.MH;
     }
 
+    /**
+     * {@snippet lang=c :
+     * jlong JIMAGE_GetResource(JImageFile *jimage, JImageLocationRef location, char *buffer, jlong size)
+     * }
+     */
     public static long JIMAGE_GetResource(MemorySegment jimage, long location, MemorySegment buffer, long size) {
         var mh$ = JIMAGE_GetResource$MH();
         try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("JIMAGE_GetResource", jimage, location, buffer, size);
+            }
             return (long) mh$.invokeExact(jimage, location, buffer, size);
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
     }
-    /**
-     * {@snippet lang=c :
-     * void JIMAGE_ResourceIterator(JImageFile *jimage, JImageResourceVisitor_t visitor, void *arg)
-     * }
-     */
+
     public static MethodHandle JIMAGE_ResourceIterator$MH() {
         class Holder {
             static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
@@ -280,9 +308,17 @@ public class jimage_h {
         return Holder.MH;
     }
 
+    /**
+     * {@snippet lang=c :
+     * void JIMAGE_ResourceIterator(JImageFile *jimage, JImageResourceVisitor_t visitor, void *arg)
+     * }
+     */
     public static void JIMAGE_ResourceIterator(MemorySegment jimage, MemorySegment visitor, MemorySegment arg) {
         var mh$ = JIMAGE_ResourceIterator$MH();
         try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("JIMAGE_ResourceIterator", jimage, visitor, arg);
+            }
             mh$.invokeExact(jimage, visitor, arg);
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
