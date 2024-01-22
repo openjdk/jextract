@@ -2,23 +2,28 @@
 
 package org.openjdk;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
  * typedef int (*JImageResourceVisitor_t)(JImageFile *, const char *, const char *, const char *, const char *, const char *, void *)
  * }
  */
-public interface JImageResourceVisitor_t {
+public class JImageResourceVisitor_t {
 
-    int apply(MemorySegment jimage, MemorySegment module_name, MemorySegment version, MemorySegment package_, MemorySegment name, MemorySegment extension, MemorySegment arg);
+    public interface Function {
+        int apply(MemorySegment jimage, MemorySegment module_name, MemorySegment version, MemorySegment package_, MemorySegment name, MemorySegment extension, MemorySegment arg);
+    }
 
-    FunctionDescriptor $DESC = FunctionDescriptor.of(
+    private static final FunctionDescriptor $DESC = FunctionDescriptor.of(
         jimage_h.C_INT,
         jimage_h.C_POINTER,
         jimage_h.C_POINTER,
@@ -29,23 +34,24 @@ public interface JImageResourceVisitor_t {
         jimage_h.C_POINTER
     );
 
-    MethodHandle UP$MH = jimage_h.upcallHandle(JImageResourceVisitor_t.class, "apply", $DESC);
+    public static FunctionDescriptor descriptor() {
+        return $DESC;
+    }
 
-    static MemorySegment allocate(JImageResourceVisitor_t fi, Arena scope) {
+    private static final MethodHandle UP$MH = jimage_h.upcallHandle(JImageResourceVisitor_t.Function.class, "apply", $DESC);
+
+    public static MemorySegment allocate(JImageResourceVisitor_t.Function fi, Arena scope) {
         return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
     }
 
-    MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+    private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
-    static JImageResourceVisitor_t ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena, null);
-        return (MemorySegment _jimage, MemorySegment _module_name, MemorySegment _version, MemorySegment _package_, MemorySegment _name, MemorySegment _extension, MemorySegment _arg) -> {
-            try {
-                return (int) DOWN$MH.invokeExact(symbol, _jimage, _module_name, _version, _package_, _name, _extension, _arg);
-            } catch (Throwable ex$) {
-                throw new AssertionError("should not reach here", ex$);
-            }
-        };
+    public static int invoke(MemorySegment funcPtr,MemorySegment jimage, MemorySegment module_name, MemorySegment version, MemorySegment package_, MemorySegment name, MemorySegment extension, MemorySegment arg) {
+        try {
+            return (int) DOWN$MH.invokeExact(funcPtr, jimage, module_name, version, package_, name, extension, arg);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
     }
 }
 
