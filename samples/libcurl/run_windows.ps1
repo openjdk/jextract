@@ -6,8 +6,8 @@ param(
 )
 
 java `
+  -cp classes `
   --enable-native-access=ALL-UNNAMED `
-  --enable-preview --source=22 `
   -D"java.library.path=$curlpath\bin" `
   CurlMain.java `
   $url

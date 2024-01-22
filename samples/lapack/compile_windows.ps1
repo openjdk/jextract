@@ -4,7 +4,10 @@ param(
 )
 
 jextract `
+  --output src `
   -t lapack `
   -I "$lapackPath\include" `
   -l liblapacke `
   "$lapackPath\include\lapacke.h"
+
+javac -d classes (ls -r src/*.java)
