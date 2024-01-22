@@ -450,9 +450,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             } else if (type == boolean.class) {
                 boolean booleanValue = ((Number)value).byteValue() != 0;
                 buf.append(booleanValue);
-            } else {
+            } else if (value instanceof Number n) {
                 buf.append("(" + type.getName() + ")");
-                buf.append(value + "L");
+                buf.append(n.longValue() + "L");
+            } else {
+                throw new IllegalArgumentException(STR."Unhandled type: \{type}, or value: \{value}");
             }
             return buf.toString();
         }
