@@ -33,3 +33,10 @@ struct Point3D {
 };
 
 typedef struct Point Point_t;
+
+struct NestedAnon {
+    struct {
+        int l;
+        long long h;
+    } u;
+};
