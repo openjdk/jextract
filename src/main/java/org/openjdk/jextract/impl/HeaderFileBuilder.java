@@ -394,16 +394,28 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {
         incrAlign();
-        appendLines(STR."""
-            private static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
-
-            """);
-        emitDocComment(declaration);
-        appendLines(STR."""
-            public static \{javaType.getSimpleName()} \{constantName}() {
-                return \{constantName};
-            }
-            """);
+        boolean useHolderClass = value instanceof String;
+        if (useHolderClass) {
+            emitDocComment(declaration);
+            appendLines(STR."""
+                public static \{javaType.getSimpleName()} \{constantName}() {
+                    class Holder {
+                        static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
+                    }
+                    return Holder.\{constantName};
+                }
+                """);
+        } else {
+            appendLines(STR."""
+                private static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
+                """);
+            emitDocComment(declaration);
+            appendLines(STR."""
+                public static \{javaType.getSimpleName()} \{constantName}() {
+                    return \{constantName};
+                }
+                """);
+        }
         decrAlign();
     }
 
