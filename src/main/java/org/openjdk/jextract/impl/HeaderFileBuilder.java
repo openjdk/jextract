@@ -250,6 +250,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     void emitRuntimeHelperMethods() {
         appendIndentedLines("""
 
+            static final Arena LIBRARY_ARENA = Arena.ofAuto();
             static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
 
             static void traceDowncall(String name, Object... args) {
@@ -393,23 +394,33 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {
         incrAlign();
-        appendLines(STR."""
-            private static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
-
-            """);
-        emitDocComment(declaration);
-        appendLines(STR."""
-            public static \{javaType.getSimpleName()} \{constantName}() {
-                return \{constantName};
-            }
-            """);
+        if (value instanceof String) {
+            emitDocComment(declaration);
+            appendLines(STR."""
+                public static \{javaType.getSimpleName()} \{constantName}() {
+                    class Holder {
+                        static final \{javaType.getSimpleName()} \{constantName}
+                            = \{runtimeHelperName()}.LIBRARY_ARENA.allocateFrom("\{Utils.quote(Objects.toString(value))}");
+                    }
+                    return Holder.\{constantName};
+                }
+                """);
+        } else {
+            appendLines(STR."""
+                private static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
+                """);
+            emitDocComment(declaration);
+            appendLines(STR."""
+                public static \{javaType.getSimpleName()} \{constantName}() {
+                    return \{constantName};
+                }
+                """);
+        }
         decrAlign();
     }
 
     private String constantValue(Class<?> type, Object value) {
-        if (value instanceof String) {
-            return STR."Arena.ofAuto().allocateFrom(\"\{Utils.quote(Objects.toString(value))}\")";
-        } else if (type == MemorySegment.class) {
+        if (type == MemorySegment.class) {
             return STR."MemorySegment.ofAddress(\{((Number)value).longValue()}L)";
         } else {
             StringBuilder buf = new StringBuilder();
@@ -439,9 +450,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             } else if (type == boolean.class) {
                 boolean booleanValue = ((Number)value).byteValue() != 0;
                 buf.append(booleanValue);
-            } else {
+            } else if (value instanceof Number n) {
                 buf.append("(" + type.getName() + ")");
-                buf.append(value + "L");
+                buf.append(n.longValue() + "L");
+            } else {
+                throw new IllegalArgumentException(STR."Unhandled type: \{type}, or value: \{value}");
             }
             return buf.toString();
         }
