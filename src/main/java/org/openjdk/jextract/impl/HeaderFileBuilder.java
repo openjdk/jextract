@@ -25,30 +25,20 @@
 package org.openjdk.jextract.impl;
 
 import java.io.File;
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.Linker;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
-import java.lang.foreign.SymbolLookup;
 import java.lang.invoke.MethodHandle;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -56,8 +46,6 @@ import java.util.stream.Stream;
  * method is called to get overall generated source string.
  */
 class HeaderFileBuilder extends ClassSourceBuilder {
-
-    static final String MEMBER_MODS = "public static";
 
     HeaderFileBuilder(SourceFileBuilder builder, String className, String superName, String runtimeHelperName) {
         super(builder, "public", Kind.CLASS, className, superName, null, runtimeHelperName);
@@ -159,7 +147,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         if (!isVarArg) {
             appendLines(STR."""
 
-                \{MEMBER_MODS} MethodHandle \{getterName}() {
+                private static MethodHandle \{getterName}() {
                     class Holder {
                         static final FunctionDescriptor DESC = \{functionDescriptorString(2, decl.type())};
 
@@ -411,7 +399,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             """);
         emitDocComment(declaration);
         appendLines(STR."""
-            \{MEMBER_MODS} \{javaType.getSimpleName()} \{constantName}() {
+            public static \{javaType.getSimpleName()} \{constantName}() {
                 return \{constantName};
             }
             """);
