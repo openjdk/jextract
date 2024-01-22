@@ -250,6 +250,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     void emitRuntimeHelperMethods() {
         appendIndentedLines("""
 
+            static final Arena LIBRARY_ARENA = Arena.ofAuto();
             static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
 
             static void traceDowncall(String name, Object... args) {
@@ -408,7 +409,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private String constantValue(Class<?> type, Object value) {
         if (value instanceof String) {
-            return STR."Arena.ofAuto().allocateFrom(\"\{Utils.quote(Objects.toString(value))}\")";
+            return STR."\{runtimeHelperName()}.LIBRARY_ARENA.allocateFrom(\"\{Utils.quote(Objects.toString(value))}\")";
         } else if (type == MemorySegment.class) {
             return STR."MemorySegment.ofAddress(\{((Number)value).longValue()}L)";
         } else {
