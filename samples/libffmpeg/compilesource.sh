@@ -1,4 +1,4 @@
-jextract --output src --source -t libffmpeg \
+jextract --output src -t libffmpeg \
   -I /usr/local/Cellar/ffmpeg@4/4.4.4_4/include \
   -l avcodec \
   -l avformat \
@@ -7,4 +7,4 @@ jextract --output src --source -t libffmpeg \
   --header-class-name Libffmpeg \
   libffmpeg.h
 
-javac --enable-preview --source=22 -d . src/libffmpeg/*.java
+javac --source=22 -d . src/libffmpeg/*.java
