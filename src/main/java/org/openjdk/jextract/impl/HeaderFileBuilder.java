@@ -161,7 +161,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 appendBlankLine();
                 emitDocComment(decl);
                 appendLines(STR."""
-                \{"public static"} \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
+                public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
                     var mh$ = \{getterName}();
                     try {
                         if (TRACE_DOWNCALLS) {
