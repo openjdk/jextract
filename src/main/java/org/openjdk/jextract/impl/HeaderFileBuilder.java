@@ -394,13 +394,13 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {
         incrAlign();
-        boolean useHolderClass = value instanceof String;
-        if (useHolderClass) {
+        if (value instanceof String) {
             emitDocComment(declaration);
             appendLines(STR."""
                 public static \{javaType.getSimpleName()} \{constantName}() {
                     class Holder {
-                        static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
+                        static final \{javaType.getSimpleName()} \{constantName}
+                            = \{runtimeHelperName()}.LIBRARY_ARENA.allocateFrom("\{Utils.quote(Objects.toString(value))}");
                     }
                     return Holder.\{constantName};
                 }
@@ -420,9 +420,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     private String constantValue(Class<?> type, Object value) {
-        if (value instanceof String) {
-            return STR."\{runtimeHelperName()}.LIBRARY_ARENA.allocateFrom(\"\{Utils.quote(Objects.toString(value))}\")";
-        } else if (type == MemorySegment.class) {
+        if (type == MemorySegment.class) {
             return STR."MemorySegment.ofAddress(\{((Number)value).longValue()}L)";
         } else {
             StringBuilder buf = new StringBuilder();
