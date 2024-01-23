@@ -88,7 +88,6 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     void end() {
         if (!inAnonymousNested()) {
             emitAsSlice();
-            appendBlankLine();
             emitSizeof();
             emitAllocatorAllocate();
             emitAllocatorAllocateArray();
@@ -227,6 +226,10 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String arrayParam = safeParameterName("array");
         appendIndentedLines(STR."""
 
+            /**
+             * Obtains a slice of {@code arrayParam} which selects the array element at {@code index}.
+             * The returned segment has address {@code arrayParam.address() + index * layout().byteSize}
+             */
             public static MemorySegment asSlice(MemorySegment \{arrayParam}, long index) {
                 return \{arrayParam}.asSlice(layout().byteSize() * index);
             }
@@ -234,7 +237,11 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private void emitSizeof() {
-        appendIndentedLines("""
+        appendIndentedLines(STR."""
+
+            /**
+             * The size (in bytes) of this \{kindName()}
+             */
             public static long sizeof() { return layout().byteSize(); }
             """);
     }
@@ -243,6 +250,9 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String allocatorParam = safeParameterName("allocator");
         appendIndentedLines(STR."""
 
+            /**
+             * Allocate a segment of size {@code layout().byteSize()} using {@code \{allocatorParam}}
+             */
             public static MemorySegment allocate(SegmentAllocator \{allocatorParam}) {
                 return \{allocatorParam}.allocate(layout());
             }
@@ -254,6 +264,10 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String elementCountParam = safeParameterName("elementCount");
         appendIndentedLines(STR."""
 
+            /**
+             * Allocate an array of size {@code \{elementCountParam}} using {@code \{allocatorParam}}.
+             * The returned segment has size {@code \{elementCountParam} * layout().byteSize()}.
+             */
             public static MemorySegment allocateArray(long \{elementCountParam}, SegmentAllocator \{allocatorParam}) {
                 return \{allocatorParam}.allocate(MemoryLayout.sequenceLayout(\{elementCountParam}, layout()));
             }
@@ -263,10 +277,18 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private void emitReinterpret() {
         appendIndentedLines("""
 
+            /**
+             * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction) (if any).
+             * The returned segment has size {@code layout().byteSize()}
+             */
             public static MemorySegment reinterpret(MemorySegment addr, Arena arena, Consumer<MemorySegment> cleanup) {
                 return reinterpret(addr, 1, arena, cleanup);
             }
 
+            /**
+             * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction) (if any).
+             * The returned segment has size {@code elementCount * layout().byteSize()}
+             */
             public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
                 return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
             }
@@ -278,6 +300,9 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
             private static final GroupLayout $LAYOUT = \{structOrUnionLayoutString(structType)};
 
+            /**
+             * The layout of this \{kindName()}
+             */
             public static final GroupLayout layout() {
                 return $LAYOUT;
             }

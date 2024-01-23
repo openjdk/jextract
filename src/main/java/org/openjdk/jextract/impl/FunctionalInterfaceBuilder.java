@@ -57,7 +57,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         fib.classBegin();
         fib.emitFunctionalInterface();
         fib.emitDescriptorDecl();
-        fib.emitFunctionalFactories();
+        fib.emitFunctionalFactory();
         fib.emitInvoke();
         fib.classEnd();
     }
@@ -65,19 +65,26 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private void emitFunctionalInterface() {
         appendIndentedLines(STR."""
 
+            /**
+             * The function pointer signature, expressed as a functional interface
+             */
             public interface Function {
                 \{methodType.returnType().getSimpleName()} apply(\{paramExprs()});
             }
             """);
     }
 
-    private void emitFunctionalFactories() {
+    private void emitFunctionalFactory() {
         appendIndentedLines(STR."""
 
             private static final MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.Function.class, "apply", $DESC);
 
-            public static MemorySegment allocate(\{className()}.Function fi, Arena scope) {
-                return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
+            /**
+             * Allocates a new upcall segment, whose implementation is defined by {@code fi}.
+             * The lifetime of the returned segment is managed by {@code arena}
+             */
+            public static MemorySegment allocate(\{className()}.Function fi, Arena arena) {
+                return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, arena);
             }
             """);
     }
@@ -91,6 +98,9 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
             private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
+            /**
+             * Invoke the upcall segment {@code funcPtr}, with given parameters
+             */
             public static \{methodType.returnType().getSimpleName()} invoke(MemorySegment funcPtr\{allocParam}\{paramStr}) {
                 try {
                     \{retExpr()} DOWN$MH.invokeExact(funcPtr\{allocArg}\{otherArgExprs()});
@@ -145,6 +155,9 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
             private static final FunctionDescriptor $DESC = \{functionDescriptorString(0, funcType)};
 
+            /**
+             * The descriptor of this function pointer
+             */
             public static FunctionDescriptor descriptor() {
                 return $DESC;
             }

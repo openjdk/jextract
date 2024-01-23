@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 public class TestDocComments extends JextractToolRunner {
     // Regular expression for javadoc comment text
@@ -103,7 +104,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testFunctionPointer() throws IOException {
         var comments = getDocComments("funcptrs.h", "funcptr.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "void (*funcptr)(int *, int)"
         ));
     }
@@ -111,7 +112,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testFunctionPointer2() throws IOException {
         var comments = getDocComments("funcptrs.h", "signal$func.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "void (*func)(int)"
         ));
     }
@@ -119,7 +120,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testFunctionPointer3() throws IOException {
         var comments = getDocComments("funcptrs.h", "signal$return.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "void (*signal(int sig, void (*func)(int)))(int)"
         ));
     }
@@ -127,7 +128,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testFunctionPointer4() throws IOException {
         var comments = getDocComments("funcptrs.h", "funcptrs_h.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "Getter for variable: void (*funcptr)(int *, int)",
             "Setter for variable: void (*funcptr)(int *, int)",
             "void (*signal(int sig, void (*func)(int)))(int)"
@@ -148,7 +149,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testStruct() throws IOException {
         var comments = getDocComments("structs.h", "Point.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "struct Point { int x; int y; }",
             "Getter for field: int x",
             "Setter for field: int x",
@@ -159,7 +160,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testStruct2() throws IOException {
         var comments = getDocComments("structs.h", "Point3D.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "struct Point3D { int x; int y; int z; }",
             "Getter for field: int x",
             "Setter for field: int x",
@@ -172,7 +173,7 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testNestedAnon() throws IOException {
         var comments = getDocComments("structs.h", "NestedAnon.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "struct NestedAnon { struct { int l; long long h; } u; }",
             "struct { int l; long long h; }",
             "Getter for field: int l",
@@ -227,5 +228,13 @@ public class TestDocComments extends JextractToolRunner {
                 .trim());
         }
         return strings;
+    }
+
+    static void assertContains(List<String> found, List<String> expected) {
+        for (String e : expected) {
+            if (!found.contains(e)) {
+                fail(String.format("\"%s\" not found in: ", e, found));
+            }
+        }
     }
 }
