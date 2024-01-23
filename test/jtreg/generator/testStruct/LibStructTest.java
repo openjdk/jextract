@@ -78,6 +78,31 @@ public class LibStructTest {
         }
     }
 
+    @Test
+    public void testAllocateFrom() {
+        try (Arena arena = Arena.ofConfined()) {
+            var point = Point.allocateFrom(arena, 1, 2);
+            assertEquals(Point.x(point), 1);
+            assertEquals(Point.y(point), 2);
+        }
+    }
+
+    @Test
+    public void testInit() {
+        try (Arena arena = Arena.ofConfined()) {
+            var seg = Point.allocateArray(3, arena);
+            for (int i = 0; i < 3; i++) {
+                MemorySegment point = Point.asSlice(seg, i);
+                Point.init(point, 56 + i, 65 + i);
+            }
+            for (int i = 0; i < 3; i++) {
+                MemorySegment point = Point.asSlice(seg, i);
+                assertEquals(Point.x(point), 56 + i);
+                assertEquals(Point.y(point), 65 + i);
+            }
+        }
+    }
+
     private static void checkField(GroupLayout group, String fieldName, MemoryLayout expected) {
         assertEquals(group.select(PathElement.groupElement(fieldName)), expected.withName(fieldName));
     }

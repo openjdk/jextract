@@ -51,6 +51,8 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private final Declaration.Scoped structTree;
     private final Type structType;
     private final Deque<Declaration> nestedAnonDeclarations;
+    private record Field(String name, Class<?> type) {}
+    private final List<Field> seenFields = new ArrayList<>();
 
     StructBuilder(SourceFileBuilder builder, String modifiers, String className,
                   ClassSourceBuilder enclosing, String runtimeHelperName, Declaration.Scoped structTree) {
@@ -92,6 +94,10 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             emitSizeof();
             emitAllocatorAllocate();
             emitAllocatorAllocateArray();
+            if (!seenFields.isEmpty()) {
+                emitInit();
+                emitAllocateFrom();
+            }
             emitReinterpret();
             classEnd();
             if (isNested()) {
@@ -133,6 +139,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     @Override
     public void addVar(Declaration.Variable varTree) {
         String javaName = JavaName.getOrThrow(varTree);
+        seenFields.add(new Field(javaName, Utils.carrierFor(varTree.type())));
         appendBlankLine();
         String offsetField = emitOffsetFieldDecl(varTree);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
@@ -256,6 +263,44 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
             public static MemorySegment allocateArray(long \{elementCountParam}, SegmentAllocator \{allocatorParam}) {
                 return \{allocatorParam}.allocate(MemoryLayout.sequenceLayout(\{elementCountParam}, layout()));
+            }
+            """);
+    }
+
+    private String paramExprs() {
+        return seenFields.stream()
+            .map(sf -> sf.type().getSimpleName() + " " + sf.name())
+            .collect(Collectors.joining(", "));
+    }
+
+    private void emitInit() {
+        appendIndentedLines(STR."""
+
+            public static void init(MemorySegment struct, \{paramExprs()}) {
+            """);
+        incrAlign();
+        for (Field field : seenFields) {
+            appendIndentedLines(STR."""
+                \{field.name()}(struct, \{field.name()});
+                """);
+        }
+        decrAlign();
+        appendIndentedLines("""
+            }
+            """);
+    }
+
+    private void emitAllocateFrom() {
+        String allocatorParam = safeParameterName("allocator");
+        String argExprs = seenFields.stream()
+                .map(Field::name)
+                .collect(Collectors.joining(", "));
+        appendIndentedLines(STR."""
+
+            public static MemorySegment allocateFrom(SegmentAllocator \{allocatorParam}, \{paramExprs()}) {
+                MemorySegment $result = \{allocatorParam}.allocate(layout());
+                init($result, \{argExprs});
+                return $result;
             }
             """);
     }
