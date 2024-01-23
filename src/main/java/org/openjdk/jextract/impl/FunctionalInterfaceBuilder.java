@@ -80,7 +80,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             private static final MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.Function.class, "apply", $DESC);
 
             /**
-             * Allocates a new upcall segment, whose implementation is defined by {@code fi}.
+             * Allocates a new upcall stub, whose implementation is defined by {@code fi}.
              * The lifetime of the returned segment is managed by {@code arena}
              */
             public static MemorySegment allocate(\{className()}.Function fi, Arena arena) {
@@ -99,7 +99,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
             /**
-             * Invoke the upcall segment {@code funcPtr}, with given parameters
+             * Invoke the upcall stub {@code funcPtr}, with given parameters
              */
             public static \{methodType.returnType().getSimpleName()} invoke(MemorySegment funcPtr\{allocParam}\{paramStr}) {
                 try {

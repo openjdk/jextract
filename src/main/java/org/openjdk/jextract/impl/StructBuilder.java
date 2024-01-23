@@ -228,7 +228,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
             /**
              * Obtains a slice of {@code arrayParam} which selects the array element at {@code index}.
-             * The returned segment has address {@code arrayParam.address() + index * layout().byteSize}
+             * The returned segment has address {@code arrayParam.address() + index * layout().byteSize()}
              */
             public static MemorySegment asSlice(MemorySegment \{arrayParam}, long index) {
                 return \{arrayParam}.asSlice(layout().byteSize() * index);
