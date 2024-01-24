@@ -144,8 +144,7 @@ abstract class ClassSourceBuilder {
         appendIndentedLines(STR."""
 
             \{className}() {
-                // Suppresses public default constructor, ensuring non-instantiability,
-                // but allows generated subclasses in same package.
+                // Should not be called directly
             }
             """);
     }
