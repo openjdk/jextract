@@ -46,7 +46,7 @@ public class TestPrintf {
     public void testsPrintf(String fmt, Object[] args, String expected, MemoryLayout[] unused) {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment s = arena.allocate(1024);
-            my_sprintf(s, arena.allocateFrom(fmt), args.length, args);
+            my_sprintf.invoke(s, arena.allocateFrom(fmt), args.length, args);
             String str = s.getString(0);
             assertEquals(str, expected);
         }
@@ -56,8 +56,8 @@ public class TestPrintf {
     public void testsPrintfInvoker(String fmt, Object[] args, String expected, MemoryLayout[] layouts) {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment s = arena.allocate(1024);
-            my_sprintf$makeInvoker(layouts)
-                .my_sprintf(s, arena.allocateFrom(fmt), args.length, args);
+            my_sprintf(layouts)
+                    .apply(s, arena.allocateFrom(fmt), args.length, args);
             String str = s.getString(0);
             assertEquals(str, expected);
         }
@@ -67,15 +67,15 @@ public class TestPrintf {
     public void testsPrintfInvokerWrongArgs(String fmt, MemoryLayout[] layouts, Object[] args) {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment s = arena.allocate(1024);
-            my_sprintf$makeInvoker(layouts)
-                .my_sprintf(s, arena.allocateFrom(fmt), args.length, args); // should throw
+            my_sprintf(layouts)
+                    .apply(s, arena.allocateFrom(fmt), args.length, args); // should throw
         }
     }
 
     // linker does not except unpromoted layouts
     @Test(dataProvider = "illegalLinkCases", expectedExceptions = IllegalArgumentException.class)
     public void testsPrintfInvokerWrongArgs(MemoryLayout[] layouts) {
-        my_sprintf$makeInvoker(layouts); // should throw
+        my_sprintf(layouts); // should throw
     }
 
     // data providers:

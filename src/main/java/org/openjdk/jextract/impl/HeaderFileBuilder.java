@@ -134,10 +134,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
 
         String retType = declType.returnType().getSimpleName();
-        String returnExpr = "";
-        if (!declType.returnType().equals(void.class)) {
-            returnExpr = STR."return (\{retType}) ";
-        }
+        boolean isVoid = declType.returnType().equals(void.class);
+        String returnNoCast = isVoid ? "" : STR."return ";
+        String returnWithCast = isVoid ? "" : STR."\{returnNoCast}(\{retType})";
         String getterName = mangleName(javaName, MethodHandle.class);
         String paramList = String.join(", ", finalParamNames);
         String traceArgList = paramList.isEmpty() ?
@@ -167,25 +166,34 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                         if (TRACE_DOWNCALLS) {
                             traceDowncall(\{traceArgList});
                         }
-                        \{returnExpr}mh$.invokeExact(\{paramList});
+                        \{returnWithCast}mh$.invokeExact(\{paramList});
                     } catch (Throwable ex$) {
                        throw new AssertionError("should not reach here", ex$);
                     }
                 }
                 """);
         } else {
-            String invokerName = javaName + "$invoker";
-            String invokerFactoryName = javaName + "$makeInvoker";
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
+            String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
+            appendBlankLine();
+            emitDocComment(decl, "Variadic invoker interface for:");
             appendLines(STR."""
-                public interface \{invokerName} {
-                    \{retType} \{javaName}(\{paramExprs});
+                public interface \{javaName} {
+                    \{retType} apply(\{paramExprs});
+
+                    /**
+                     * Invoke the variadic function with the given parameters. Layouts for variadic arguments are inferred.
+                     */
+                    static \{retType} invoke(\{paramExprs}) {
+                        MemoryLayout[] inferredLayouts$ = \{runtimeHelperName()}.inferVariadicLayouts(\{varargsParam});
+                        \{returnNoCast}\{javaName}(inferredLayouts$).apply(\{String.join(", ", finalParamNames)});
+                    }
                 }
 
                 """);
-            emitDocComment(decl);
+            emitDocComment(decl, "Variadic invoker factory for:");
             appendLines(STR."""
-                public static \{invokerName} \{invokerFactoryName}(MemoryLayout... layouts) {
+                public static \{javaName} \{javaName}(MemoryLayout... layouts) {
                     FunctionDescriptor baseDesc$ = \{functionDescriptorString(2, decl.type())};
                     var mh$ = \{runtimeHelperName()}.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
                     return (\{paramExprs}) -> {
@@ -193,7 +201,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                             if (TRACE_DOWNCALLS) {
                                 traceDowncall(\{traceArgList});
                             }
-                            \{returnExpr}mh$.invokeExact(\{paramList});
+                            \{returnWithCast}mh$.invokeExact(\{paramList});
                         } catch(IllegalArgumentException ex$)  {
                             throw ex$; // rethrow IAE from passing wrong number/type of args
                         } catch (Throwable ex$) {
@@ -202,14 +210,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     };
                 }
 
-                """);
-            emitDocComment(decl);
-            String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
-            appendLines(STR."""
-                public static \{retType} \{javaName}(\{paramExprs}) {
-                    MemoryLayout[] inferredLayouts$ = \{runtimeHelperName()}.inferVariadicLayouts(\{varargsParam});
-                    \{returnExpr}\{invokerFactoryName}(inferredLayouts$).\{javaName}(\{String.join(", ", finalParamNames)});
-                }
                 """);
         }
         decrAlign();

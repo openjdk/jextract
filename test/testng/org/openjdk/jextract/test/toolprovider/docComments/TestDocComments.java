@@ -94,11 +94,10 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testFunctions() throws IOException {
         var comments = getDocComments("functions.h", "functions_h.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "int func(int *fp)",
             "double distance(struct Point p)",
-            "int printf(char *fmt, ...)",
-            "int printf(char *fmt, ...)"));
+            "Variadic invoker factory for: int printf(char *fmt, ...)"));
     }
 
     @Test
