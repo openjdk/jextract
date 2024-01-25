@@ -172,7 +172,7 @@ public final class NameMangler implements Declaration.Visitor<Void, Declaration>
                 if (parent instanceof Typedef typedef && typedef.type() instanceof Declared declared &&
                         declared.tree().name().isEmpty()) {
                     // typedef struct { ... } Foo;
-                    // steal the name from the parent typedef
+                    // steal the name from the parent typedef (which has already been mangled)
                     name = JavaName.getOrThrow(parent);
                 } else {
                     name = oldScope.uniqueNestedClassName(scoped.name().isEmpty() ?
