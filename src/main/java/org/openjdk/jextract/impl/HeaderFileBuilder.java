@@ -134,10 +134,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
 
         String retType = declType.returnType().getSimpleName();
-        String returnExpr = "";
-        if (!declType.returnType().equals(void.class)) {
-            returnExpr = STR."return (\{retType}) ";
-        }
+        boolean isVoid = declType.returnType().equals(void.class);
+        String returnNoCast = isVoid ? "" : STR."return ";
+        String returnWithCast = isVoid ? "" : STR."\{returnNoCast}(\{retType})";
         String getterName = mangleName(javaName, MethodHandle.class);
         String paramList = String.join(", ", finalParamNames);
         String traceArgList = paramList.isEmpty() ?
@@ -167,7 +166,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                         if (TRACE_DOWNCALLS) {
                             traceDowncall(\{traceArgList});
                         }
-                        \{returnExpr}mh$.invokeExact(\{paramList});
+                        \{returnWithCast}mh$.invokeExact(\{paramList});
                     } catch (Throwable ex$) {
                        throw new AssertionError("should not reach here", ex$);
                     }
@@ -187,7 +186,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                      */
                     static \{retType} invoke(\{paramExprs}) {
                         MemoryLayout[] inferredLayouts$ = \{runtimeHelperName()}.inferVariadicLayouts(\{varargsParam});
-                        \{returnExpr.isEmpty() ? "" : "return "}\{javaName}(inferredLayouts$).apply(\{String.join(", ", finalParamNames)});
+                        \{returnNoCast}\{javaName}(inferredLayouts$).apply(\{String.join(", ", finalParamNames)});
                     }
                 }
 
@@ -202,7 +201,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                             if (TRACE_DOWNCALLS) {
                                 traceDowncall(\{traceArgList});
                             }
-                            \{returnExpr}mh$.invokeExact(\{paramList});
+                            \{returnWithCast}mh$.invokeExact(\{paramList});
                         } catch(IllegalArgumentException ex$)  {
                             throw ex$; // rethrow IAE from passing wrong number/type of args
                         } catch (Throwable ex$) {
