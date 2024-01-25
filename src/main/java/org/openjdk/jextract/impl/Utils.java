@@ -28,8 +28,11 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Constant;
+import org.openjdk.jextract.Declaration.Scoped;
+import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.JavaSourceFile;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Delegated.Kind;
 import org.openjdk.jextract.Type.Function;
@@ -178,6 +181,14 @@ class Utils {
             }
         }
         return null;
+    }
+
+    static Scoped getAnonymousStructTypedef(Declaration declaration) {
+        return switch (declaration) {
+            case Typedef typedef when typedef.type() instanceof Declared declared &&
+                    isStructOrUnion(declared) && declared.tree().name().isEmpty() -> declared.tree();
+            case null, default -> null;
+        };
     }
 
     /**
