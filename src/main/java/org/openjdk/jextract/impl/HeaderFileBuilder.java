@@ -191,7 +191,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 }
 
                 """);
-            emitDocComment(decl);
+            emitDocComment(decl, "Variadic invoker factory for:");
             appendLines(STR."""
                 public static \{javaName} \{javaName}(MemoryLayout... layouts) {
                     FunctionDescriptor baseDesc$ = \{functionDescriptorString(2, decl.type())};

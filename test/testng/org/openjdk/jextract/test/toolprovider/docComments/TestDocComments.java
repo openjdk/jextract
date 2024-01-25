@@ -97,8 +97,7 @@ public class TestDocComments extends JextractToolRunner {
         assertContains(comments, List.of(
             "int func(int *fp)",
             "double distance(struct Point p)",
-            "int printf(char *fmt, ...)",
-            "int printf(char *fmt, ...)"));
+            "Variadic invoker factory for: int printf(char *fmt, ...)"));
     }
 
     @Test
