@@ -145,6 +145,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
 
         Declaration.Scoped structOrUnionDecl = Utils.structOrUnionDecl(type);
         if (structOrUnionDecl != null && !structOrUnionDecl.name().isEmpty()) {
+            // do not generate a typedef class if this is a typedef of an anonymous struct (see NameMangler)
             toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(structOrUnionDecl));
         } else if (type instanceof Type.Primitive) {
             toplevelBuilder.addTypedef(tree, null);
