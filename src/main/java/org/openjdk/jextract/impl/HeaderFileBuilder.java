@@ -174,18 +174,27 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 }
                 """);
         } else {
-            String invokerName = javaName + "$invoker";
-            String invokerFactoryName = javaName + "$makeInvoker";
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
+            String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
+            appendBlankLine();
+            emitDocComment(decl, "Variadic invoker interface for:");
             appendLines(STR."""
-                public interface \{invokerName} {
-                    \{retType} \{javaName}(\{paramExprs});
+                public interface \{javaName} {
+                    \{retType} apply(\{paramExprs});
+
+                    /**
+                     * Invoke the variadic function with the given parameters. Layouts for variadic arguments are inferred.
+                     */
+                    static \{retType} invoke(\{paramExprs}) {
+                        MemoryLayout[] inferredLayouts$ = \{runtimeHelperName()}.inferVariadicLayouts(\{varargsParam});
+                        \{returnExpr.isEmpty() ? "" : "return "}\{javaName}(inferredLayouts$).apply(\{String.join(", ", finalParamNames)});
+                    }
                 }
 
                 """);
             emitDocComment(decl);
             appendLines(STR."""
-                public static \{invokerName} \{invokerFactoryName}(MemoryLayout... layouts) {
+                public static \{javaName} \{javaName}(MemoryLayout... layouts) {
                     FunctionDescriptor baseDesc$ = \{functionDescriptorString(2, decl.type())};
                     var mh$ = \{runtimeHelperName()}.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
                     return (\{paramExprs}) -> {
@@ -202,14 +211,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     };
                 }
 
-                """);
-            emitDocComment(decl);
-            String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
-            appendLines(STR."""
-                public static \{retType} \{javaName}(\{paramExprs}) {
-                    MemoryLayout[] inferredLayouts$ = \{runtimeHelperName()}.inferVariadicLayouts(\{varargsParam});
-                    \{returnExpr}\{invokerFactoryName}(inferredLayouts$).\{javaName}(\{String.join(", ", finalParamNames)});
-                }
                 """);
         }
         decrAlign();
