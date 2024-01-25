@@ -183,14 +183,6 @@ class Utils {
         return null;
     }
 
-    static Scoped getAnonymousStructTypedef(Declaration declaration) {
-        return switch (declaration) {
-            case Typedef typedef when typedef.type() instanceof Declared declared &&
-                    isStructOrUnion(declared) && declared.tree().name().isEmpty() -> declared.tree();
-            case null, default -> null;
-        };
-    }
-
     /**
      * Is a character printable ASCII?
      */
