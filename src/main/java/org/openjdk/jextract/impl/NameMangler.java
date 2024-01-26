@@ -28,6 +28,7 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
@@ -75,9 +76,7 @@ public final class NameMangler implements Declaration.Visitor<Void, Declaration>
 
          private Scope(Scope parent, String name, boolean isStruct) {
              this.parent = parent;
-             this.className = parent != null ?
-                  parent.uniqueNestedClassName(name) :
-                  javaSafeIdentifier(name);
+             this.className = javaSafeIdentifier(name);
              this.isStruct = isStruct;
          }
 
@@ -169,9 +168,17 @@ public final class NameMangler implements Declaration.Visitor<Void, Declaration>
 
             Scope oldScope = curScope;
             if (!AnonymousStruct.isPresent(scoped)) {
-                String name = scoped.name().isEmpty() ?
+                String name;
+                if (parent instanceof Typedef typedef && typedef.type() instanceof Declared declared &&
+                        declared.tree().name().isEmpty()) {
+                    // typedef struct { ... } Foo;
+                    // steal the name from the parent typedef (which has already been mangled)
+                    name = JavaName.getOrThrow(parent);
+                } else {
+                    name = oldScope.uniqueNestedClassName(scoped.name().isEmpty() ?
                         fallbackNameFor(parent, scoped) :
-                        scoped.name();
+                        scoped.name());
+                }
                 this.curScope = Scope.newStruct(oldScope, name);
                 JavaName.with(scoped, curScope.fullName());
             }
@@ -192,8 +199,6 @@ public final class NameMangler implements Declaration.Visitor<Void, Declaration>
             return null;
         }
 
-        // We may potentially generate a class for a typedef. Make sure
-        // class name is unique in the current nesting context.
         String javaName = curScope.uniqueNestedClassName(typedef.name());
         JavaName.with(typedef, List.of(javaName));
         Type.Function func = Utils.getAsFunctionPointer(typedef.type());

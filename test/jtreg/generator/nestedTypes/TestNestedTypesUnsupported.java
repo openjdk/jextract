@@ -49,7 +49,6 @@ public class TestNestedTypesUnsupported {
         checkLayout(Outer.layout(), UNDEFINED_STRUCT);
         checkLayout(outer_var.layout(), UNDEFINED_STRUCT);
         checkLayout(outer_td.layout(), UNDEFINED_STRUCT);
-        checkLayout(outer_td$0.layout(), UNDEFINED_STRUCT);
         checkLayout(f2$return.layout(), UNDEFINED_STRUCT);
         checkLayout(f3$x0.layout(), UNDEFINED_STRUCT);
     }
