@@ -161,7 +161,7 @@ public final class Type extends ClangDisposable.Owned {
     }
 
     public int kind0() {
-        return CXType.kind$get(segment);
+        return CXType.kind(segment);
     }
 
     private long size0() {

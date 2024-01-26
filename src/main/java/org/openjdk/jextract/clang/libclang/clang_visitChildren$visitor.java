@@ -27,46 +27,65 @@
 
 package org.openjdk.jextract.clang.libclang;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
- * enum CXChildVisitResult (*clang_visitChildren$visitor)(struct ,struct ,void*);
+ * CXCursorVisitor visitor
  * }
  */
-public interface clang_visitChildren$visitor {
+public class clang_visitChildren$visitor {
 
-    int apply(MemorySegment _x0, MemorySegment _x1, MemorySegment _x2);
+    /**
+     * The function pointer signature, expressed as a functional interface
+     */
+    public interface Function {
+        int apply(MemorySegment _x0, MemorySegment _x1, MemorySegment _x2);
+    }
 
-    FunctionDescriptor $DESC = FunctionDescriptor.of(
+    private static final FunctionDescriptor $DESC = FunctionDescriptor.of(
         Index_h.C_INT,
-        CXCursor.$LAYOUT(),
-        CXCursor.$LAYOUT(),
+        CXCursor.layout(),
+        CXCursor.layout(),
         Index_h.C_POINTER
     );
 
-    MethodHandle UP$MH = Index_h.upcallHandle(clang_visitChildren$visitor.class, "apply", $DESC);
-
-    static MemorySegment allocate(clang_visitChildren$visitor fi, Arena scope) {
-        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
+    /**
+     * The descriptor of this function pointer
+     */
+    public static FunctionDescriptor descriptor() {
+        return $DESC;
     }
 
-    MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+    private static final MethodHandle UP$MH = Index_h.upcallHandle(clang_visitChildren$visitor.Function.class, "apply", $DESC);
 
-    static clang_visitChildren$visitor ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena, null);
-        return (MemorySegment __x0, MemorySegment __x1, MemorySegment __x2) -> {
-            try {
-                return (int) DOWN$MH.invokeExact(symbol, __x0, __x1, __x2);
-            } catch (Throwable ex$) {
-                throw new AssertionError("should not reach here", ex$);
-            }
-        };
+    /**
+     * Allocates a new upcall stub, whose implementation is defined by {@code fi}.
+     * The lifetime of the returned segment is managed by {@code arena}
+     */
+    public static MemorySegment allocate(clang_visitChildren$visitor.Function fi, Arena arena) {
+        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, arena);
+    }
+
+    private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
+    /**
+     * Invoke the upcall stub {@code funcPtr}, with given parameters
+     */
+    public static int invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
+        try {
+            return (int) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
     }
 }
 

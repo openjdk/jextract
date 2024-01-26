@@ -27,27 +27,29 @@
 
 package org.openjdk.jextract.clang.libclang;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
  * struct CXUnsavedFile {
- *     char* Filename;
- *     char* Contents;
+ *     const char *Filename;
+ *     const char *Contents;
  *     unsigned long Length;
- * };
+ * }
  * }
  */
 public class CXUnsavedFile {
 
     CXUnsavedFile() {
-        // Suppresses public default constructor, ensuring non-instantiability,
-        // but allows generated subclasses in same package.
+        // Should not be called directly
     }
 
     private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
@@ -56,109 +58,124 @@ public class CXUnsavedFile {
         Index_h.C_LONG.withName("Length")
     ).withName("CXUnsavedFile");
 
-    public static final GroupLayout $LAYOUT() {
+    /**
+     * The layout of this struct
+     */
+    public static final GroupLayout layout() {
         return $LAYOUT;
     }
 
     private static final long Filename$OFFSET = 0;
+    private static final AddressLayout Filename$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("Filename"));
 
     /**
      * Getter for field:
      * {@snippet lang=c :
-     * char* Filename;
+     * const char *Filename
      * }
      */
-    public static MemorySegment Filename$get(MemorySegment seg) {
-        return seg.get(Index_h.C_POINTER, Filename$OFFSET);
-    }
-
-    public static MemorySegment Filename$get(MemorySegment seg, long index) {
-        return seg.get(Index_h.C_POINTER, Filename$OFFSET + (index * sizeof()));
+    public static MemorySegment Filename(MemorySegment struct) {
+        return struct.get(Filename$LAYOUT, Filename$OFFSET);
     }
 
     /**
      * Setter for field:
      * {@snippet lang=c :
-     * char* Filename;
+     * const char *Filename
      * }
      */
-    public static void Filename$set(MemorySegment seg, MemorySegment x) {
-        seg.set(Index_h.C_POINTER, Filename$OFFSET, x);
-    }
-
-    public static void Filename$set(MemorySegment seg, long index, MemorySegment x) {
-        seg.set(Index_h.C_POINTER, Filename$OFFSET + (index * sizeof()), x);
+    public static void Filename(MemorySegment struct, MemorySegment fieldValue) {
+        struct.set(Filename$LAYOUT, Filename$OFFSET, fieldValue);
     }
 
     private static final long Contents$OFFSET = 8;
+    private static final AddressLayout Contents$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("Contents"));
 
     /**
      * Getter for field:
      * {@snippet lang=c :
-     * char* Contents;
+     * const char *Contents
      * }
      */
-    public static MemorySegment Contents$get(MemorySegment seg) {
-        return seg.get(Index_h.C_POINTER, Contents$OFFSET);
-    }
-
-    public static MemorySegment Contents$get(MemorySegment seg, long index) {
-        return seg.get(Index_h.C_POINTER, Contents$OFFSET + (index * sizeof()));
+    public static MemorySegment Contents(MemorySegment struct) {
+        return struct.get(Contents$LAYOUT, Contents$OFFSET);
     }
 
     /**
      * Setter for field:
      * {@snippet lang=c :
-     * char* Contents;
+     * const char *Contents
      * }
      */
-    public static void Contents$set(MemorySegment seg, MemorySegment x) {
-        seg.set(Index_h.C_POINTER, Contents$OFFSET, x);
-    }
-
-    public static void Contents$set(MemorySegment seg, long index, MemorySegment x) {
-        seg.set(Index_h.C_POINTER, Contents$OFFSET + (index * sizeof()), x);
+    public static void Contents(MemorySegment struct, MemorySegment fieldValue) {
+        struct.set(Contents$LAYOUT, Contents$OFFSET, fieldValue);
     }
 
     private static final long Length$OFFSET = 16;
+    private static final OfLong Length$LAYOUT = (OfLong)$LAYOUT.select(groupElement("Length"));
 
     /**
      * Getter for field:
      * {@snippet lang=c :
-     * unsigned long Length;
+     * unsigned long Length
      * }
      */
-    public static long Length$get(MemorySegment seg) {
-        return seg.get(Index_h.C_LONG, Length$OFFSET);
-    }
-
-    public static long Length$get(MemorySegment seg, long index) {
-        return seg.get(Index_h.C_LONG, Length$OFFSET + (index * sizeof()));
+    public static long Length(MemorySegment struct) {
+        return struct.get(Length$LAYOUT, Length$OFFSET);
     }
 
     /**
      * Setter for field:
      * {@snippet lang=c :
-     * unsigned long Length;
+     * unsigned long Length
      * }
      */
-    public static void Length$set(MemorySegment seg, long x) {
-        seg.set(Index_h.C_LONG, Length$OFFSET, x);
+    public static void Length(MemorySegment struct, long fieldValue) {
+        struct.set(Length$LAYOUT, Length$OFFSET, fieldValue);
     }
 
-    public static void Length$set(MemorySegment seg, long index, long x) {
-        seg.set(Index_h.C_LONG, Length$OFFSET + (index * sizeof()), x);
+    /**
+     * Obtains a slice of {@code arrayParam} which selects the array element at {@code index}.
+     * The returned segment has address {@code arrayParam.address() + index * layout().byteSize()}
+     */
+    public static MemorySegment asSlice(MemorySegment array, long index) {
+        return array.asSlice(layout().byteSize() * index);
     }
 
-    public static long sizeof() { return $LAYOUT().byteSize(); }
-    public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
+    /**
+     * The size (in bytes) of this struct
+     */
+    public static long sizeof() { return layout().byteSize(); }
 
-    public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
-        return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
+    /**
+     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
+     */
+    public static MemorySegment allocate(SegmentAllocator allocator) {
+        return allocator.allocate(layout());
     }
 
-    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
-        return addr.reinterpret($LAYOUT().byteSize(), scope, null);
+    /**
+     * Allocate an array of size {@code elementCount} using {@code allocator}.
+     * The returned segment has size {@code elementCount * layout().byteSize()}.
+     */
+    public static MemorySegment allocateArray(long elementCount, SegmentAllocator allocator) {
+        return allocator.allocate(MemoryLayout.sequenceLayout(elementCount, layout()));
+    }
+
+    /**
+     * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction) (if any).
+     * The returned segment has size {@code layout().byteSize()}
+     */
+    public static MemorySegment reinterpret(MemorySegment addr, Arena arena, Consumer<MemorySegment> cleanup) {
+        return reinterpret(addr, 1, arena, cleanup);
+    }
+
+    /**
+     * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction) (if any).
+     * The returned segment has size {@code elementCount * layout().byteSize()}
+     */
+    public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+        return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }
 

@@ -311,7 +311,7 @@ public final class Cursor extends ClangDisposable.Owned {
         private Key(Cursor cursor) {
             spelling = cursor.spelling();
             kind = cursor.kind();
-            payload = MemorySegment.ofArray(new byte[(int)CXCursor.$LAYOUT().byteSize()]);
+            payload = MemorySegment.ofArray(new byte[(int)CXCursor.sizeof()]);
             payload.copyFrom(cursor.segment);
         }
 
@@ -332,9 +332,9 @@ public final class Cursor extends ClangDisposable.Owned {
 
         private MemorySegment toSegment(SegmentAllocator allocator) {
             return allocator.allocateFrom(C_CHAR, payload,
-                                          C_CHAR, 0, CXCursor.$LAYOUT().byteSize());
+                                          C_CHAR, 0, CXCursor.sizeof());
         }
 
-        private static final MemorySegment COMPARISON_SEGMENT = Arena.ofAuto().allocate(CXCursor.$LAYOUT(), 2);
+        private static final MemorySegment COMPARISON_SEGMENT = Arena.ofAuto().allocate(CXCursor.layout(), 2);
     }
 }
