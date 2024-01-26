@@ -165,7 +165,7 @@ class Utils {
 
     static Function getAsFunctionPointer(Type type) {
         return switch (type) {
-            case Type.Delegated delegated -> getAsFunctionPointer(delegated.type());
+            case Type.Delegated delegated when delegated.kind() == Kind.POINTER -> getAsFunctionPointer(delegated.type());
             case Type.Function function -> function;
             default -> null;
         };
