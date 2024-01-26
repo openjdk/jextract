@@ -26,3 +26,11 @@ typedef P Q;
 
 typedef void (*f)(int, double);
 typedef f g;
+
+// add some uses
+
+P foo_P(P p);
+Q foo_P(Q q);
+
+f foo_f(f ptr_f);
+g foo_g(g ptr_g);

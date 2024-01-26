@@ -62,7 +62,9 @@ public class TestRedundantTypedefs extends JextractToolRunner {
     public void testFunctionTypedefs() {
         assertNotNull(loader.loadClass("f"));
         assertNotNull(loader.loadClass("g"));
-        assertNull(loader.loadClass("f$ptr"));
-        assertNull(loader.loadClass("g$ptr"));
+        assertNull(loader.loadClass("foo_f$ptr_f"));
+        assertNull(loader.loadClass("foo_f$return"));
+        assertNull(loader.loadClass("foo_g$ptr_f"));
+        assertNull(loader.loadClass("foo_g$return"));
     }
 }
