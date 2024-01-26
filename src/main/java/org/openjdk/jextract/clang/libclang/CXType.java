@@ -27,26 +27,28 @@
 
 package org.openjdk.jextract.clang.libclang;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
  * struct {
  *     enum CXTypeKind kind;
- *     void* data[2];
- * };
+ *     void *data[2];
+ * }
  * }
  */
 public class CXType {
 
     CXType() {
-        // Suppresses public default constructor, ensuring non-instantiability,
-        // but allows generated subclasses in same package.
+        // Should not be called directly
     }
 
     private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
@@ -55,56 +57,101 @@ public class CXType {
         MemoryLayout.sequenceLayout(2, Index_h.C_POINTER).withName("data")
     ).withName("$anon$3431:9");
 
-    public static final GroupLayout $LAYOUT() {
+    /**
+     * The layout of this struct
+     */
+    public static final GroupLayout layout() {
         return $LAYOUT;
     }
 
     private static final long kind$OFFSET = 0;
+    private static final OfInt kind$LAYOUT = (OfInt)$LAYOUT.select(groupElement("kind"));
 
     /**
      * Getter for field:
      * {@snippet lang=c :
-     * enum CXTypeKind kind;
+     * enum CXTypeKind kind
      * }
      */
-    public static int kind$get(MemorySegment seg) {
-        return seg.get(Index_h.C_INT, kind$OFFSET);
-    }
-
-    public static int kind$get(MemorySegment seg, long index) {
-        return seg.get(Index_h.C_INT, kind$OFFSET + (index * sizeof()));
+    public static int kind(MemorySegment struct) {
+        return struct.get(kind$LAYOUT, kind$OFFSET);
     }
 
     /**
      * Setter for field:
      * {@snippet lang=c :
-     * enum CXTypeKind kind;
+     * enum CXTypeKind kind
      * }
      */
-    public static void kind$set(MemorySegment seg, int x) {
-        seg.set(Index_h.C_INT, kind$OFFSET, x);
-    }
-
-    public static void kind$set(MemorySegment seg, long index, int x) {
-        seg.set(Index_h.C_INT, kind$OFFSET + (index * sizeof()), x);
+    public static void kind(MemorySegment struct, int fieldValue) {
+        struct.set(kind$LAYOUT, kind$OFFSET, fieldValue);
     }
 
     private static final long data$OFFSET = 8;
     private static final long data$SIZE = 16;
 
-    public static MemorySegment data$slice(MemorySegment seg) {
-        return seg.asSlice(data$OFFSET, data$SIZE);
+    /**
+     * Getter for field:
+     * {@snippet lang=c :
+     * void *data[2]
+     * }
+     */
+    public static MemorySegment data(MemorySegment struct) {
+        return struct.asSlice(data$OFFSET, data$SIZE);
     }
 
-    public static long sizeof() { return $LAYOUT().byteSize(); }
-    public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
-
-    public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
-        return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
+    /**
+     * Setter for field:
+     * {@snippet lang=c :
+     * void *data[2]
+     * }
+     */
+    public static void data(MemorySegment struct, MemorySegment fieldValue) {
+        MemorySegment.copy(fieldValue, 0L, struct, data$OFFSET, data$SIZE);
     }
 
-    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
-        return addr.reinterpret($LAYOUT().byteSize(), scope, null);
+    /**
+     * Obtains a slice of {@code arrayParam} which selects the array element at {@code index}.
+     * The returned segment has address {@code arrayParam.address() + index * layout().byteSize()}
+     */
+    public static MemorySegment asSlice(MemorySegment array, long index) {
+        return array.asSlice(layout().byteSize() * index);
+    }
+
+    /**
+     * The size (in bytes) of this struct
+     */
+    public static long sizeof() { return layout().byteSize(); }
+
+    /**
+     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
+     */
+    public static MemorySegment allocate(SegmentAllocator allocator) {
+        return allocator.allocate(layout());
+    }
+
+    /**
+     * Allocate an array of size {@code elementCount} using {@code allocator}.
+     * The returned segment has size {@code elementCount * layout().byteSize()}.
+     */
+    public static MemorySegment allocateArray(long elementCount, SegmentAllocator allocator) {
+        return allocator.allocate(MemoryLayout.sequenceLayout(elementCount, layout()));
+    }
+
+    /**
+     * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction) (if any).
+     * The returned segment has size {@code layout().byteSize()}
+     */
+    public static MemorySegment reinterpret(MemorySegment addr, Arena arena, Consumer<MemorySegment> cleanup) {
+        return reinterpret(addr, 1, arena, cleanup);
+    }
+
+    /**
+     * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction) (if any).
+     * The returned segment has size {@code elementCount * layout().byteSize()}
+     */
+    public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+        return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }
 
