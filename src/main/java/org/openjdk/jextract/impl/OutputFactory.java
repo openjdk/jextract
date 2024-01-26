@@ -28,6 +28,7 @@ import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.JavaSourceFile;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
+import org.openjdk.jextract.impl.DeclarationImpl.NestedDeclarations;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import java.util.ArrayList;
@@ -144,9 +145,14 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         Utils.forEachNested(tree, s -> s.accept(this, null));
 
         Declaration.Scoped structOrUnionDecl = Utils.structOrUnionDecl(type);
-        if (structOrUnionDecl != null && !structOrUnionDecl.name().isEmpty()) {
-            // do not generate a typedef class if this is a typedef of an anonymous struct (see NameMangler)
-            toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(structOrUnionDecl));
+        if (structOrUnionDecl != null) {
+            if (!structOrUnionDecl.name().isEmpty() ||
+                    !NestedDeclarations.get(tree).orElse(List.of()).contains(structOrUnionDecl)) {
+                // Only generate a typedef class if (a) struct/union name is non-empty,
+                // or if (b) the declaration of the struct/union is not nested inside this typedef,
+                // which indicates a typedef of some other typedef.
+                toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(structOrUnionDecl));
+            }
         } else if (type instanceof Type.Primitive) {
             toplevelBuilder.addTypedef(tree, null);
         } else {
