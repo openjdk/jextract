@@ -183,6 +183,20 @@ class Utils {
         return null;
     }
 
+    static int dimensions(Type type) {
+        return switch (type) {
+            case Type.Array array -> 1 + dimensions(array.elementType());
+            default -> 0;
+        };
+    }
+
+    static Type typeOrElemType(Type type) {
+        return switch (type) {
+            case Type.Array array -> typeOrElemType(array.elementType());
+            default -> type;
+        };
+    }
+
     /**
      * Is a character printable ASCII?
      */
