@@ -142,31 +142,28 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         boolean isVoid = declType.returnType().equals(void.class);
         String returnNoCast = isVoid ? "" : STR."return ";
         String returnWithCast = isVoid ? "" : STR."\{returnNoCast}(\{retType})";
-        String getterName = mangleName(javaName, MethodHandle.class);
         String paramList = String.join(", ", finalParamNames);
         String traceArgList = paramList.isEmpty() ?
                 STR."\"\{nativeName}\"" :
                 STR."\"\{nativeName}\", \{paramList}";
         incrAlign();
         if (!isVarArg) {
+            String holderClass = STR."\{javaName}$constants";
             appendLines(STR."""
 
-                private static MethodHandle \{getterName}() {
-                    class Holder {
-                        static final FunctionDescriptor DESC = \{functionDescriptorString(2, decl.type())};
+                public static class \{holderClass} {
+                    public static final FunctionDescriptor DESC = \{functionDescriptorString(1, decl.type())};
 
-                        static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
                                 \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
                                 DESC);
-                    }
-                    return Holder.MH;
                 }
                 """);
                 appendBlankLine();
                 emitDocComment(decl);
                 appendLines(STR."""
                 public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
-                    var mh$ = \{getterName}();
+                    var mh$ = \{holderClass}.HANDLE;
                     try {
                         if (TRACE_DOWNCALLS) {
                             traceDowncall(\{traceArgList});
