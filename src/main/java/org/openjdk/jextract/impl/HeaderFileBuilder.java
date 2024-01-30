@@ -25,7 +25,6 @@
 package org.openjdk.jextract.impl;
 
 import java.io.File;
-import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.invoke.MethodHandle;
@@ -56,22 +55,19 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     public void addVar(Declaration.Variable varTree) {
         String nativeName = varTree.name();
         String javaName = JavaName.getOrThrow(varTree);
-        String layoutVar = emitVarLayout(varTree.type(), javaName);
+        String holderClass = emitVarHolderClass(varTree.type(), javaName, nativeName);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
-            String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName);
-            emitGlobalSegmentGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
-            emitGlobalSegmentSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
-            int dims = Utils.dimensions(varTree.type());
+            emitGlobalSegmentGetter(holderClass, javaName, varTree, "Getter for variable:");
+            emitGlobalSegmentSetter(holderClass, javaName, varTree, "Setter for variable:");
+            int dims = Utils.dimensions(varTree.type()).size();
             if (dims > 0) {
-                String arrayHandle = emitArrayElementHandle(javaName, varTree, layoutVar, dims);
                 IndexList indexList = IndexList.of(dims);
-                emitGlobalArrayGetter(segmentConstant, arrayHandle, indexList, javaName, varTree, "Indexed getter for variable:");
-                emitGlobalArraySetter(segmentConstant, arrayHandle, indexList, javaName, varTree, "Indexed setter for variable:");
+                emitGlobalArrayGetter(holderClass, indexList, javaName, varTree, "Indexed getter for variable:");
+                emitGlobalArraySetter(holderClass, indexList, javaName, varTree, "Indexed setter for variable:");
             }
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
-            String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName);
-            emitGlobalGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
-            emitGlobalSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
+            emitGlobalGetter(holderClass, javaName, varTree, "Getter for variable:");
+            emitGlobalSetter(holderClass, javaName, varTree, "Setter for variable:");
         } else {
             throw new IllegalArgumentException("Tree type not handled: " + varTree.type());
         }
@@ -318,7 +314,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             """);
     }
 
-    private void emitGlobalGetter(String segmentConstant, String layoutVar, String javaName,
+    private void emitGlobalGetter(String holderClass, String javaName,
                                   Declaration.Variable decl, String docHeader) {
         appendBlankLine();
         incrAlign();
@@ -326,13 +322,13 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
             public static \{type.getSimpleName()} \{javaName}() {
-                return \{segmentConstant}.get(\{layoutVar}, 0L);
+                return \{holderClass}.SEGMENT.get(\{holderClass}.LAYOUT, 0L);
             }
             """);
         decrAlign();
     }
 
-    private void emitGlobalSetter(String segmentConstant, String layoutVar, String javaName,
+    private void emitGlobalSetter(String holderClass, String javaName,
                                   Declaration.Variable decl, String docHeader) {
         appendBlankLine();
         incrAlign();
@@ -340,84 +336,39 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
             public static void \{javaName}(\{type.getSimpleName()} varValue) {
-                \{segmentConstant}.set(\{layoutVar}, 0L, varValue);
+                \{holderClass}.SEGMENT.set(\{holderClass}.LAYOUT, 0L, varValue);
             }
             """);
         decrAlign();
     }
 
-    private void emitGlobalSegmentGetter(String segmentConstant, String layoutVar, String javaName,
+    private void emitGlobalSegmentGetter(String holderClass, String javaName,
                                          Declaration.Variable varTree, String docHeader) {
         appendBlankLine();
         incrAlign();
         emitDocComment(varTree, docHeader);
         appendLines(STR."""
             public static MemorySegment \{javaName}() {
-                return \{segmentConstant};
+                return \{holderClass}.SEGMENT;
             }
             """);
         decrAlign();
     }
 
-    private void emitGlobalSegmentSetter(String segmentConstant, String layoutVar, String javaName,
+    private void emitGlobalSegmentSetter(String holderClass, String javaName,
                                          Declaration.Variable varTree, String docHeader) {
         appendBlankLine();
         incrAlign();
         emitDocComment(varTree, docHeader);
         appendLines(STR."""
             public static void \{javaName}(MemorySegment varValue) {
-                MemorySegment.copy(varValue, 0L, \{segmentConstant}, 0L, \{layoutVar}.byteSize());
+                MemorySegment.copy(varValue, 0L, \{holderClass}.SEGMENT, 0L, \{holderClass}.LAYOUT.byteSize());
             }
             """);
         decrAlign();
     }
 
-    public String emitGlobalSegment(String layout, String javaName, String nativeName) {
-        String mangledName = mangleName(javaName, MemorySegment.class);
-        appendIndentedLines(STR."""
-
-            private static MemorySegment \{mangledName}() {
-                class Holder {
-                    static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{nativeName}")
-                        .reinterpret(\{layout}.byteSize());
-                }
-                return Holder.SEGMENT;
-            }
-            """);
-        return STR."\{mangledName}()";
-    }
-
-    private String emitArrayElementHandle(String javaName, Declaration.Variable varTree, String fieldLayoutName, int dims) {
-        String arrayHandleName = STR."\{javaName}$ELEM_HANDLE";
-        String path = IntStream.range(0, dims)
-                .mapToObj(_ -> "sequenceElement()")
-                .collect(Collectors.joining(", "));
-        Type elemType = Utils.typeOrElemType(varTree.type());
-        if (Utils.isStructOrUnion(elemType)) {
-            appendIndentedLines(STR."""
-
-                private static MethodHandle \{arrayHandleName}() {
-                    class Holder {
-                        static final MethodHandle HANDLE = \{fieldLayoutName}.sliceHandle(\{path});
-                    }
-                    return Holder.HANDLE;
-                }
-                """);
-        } else {
-            appendIndentedLines(STR."""
-
-                private static VarHandle \{arrayHandleName}() {
-                    class Holder {
-                        static final VarHandle HANDLE = \{fieldLayoutName}.varHandle(\{path});
-                    }
-                    return Holder.HANDLE;
-                }
-                """);
-        }
-        return STR."\{arrayHandleName}()";
-    }
-
-    private void emitGlobalArrayGetter(String segmentConstant, String arrayElementHandle, IndexList indexList,
+    private void emitGlobalArrayGetter(String holderClass, IndexList indexList,
                                        String javaName, Declaration.Variable varTree, String docHeader) {
         Type elemType = Utils.typeOrElemType(varTree.type());
         Class<?> typeCls = Utils.carrierFor(elemType);
@@ -428,7 +379,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendLines(STR."""
                 public static MemorySegment \{javaName}(\{indexList.decl()}) {
                     try {
-                        return (MemorySegment)\{arrayElementHandle}.invokeExact(\{segmentConstant}, 0L, \{indexList.use()});
+                        return (MemorySegment)\{holderClass}.HANDLE.invokeExact(\{holderClass}.SEGMENT, 0L, \{indexList.use()});
                     } catch (Throwable ex$) {
                         throw new AssertionError("should not reach here", ex$);
                     }
@@ -437,14 +388,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         } else {
             appendLines(STR."""
                 public static \{typeCls.getSimpleName()} \{javaName}(\{indexList.decl()}) {
-                    return (\{typeCls.getSimpleName()})\{arrayElementHandle}.get(\{segmentConstant}, 0L, \{indexList.use()});
+                    return (\{typeCls.getSimpleName()})\{holderClass}.HANDLE.get(\{holderClass}.SEGMENT, 0L, \{indexList.use()});
                 }
                 """);
         }
         decrAlign();
     }
 
-    private void emitGlobalArraySetter(String segmentConstant, String arrayElementHandle, IndexList indexList,
+    private void emitGlobalArraySetter(String holderClass, IndexList indexList,
                                        String javaName, Declaration.Variable varTree, String docHeader) {
         Type elemType = Utils.typeOrElemType(varTree.type());
         Class<?> typeCls = Utils.carrierFor(elemType);
@@ -460,25 +411,44 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         } else {
             appendLines(STR."""
                 public static void \{javaName}(\{indexList.decl()}, \{typeCls.getSimpleName()} varValue) {
-                    \{arrayElementHandle}.set(\{segmentConstant}, 0L, \{indexList.use()}, varValue);
+                    \{holderClass}.HANDLE.set(\{holderClass}.SEGMENT, 0L, \{indexList.use()}, varValue);
                 }
                 """);
         }
         decrAlign();
     }
 
-    private String emitVarLayout(Type varType, String javaName) {
-        String mangledName = mangleName(javaName, MemoryLayout.class);
+    private String emitVarHolderClass(Type varType, String javaName, String nativeName) {
+        String mangledName = STR."\{javaName}$constants";
         String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
-        appendIndentedLines(STR."""
-            private static \{layoutType} \{mangledName}() {
-                class Holder {
-                    static final \{layoutType} LAYOUT = \{layoutString(varType)};
+        if (varType instanceof Type.Array) {
+            List<Long> dimensions = Utils.dimensions(varType);
+            String path = IntStream.range(0, dimensions.size())
+                    .mapToObj(_ -> "sequenceElement()")
+                    .collect(Collectors.joining(", "));
+            Type elemType = Utils.typeOrElemType(varType);
+            String accessHandle = Utils.isStructOrUnion(elemType) ?
+                    STR."public static final MethodHandle HANDLE = LAYOUT.sliceHandle(\{path});" :
+                    STR."public static final VarHandle HANDLE = LAYOUT.varHandle(\{path});\n";
+            String dimsString = dimensions.stream().map(d -> d.toString())
+                    .collect(Collectors.joining(", "));
+            appendIndentedLines(STR."""
+                public static class \{mangledName} {
+                    public static final \{layoutType} LAYOUT = \{layoutString(varType)};
+                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{nativeName}").reinterpret(LAYOUT.byteSize());
+                    \{accessHandle}
+                    public static final long[] DIMS = { \{dimsString} };
                 }
-                return Holder.LAYOUT;
-            }
-            """);
-        return STR."\{mangledName}()";
+                """);
+        } else {
+            appendIndentedLines(STR."""
+                public static class \{mangledName} {
+                    public static final \{layoutType} LAYOUT = \{layoutString(varType)};
+                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{nativeName}").reinterpret(LAYOUT.byteSize());
+                }
+                """);
+        }
+        return mangledName;
     }
 
     private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {

@@ -139,7 +139,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
             emitSegmentGetter(javaName, varTree, offsetField, layoutField);
             emitSegmentSetter(javaName, varTree, offsetField, layoutField);
-            int dims = Utils.dimensions(varTree.type());
+            int dims = Utils.dimensions(varTree.type()).size();
             if (dims > 0) {
                 String arrayHandle = emitArrayElementHandle(javaName, varTree, layoutField, dims);
                 IndexList indexList = IndexList.of(dims);
