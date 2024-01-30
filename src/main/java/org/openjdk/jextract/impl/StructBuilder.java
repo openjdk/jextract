@@ -134,21 +134,19 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     public void addVar(Declaration.Variable varTree) {
         String javaName = JavaName.getOrThrow(varTree);
         appendBlankLine();
-        String layoutField = emitLayoutFieldDecl(varTree);
-        String offsetField = emitOffsetFieldDecl(varTree);
+        String holderClass = emitFieldHolderClass(varTree, javaName);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
-            emitSegmentGetter(javaName, varTree, offsetField, layoutField);
-            emitSegmentSetter(javaName, varTree, offsetField, layoutField);
+            emitSegmentGetter(holderClass, javaName, varTree);
+            emitSegmentSetter(holderClass, javaName, varTree);
             int dims = Utils.dimensions(varTree.type()).size();
             if (dims > 0) {
-                String arrayHandle = emitArrayElementHandle(javaName, varTree, layoutField, dims);
                 IndexList indexList = IndexList.of(dims);
-                emitFieldArrayGetter(javaName, varTree, arrayHandle, indexList);
-                emitFieldArraySetter(javaName, varTree, arrayHandle, indexList);
+                emitFieldArrayGetter(holderClass, javaName, varTree, indexList);
+                emitFieldArraySetter(holderClass, javaName, varTree, indexList);
             }
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
-            emitFieldGetter(javaName, varTree, layoutField, offsetField);
-            emitFieldSetter(javaName, varTree, layoutField, offsetField);
+            emitFieldGetter(holderClass, javaName, varTree);
+            emitFieldSetter(holderClass, javaName, varTree);
         } else {
             throw new IllegalArgumentException(STR."Type not supported: \{varTree.type()}");
         }
@@ -181,19 +179,19 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         return structTree.kind() == Scoped.Kind.STRUCT ? "struct" : "union";
     }
 
-    private void emitFieldGetter(String javaName, Declaration.Variable varTree, String layoutField, String offsetField) {
+    private void emitFieldGetter(String holderClass, String javaName, Declaration.Variable varTree) {
         String segmentParam = safeParameterName(kindName());
         Class<?> type = Utils.carrierFor(varTree.type());
         appendBlankLine();
         emitFieldDocComment(varTree, "Getter for field:");
         appendIndentedLines(STR."""
             public static \{type.getSimpleName()} \{javaName}(MemorySegment \{segmentParam}) {
-                return \{segmentParam}.get(\{layoutField}, \{offsetField});
+                return \{segmentParam}.get(\{holderClass}.LAYOUT, \{holderClass}.OFFSET);
             }
             """);
     }
 
-    private void emitFieldSetter(String javaName, Declaration.Variable varTree, String layoutField, String offsetField) {
+    private void emitFieldSetter(String holderClass, String javaName, Declaration.Variable varTree) {
         String segmentParam = safeParameterName(kindName());
         String valueParam = safeParameterName("fieldValue");
         Class<?> type = Utils.carrierFor(varTree.type());
@@ -201,30 +199,30 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         emitFieldDocComment(varTree, "Setter for field:");
         appendIndentedLines(STR."""
             public static void \{javaName}(MemorySegment \{segmentParam}, \{type.getSimpleName()} \{valueParam}) {
-                \{segmentParam}.set(\{layoutField}, \{offsetField}, \{valueParam});
+                \{segmentParam}.set(\{holderClass}.LAYOUT, \{holderClass}.OFFSET, \{valueParam});
             }
             """);
     }
 
-    private void emitSegmentGetter(String javaName, Declaration.Variable varTree, String offsetField, String layoutField) {
+    private void emitSegmentGetter(String holderClass, String javaName, Declaration.Variable varTree) {
         appendBlankLine();
         emitFieldDocComment(varTree, "Getter for field:");
         String segmentParam = safeParameterName(kindName());
         appendIndentedLines(STR."""
             public static MemorySegment \{javaName}(MemorySegment \{segmentParam}) {
-                return \{segmentParam}.asSlice(\{offsetField}, \{layoutField}.byteSize());
+                return \{segmentParam}.asSlice(\{holderClass}.OFFSET, \{holderClass}.LAYOUT.byteSize());
             }
             """);
     }
 
-    private void emitSegmentSetter(String javaName, Declaration.Variable varTree, String offsetField, String layoutField) {
+    private void emitSegmentSetter(String holderClass, String javaName, Declaration.Variable varTree) {
         appendBlankLine();
         emitFieldDocComment(varTree, "Setter for field:");
         String segmentParam = safeParameterName(kindName());
         String valueParam = safeParameterName("fieldValue");
         appendIndentedLines(STR."""
             public static void \{javaName}(MemorySegment \{segmentParam}, MemorySegment \{valueParam}) {
-                MemorySegment.copy(\{valueParam}, 0L, \{segmentParam}, \{offsetField}, \{layoutField}.byteSize());
+                MemorySegment.copy(\{valueParam}, 0L, \{segmentParam}, \{holderClass}.OFFSET, \{holderClass}.LAYOUT.byteSize());
             }
             """);
     }
@@ -247,7 +245,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         return arrayHandleName;
     }
 
-    private void emitFieldArrayGetter(String javaName, Declaration.Variable varTree, String arrayElementHandle, IndexList indexList) {
+    private void emitFieldArrayGetter(String holderClass, String javaName, Declaration.Variable varTree, IndexList indexList) {
         String segmentParam = safeParameterName(kindName());
         Type elemType = Utils.typeOrElemType(varTree.type());
         Class<?> elemTypeCls = Utils.carrierFor(elemType);
@@ -257,7 +255,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             appendIndentedLines(STR."""
                 public static MemorySegment \{javaName}(MemorySegment \{segmentParam}, \{indexList.decl()}) {
                     try {
-                        return (MemorySegment)\{arrayElementHandle}.invokeExact(\{segmentParam}, 0L, \{indexList.use()});
+                        return (MemorySegment)\{holderClass}.HANDLE.invokeExact(\{segmentParam}, 0L, \{indexList.use()});
                     } catch (Throwable ex$) {
                         throw new AssertionError("should not reach here", ex$);
                     }
@@ -266,13 +264,13 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         } else {
             appendIndentedLines(STR."""
                 public static \{elemTypeCls.getSimpleName()} \{javaName}(MemorySegment \{segmentParam}, \{indexList.decl()}) {
-                    return (\{elemTypeCls.getSimpleName()})\{arrayElementHandle}.get(\{segmentParam}, 0L, \{indexList.use()});
+                    return (\{elemTypeCls.getSimpleName()})\{holderClass}.HANDLE.get(\{segmentParam}, 0L, \{indexList.use()});
                 }
                 """);
         }
     }
 
-    private void emitFieldArraySetter(String javaName, Declaration.Variable varTree, String arrayElementHandle, IndexList indexList) {
+    private void emitFieldArraySetter(String holderClass, String javaName, Declaration.Variable varTree, IndexList indexList) {
         String segmentParam = safeParameterName(kindName());
         String valueParam = safeParameterName("fieldValue");
         Type elemType = Utils.typeOrElemType(varTree.type());
@@ -288,7 +286,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         } else {
             appendIndentedLines(STR."""
                 public static void \{javaName}(MemorySegment \{segmentParam}, \{indexList.decl()}, \{elemTypeCls.getSimpleName()} \{valueParam}) {
-                    \{arrayElementHandle}.set(\{segmentParam}, 0L, \{indexList.use()}, \{valueParam});
+                    \{holderClass}.HANDLE.set(\{segmentParam}, 0L, \{indexList.use()}, \{valueParam});
                 }
                 """);
         }
@@ -381,21 +379,38 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             """);
     }
 
-    private String emitOffsetFieldDecl(Declaration field) {
-        String offsetFieldName = STR."\{field.name()}$OFFSET";
-        appendIndentedLines(STR."""
-            private static final long \{offsetFieldName} = \{ClangOffsetOf.getOrThrow(field) / 8};
-            """);
-        return offsetFieldName;
-    }
-
-    private String emitLayoutFieldDecl(Declaration.Variable field) {
-        String layoutFieldName = STR."\{field.name()}$LAYOUT";
-        String layoutType = Utils.layoutCarrierFor(field.type()).getSimpleName();
-        appendIndentedLines(STR."""
-            private static final \{layoutType} \{layoutFieldName} = (\{layoutType})$LAYOUT.select(\{fieldElementPaths(field.name())});
-            """);
-        return layoutFieldName;
+    private String emitFieldHolderClass(Declaration.Variable field, String javaName) {
+        String mangledName = STR."\{javaName}$constants";
+        Type varType = field.type();
+        String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
+        if (varType instanceof Type.Array) {
+            List<Long> dimensions = Utils.dimensions(varType);
+            String path = IntStream.range(0, dimensions.size())
+                    .mapToObj(_ -> "sequenceElement()")
+                    .collect(Collectors.joining(", "));
+            Type elemType = Utils.typeOrElemType(varType);
+            String accessHandle = Utils.isStructOrUnion(elemType) ?
+                    STR."public static final MethodHandle HANDLE = LAYOUT.sliceHandle(\{path});" :
+                    STR."public static final VarHandle HANDLE = LAYOUT.varHandle(\{path});\n";
+            String dimsString = dimensions.stream().map(d -> d.toString())
+                    .collect(Collectors.joining(", "));
+            appendIndentedLines(STR."""
+                public static class \{mangledName} {
+                    public static final \{layoutType} LAYOUT = (\{layoutType})layout().select(\{fieldElementPaths(field.name())});
+                    \{accessHandle}
+                    public static final long OFFSET = layout().byteOffset(\{fieldElementPaths(field.name())});
+                    public static final long[] DIMS = { \{dimsString} };
+                }
+                """);
+        } else {
+            appendIndentedLines(STR."""
+                public static class \{mangledName} {
+                    public static final \{layoutType} LAYOUT = (\{layoutType})layout().select(\{fieldElementPaths(field.name())});
+                    public static final long OFFSET = layout().byteOffset(\{fieldElementPaths(field.name())});
+                }
+                """);
+        }
+        return mangledName;
     }
 
     private String structOrUnionLayoutString(Type type) {

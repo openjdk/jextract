@@ -171,7 +171,8 @@ public class TestClassGeneration extends JextractToolRunner {
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment struct = arena.allocate(structLayout);
-            Field offsetField = findField(structCls, memberName + "$OFFSET");
+            Class<?> constantClass = findNestedClass(structCls, memberName + "$constants");
+            Field offsetField = findField(constantClass, "OFFSET");
             assertNotNull(offsetField);
             assertEquals(offsetField.getType(), long.class);
             assertEquals(offsetField.get(null), structLayout.byteOffset(PathElement.groupElement(memberName)));
