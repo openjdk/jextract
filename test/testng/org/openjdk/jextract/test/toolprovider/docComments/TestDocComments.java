@@ -147,11 +147,15 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testVariables() throws IOException {
         var comments = getDocComments("variables.h", "variables_h.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "Getter for variable: int abc",
             "Setter for variable: int abc",
+            "Layout for variable: int abc",
+            "Segment for variable: int abc",
             "Getter for variable: char *msg",
-            "Setter for variable: char *msg"
+            "Setter for variable: char *msg",
+            "Layout for variable: char *msg",
+            "Segment for variable: char *msg"
         ));
     }
 

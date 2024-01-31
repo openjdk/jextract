@@ -53,9 +53,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     public void addVar(Declaration.Variable varTree) {
-        String nativeName = varTree.name();
         String javaName = JavaName.getOrThrow(varTree);
-        String holderClass = emitVarHolderClass(varTree.type(), javaName, nativeName);
+        String holderClass = emitVarHolderClass(varTree, javaName);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
             emitGlobalSegmentGetter(holderClass, javaName, varTree, "Getter for variable:");
             emitGlobalSegmentSetter(holderClass, javaName, varTree, "Setter for variable:");
@@ -428,7 +427,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         decrAlign();
     }
 
-    private String emitVarHolderClass(Type varType, String javaName, String nativeName) {
+    private String emitVarHolderClass(Declaration.Variable var, String javaName) {
+        Type varType = var.type();
         String mangledName = STR."\{javaName}$constants";
         String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
         if (varType instanceof Type.Array) {
@@ -443,21 +443,48 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String dimsString = dimensions.stream().map(d -> d.toString())
                     .collect(Collectors.joining(", "));
             appendIndentedLines(STR."""
-                public static class \{mangledName} {
+                private static class \{mangledName} {
                     public static final \{layoutType} LAYOUT = \{layoutString(varType)};
-                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{nativeName}").reinterpret(LAYOUT.byteSize());
+                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{var.name()}").reinterpret(LAYOUT.byteSize());
                     \{accessHandle}
                     public static final long[] DIMS = { \{dimsString} };
                 }
                 """);
         } else {
             appendIndentedLines(STR."""
-                public static class \{mangledName} {
+                private static class \{mangledName} {
                     public static final \{layoutType} LAYOUT = \{layoutString(varType)};
-                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{nativeName}").reinterpret(LAYOUT.byteSize());
+                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{var.name()}").reinterpret(LAYOUT.byteSize());
                 }
                 """);
         }
+        incrAlign();
+        appendBlankLine();
+        emitDocComment(var, "Layout for variable:");
+        appendLines(STR."""
+                public static \{layoutType} \{javaName}$layout() {
+                    return \{mangledName}.LAYOUT;
+                }
+                """);
+        if (!Utils.isStructOrUnion(varType) && !Utils.isArray(varType)) {
+            appendBlankLine();
+            emitDocComment(var, "Segment for variable:");
+            appendLines(STR."""
+                    public static MemorySegment \{javaName}$segment() {
+                        return \{mangledName}.SEGMENT;
+                    }
+                    """);
+        }
+        if (varType instanceof Type.Array) {
+            appendBlankLine();
+            emitDocComment(var, "Dimensions for array variable:");
+            appendLines(STR."""
+                public static long[] \{javaName}$dimensions() {
+                    return \{mangledName}.DIMS;
+                }
+                """);
+        }
+        decrAlign();
         return mangledName;
     }
 

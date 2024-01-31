@@ -40,20 +40,20 @@ struct Point {
 
 struct Foo {
     struct Point points1[2];
-    struct Point points2[2][2];
-    struct Point points3[2][2][2];
+    struct Point points2[2][3];
+    struct Point points3[2][3][4];
 
     int ints1[2];
-    int ints2[2][2];
-    int ints3[2][2][2];
+    int ints2[2][3];
+    int ints3[2][3][4];
 };
 
 // array global vars
 
 extern struct Point points1[2];
-extern struct Point points2[2][2];
-extern struct Point points3[2][2][2];
+extern struct Point points2[2][3];
+extern struct Point points3[2][3][4];
 
 extern int ints1[2];
-extern int ints2[2][2];
-extern int ints3[2][2][2];
+extern int ints2[2][3];
+extern int ints3[2][3][4];

@@ -24,9 +24,9 @@
 #include "array_access.h"
 
 EXPORT struct Point points1[2];
-EXPORT struct Point points2[2][2];
-EXPORT struct Point points3[2][2][2];
+EXPORT struct Point points2[2][3];
+EXPORT struct Point points3[2][3][4];
 
 EXPORT int ints1[2];
-EXPORT int ints2[2][2];
-EXPORT int ints3[2][2][2];
+EXPORT int ints2[2][3];
+EXPORT int ints3[2][3][4];

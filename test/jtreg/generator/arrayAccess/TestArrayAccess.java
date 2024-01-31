@@ -45,7 +45,8 @@ public class TestArrayAccess {
     public void testArrayAccessStructInt1() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment foo = Foo.allocate(arena);
-            for (int i = 0 ; i < 2 ; i++) {
+            long[] dims = Foo.ints1$dimensions();
+            for (int i = 0 ; i < dims[0] ; i++) {
                 Foo.ints1(foo, i, i + 1);
                 assertEquals(Foo.ints1(foo, i), i + 1);
             }
@@ -56,8 +57,9 @@ public class TestArrayAccess {
     public void testArrayAccessStructInt2() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment foo = Foo.allocate(arena);
-            for (int i = 0 ; i < 2 ; i++) {
-                for (int j = 0; j < 2; j++) {
+            long[] dims = Foo.ints2$dimensions();
+            for (int i = 0 ; i < dims[0] ; i++) {
+                for (int j = 0; j < dims[1]; j++) {
                     Foo.ints2(foo, i, j, i + j + 1);
                     assertEquals(Foo.ints2(foo, i, j), i + j + 1);
                 }
@@ -69,9 +71,10 @@ public class TestArrayAccess {
     public void testArrayAccessStructInt3() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment foo = Foo.allocate(arena);
-            for (int i = 0 ; i < 2 ; i++) {
-                for (int j = 0; j < 2; j++) {
-                    for (int k = 0; k < 2; k++) {
+            long[] dims = Foo.ints3$dimensions();
+            for (int i = 0 ; i < dims[0] ; i++) {
+                for (int j = 0; j < dims[1]; j++) {
+                    for (int k = 0; k < dims[2]; k++) {
                         Foo.ints3(foo, i, j, k, i + j + k + 1);
                         assertEquals(Foo.ints3(foo, i, j, k), i + j + k + 1);
                     }
@@ -82,7 +85,8 @@ public class TestArrayAccess {
 
     @Test
     public void testArrayAccessGlobalInt1() {
-        for (int i = 0 ; i < 2 ; i++) {
+        long[] dims = ints1$dimensions();
+        for (int i = 0 ; i < dims[0] ; i++) {
             ints1(i, i + 1);
             assertEquals(ints1(i), i + 1);
         }
@@ -90,8 +94,9 @@ public class TestArrayAccess {
 
     @Test
     public void testArrayAccessGlobalInt2() {
-        for (int i = 0 ; i < 2 ; i++) {
-            for (int j = 0; j < 2; j++) {
+        long[] dims = ints2$dimensions();
+        for (int i = 0 ; i < dims[0] ; i++) {
+            for (int j = 0; j < dims[1]; j++) {
                 ints2(i, j, i + j + 1);
                 assertEquals(ints2(i, j), i + j + 1);
             }
@@ -100,9 +105,10 @@ public class TestArrayAccess {
 
     @Test
     public void testArrayAccessGlobalInt3() {
-        for (int i = 0 ; i < 2 ; i++) {
-            for (int j = 0; j < 2; j++) {
-                for (int k = 0; k < 2; k++) {
+        long[] dims = ints3$dimensions();
+        for (int i = 0 ; i < dims[0] ; i++) {
+            for (int j = 0; j < dims[1]; j++) {
+                for (int k = 0; k < dims[2]; k++) {
                     ints3(i, j, k, i + j + k + 1);
                     assertEquals(ints3(i, j, k), i + j + k + 1);
                 }
@@ -114,7 +120,8 @@ public class TestArrayAccess {
     public void testArrayAccessStructStruct1() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment foo = Foo.allocate(arena);
-            for (int i = 0 ; i < 2 ; i++) {
+            long[] dims = Foo.points1$dimensions();
+            for (int i = 0 ; i < dims[0] ; i++) {
                 MemorySegment point = Point.allocate(arena);
                 Point.x(point, i + 1);
                 Point.y(point, i + 2);
@@ -129,8 +136,9 @@ public class TestArrayAccess {
     public void testArrayAccessStructStruct2() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment foo = Foo.allocate(arena);
-            for (int i = 0 ; i < 2 ; i++) {
-                for (int j = 0; j < 2; j++) {
+            long[] dims = Foo.points2$dimensions();
+            for (int i = 0 ; i < dims[0] ; i++) {
+                for (int j = 0; j < dims[1]; j++) {
                     MemorySegment point = Point.allocate(arena);
                     Point.x(point, i + j + 1);
                     Point.y(point, i + j + 2);
@@ -146,9 +154,10 @@ public class TestArrayAccess {
     public void testArrayAccessStructStruct3() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment foo = Foo.allocate(arena);
-            for (int i = 0 ; i < 2 ; i++) {
-                for (int j = 0; j < 2; j++) {
-                    for (int k = 0; k < 2; k++) {
+            long[] dims = Foo.points3$dimensions();
+            for (int i = 0 ; i < dims[0] ; i++) {
+                for (int j = 0; j < dims[1]; j++) {
+                    for (int k = 0; k < dims[2]; k++) {
                         MemorySegment point = Point.allocate(arena);
                         Point.x(point, i + j + k + 1);
                         Point.y(point, i + j + k + 2);
@@ -164,7 +173,8 @@ public class TestArrayAccess {
     @Test
     public void testArrayAccessGlobalStruct1() {
         try (Arena arena = Arena.ofConfined()) {
-            for (int i = 0; i < 2; i++) {
+            long[] dims = points1$dimensions();
+            for (int i = 0; i < dims[0]; i++) {
                 MemorySegment point = Point.allocate(arena);
                 Point.x(point, i + 1);
                 Point.y(point, i + 2);
@@ -178,8 +188,9 @@ public class TestArrayAccess {
     @Test
     public void testArrayAccessGlobalStruct2() {
         try (Arena arena = Arena.ofConfined()) {
-            for (int i = 0; i < 2; i++) {
-                for (int j = 0; j < 2; j++) {
+            long[] dims = points2$dimensions();
+            for (int i = 0; i < dims[0]; i++) {
+                for (int j = 0; j < dims[1]; j++) {
                     MemorySegment point = Point.allocate(arena);
                     Point.x(point, i + j + 1);
                     Point.y(point, i + j + 2);
@@ -194,9 +205,10 @@ public class TestArrayAccess {
     @Test
     public void testArrayAccessGlobalStruct3() {
         try (Arena arena = Arena.ofConfined()) {
-            for (int i = 0 ; i < 2 ; i++) {
-                for (int j = 0; j < 2; j++) {
-                    for (int k = 0; k < 2; k++) {
+            long[] dims = points3$dimensions();
+            for (int i = 0 ; i < dims[0] ; i++) {
+                for (int j = 0; j < dims[1]; j++) {
+                    for (int k = 0; k < dims[2]; k++) {
                         MemorySegment point = Point.allocate(arena);
                         Point.x(point, i + j + k + 1);
                         Point.y(point, i + j + k + 2);
