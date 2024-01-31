@@ -54,6 +54,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     public void addVar(Declaration.Variable varTree) {
         String javaName = JavaName.getOrThrow(varTree);
+        appendBlankLine();
         String holderClass = emitVarHolderClass(varTree, javaName);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
             emitGlobalSegmentGetter(holderClass, javaName, varTree, "Getter for variable:");

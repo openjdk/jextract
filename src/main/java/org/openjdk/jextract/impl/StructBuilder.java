@@ -135,6 +135,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String javaName = JavaName.getOrThrow(varTree);
         appendBlankLine();
         String layoutField = emitLayoutFieldDecl(varTree, javaName);
+        appendBlankLine();
         String offsetField = emitOffsetFieldDecl(varTree, javaName);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
             emitDimensionsFieldDecl(varTree, javaName);
