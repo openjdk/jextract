@@ -151,7 +151,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String holderClass = STR."\{javaName}$constants";
             appendLines(STR."""
 
-                public static class \{holderClass} {
+                private static class \{holderClass} {
                     public static final FunctionDescriptor DESC = \{functionDescriptorString(1, decl.type())};
 
                     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
@@ -159,21 +159,34 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                 DESC);
                 }
                 """);
-                appendBlankLine();
-                emitDocComment(decl);
-                appendLines(STR."""
-                public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
-                    var mh$ = \{holderClass}.HANDLE;
-                    try {
-                        if (TRACE_DOWNCALLS) {
-                            traceDowncall(\{traceArgList});
-                        }
-                        \{returnWithCast}mh$.invokeExact(\{paramList});
-                    } catch (Throwable ex$) {
-                       throw new AssertionError("should not reach here", ex$);
-                    }
+            appendBlankLine();
+            emitDocComment(decl, "Function descriptor for:");
+            appendLines(STR."""
+                public static FunctionDescriptor \{javaName}$descriptor() {
+                    return \{holderClass}.DESC;
                 }
                 """);
+            appendBlankLine();
+            emitDocComment(decl, "Downcall method handle for:");
+            appendLines(STR."""
+                public static MethodHandle \{javaName}$handle() {
+                    return \{holderClass}.HANDLE;
+                }
+                """);
+            emitDocComment(decl);
+            appendLines(STR."""
+            public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
+                var mh$ = \{holderClass}.HANDLE;
+                try {
+                    if (TRACE_DOWNCALLS) {
+                        traceDowncall(\{traceArgList});
+                    }
+                    \{returnWithCast}mh$.invokeExact(\{paramList});
+                } catch (Throwable ex$) {
+                   throw new AssertionError("should not reach here", ex$);
+                }
+            }
+            """);
         } else {
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
             String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
