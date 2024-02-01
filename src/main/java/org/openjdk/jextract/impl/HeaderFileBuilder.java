@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -224,27 +225,25 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     void emitFirstHeaderPreamble(List<String> libraries) {
-        appendIndentedLines("""
+        // build list of symbol lookups
+        List<String> lookups = libraries.stream() // add library lookup (if any)
+                .map(libName -> STR."SymbolLookup.libraryLookup(\"\{libName}\", LIBRARY_ARENA)")
+                .collect(Collectors.toCollection(ArrayList::new));
+        lookups.add("SymbolLookup.loaderLookup()"); // fallback to loader lookup
+        lookups.add("Linker.nativeLinker().defaultLookup()"); // fallback to native lookup
 
-            static final SymbolLookup SYMBOL_LOOKUP
-                    = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
-            """);
-        if (!libraries.isEmpty()) {
-            appendIndentedLines("""
-
-                static {
-                """);
-            incrAlign();
-            for (String lib : libraries) {
-                String quotedLibName = lib.replace("\\", "\\\\"); // double up slashes
-                String method = quotedLibName.indexOf(File.separatorChar) != -1 ? "load" : "loadLibrary";
-                appendIndentedLines(STR."System.\{method}(\"\{quotedLibName}\");");
-            }
-            decrAlign();
-            appendIndentedLines("""
-                }
-                """);
+        // wrap all lookups (but the first) with ".or(...)"
+        List<String> lookupCalls = new ArrayList<>();
+        boolean isFirst = true;
+        for (String lookup : lookups) {
+            lookupCalls.add(isFirst ? lookup : STR.".or(\{lookup})");
+            isFirst = false;
         }
+
+        // chain all the calls together into a combined symbol lookup
+        appendBlankLine();
+        appendIndentedLines(lookupCalls.stream()
+                .collect(Collectors.joining(STR."\n\{indentString(2)}", "static final SymbolLookup SYMBOL_LOOKUP = ", ";")));
     }
 
     void emitRuntimeHelperMethods() {

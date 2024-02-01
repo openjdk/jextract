@@ -59,8 +59,9 @@ class ToplevelBuilder implements OutputFactory.Builder {
         HeaderFileBuilder first = new HeaderFileBuilder(sfb, STR."\{sfb.className()}#{SUFFIX}", null, sfb.className());
         first.appendBlankLine();
         first.classBegin();
-        first.emitFirstHeaderPreamble(libraries);
         first.emitDefaultConstructor();
+        first.emitRuntimeHelperMethods();
+        first.emitFirstHeaderPreamble(libraries);
         // emit basic primitive types
         first.appendIndentedLines(STR."""
 
@@ -80,7 +81,6 @@ class ToplevelBuilder implements OutputFactory.Builder {
         } else {
             first.appendIndentedLines("public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;");
         }
-        first.emitRuntimeHelperMethods();
         return first;
     }
 
