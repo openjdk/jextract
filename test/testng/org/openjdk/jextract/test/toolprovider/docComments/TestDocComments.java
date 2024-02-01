@@ -78,17 +78,27 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testArrays() throws IOException {
         var comments = getDocComments("arrays.h", "arrays_h.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "Getter for variable: int abc[10]",
+            "Indexed getter for variable: int abc[10]",
             "Setter for variable: int abc[10]",
+            "Indexed setter for variable: int abc[10]",
             "Getter for variable: float numbers[3]",
+            "Indexed getter for variable: float numbers[3]",
             "Setter for variable: float numbers[3]",
+            "Indexed setter for variable: float numbers[3]",
             "Getter for variable: char *msg[5]",
+            "Indexed getter for variable: char *msg[5]",
             "Setter for variable: char *msg[5]",
+            "Indexed setter for variable: char *msg[5]",
             "Getter for variable: int pixels[200][100]",
+            "Indexed getter for variable: int pixels[200][100]",
             "Setter for variable: int pixels[200][100]",
+            "Indexed setter for variable: int pixels[200][100]",
             "Getter for variable: int points[10][20][30]",
-            "Setter for variable: int points[10][20][30]"));
+            "Indexed getter for variable: int points[10][20][30]",
+            "Setter for variable: int points[10][20][30]",
+            "Indexed setter for variable: int points[10][20][30]"));
     }
 
     @Test
@@ -137,11 +147,15 @@ public class TestDocComments extends JextractToolRunner {
     @Test
     public void testVariables() throws IOException {
         var comments = getDocComments("variables.h", "variables_h.java");
-        assertEquals(comments, List.of(
+        assertContains(comments, List.of(
             "Getter for variable: int abc",
             "Setter for variable: int abc",
+            "Layout for variable: int abc",
+            "Segment for variable: int abc",
             "Getter for variable: char *msg",
-            "Setter for variable: char *msg"
+            "Setter for variable: char *msg",
+            "Layout for variable: char *msg",
+            "Segment for variable: char *msg"
         ));
     }
 

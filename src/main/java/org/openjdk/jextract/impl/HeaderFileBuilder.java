@@ -25,7 +25,6 @@
 package org.openjdk.jextract.impl;
 
 import java.io.File;
-import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
 import java.lang.invoke.MethodHandle;
@@ -36,9 +35,13 @@ import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -47,22 +50,28 @@ import java.util.StringJoiner;
  */
 class HeaderFileBuilder extends ClassSourceBuilder {
 
+    private final Set<String> holderClassNames = new HashSet<>();
+
     HeaderFileBuilder(SourceFileBuilder builder, String className, String superName, String runtimeHelperName) {
         super(builder, "public", Kind.CLASS, className, superName, null, runtimeHelperName);
     }
 
     public void addVar(Declaration.Variable varTree) {
-        String nativeName = varTree.name();
         String javaName = JavaName.getOrThrow(varTree);
-        String layoutVar = emitVarLayout(varTree.type(), javaName);
+        appendBlankLine();
+        String holderClass = emitVarHolderClass(varTree, javaName);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
-            String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName);
-            emitGlobalSegmentGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
-            emitGlobalSegmentSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
+            emitGlobalSegmentGetter(holderClass, javaName, varTree, "Getter for variable:");
+            emitGlobalSegmentSetter(holderClass, javaName, varTree, "Setter for variable:");
+            int dims = Utils.dimensions(varTree.type()).size();
+            if (dims > 0) {
+                IndexList indexList = IndexList.of(dims);
+                emitGlobalArrayGetter(holderClass, indexList, javaName, varTree, "Indexed getter for variable:");
+                emitGlobalArraySetter(holderClass, indexList, javaName, varTree, "Indexed setter for variable:");
+            }
         } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
-            String segmentConstant = emitGlobalSegment(layoutVar, javaName, nativeName);
-            emitGlobalGetter(segmentConstant, layoutVar, javaName, varTree, "Getter for variable:");
-            emitGlobalSetter(segmentConstant, layoutVar, javaName, varTree, "Setter for variable:");
+            emitGlobalGetter(holderClass, javaName, varTree, "Getter for variable:");
+            emitGlobalSetter(holderClass, javaName, varTree, "Setter for variable:");
         } else {
             throw new IllegalArgumentException("Tree type not handled: " + varTree.type());
         }
@@ -137,41 +146,51 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         boolean isVoid = declType.returnType().equals(void.class);
         String returnNoCast = isVoid ? "" : STR."return ";
         String returnWithCast = isVoid ? "" : STR."\{returnNoCast}(\{retType})";
-        String getterName = mangleName(javaName, MethodHandle.class);
         String paramList = String.join(", ", finalParamNames);
         String traceArgList = paramList.isEmpty() ?
                 STR."\"\{nativeName}\"" :
                 STR."\"\{nativeName}\", \{paramList}";
         incrAlign();
         if (!isVarArg) {
+            String holderClass = newHolderClassName(javaName);
             appendLines(STR."""
 
-                private static MethodHandle \{getterName}() {
-                    class Holder {
-                        static final FunctionDescriptor DESC = \{functionDescriptorString(2, decl.type())};
+                private static class \{holderClass} {
+                    public static final FunctionDescriptor DESC = \{functionDescriptorString(1, decl.type())};
 
-                        static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+                    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
                                 \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
                                 DESC);
-                    }
-                    return Holder.MH;
                 }
                 """);
-                appendBlankLine();
-                emitDocComment(decl);
-                appendLines(STR."""
-                public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
-                    var mh$ = \{getterName}();
-                    try {
-                        if (TRACE_DOWNCALLS) {
-                            traceDowncall(\{traceArgList});
-                        }
-                        \{returnWithCast}mh$.invokeExact(\{paramList});
-                    } catch (Throwable ex$) {
-                       throw new AssertionError("should not reach here", ex$);
-                    }
+            appendBlankLine();
+            emitDocComment(decl, "Function descriptor for:");
+            appendLines(STR."""
+                public static FunctionDescriptor \{javaName}$descriptor() {
+                    return \{holderClass}.DESC;
                 }
                 """);
+            appendBlankLine();
+            emitDocComment(decl, "Downcall method handle for:");
+            appendLines(STR."""
+                public static MethodHandle \{javaName}$handle() {
+                    return \{holderClass}.HANDLE;
+                }
+                """);
+            emitDocComment(decl);
+            appendLines(STR."""
+            public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
+                var mh$ = \{holderClass}.HANDLE;
+                try {
+                    if (TRACE_DOWNCALLS) {
+                        traceDowncall(\{traceArgList});
+                    }
+                    \{returnWithCast}mh$.invokeExact(\{paramList});
+                } catch (Throwable ex$) {
+                   throw new AssertionError("should not reach here", ex$);
+                }
+            }
+            """);
         } else {
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
             String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
@@ -309,7 +328,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             """);
     }
 
-    private void emitGlobalGetter(String segmentConstant, String layoutVar, String javaName,
+    private void emitGlobalGetter(String holderClass, String javaName,
                                   Declaration.Variable decl, String docHeader) {
         appendBlankLine();
         incrAlign();
@@ -317,79 +336,161 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
             public static \{type.getSimpleName()} \{javaName}() {
-                return \{segmentConstant}.get(\{layoutVar}, 0L);
+                return \{holderClass}.SEGMENT.get(\{holderClass}.LAYOUT, 0L);
             }
             """);
         decrAlign();
     }
 
-    private void emitGlobalSetter(String segmentConstant, String layoutVar, String javaName,
+    private void emitGlobalSetter(String holderClass, String javaName,
                                   Declaration.Variable decl, String docHeader) {
         appendBlankLine();
         incrAlign();
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines(STR."""
-            public static void \{javaName}(\{type.getSimpleName()} x) {
-                \{segmentConstant}.set(\{layoutVar}, 0L, x);
+            public static void \{javaName}(\{type.getSimpleName()} varValue) {
+                \{holderClass}.SEGMENT.set(\{holderClass}.LAYOUT, 0L, varValue);
             }
             """);
         decrAlign();
     }
 
-    private void emitGlobalSegmentGetter(String segmentConstant, String layoutVar, String javaName,
+    private void emitGlobalSegmentGetter(String holderClass, String javaName,
                                          Declaration.Variable varTree, String docHeader) {
         appendBlankLine();
         incrAlign();
         emitDocComment(varTree, docHeader);
         appendLines(STR."""
             public static MemorySegment \{javaName}() {
-                return \{segmentConstant};
+                return \{holderClass}.SEGMENT;
             }
             """);
         decrAlign();
     }
 
-    private void emitGlobalSegmentSetter(String segmentConstant, String layoutVar, String javaName,
+    private void emitGlobalSegmentSetter(String holderClass, String javaName,
                                          Declaration.Variable varTree, String docHeader) {
         appendBlankLine();
         incrAlign();
         emitDocComment(varTree, docHeader);
         appendLines(STR."""
             public static void \{javaName}(MemorySegment varValue) {
-                MemorySegment.copy(varValue, 0L, \{segmentConstant}, 0L, \{layoutVar}.byteSize());
+                MemorySegment.copy(varValue, 0L, \{holderClass}.SEGMENT, 0L, \{holderClass}.LAYOUT.byteSize());
             }
             """);
         decrAlign();
     }
 
-    public String emitGlobalSegment(String layout, String javaName, String nativeName) {
-        String mangledName = mangleName(javaName, MemorySegment.class);
-        appendIndentedLines(STR."""
-
-            private static MemorySegment \{mangledName}() {
-                class Holder {
-                    static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{nativeName}")
-                        .reinterpret(\{layout}.byteSize());
+    private void emitGlobalArrayGetter(String holderClass, IndexList indexList,
+                                       String javaName, Declaration.Variable varTree, String docHeader) {
+        Type elemType = Utils.typeOrElemType(varTree.type());
+        Class<?> typeCls = Utils.carrierFor(elemType);
+        appendBlankLine();
+        incrAlign();
+        emitDocComment(varTree, docHeader);
+        if (Utils.isStructOrUnion(elemType)) {
+            appendLines(STR."""
+                public static MemorySegment \{javaName}(\{indexList.decl()}) {
+                    try {
+                        return (MemorySegment)\{holderClass}.HANDLE.invokeExact(\{holderClass}.SEGMENT, 0L, \{indexList.use()});
+                    } catch (Throwable ex$) {
+                        throw new AssertionError("should not reach here", ex$);
+                    }
                 }
-                return Holder.SEGMENT;
-            }
-            """);
-        return STR."\{mangledName}()";
+                """);
+        } else {
+            appendLines(STR."""
+                public static \{typeCls.getSimpleName()} \{javaName}(\{indexList.decl()}) {
+                    return (\{typeCls.getSimpleName()})\{holderClass}.HANDLE.get(\{holderClass}.SEGMENT, 0L, \{indexList.use()});
+                }
+                """);
+        }
+        decrAlign();
     }
 
-    private String emitVarLayout(Type varType, String javaName) {
-        String mangledName = mangleName(javaName, MemoryLayout.class);
-        String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
-        appendIndentedLines(STR."""
-            private static \{layoutType} \{mangledName}() {
-                class Holder {
-                    static final \{layoutType} LAYOUT = \{layoutString(varType)};
+    private void emitGlobalArraySetter(String holderClass, IndexList indexList,
+                                       String javaName, Declaration.Variable varTree, String docHeader) {
+        Type elemType = Utils.typeOrElemType(varTree.type());
+        Class<?> typeCls = Utils.carrierFor(elemType);
+        appendBlankLine();
+        incrAlign();
+        emitDocComment(varTree, docHeader);
+        if (Utils.isStructOrUnion(elemType)) {
+            appendLines(STR."""
+                public static void \{javaName}(\{indexList.decl()}, MemorySegment varValue) {
+                    MemorySegment.copy(varValue, 0L, \{javaName}(\{indexList.use()}), 0L, \{layoutString(elemType)}.byteSize());
                 }
-                return Holder.LAYOUT;
-            }
-            """);
-        return STR."\{mangledName}()";
+                """);
+        } else {
+            appendLines(STR."""
+                public static void \{javaName}(\{indexList.decl()}, \{typeCls.getSimpleName()} varValue) {
+                    \{holderClass}.HANDLE.set(\{holderClass}.SEGMENT, 0L, \{indexList.use()}, varValue);
+                }
+                """);
+        }
+        decrAlign();
+    }
+
+    private String emitVarHolderClass(Declaration.Variable var, String javaName) {
+        Type varType = var.type();
+        String mangledName = newHolderClassName(javaName);
+        String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
+        if (varType instanceof Type.Array) {
+            List<Long> dimensions = Utils.dimensions(varType);
+            String path = IntStream.range(0, dimensions.size())
+                    .mapToObj(_ -> "sequenceElement()")
+                    .collect(Collectors.joining(", "));
+            Type elemType = Utils.typeOrElemType(varType);
+            String accessHandle = Utils.isStructOrUnion(elemType) ?
+                    STR."public static final MethodHandle HANDLE = LAYOUT.sliceHandle(\{path});" :
+                    STR."public static final VarHandle HANDLE = LAYOUT.varHandle(\{path});\n";
+            String dimsString = dimensions.stream().map(d -> d.toString())
+                    .collect(Collectors.joining(", "));
+            appendIndentedLines(STR."""
+                private static class \{mangledName} {
+                    public static final \{layoutType} LAYOUT = \{layoutString(varType)};
+                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{var.name()}").reinterpret(LAYOUT.byteSize());
+                    \{accessHandle}
+                    public static final long[] DIMS = { \{dimsString} };
+                }
+                """);
+        } else {
+            appendIndentedLines(STR."""
+                private static class \{mangledName} {
+                    public static final \{layoutType} LAYOUT = \{layoutString(varType)};
+                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{var.name()}").reinterpret(LAYOUT.byteSize());
+                }
+                """);
+        }
+        incrAlign();
+        appendBlankLine();
+        emitDocComment(var, "Layout for variable:");
+        appendLines(STR."""
+                public static \{layoutType} \{javaName}$layout() {
+                    return \{mangledName}.LAYOUT;
+                }
+                """);
+        if (!Utils.isStructOrUnion(varType) && !Utils.isArray(varType)) {
+            appendBlankLine();
+            emitDocComment(var, "Segment for variable:");
+            appendLines(STR."""
+                    public static MemorySegment \{javaName}$segment() {
+                        return \{mangledName}.SEGMENT;
+                    }
+                    """);
+        }
+        if (varType instanceof Type.Array) {
+            appendBlankLine();
+            emitDocComment(var, "Dimensions for array variable:");
+            appendLines(STR."""
+                public static long[] \{javaName}$dimensions() {
+                    return \{mangledName}.DIMS;
+                }
+                """);
+        }
+        decrAlign();
+        return mangledName;
     }
 
     private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {
@@ -467,5 +568,13 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         public static final \{Utils.layoutCarrierFor(type).getSimpleName()} \{javaName} = \{layoutString(type)};
         """);
         decrAlign();
+    }
+
+    private String newHolderClassName(String javaName) {
+        String holderClassName = STR."\{javaName}$constants";
+        while (!holderClassNames.add(holderClassName.toLowerCase())) {
+            holderClassName += "$";
+        }
+        return holderClassName;
     }
 }

@@ -46,6 +46,8 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SequenceLayout;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodType;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -181,6 +183,23 @@ class Utils {
             }
         }
         return null;
+    }
+
+    static List<Long> dimensions(Type type) {
+        List<Long> dims = new ArrayList<>();
+        while (type instanceof Type.Array array) {
+            if (array.elementCount().isEmpty()) return List.of();
+            dims.add(array.elementCount().getAsLong());
+            type = array.elementType();
+        }
+        return dims;
+    }
+
+    static Type typeOrElemType(Type type) {
+        return switch (type) {
+            case Type.Array array -> typeOrElemType(array.elementType());
+            default -> type;
+        };
     }
 
     /**
