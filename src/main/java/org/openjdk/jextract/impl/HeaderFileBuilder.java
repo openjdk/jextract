@@ -35,8 +35,10 @@ import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -47,6 +49,8 @@ import java.util.stream.IntStream;
  * method is called to get overall generated source string.
  */
 class HeaderFileBuilder extends ClassSourceBuilder {
+
+    private final Set<String> holderClassNames = new HashSet<>();
 
     HeaderFileBuilder(SourceFileBuilder builder, String className, String superName, String runtimeHelperName) {
         super(builder, "public", Kind.CLASS, className, superName, null, runtimeHelperName);
@@ -148,7 +152,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 STR."\"\{nativeName}\", \{paramList}";
         incrAlign();
         if (!isVarArg) {
-            String holderClass = STR."\{javaName}$constants";
+            String holderClass = newHolderClassName(javaName);
             appendLines(STR."""
 
                 private static class \{holderClass} {
@@ -430,7 +434,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private String emitVarHolderClass(Declaration.Variable var, String javaName) {
         Type varType = var.type();
-        String mangledName = STR."\{javaName}$constants";
+        String mangledName = newHolderClassName(javaName);
         String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
         if (varType instanceof Type.Array) {
             List<Long> dimensions = Utils.dimensions(varType);
@@ -564,5 +568,13 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         public static final \{Utils.layoutCarrierFor(type).getSimpleName()} \{javaName} = \{layoutString(type)};
         """);
         decrAlign();
+    }
+
+    private String newHolderClassName(String javaName) {
+        String holderClassName = STR."\{javaName}$constants";
+        while (!holderClassNames.add(holderClassName.toLowerCase())) {
+            holderClassName += "$";
+        }
+        return holderClassName;
     }
 }

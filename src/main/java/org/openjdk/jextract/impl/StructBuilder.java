@@ -138,11 +138,11 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         appendBlankLine();
         String offsetField = emitOffsetFieldDecl(varTree, javaName);
         if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
-            emitDimensionsFieldDecl(varTree, javaName);
             emitSegmentGetter(javaName, varTree, offsetField, layoutField);
             emitSegmentSetter(javaName, varTree, offsetField, layoutField);
             int dims = Utils.dimensions(varTree.type()).size();
             if (dims > 0) {
+                emitDimensionsFieldDecl(varTree, javaName);
                 String arrayHandle = emitArrayElementHandle(javaName, varTree, layoutField, dims);
                 IndexList indexList = IndexList.of(dims);
                 emitFieldArrayGetter(javaName, varTree, arrayHandle, indexList);

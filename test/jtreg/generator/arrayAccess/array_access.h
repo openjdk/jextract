@@ -21,10 +21,6 @@
  * questions.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
-
 #ifdef _WIN64
 #define EXPORT __declspec(dllexport)
 #else
@@ -50,10 +46,10 @@ struct Foo {
 
 // array global vars
 
-extern struct Point points1[2];
-extern struct Point points2[2][3];
-extern struct Point points3[2][3][4];
+EXPORT extern struct Point points1[2];
+EXPORT extern struct Point points2[2][3];
+EXPORT extern struct Point points3[2][3][4];
 
-extern int ints1[2];
-extern int ints2[2][3];
-extern int ints3[2][3][4];
+EXPORT extern int ints1[2];
+EXPORT extern int ints2[2][3];
+EXPORT extern int ints3[2][3][4];
