@@ -149,7 +149,7 @@ task verify(type: Exec) {
 
 // jlink a JDK image with org.openjdk.jextract for testing
 task createRuntimeImageForTest(type: Exec) {
-    dependsOn verify
+    dependsOn createJextractJmod
 
     def out_dir = "$buildDir/jextract-jdk-test-image"
 
@@ -248,3 +248,5 @@ tasks.register("coverage", JavaExec) {
             "--html", "$buildDir/jacoco-report"
     ]
 }
+
+test.dependsOn(verify, jtreg)
