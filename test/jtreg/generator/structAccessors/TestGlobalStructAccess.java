@@ -33,7 +33,7 @@ import static test.jextract.globalaccess.globalStructAccess_h.*;
 /*
  * @test
  * @library /lib
- * @run main/othervm JtregJextract -l StructGlobal -t test.jextract.globalaccess globalStructAccess.h
+ * @run main/othervm JtregJextract -l StructGlobal,lookup=loaderLookup -t test.jextract.globalaccess globalStructAccess.h
  * @build TestGlobalStructAccess
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestGlobalStructAccess
  */

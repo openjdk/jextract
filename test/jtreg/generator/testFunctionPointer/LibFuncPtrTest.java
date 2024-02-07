@@ -31,7 +31,7 @@ import test.jextract.fp.*;
 /*
  * @test
  * @library /lib
- * @run main/othervm JtregJextract -l FuncPtr -t test.jextract.fp funcPtr.h
+ * @run main/othervm JtregJextract -l FuncPtr,lookup=loaderLookup -t test.jextract.fp funcPtr.h
  * @build LibFuncPtrTest
  * @run testng/othervm LibFuncPtrTest
  */

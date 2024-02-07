@@ -36,7 +36,7 @@ import static test.jextract.printf.printf_h.*;
  * @test
  *
  * @library /lib
- * @run main/othervm JtregJextract -t test.jextract.printf -l Printf printf.h
+ * @run main/othervm JtregJextract -t test.jextract.printf -l Printf,lookup=loaderLookup printf.h
  * @build TestPrintf
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPrintf
  */

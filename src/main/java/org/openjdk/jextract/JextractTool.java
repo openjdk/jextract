@@ -120,26 +120,26 @@ public final class JextractTool {
     }
 
     public static List<JavaSourceFile> generate(Declaration.Scoped decl, String headerName,
-                                                String targetPkg, List<String> libNames, PrintWriter errStream) {
-        return List.of(generate(decl, headerName, targetPkg, new IncludeHelper(), libNames, errStream));
+                                                String targetPkg, List<Options.Library> libs, PrintWriter errStream) {
+        return List.of(generate(decl, headerName, targetPkg, new IncludeHelper(), libs, errStream));
     }
 
     private static List<JavaSourceFile> generateInternal(Declaration.Scoped decl, String headerName,
                                                          String targetPkg, IncludeHelper includeHelper,
-                                                         List<String> libNames, PrintWriter errStream) {
-        return List.of(generate(decl, headerName, targetPkg, includeHelper, libNames, errStream));
+                                                         List<Options.Library> libs, PrintWriter errStream) {
+        return List.of(generate(decl, headerName, targetPkg, includeHelper, libs, errStream));
     }
 
     private static JavaSourceFile[] generate(Declaration.Scoped decl, String headerName,
-                                            String targetPkg, IncludeHelper includeHelper,
-                                            List<String> libNames, PrintWriter errStream) {
+                                             String targetPkg, IncludeHelper includeHelper,
+                                             List<Options.Library> libs, PrintWriter errStream) {
         var transformedDecl = Stream.of(decl)
                 .map(new IncludeFilter(includeHelper)::scan)
                 .map(new DuplicateFilter()::scan)
                 .map(new NameMangler(headerName)::scan)
                 .map(new UnsupportedFilter(errStream)::scan)
                 .findFirst().get();
-        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libNames);
+        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libs);
     }
 
     /**
@@ -469,16 +469,11 @@ public final class JextractTool {
         boolean librariesSpecified = optionSet.has("-l");
         if (librariesSpecified) {
             for (String lib : optionSet.valuesOf("-l")) {
-                if (lib.indexOf(File.separatorChar) == -1) {
-                    builder.addLibraryName(lib);
-                } else {
-                    Path libPath = Paths.get(lib);
-                    if (libPath.isAbsolute() && Files.isRegularFile(libPath)) {
-                        builder.addLibraryName(lib);
-                    } else {
-                        err.println(format("l.option.value.invalid", lib));
-                        return OPTION_ERROR;
-                    }
+                try {
+                    builder.addLibrary(Options.Library.parse(lib));
+                } catch (IllegalArgumentException ex) {
+                    err.println(format("l.option.value.invalid", lib));
+                    return OPTION_ERROR;
                 }
             }
         }
@@ -512,7 +507,7 @@ public final class JextractTool {
 
             files = generateInternal(
                 toplevel, headerName,
-                options.targetPackage, options.includeHelper, options.libraryNames, err);
+                options.targetPackage, options.includeHelper, options.libraries, err);
         } catch (ClangException ce) {
             err.println(ce.getMessage());
             if (JextractTool.DEBUG) {

@@ -31,7 +31,7 @@ import java.lang.foreign.ValueLayout;
 /*
  * @test
  * @library /lib
- * @run main/othervm JtregJextract -t test.jextract.clinit --library ClinitGlobal -Djextract.decls.per.header=1 clinit_global.h
+ * @run main/othervm JtregJextract -t test.jextract.clinit --library ClinitGlobal,lookup=loaderLookup -Djextract.decls.per.header=1 clinit_global.h
  * @build TestGlobal
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestGlobal
  */

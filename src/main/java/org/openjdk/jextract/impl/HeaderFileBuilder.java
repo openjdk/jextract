@@ -224,10 +224,34 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitPrimitiveTypedefLayout(name, Type.pointer(), typedefTree);
     }
 
-    void emitFirstHeaderPreamble(List<String> libraries) {
+    void emitFirstHeaderPreamble(List<Options.Library> libraries) {
+        // load libraries (if any) into current loader in a static init block
+        List<Options.Library> loaderLibraries = libraries.stream()
+                .filter(l -> l.lookupKind() == Options.Library.LookupKind.LOADER_LOOKUP)
+                .toList();
+        if (!loaderLibraries.isEmpty()) {
+            appendBlankLine();
+            appendIndentedLines("""
+
+                static {
+                """);
+            incrAlign();
+            for (Options.Library lib : loaderLibraries) {
+                String method = lib.specKind() == Options.Library.SpecKind.PATH ? "load" : "loadLibrary";
+                appendIndentedLines(STR."System.\{method}(\"\{lib.toQuotedName()}\");");
+            }
+            decrAlign();
+            appendIndentedLines("""
+                }
+                """);
+        }
+
         // build list of symbol lookups
-        List<String> lookups = libraries.stream() // add library lookup (if any)
-                .map(libName -> STR."SymbolLookup.libraryLookup(\"\{libName}\", LIBRARY_ARENA)")
+        List<String> lookups = libraries.stream() // add library lookups (if any)
+                .filter(l -> l.lookupKind() == Options.Library.LookupKind.LIBRARY_LOOKUP)
+                .map(l -> l.specKind() == Options.Library.SpecKind.PATH ?
+                        STR."SymbolLookup.libraryLookup(\"\{l.toQuotedName()}\", LIBRARY_ARENA)" :
+                        STR."SymbolLookup.libraryLookup(System.mapLibraryName(\"\{l.toQuotedName()}\"), LIBRARY_ARENA)")
                 .collect(Collectors.toCollection(ArrayList::new));
         lookups.add("SymbolLookup.loaderLookup()"); // fallback to loader lookup
         lookups.add("Linker.nativeLinker().defaultLookup()"); // fallback to native lookup

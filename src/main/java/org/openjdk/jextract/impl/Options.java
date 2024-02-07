@@ -31,17 +31,17 @@ public final class Options {
     // The args for parsing C
     public final List<String> clangArgs;
     // The list of library names
-    public final List<String> libraryNames;
+    public final List<Library> libraries;
     // target package
     public final String targetPackage;
     // output directory
     public final String outputDir;
     public final IncludeHelper includeHelper;
 
-    private Options(List<String> clangArgs, List<String> libraryNames,
+    private Options(List<String> clangArgs, List<Library> libraries,
                     String targetPackage, String outputDir, IncludeHelper includeHelper) {
         this.clangArgs = clangArgs;
-        this.libraryNames = libraryNames;
+        this.libraries = libraries;
         this.targetPackage = targetPackage;
         this.outputDir = outputDir;
         this.includeHelper = includeHelper;
@@ -53,14 +53,14 @@ public final class Options {
 
     public static class Builder {
         private final List<String> clangArgs;
-        private final List<String> libraryNames;
+        private final List<Library> libraries;
         private String targetPackage;
         private String outputDir;
         private final IncludeHelper includeHelper = new IncludeHelper();
 
         public Builder() {
             this.clangArgs = new ArrayList<>();
-            this.libraryNames = new ArrayList<>();
+            this.libraries = new ArrayList<>();
             this.targetPackage = "";
             this.outputDir = ".";
         }
@@ -68,7 +68,7 @@ public final class Options {
         public Options build() {
             return new Options(
                     Collections.unmodifiableList(clangArgs),
-                    Collections.unmodifiableList(libraryNames),
+                    Collections.unmodifiableList(libraries),
                     targetPackage, outputDir, includeHelper
             );
         }
@@ -77,8 +77,8 @@ public final class Options {
             clangArgs.add(arg);
         }
 
-        public void addLibraryName(String name) {
-            libraryNames.add(name);
+        public void addLibrary(Library library) {
+            libraries.add(library);
         }
 
         public void setOutputDir(String outputDir) {
@@ -95,6 +95,80 @@ public final class Options {
 
         public void addIncludeSymbol(IncludeHelper.IncludeKind kind, String symbolName) {
             includeHelper.addSymbol(kind, symbolName);
+        }
+    }
+
+    /**
+     * A record describing a shared library.
+     *
+     * @param libSpec the library specification (either a name or a path, see below)
+     * @param specKind the library specification kind (e.g. a name or a path)
+     * @param lookupKind the lookup associated with the library (e.g. libraryLookup vs. loaderLookup)
+     */
+    public record Library(String libSpec, SpecKind specKind, LookupKind lookupKind) {
+
+        enum SpecKind {
+            NAME,
+            PATH;
+
+            static SpecKind parse(String value) {
+                return switch (value) {
+                    case "name" -> NAME;
+                    case "path" -> PATH;
+                    default -> throw new IllegalArgumentException();
+                };
+            }
+        }
+        enum LookupKind {
+            LOADER_LOOKUP,
+            LIBRARY_LOOKUP;
+
+            static LookupKind parse(String value) {
+                return switch (value) {
+                    case "loaderLookup" -> LOADER_LOOKUP;
+                    case "libraryLookup" -> LIBRARY_LOOKUP;
+                    default -> throw new IllegalArgumentException();
+                };
+            }
+        }
+
+        public static Library parse(String optionString) {
+            String[] parts = optionString.split(",");
+            String libSpec = parts[0];
+            SpecKind specKind = null;
+            LookupKind lookupKind = null;
+            if (parts.length > 1) {
+                for (int i = 1 ; i < parts.length ; i++) {
+                    String[] keyVal = parts[i].split("=");
+                    if (keyVal.length != 2) {
+                        throw new IllegalArgumentException();
+                    }
+                    String key = keyVal[0];
+                    String val = keyVal[1];
+                    if (specKind == null && key.equals("spec")) {
+                        specKind = SpecKind.parse(val);
+                    } else if (lookupKind == null && key.equals("lookup")) {
+                        lookupKind = LookupKind.parse(val);
+                    } else {
+                        // wrong or repeated key
+                        throw new IllegalArgumentException();
+                    }
+                }
+            }
+            if (specKind == null) {
+                specKind = SpecKind.NAME;
+            }
+            if (lookupKind == null) {
+                lookupKind = LookupKind.LIBRARY_LOOKUP;
+            }
+            return new Library(
+                    libSpec, specKind == null ? SpecKind.NAME : specKind,
+                    lookupKind == null ? LookupKind.LIBRARY_LOOKUP : lookupKind
+            );
+        }
+
+        String toQuotedName() {
+            return libSpec().replace("\\", "\\\\"); // double up slashes
         }
     }
 }
