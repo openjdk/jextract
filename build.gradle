@@ -40,8 +40,7 @@ def clang_version = clang_versions[0]
 def jextract_version = "21"
 def jmods_dir = "$buildDir/jmods"
 def jextract_jmod_file = "$jmods_dir/org.openjdk.jextract.jmod"
-def jextract_jmod_libs_dir = "$buildDir/jextract_jmod_libs"
-def jextract_jmod_conf_dir = "$buildDir/jextract_jmod_conf";
+def jextract_jmod_inputs = "$buildDir/jmod_inputs"
 def jextract_app_dir = "$buildDir/jextract"
 def clang_include_dir = "${llvm_home}/lib/clang/${clang_version}/include"
 checkPath(clang_include_dir)
@@ -67,31 +66,24 @@ jar {
 }
 
 task copyLibClang(type: Copy) {
-    dependsOn jar
-
-    def dir_prefix_len = "$buildDir".length()
-    def libs_dir = jextract_jmod_libs_dir.substring(dir_prefix_len)
-    def conf_dir = jextract_jmod_conf_dir.substring(dir_prefix_len)
-
-    into("$buildDir")
+    into("$buildDir/jmod_inputs")
 
     from("${libclang_dir}") {
         include("*clang.*")
         include("libLLVM.*")
-        into(libs_dir)
+        into("libs")
     }
 
     from("$clang_include_dir") {
         include("*.h")
-        into(conf_dir + "/jextract")
+        into("conf/jextract")
     }
 }
 
 task createJextractJmod(type: Exec) {
-    dependsOn copyLibClang
+    dependsOn jar, copyLibClang
 
     // if these inputs or outputs change, gradle will rerun the task
-    inputs.file(jar.archiveFile.get())
     outputs.file(jextract_jmod_file)
 
     doFirst {
@@ -103,8 +95,8 @@ task createJextractJmod(type: Exec) {
           "create",
           "--module-version=$jextract_version",
           "--class-path=" + jar.archiveFile.get(),
-          "--libs=$jextract_jmod_libs_dir",
-          "--conf=$jextract_jmod_conf_dir",
+          "--libs=$jextract_jmod_inputs/libs",
+          "--conf=$jextract_jmod_inputs/conf",
           "${jextract_jmod_file}"
     ]
 }
@@ -113,7 +105,6 @@ task createJextractImage(type: Exec) {
     dependsOn createJextractJmod
 
     // if these inputs or outputs change, gradle will rerun the task
-    inputs.file(jar.archiveFile.get())
     outputs.dir(jextract_app_dir)
 
     def quote_jlink_opts = Os.isFamily(Os.FAMILY_WINDOWS)?
@@ -154,7 +145,6 @@ task createRuntimeImageForTest(type: Exec) {
     def out_dir = "$buildDir/jextract-jdk-test-image"
 
     // if these inputs or outputs change, gradle will rerun the task
-    inputs.file(jar.archiveFile.get())
     outputs.dir(out_dir)
 
     doFirst {
