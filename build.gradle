@@ -238,5 +238,3 @@ tasks.register("coverage", JavaExec) {
             "--html", "$buildDir/jacoco-report"
     ]
 }
-
-test.dependsOn(verify, jtreg)
