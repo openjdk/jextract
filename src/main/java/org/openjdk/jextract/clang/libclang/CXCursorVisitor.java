@@ -27,46 +27,69 @@
 
 package org.openjdk.jextract.clang.libclang;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
- * enum CXChildVisitResult (*CXCursorVisitor)(struct  cursor,struct  parent,void* client_data);
+ * typedef enum CXChildVisitResult {
+ *     CXChildVisit_Break,
+ *     CXChildVisit_Continue,
+ *     CXChildVisit_Recurse
+ * } (*CXCursorVisitor)(CXCursor, CXCursor, CXClientData)
  * }
  */
-public interface CXCursorVisitor {
+public class CXCursorVisitor {
 
-    int apply(MemorySegment cursor, MemorySegment parent, MemorySegment client_data);
+    /**
+     * The function pointer signature, expressed as a functional interface
+     */
+    public interface Function {
+        int apply(MemorySegment cursor, MemorySegment parent, MemorySegment client_data);
+    }
 
-    FunctionDescriptor $DESC = FunctionDescriptor.of(
+    private static final FunctionDescriptor $DESC = FunctionDescriptor.of(
         Index_h.C_INT,
-        CXCursor.$LAYOUT(),
-        CXCursor.$LAYOUT(),
+        CXCursor.layout(),
+        CXCursor.layout(),
         Index_h.C_POINTER
     );
 
-    MethodHandle UP$MH = Index_h.upcallHandle(CXCursorVisitor.class, "apply", $DESC);
-
-    static MemorySegment allocate(CXCursorVisitor fi, Arena scope) {
-        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
+    /**
+     * The descriptor of this function pointer
+     */
+    public static FunctionDescriptor descriptor() {
+        return $DESC;
     }
 
-    MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+    private static final MethodHandle UP$MH = Index_h.upcallHandle(CXCursorVisitor.Function.class, "apply", $DESC);
 
-    static CXCursorVisitor ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena, null);
-        return (MemorySegment _cursor, MemorySegment _parent, MemorySegment _client_data) -> {
-            try {
-                return (int) DOWN$MH.invokeExact(symbol, _cursor, _parent, _client_data);
-            } catch (Throwable ex$) {
-                throw new AssertionError("should not reach here", ex$);
-            }
-        };
+    /**
+     * Allocates a new upcall stub, whose implementation is defined by {@code fi}.
+     * The lifetime of the returned segment is managed by {@code arena}
+     */
+    public static MemorySegment allocate(CXCursorVisitor.Function fi, Arena arena) {
+        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, arena);
+    }
+
+    private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
+    /**
+     * Invoke the upcall stub {@code funcPtr}, with given parameters
+     */
+    public static int invoke(MemorySegment funcPtr,MemorySegment cursor, MemorySegment parent, MemorySegment client_data) {
+        try {
+            return (int) DOWN$MH.invokeExact(funcPtr, cursor, parent, client_data);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
     }
 }
 

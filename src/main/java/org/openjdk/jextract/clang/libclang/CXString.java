@@ -27,26 +27,28 @@
 
 package org.openjdk.jextract.clang.libclang;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
  * {@snippet lang=c :
  * struct {
- *     void* data;
+ *     const void *data;
  *     unsigned int private_flags;
- * };
+ * }
  * }
  */
 public class CXString {
 
     CXString() {
-        // Suppresses public default constructor, ensuring non-instantiability,
-        // but allows generated subclasses in same package.
+        // Should not be called directly
     }
 
     private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
@@ -55,79 +57,101 @@ public class CXString {
         MemoryLayout.paddingLayout(4)
     ).withName("$anon$37:9");
 
-    public static final GroupLayout $LAYOUT() {
+    /**
+     * The layout of this struct
+     */
+    public static final GroupLayout layout() {
         return $LAYOUT;
     }
 
     private static final long data$OFFSET = 0;
+    private static final AddressLayout data$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("data"));
 
     /**
      * Getter for field:
      * {@snippet lang=c :
-     * void* data;
+     * const void *data
      * }
      */
-    public static MemorySegment data$get(MemorySegment seg) {
-        return seg.get(Index_h.C_POINTER, data$OFFSET);
-    }
-
-    public static MemorySegment data$get(MemorySegment seg, long index) {
-        return seg.get(Index_h.C_POINTER, data$OFFSET + (index * sizeof()));
+    public static MemorySegment data(MemorySegment struct) {
+        return struct.get(data$LAYOUT, data$OFFSET);
     }
 
     /**
      * Setter for field:
      * {@snippet lang=c :
-     * void* data;
+     * const void *data
      * }
      */
-    public static void data$set(MemorySegment seg, MemorySegment x) {
-        seg.set(Index_h.C_POINTER, data$OFFSET, x);
-    }
-
-    public static void data$set(MemorySegment seg, long index, MemorySegment x) {
-        seg.set(Index_h.C_POINTER, data$OFFSET + (index * sizeof()), x);
+    public static void data(MemorySegment struct, MemorySegment fieldValue) {
+        struct.set(data$LAYOUT, data$OFFSET, fieldValue);
     }
 
     private static final long private_flags$OFFSET = 8;
+    private static final OfInt private_flags$LAYOUT = (OfInt)$LAYOUT.select(groupElement("private_flags"));
 
     /**
      * Getter for field:
      * {@snippet lang=c :
-     * unsigned int private_flags;
+     * unsigned int private_flags
      * }
      */
-    public static int private_flags$get(MemorySegment seg) {
-        return seg.get(Index_h.C_INT, private_flags$OFFSET);
-    }
-
-    public static int private_flags$get(MemorySegment seg, long index) {
-        return seg.get(Index_h.C_INT, private_flags$OFFSET + (index * sizeof()));
+    public static int private_flags(MemorySegment struct) {
+        return struct.get(private_flags$LAYOUT, private_flags$OFFSET);
     }
 
     /**
      * Setter for field:
      * {@snippet lang=c :
-     * unsigned int private_flags;
+     * unsigned int private_flags
      * }
      */
-    public static void private_flags$set(MemorySegment seg, int x) {
-        seg.set(Index_h.C_INT, private_flags$OFFSET, x);
+    public static void private_flags(MemorySegment struct, int fieldValue) {
+        struct.set(private_flags$LAYOUT, private_flags$OFFSET, fieldValue);
     }
 
-    public static void private_flags$set(MemorySegment seg, long index, int x) {
-        seg.set(Index_h.C_INT, private_flags$OFFSET + (index * sizeof()), x);
+    /**
+     * Obtains a slice of {@code arrayParam} which selects the array element at {@code index}.
+     * The returned segment has address {@code arrayParam.address() + index * layout().byteSize()}
+     */
+    public static MemorySegment asSlice(MemorySegment array, long index) {
+        return array.asSlice(layout().byteSize() * index);
     }
 
-    public static long sizeof() { return $LAYOUT().byteSize(); }
-    public static MemorySegment allocate(SegmentAllocator allocator) { return allocator.allocate($LAYOUT()); }
+    /**
+     * The size (in bytes) of this struct
+     */
+    public static long sizeof() { return layout().byteSize(); }
 
-    public static MemorySegment allocateArray(long len, SegmentAllocator allocator) {
-        return allocator.allocate(MemoryLayout.sequenceLayout(len, $LAYOUT()));
+    /**
+     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
+     */
+    public static MemorySegment allocate(SegmentAllocator allocator) {
+        return allocator.allocate(layout());
     }
 
-    public static MemorySegment ofAddress(MemorySegment addr, Arena scope) {
-        return addr.reinterpret($LAYOUT().byteSize(), scope, null);
+    /**
+     * Allocate an array of size {@code elementCount} using {@code allocator}.
+     * The returned segment has size {@code elementCount * layout().byteSize()}.
+     */
+    public static MemorySegment allocateArray(long elementCount, SegmentAllocator allocator) {
+        return allocator.allocate(MemoryLayout.sequenceLayout(elementCount, layout()));
+    }
+
+    /**
+     * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction) (if any).
+     * The returned segment has size {@code layout().byteSize()}
+     */
+    public static MemorySegment reinterpret(MemorySegment addr, Arena arena, Consumer<MemorySegment> cleanup) {
+        return reinterpret(addr, 1, arena, cleanup);
+    }
+
+    /**
+     * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction) (if any).
+     * The returned segment has size {@code elementCount * layout().byteSize()}
+     */
+    public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+        return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }
 

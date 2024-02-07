@@ -171,10 +171,10 @@ public class TestClassGeneration extends JextractToolRunner {
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment struct = arena.allocate(structLayout);
-            Field offsetField = findField(structCls, memberName + "$OFFSET");
-            assertNotNull(offsetField);
-            assertEquals(offsetField.getType(), long.class);
-            assertEquals(offsetField.get(null), structLayout.byteOffset(PathElement.groupElement(memberName)));
+            Method offsetMethod = findMethod(structCls, memberName + "$offset");
+            assertNotNull(offsetMethod);
+            assertEquals(offsetMethod.getReturnType(), long.class);
+            assertEquals(offsetMethod.invoke(null), structLayout.byteOffset(PathElement.groupElement(memberName)));
 
             Method getter = checkMethod(structCls, memberName, expectedType, MemorySegment.class);
             Method setter = checkMethod(structCls, memberName, void.class, MemorySegment.class, expectedType);

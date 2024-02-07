@@ -40,8 +40,10 @@ import java.lang.foreign.MemorySegment;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Superclass for .java source generator classes.
@@ -265,5 +267,17 @@ abstract class ClassSourceBuilder {
         Objects.requireNonNull(decl);
         String declString = DeclarationString.getOrThrow(decl);
         return declString.lines().collect(Collectors.joining("\n * ", " * ", ""));
+    }
+
+    record IndexList(String decl, String use) {
+        static IndexList of(int dims) {
+            List<String> indexNames = IntStream.range(0, dims).mapToObj(i -> "index" + i).toList();
+            String indexDecls = indexNames.stream()
+                    .map(i -> "long " + i)
+                    .collect(Collectors.joining(", "));
+            String indexUses = indexNames.stream()
+                    .collect(Collectors.joining(", "));
+            return new IndexList(indexDecls, indexUses);
+        }
     }
 }
