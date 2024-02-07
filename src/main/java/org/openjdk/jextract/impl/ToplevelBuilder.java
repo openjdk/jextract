@@ -48,20 +48,21 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private HeaderFileBuilder lastHeader;
     private final ClassDesc headerDesc;
 
-    ToplevelBuilder(String packageName, String headerClassName, List<Options.Library> libs) {
+    ToplevelBuilder(String packageName, String headerClassName,
+                    List<Options.Library> libs, boolean useSystemLoadLibrary) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
         headerBuilders.add(sfb);
-        lastHeader = createFirstHeader(sfb, libs);
+        lastHeader = createFirstHeader(sfb, libs, useSystemLoadLibrary);
     }
 
-    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs) {
+    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs, boolean useSystemLoadLibrary) {
         HeaderFileBuilder first = new HeaderFileBuilder(sfb, STR."\{sfb.className()}#{SUFFIX}", null, sfb.className());
         first.appendBlankLine();
         first.classBegin();
         first.emitDefaultConstructor();
         first.emitRuntimeHelperMethods();
-        first.emitFirstHeaderPreamble(libs);
+        first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
         // emit basic primitive types
         first.appendIndentedLines(STR."""
 

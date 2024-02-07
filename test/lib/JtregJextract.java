@@ -71,16 +71,6 @@ public class JtregJextract {
                 break;
             }
 
-            if ("-libpath".equals(opt)) {
-                String lib = args[i];
-                jextrOpts.add("-l");
-                String libpath = System.getProperty("java.library.path") + File.separator + System.mapLibraryName(lib);
-                System.err.println("jextract driver libpath passed: " + libpath);
-                jextrOpts.add(libpath + ",spec=path,lookup=loaderLookup");
-                i++;
-                continue;
-            }
-
             if ("--output".equals(opt)) {
                 i++;
                 continue;

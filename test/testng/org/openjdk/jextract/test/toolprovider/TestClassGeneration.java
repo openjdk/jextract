@@ -200,7 +200,7 @@ public class TestClassGeneration extends JextractToolRunner {
         Path inputHeader = getInputFilePath("examples.h");
         runAndCompile(outputDir,
             "-t", "com.acme",
-            "-l", "Examples,lookup=loaderLookup",
+            "-l", "Examples", "--use-system-load-library",
             inputHeader
         );
         loader = TestUtils.classLoader(outputDir);

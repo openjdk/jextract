@@ -30,7 +30,7 @@ import static test.jextract.test8239918.test8239918_h.*;
  * @bug 8239918
  * @summary jextract generates uncompilable code for no argument C function
  * @library /lib
- * @run main/othervm JtregJextract -l Test8239918,lookup=loaderLookup -t test.jextract.test8239918 test8239918.h
+ * @run main/othervm JtregJextract -l Test8239918 --use-system-load-library -t test.jextract.test8239918 test8239918.h
  * @build LibTest8239918Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8239918Test
  */

@@ -34,7 +34,7 @@ import static test.jextract.test8246400.test8246400_h.*;
  * @bug 8246400
  * @summary jextract should generate a utility to manage mutliple MemorySegments
  * @library /lib
- * @run main/othervm JtregJextract -l Test8246400,lookup=loaderLookup -t test.jextract.test8246400 test8246400.h
+ * @run main/othervm JtregJextract -l Test8246400 --use-system-load-library -t test.jextract.test8246400 test8246400.h
  * @build LibTest8246400Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED  LibTest8246400Test
  */

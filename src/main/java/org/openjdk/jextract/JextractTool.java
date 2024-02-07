@@ -32,12 +32,12 @@ import org.openjdk.jextract.impl.DuplicateFilter;
 import org.openjdk.jextract.impl.IncludeFilter;
 import org.openjdk.jextract.impl.IncludeHelper;
 import org.openjdk.jextract.impl.NameMangler;
+import org.openjdk.jextract.impl.Options.Library;
 import org.openjdk.jextract.impl.OutputFactory;
 import org.openjdk.jextract.impl.Parser;
 import org.openjdk.jextract.impl.Options;
 import org.openjdk.jextract.impl.UnsupportedFilter;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
@@ -120,26 +120,29 @@ public final class JextractTool {
     }
 
     public static List<JavaSourceFile> generate(Declaration.Scoped decl, String headerName,
-                                                String targetPkg, List<Options.Library> libs, PrintWriter errStream) {
-        return List.of(generate(decl, headerName, targetPkg, new IncludeHelper(), libs, errStream));
+                                                String targetPkg, List<Options.Library> libs,
+                                                boolean useSystemLoadLibrary, PrintWriter errStream) {
+        return List.of(generate(decl, headerName, targetPkg, new IncludeHelper(), libs, useSystemLoadLibrary, errStream));
     }
 
     private static List<JavaSourceFile> generateInternal(Declaration.Scoped decl, String headerName,
                                                          String targetPkg, IncludeHelper includeHelper,
-                                                         List<Options.Library> libs, PrintWriter errStream) {
-        return List.of(generate(decl, headerName, targetPkg, includeHelper, libs, errStream));
+                                                         List<Options.Library> libs, boolean useSystemLoadLibrary,
+                                                         PrintWriter errStream) {
+        return List.of(generate(decl, headerName, targetPkg, includeHelper, libs, useSystemLoadLibrary, errStream));
     }
 
     private static JavaSourceFile[] generate(Declaration.Scoped decl, String headerName,
                                              String targetPkg, IncludeHelper includeHelper,
-                                             List<Options.Library> libs, PrintWriter errStream) {
+                                             List<Options.Library> libs, boolean useSystemLoadLibrary,
+                                             PrintWriter errStream) {
         var transformedDecl = Stream.of(decl)
                 .map(new IncludeFilter(includeHelper)::scan)
                 .map(new DuplicateFilter()::scan)
                 .map(new NameMangler(headerName)::scan)
                 .map(new UnsupportedFilter(errStream)::scan)
                 .findFirst().get();
-        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libs);
+        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libs, useSystemLoadLibrary);
     }
 
     /**
@@ -383,6 +386,7 @@ public final class JextractTool {
         parser.accepts("--header-class-name", format("help.header-class-name"), true);
         parser.accepts("-I", List.of("--include-dir"), format("help.I"), true);
         parser.accepts("-l", List.of("--library"), format("help.l"), true);
+        parser.accepts("--use-system-load-library", format("help.use.system.load.library"), false);
         parser.accepts("--output", format("help.output"), true);
         parser.accepts("-t", List.of("--target-package"), format("help.t"), true);
         parser.accepts("--version", format("help.version"), false);
@@ -466,11 +470,25 @@ public final class JextractTool {
             builder.setOutputDir(optionSet.valueOf("--output"));
         }
 
+        boolean useSystemLoadLibrary = optionSet.has("--use-system-load-library");
+        if (useSystemLoadLibrary) {
+            builder.setUseSystemLoadLibrary(true);
+        }
+
         boolean librariesSpecified = optionSet.has("-l");
         if (librariesSpecified) {
             for (String lib : optionSet.valuesOf("-l")) {
                 try {
-                    builder.addLibrary(Options.Library.parse(lib));
+                    Library library = Options.Library.parse(lib);
+                    Path libPath = Paths.get(library.libSpec());
+                    if (!useSystemLoadLibrary ||
+                            library.specKind() == Library.SpecKind.NAME ||
+                            (libPath.isAbsolute() && Files.isRegularFile(libPath))) {
+                        builder.addLibrary(library);
+                    } else {
+                        // not an absolute path, but--use-system-load-library was specified
+                        err.println(format("l.option.value.absolute.path", lib));
+                    }
                 } catch (IllegalArgumentException ex) {
                     err.println(format("l.option.value.invalid", lib));
                     return OPTION_ERROR;
@@ -507,7 +525,7 @@ public final class JextractTool {
 
             files = generateInternal(
                 toplevel, headerName,
-                options.targetPackage, options.includeHelper, options.libraries, err);
+                options.targetPackage, options.includeHelper, options.libraries, options.useSystemLoadLibrary, err);
         } catch (ClangException ce) {
             err.println(ce.getMessage());
             if (JextractTool.DEBUG) {

@@ -33,7 +33,7 @@ import static org.testng.Assert.assertEquals;
  * @bug 7903239
  * @summary ofAddress factory of function pointer type is wrong for struct returns
  * @library /lib
- * @run main/othervm JtregJextract -l AllocCallback,lookup=loaderLookup -t test.jextract.allocCallback alloc_callback.h
+ * @run main/othervm JtregJextract -l AllocCallback --use-system-load-library -t test.jextract.allocCallback alloc_callback.h
  * @build TestAllocCallback
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestAllocCallback
  */

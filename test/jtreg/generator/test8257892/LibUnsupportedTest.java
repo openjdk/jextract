@@ -39,7 +39,7 @@ import test.jextract.unsupported.*;
 /*
  * @test
  * @library /lib
- * @run main/othervm JtregJextract -l Unsupported,lookup=loaderLookup -t test.jextract.unsupported unsupported.h
+ * @run main/othervm JtregJextract -l Unsupported --use-system-load-library -t test.jextract.unsupported unsupported.h
  * @build LibUnsupportedTest
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibUnsupportedTest
  */
