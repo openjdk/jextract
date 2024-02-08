@@ -44,9 +44,10 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     protected Builder currentBuilder;
 
     public static JavaSourceFile[] generateWrapped(Declaration.Scoped decl,
-                                                   String pkgName, List<String> libraryNames) {
+                                                   String pkgName,
+                                                   List<Options.Library> libs, boolean useSystemLoadLibrary) {
         String clsName = JavaName.getOrThrow(decl);
-        ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName, libraryNames);
+        ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName, libs, useSystemLoadLibrary);
         return new OutputFactory(toplevelBuilder).generate(decl);
     }
 

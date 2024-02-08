@@ -34,7 +34,7 @@ import static test.jextract.test8246341.test8246341_h.*;
  * @bug 8246341
  * @summary jextract should generate Cpointer utilities class
  * @library /lib
- * @run main/othervm JtregJextract -l Test8246341 -t test.jextract.test8246341 test8246341.h
+ * @run main/othervm JtregJextract -l Test8246341 --use-system-load-library -t test.jextract.test8246341 test8246341.h
  * @build LibTest8246341Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8246341Test
  */

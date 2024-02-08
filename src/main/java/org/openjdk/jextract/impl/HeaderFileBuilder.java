@@ -24,10 +24,8 @@
  */
 package org.openjdk.jextract.impl;
 
-import java.io.File;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
-import java.lang.invoke.MethodHandle;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
@@ -242,28 +240,48 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitPrimitiveTypedefLayout(name, Type.pointer(), typedefTree);
     }
 
-    void emitFirstHeaderPreamble(List<String> libraries) {
-        appendIndentedLines("""
-
-            static final SymbolLookup SYMBOL_LOOKUP
-                    = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
-            """);
-        if (!libraries.isEmpty()) {
+    void emitFirstHeaderPreamble(List<Options.Library> libraries, boolean useSystemLoadLibrary) {
+        List<String> lookups = new ArrayList<>();
+        // if legacy library loading is selected, load libraries (if any) into current loader
+        if (useSystemLoadLibrary) {
+            appendBlankLine();
             appendIndentedLines("""
 
                 static {
                 """);
             incrAlign();
-            for (String lib : libraries) {
-                String quotedLibName = lib.replace("\\", "\\\\"); // double up slashes
-                String method = quotedLibName.indexOf(File.separatorChar) != -1 ? "load" : "loadLibrary";
-                appendIndentedLines(STR."System.\{method}(\"\{quotedLibName}\");");
+            for (Options.Library lib : libraries) {
+                String method = lib.specKind() == Options.Library.SpecKind.PATH ? "load" : "loadLibrary";
+                appendIndentedLines(STR."System.\{method}(\"\{lib.toQuotedName()}\");");
             }
             decrAlign();
             appendIndentedLines("""
                 }
                 """);
+        } else {
+            // otherwise, add a library lookup per library (if any)
+            libraries.stream() // add library lookups (if any)
+                    .map(l -> l.specKind() == Options.Library.SpecKind.PATH ?
+                            STR."SymbolLookup.libraryLookup(\"\{l.toQuotedName()}\", LIBRARY_ARENA)" :
+                            STR."SymbolLookup.libraryLookup(System.mapLibraryName(\"\{l.toQuotedName()}\"), LIBRARY_ARENA)")
+                    .collect(Collectors.toCollection(() -> lookups));
         }
+
+        lookups.add("SymbolLookup.loaderLookup()"); // fallback to loader lookup
+        lookups.add("Linker.nativeLinker().defaultLookup()"); // fallback to native lookup
+
+        // wrap all lookups (but the first) with ".or(...)"
+        List<String> lookupCalls = new ArrayList<>();
+        boolean isFirst = true;
+        for (String lookup : lookups) {
+            lookupCalls.add(isFirst ? lookup : STR.".or(\{lookup})");
+            isFirst = false;
+        }
+
+        // chain all the calls together into a combined symbol lookup
+        appendBlankLine();
+        appendIndentedLines(lookupCalls.stream()
+                .collect(Collectors.joining(STR."\n\{indentString(2)}", "static final SymbolLookup SYMBOL_LOOKUP = ", ";")));
     }
 
     void emitRuntimeHelperMethods() {

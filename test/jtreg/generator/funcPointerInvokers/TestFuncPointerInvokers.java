@@ -35,7 +35,7 @@ import test.jextract.funcpointers.*;
 /*
  * @test
   * @library /lib
- * @run main/othervm JtregJextract -l Func -t test.jextract.funcpointers func.h
+ * @run main/othervm JtregJextract -l Func --use-system-load-library -t test.jextract.funcpointers func.h
  * @build TestFuncPointerInvokers
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestFuncPointerInvokers
  */

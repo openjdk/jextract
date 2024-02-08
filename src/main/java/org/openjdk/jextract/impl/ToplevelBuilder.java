@@ -48,19 +48,21 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private HeaderFileBuilder lastHeader;
     private final ClassDesc headerDesc;
 
-    ToplevelBuilder(String packageName, String headerClassName, List<String> libraries) {
+    ToplevelBuilder(String packageName, String headerClassName,
+                    List<Options.Library> libs, boolean useSystemLoadLibrary) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
         headerBuilders.add(sfb);
-        lastHeader = createFirstHeader(sfb, libraries);
+        lastHeader = createFirstHeader(sfb, libs, useSystemLoadLibrary);
     }
 
-    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<String> libraries) {
+    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs, boolean useSystemLoadLibrary) {
         HeaderFileBuilder first = new HeaderFileBuilder(sfb, STR."\{sfb.className()}#{SUFFIX}", null, sfb.className());
         first.appendBlankLine();
         first.classBegin();
-        first.emitFirstHeaderPreamble(libraries);
         first.emitDefaultConstructor();
+        first.emitRuntimeHelperMethods();
+        first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
         // emit basic primitive types
         first.appendIndentedLines(STR."""
 
@@ -80,7 +82,6 @@ class ToplevelBuilder implements OutputFactory.Builder {
         } else {
             first.appendIndentedLines("public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;");
         }
-        first.emitRuntimeHelperMethods();
         return first;
     }
 

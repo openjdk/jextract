@@ -36,7 +36,7 @@ import static test.jextract.arrayparam.arrayparam_h.*;
  * @bug 8252121
  * @summary jextract generated code fails with ABI for typedefed array type parameters
  * @library /lib
- * @run main/othervm JtregJextract -t test.jextract.arrayparam -l Arrayparam arrayparam.h
+ * @run main/othervm JtregJextract -t test.jextract.arrayparam -l Arrayparam --use-system-load-library arrayparam.h
  * @build Test8252121
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8252121
  */

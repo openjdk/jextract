@@ -35,7 +35,7 @@ import static test.jextract.arrayaccess.array_access_h.*;
 /*
  * @test
  * @library /lib
- * @run main/othervm JtregJextract -l ArrayAccess -t test.jextract.arrayaccess array_access.h
+ * @run main/othervm JtregJextract -l ArrayAccess --use-system-load-library -t test.jextract.arrayaccess array_access.h
  * @build TestArrayAccess
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestArrayAccess
  */
