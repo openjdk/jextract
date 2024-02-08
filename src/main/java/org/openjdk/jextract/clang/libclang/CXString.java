@@ -64,8 +64,29 @@ public class CXString {
         return $LAYOUT;
     }
 
-    private static final long data$OFFSET = 0;
     private static final AddressLayout data$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("data"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * const void *data
+     * }
+     */
+    public static final AddressLayout data$layout() {
+        return data$LAYOUT;
+    }
+
+    private static final long data$OFFSET = 0;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * const void *data
+     * }
+     */
+    public static final long data$offset() {
+        return data$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -87,8 +108,29 @@ public class CXString {
         struct.set(data$LAYOUT, data$OFFSET, fieldValue);
     }
 
-    private static final long private_flags$OFFSET = 8;
     private static final OfInt private_flags$LAYOUT = (OfInt)$LAYOUT.select(groupElement("private_flags"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * unsigned int private_flags
+     * }
+     */
+    public static final OfInt private_flags$layout() {
+        return private_flags$LAYOUT;
+    }
+
+    private static final long private_flags$OFFSET = 8;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * unsigned int private_flags
+     * }
+     */
+    public static final long private_flags$offset() {
+        return private_flags$OFFSET;
+    }
 
     /**
      * Getter for field:

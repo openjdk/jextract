@@ -64,8 +64,29 @@ public class CXType {
         return $LAYOUT;
     }
 
-    private static final long kind$OFFSET = 0;
     private static final OfInt kind$LAYOUT = (OfInt)$LAYOUT.select(groupElement("kind"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * enum CXTypeKind kind
+     * }
+     */
+    public static final OfInt kind$layout() {
+        return kind$LAYOUT;
+    }
+
+    private static final long kind$OFFSET = 0;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * enum CXTypeKind kind
+     * }
+     */
+    public static final long kind$offset() {
+        return kind$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -87,8 +108,29 @@ public class CXType {
         struct.set(kind$LAYOUT, kind$OFFSET, fieldValue);
     }
 
+    private static final SequenceLayout data$LAYOUT = (SequenceLayout)$LAYOUT.select(groupElement("data"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * void *data[2]
+     * }
+     */
+    public static final SequenceLayout data$layout() {
+        return data$LAYOUT;
+    }
+
     private static final long data$OFFSET = 8;
-    private static final long data$SIZE = 16;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * void *data[2]
+     * }
+     */
+    public static final long data$offset() {
+        return data$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -97,7 +139,7 @@ public class CXType {
      * }
      */
     public static MemorySegment data(MemorySegment struct) {
-        return struct.asSlice(data$OFFSET, data$SIZE);
+        return struct.asSlice(data$OFFSET, data$LAYOUT.byteSize());
     }
 
     /**
@@ -107,7 +149,40 @@ public class CXType {
      * }
      */
     public static void data(MemorySegment struct, MemorySegment fieldValue) {
-        MemorySegment.copy(fieldValue, 0L, struct, data$OFFSET, data$SIZE);
+        MemorySegment.copy(fieldValue, 0L, struct, data$OFFSET, data$LAYOUT.byteSize());
+    }
+
+    private static long[] data$DIMS = { 2 };
+
+    /**
+     * Dimensions for array field:
+     * {@snippet lang=c :
+     * void *data[2]
+     * }
+     */
+    public static long[] data$dimensions() {
+        return data$DIMS;
+    }
+    private static final VarHandle data$ELEM_HANDLE = data$LAYOUT.varHandle(sequenceElement());
+
+    /**
+     * Indexed getter for field:
+     * {@snippet lang=c :
+     * void *data[2]
+     * }
+     */
+    public static MemorySegment data(MemorySegment struct, long index0) {
+        return (MemorySegment)data$ELEM_HANDLE.get(struct, 0L, index0);
+    }
+
+    /**
+     * Indexed setter for field:
+     * {@snippet lang=c :
+     * void *data[2]
+     * }
+     */
+    public static void data(MemorySegment struct, long index0, MemorySegment fieldValue) {
+        data$ELEM_HANDLE.set(struct, 0L, index0, fieldValue);
     }
 
     /**

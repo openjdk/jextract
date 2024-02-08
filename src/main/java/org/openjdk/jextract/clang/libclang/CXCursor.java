@@ -65,8 +65,29 @@ public class CXCursor {
         return $LAYOUT;
     }
 
-    private static final long kind$OFFSET = 0;
     private static final OfInt kind$LAYOUT = (OfInt)$LAYOUT.select(groupElement("kind"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * enum CXCursorKind kind
+     * }
+     */
+    public static final OfInt kind$layout() {
+        return kind$LAYOUT;
+    }
+
+    private static final long kind$OFFSET = 0;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * enum CXCursorKind kind
+     * }
+     */
+    public static final long kind$offset() {
+        return kind$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -88,8 +109,29 @@ public class CXCursor {
         struct.set(kind$LAYOUT, kind$OFFSET, fieldValue);
     }
 
-    private static final long xdata$OFFSET = 4;
     private static final OfInt xdata$LAYOUT = (OfInt)$LAYOUT.select(groupElement("xdata"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * int xdata
+     * }
+     */
+    public static final OfInt xdata$layout() {
+        return xdata$LAYOUT;
+    }
+
+    private static final long xdata$OFFSET = 4;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * int xdata
+     * }
+     */
+    public static final long xdata$offset() {
+        return xdata$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -111,8 +153,29 @@ public class CXCursor {
         struct.set(xdata$LAYOUT, xdata$OFFSET, fieldValue);
     }
 
+    private static final SequenceLayout data$LAYOUT = (SequenceLayout)$LAYOUT.select(groupElement("data"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * const void *data[3]
+     * }
+     */
+    public static final SequenceLayout data$layout() {
+        return data$LAYOUT;
+    }
+
     private static final long data$OFFSET = 8;
-    private static final long data$SIZE = 24;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * const void *data[3]
+     * }
+     */
+    public static final long data$offset() {
+        return data$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -121,7 +184,7 @@ public class CXCursor {
      * }
      */
     public static MemorySegment data(MemorySegment struct) {
-        return struct.asSlice(data$OFFSET, data$SIZE);
+        return struct.asSlice(data$OFFSET, data$LAYOUT.byteSize());
     }
 
     /**
@@ -131,7 +194,40 @@ public class CXCursor {
      * }
      */
     public static void data(MemorySegment struct, MemorySegment fieldValue) {
-        MemorySegment.copy(fieldValue, 0L, struct, data$OFFSET, data$SIZE);
+        MemorySegment.copy(fieldValue, 0L, struct, data$OFFSET, data$LAYOUT.byteSize());
+    }
+
+    private static long[] data$DIMS = { 3 };
+
+    /**
+     * Dimensions for array field:
+     * {@snippet lang=c :
+     * const void *data[3]
+     * }
+     */
+    public static long[] data$dimensions() {
+        return data$DIMS;
+    }
+    private static final VarHandle data$ELEM_HANDLE = data$LAYOUT.varHandle(sequenceElement());
+
+    /**
+     * Indexed getter for field:
+     * {@snippet lang=c :
+     * const void *data[3]
+     * }
+     */
+    public static MemorySegment data(MemorySegment struct, long index0) {
+        return (MemorySegment)data$ELEM_HANDLE.get(struct, 0L, index0);
+    }
+
+    /**
+     * Indexed setter for field:
+     * {@snippet lang=c :
+     * const void *data[3]
+     * }
+     */
+    public static void data(MemorySegment struct, long index0, MemorySegment fieldValue) {
+        data$ELEM_HANDLE.set(struct, 0L, index0, fieldValue);
     }
 
     /**

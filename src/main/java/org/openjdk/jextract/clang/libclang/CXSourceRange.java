@@ -65,8 +65,29 @@ public class CXSourceRange {
         return $LAYOUT;
     }
 
+    private static final SequenceLayout ptr_data$LAYOUT = (SequenceLayout)$LAYOUT.select(groupElement("ptr_data"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * const void *ptr_data[2]
+     * }
+     */
+    public static final SequenceLayout ptr_data$layout() {
+        return ptr_data$LAYOUT;
+    }
+
     private static final long ptr_data$OFFSET = 0;
-    private static final long ptr_data$SIZE = 16;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * const void *ptr_data[2]
+     * }
+     */
+    public static final long ptr_data$offset() {
+        return ptr_data$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -75,7 +96,7 @@ public class CXSourceRange {
      * }
      */
     public static MemorySegment ptr_data(MemorySegment struct) {
-        return struct.asSlice(ptr_data$OFFSET, ptr_data$SIZE);
+        return struct.asSlice(ptr_data$OFFSET, ptr_data$LAYOUT.byteSize());
     }
 
     /**
@@ -85,11 +106,65 @@ public class CXSourceRange {
      * }
      */
     public static void ptr_data(MemorySegment struct, MemorySegment fieldValue) {
-        MemorySegment.copy(fieldValue, 0L, struct, ptr_data$OFFSET, ptr_data$SIZE);
+        MemorySegment.copy(fieldValue, 0L, struct, ptr_data$OFFSET, ptr_data$LAYOUT.byteSize());
+    }
+
+    private static long[] ptr_data$DIMS = { 2 };
+
+    /**
+     * Dimensions for array field:
+     * {@snippet lang=c :
+     * const void *ptr_data[2]
+     * }
+     */
+    public static long[] ptr_data$dimensions() {
+        return ptr_data$DIMS;
+    }
+    private static final VarHandle ptr_data$ELEM_HANDLE = ptr_data$LAYOUT.varHandle(sequenceElement());
+
+    /**
+     * Indexed getter for field:
+     * {@snippet lang=c :
+     * const void *ptr_data[2]
+     * }
+     */
+    public static MemorySegment ptr_data(MemorySegment struct, long index0) {
+        return (MemorySegment)ptr_data$ELEM_HANDLE.get(struct, 0L, index0);
+    }
+
+    /**
+     * Indexed setter for field:
+     * {@snippet lang=c :
+     * const void *ptr_data[2]
+     * }
+     */
+    public static void ptr_data(MemorySegment struct, long index0, MemorySegment fieldValue) {
+        ptr_data$ELEM_HANDLE.set(struct, 0L, index0, fieldValue);
+    }
+
+    private static final OfInt begin_int_data$LAYOUT = (OfInt)$LAYOUT.select(groupElement("begin_int_data"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * unsigned int begin_int_data
+     * }
+     */
+    public static final OfInt begin_int_data$layout() {
+        return begin_int_data$LAYOUT;
     }
 
     private static final long begin_int_data$OFFSET = 16;
-    private static final OfInt begin_int_data$LAYOUT = (OfInt)$LAYOUT.select(groupElement("begin_int_data"));
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * unsigned int begin_int_data
+     * }
+     */
+    public static final long begin_int_data$offset() {
+        return begin_int_data$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -111,8 +186,29 @@ public class CXSourceRange {
         struct.set(begin_int_data$LAYOUT, begin_int_data$OFFSET, fieldValue);
     }
 
-    private static final long end_int_data$OFFSET = 20;
     private static final OfInt end_int_data$LAYOUT = (OfInt)$LAYOUT.select(groupElement("end_int_data"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * unsigned int end_int_data
+     * }
+     */
+    public static final OfInt end_int_data$layout() {
+        return end_int_data$LAYOUT;
+    }
+
+    private static final long end_int_data$OFFSET = 20;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * unsigned int end_int_data
+     * }
+     */
+    public static final long end_int_data$offset() {
+        return end_int_data$OFFSET;
+    }
 
     /**
      * Getter for field:
