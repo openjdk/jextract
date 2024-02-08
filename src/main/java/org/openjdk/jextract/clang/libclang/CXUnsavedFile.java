@@ -65,8 +65,29 @@ public class CXUnsavedFile {
         return $LAYOUT;
     }
 
-    private static final long Filename$OFFSET = 0;
     private static final AddressLayout Filename$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("Filename"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * const char *Filename
+     * }
+     */
+    public static final AddressLayout Filename$layout() {
+        return Filename$LAYOUT;
+    }
+
+    private static final long Filename$OFFSET = 0;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * const char *Filename
+     * }
+     */
+    public static final long Filename$offset() {
+        return Filename$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -88,8 +109,29 @@ public class CXUnsavedFile {
         struct.set(Filename$LAYOUT, Filename$OFFSET, fieldValue);
     }
 
-    private static final long Contents$OFFSET = 8;
     private static final AddressLayout Contents$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("Contents"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * const char *Contents
+     * }
+     */
+    public static final AddressLayout Contents$layout() {
+        return Contents$LAYOUT;
+    }
+
+    private static final long Contents$OFFSET = 8;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * const char *Contents
+     * }
+     */
+    public static final long Contents$offset() {
+        return Contents$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -111,8 +153,29 @@ public class CXUnsavedFile {
         struct.set(Contents$LAYOUT, Contents$OFFSET, fieldValue);
     }
 
-    private static final long Length$OFFSET = 16;
     private static final OfLong Length$LAYOUT = (OfLong)$LAYOUT.select(groupElement("Length"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * unsigned long Length
+     * }
+     */
+    public static final OfLong Length$layout() {
+        return Length$LAYOUT;
+    }
+
+    private static final long Length$OFFSET = 16;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * unsigned long Length
+     * }
+     */
+    public static final long Length$offset() {
+        return Length$OFFSET;
+    }
 
     /**
      * Getter for field:

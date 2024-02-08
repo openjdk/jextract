@@ -63,8 +63,29 @@ public class CXToken {
         return $LAYOUT;
     }
 
+    private static final SequenceLayout int_data$LAYOUT = (SequenceLayout)$LAYOUT.select(groupElement("int_data"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * unsigned int int_data[4]
+     * }
+     */
+    public static final SequenceLayout int_data$layout() {
+        return int_data$LAYOUT;
+    }
+
     private static final long int_data$OFFSET = 0;
-    private static final long int_data$SIZE = 16;
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * unsigned int int_data[4]
+     * }
+     */
+    public static final long int_data$offset() {
+        return int_data$OFFSET;
+    }
 
     /**
      * Getter for field:
@@ -73,7 +94,7 @@ public class CXToken {
      * }
      */
     public static MemorySegment int_data(MemorySegment struct) {
-        return struct.asSlice(int_data$OFFSET, int_data$SIZE);
+        return struct.asSlice(int_data$OFFSET, int_data$LAYOUT.byteSize());
     }
 
     /**
@@ -83,11 +104,65 @@ public class CXToken {
      * }
      */
     public static void int_data(MemorySegment struct, MemorySegment fieldValue) {
-        MemorySegment.copy(fieldValue, 0L, struct, int_data$OFFSET, int_data$SIZE);
+        MemorySegment.copy(fieldValue, 0L, struct, int_data$OFFSET, int_data$LAYOUT.byteSize());
+    }
+
+    private static long[] int_data$DIMS = { 4 };
+
+    /**
+     * Dimensions for array field:
+     * {@snippet lang=c :
+     * unsigned int int_data[4]
+     * }
+     */
+    public static long[] int_data$dimensions() {
+        return int_data$DIMS;
+    }
+    private static final VarHandle int_data$ELEM_HANDLE = int_data$LAYOUT.varHandle(sequenceElement());
+
+    /**
+     * Indexed getter for field:
+     * {@snippet lang=c :
+     * unsigned int int_data[4]
+     * }
+     */
+    public static int int_data(MemorySegment struct, long index0) {
+        return (int)int_data$ELEM_HANDLE.get(struct, 0L, index0);
+    }
+
+    /**
+     * Indexed setter for field:
+     * {@snippet lang=c :
+     * unsigned int int_data[4]
+     * }
+     */
+    public static void int_data(MemorySegment struct, long index0, int fieldValue) {
+        int_data$ELEM_HANDLE.set(struct, 0L, index0, fieldValue);
+    }
+
+    private static final AddressLayout ptr_data$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("ptr_data"));
+
+    /**
+     * Layout for field:
+     * {@snippet lang=c :
+     * void *ptr_data
+     * }
+     */
+    public static final AddressLayout ptr_data$layout() {
+        return ptr_data$LAYOUT;
     }
 
     private static final long ptr_data$OFFSET = 16;
-    private static final AddressLayout ptr_data$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("ptr_data"));
+
+    /**
+     * Offset for field:
+     * {@snippet lang=c :
+     * void *ptr_data
+     * }
+     */
+    public static final long ptr_data$offset() {
+        return ptr_data$OFFSET;
+    }
 
     /**
      * Getter for field:
