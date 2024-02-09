@@ -65,12 +65,13 @@ jar {
     archiveVersion = project.version
 }
 
-task copyLibClang(type: Copy) {
+task copyLibClang(type: Sync) {
     into("$buildDir/jmod_inputs")
 
     from("${libclang_dir}") {
         include("*clang.*")
         include("libLLVM.*")
+        exclude("clang.exe")
         into("libs")
     }
 
@@ -84,6 +85,8 @@ task createJextractJmod(type: Exec) {
     dependsOn jar, copyLibClang
 
     // if these inputs or outputs change, gradle will rerun the task
+    inputs.file(jar.archiveFile.get())
+    inputs.dir("$jextract_jmod_inputs")
     outputs.file(jextract_jmod_file)
 
     doFirst {
@@ -105,6 +108,7 @@ task createJextractImage(type: Exec) {
     dependsOn createJextractJmod
 
     // if these inputs or outputs change, gradle will rerun the task
+    inputs.file("$jextract_jmod_file")
     outputs.dir(jextract_app_dir)
 
     def quote_jlink_opts = Os.isFamily(Os.FAMILY_WINDOWS)?
@@ -145,6 +149,7 @@ task createRuntimeImageForTest(type: Exec) {
     def out_dir = "$buildDir/jextract-jdk-test-image"
 
     // if these inputs or outputs change, gradle will rerun the task
+    inputs.file("$jextract_jmod_file")
     outputs.dir(out_dir)
 
     doFirst {
