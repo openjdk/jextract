@@ -190,12 +190,13 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             }
             """);
         } else {
+            String invokerClassName = newHolderClassName(javaName);
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
             String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
             appendBlankLine();
             emitDocComment(decl, "Variadic invoker interface for:");
             appendLines(STR."""
-                public interface \{javaName} {
+                public interface \{invokerClassName} {
                     \{retType} apply(\{paramExprs});
 
                     /**
@@ -210,7 +211,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 """);
             emitDocComment(decl, "Variadic invoker factory for:");
             appendLines(STR."""
-                public static \{javaName} \{javaName}(MemoryLayout... layouts) {
+                public static \{invokerClassName} \{javaName}(MemoryLayout... layouts) {
                     FunctionDescriptor baseDesc$ = \{functionDescriptorString(2, decl.type())};
                     var mh$ = \{runtimeHelperName()}.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
                     return (\{paramExprs}) -> {
@@ -219,7 +220,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                 traceDowncall(\{traceArgList});
                             }
                             \{returnWithCast}mh$.invokeExact(\{paramList});
-                        } catch(IllegalArgumentException ex$)  {
+                        } catch(IllegalArgumentException | ClassCastException ex$)  {
                             throw ex$; // rethrow IAE from passing wrong number/type of args
                         } catch (Throwable ex$) {
                            throw new AssertionError("should not reach here", ex$);
@@ -452,7 +453,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private String emitVarHolderClass(Declaration.Variable var, String javaName) {
         Type varType = var.type();
-        String mangledName = newHolderClassName(javaName);
+        String mangledName = newHolderClassName(STR."\{javaName}$constants");
         String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
         if (varType instanceof Type.Array) {
             List<Long> dimensions = Utils.dimensions(varType);
@@ -589,7 +590,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     }
 
     private String newHolderClassName(String javaName) {
-        String holderClassName = STR."\{javaName}$constants";
+        String holderClassName = javaName;
         while (!holderClassNames.add(holderClassName.toLowerCase())) {
             holderClassName += "$";
         }

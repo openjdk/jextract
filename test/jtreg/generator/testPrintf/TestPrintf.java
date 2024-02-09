@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 
 import static org.testng.Assert.assertEquals;
 import static test.jextract.printf.printf_h.*;
@@ -63,7 +64,7 @@ public class TestPrintf {
         }
     }
 
-    @Test(dataProvider = "wrongArgsCases", expectedExceptions = IllegalArgumentException.class)
+    @Test(dataProvider = "wrongArgsCases", expectedExceptions = { IllegalArgumentException.class, ClassCastException.class })
     public void testsPrintfInvokerWrongArgs(String fmt, MemoryLayout[] layouts, Object[] args) {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment s = arena.allocate(1024);
@@ -95,11 +96,9 @@ public class TestPrintf {
     @DataProvider
     public Object[][] wrongArgsCases() {
         return new Object[][] {
-            {
-                "%d", new MemoryLayout[] {C_INT}, new Object[0], // too few args
-                "%d", new MemoryLayout[] {C_INT}, new Object[] { 1, 2 }, // too many args
-                "%.2f", new MemoryLayout[] {C_DOUBLE}, new Object[] { 1 }, // wrong type
-            }
+            { "%d", new MemoryLayout[] {C_INT}, new Object[0], /* too few args */ },
+            { "%d", new MemoryLayout[] {C_INT}, new Object[] { 1, 2 }, /* too many args */ },
+            { "%.2f", new MemoryLayout[] {C_POINTER}, new Object[] { 1 }, /* wrong type */ },
         };
     }
 
