@@ -220,7 +220,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                 traceDowncall(\{traceArgList});
                             }
                             \{returnWithCast}mh$.invokeExact(\{paramList});
-                        } catch(IllegalArgumentException ex$)  {
+                        } catch(IllegalArgumentException | ClassCastException ex$)  {
                             throw ex$; // rethrow IAE from passing wrong number/type of args
                         } catch (Throwable ex$) {
                            throw new AssertionError("should not reach here", ex$);
