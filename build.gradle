@@ -71,6 +71,7 @@ task copyLibClang(type: Sync) {
     from("${libclang_dir}") {
         include("*clang.*")
         include("libLLVM.*")
+        exclude("clang.exe")
         into("libs")
     }
 
