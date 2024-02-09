@@ -453,7 +453,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private String emitVarHolderClass(Declaration.Variable var, String javaName) {
         Type varType = var.type();
-        String mangledName = newHolderClassName(javaName);
+        String mangledName = newHolderClassName(STR."\{javaName}$constants");
         String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
         if (varType instanceof Type.Array) {
             List<Long> dimensions = Utils.dimensions(varType);
@@ -467,7 +467,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String dimsString = dimensions.stream().map(d -> d.toString())
                     .collect(Collectors.joining(", "));
             appendIndentedLines(STR."""
-                public static class \{mangledName} {
+                private static class \{mangledName} {
                     public static final \{layoutType} LAYOUT = \{layoutString(varType)};
                     public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{var.name()}").reinterpret(LAYOUT.byteSize());
                     \{accessHandle}
@@ -476,7 +476,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 """);
         } else {
             appendIndentedLines(STR."""
-                public static class \{mangledName} {
+                private static class \{mangledName} {
                     public static final \{layoutType} LAYOUT = \{layoutString(varType)};
                     public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{var.name()}").reinterpret(LAYOUT.byteSize());
                 }
