@@ -193,19 +193,50 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String invokerClassName = newHolderClassName(javaName);
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
             appendBlankLine();
-            emitDocComment(decl, "Variadic invoker interface for:");
+            emitDocComment(decl, "Variadic invoker class for:");
             appendLines(STR."""
-                public record \{invokerClassName}(MethodHandle handle, FunctionDescriptor descriptor) {
+                public static class \{invokerClassName} {
                     private static final FunctionDescriptor BASE_DESC = \{functionDescriptorString(2, decl.type())};
                     private static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{nativeName}");
+
+                    private final MethodHandle handle;
+                    private final FunctionDescriptor descriptor;
+                    private final MethodHandle spreader;
+
+                    private \{invokerClassName}(MethodHandle handle, FunctionDescriptor descriptor, MethodHandle spreader) {
+                        this.handle = handle;
+                        this.descriptor = descriptor;
+                        this.spreader = spreader;
+                    }
+
+                    static \{invokerClassName} specialize(MemoryLayout... layouts) {
+                        FunctionDescriptor desc$ = BASE_DESC.appendArgumentLayouts(layouts);
+                        Linker.Option fva$ = Linker.Option.firstVariadicArg(BASE_DESC.argumentLayouts().size());
+                        var mh$ = Linker.nativeLinker().downcallHandle(ADDR, desc$, fva$);
+                        var spreader$ = mh$.asSpreader(Object[].class, layouts.length);
+                        return new \{invokerClassName}(mh$, desc$, spreader$);
+                    }
+
+                    /**
+                     * {@return specialized method handle}
+                     */
+                    public MethodHandle handle() {
+                        return handle;
+                    }
+
+                    /**
+                     * {@return specialized descriptor}
+                     */
+                    public FunctionDescriptor descriptor() {
+                        return descriptor;
+                    }
 
                     public \{retType} apply(\{paramExprs}) {
                         try {
                             if (TRACE_DOWNCALLS) {
                                 traceDowncall(\{traceArgList});
                             }
-                            int trailingArgCount$ = descriptor.argumentLayouts().size() - BASE_DESC.argumentLayouts().size();
-                            \{returnWithCast}handle.asSpreader(Object[].class, trailingArgCount$).invokeExact(\{paramList});
+                            \{returnWithCast}spreader.invokeExact(\{paramList});
                         } catch(IllegalArgumentException | ClassCastException ex$)  {
                             throw ex$; // rethrow IAE from passing wrong number/type of args
                         } catch (Throwable ex$) {
@@ -218,10 +249,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             emitDocComment(decl, "Variadic invoker factory for:");
             appendLines(STR."""
                 public static \{invokerClassName} \{javaName}(MemoryLayout... layouts) {
-                    FunctionDescriptor desc$ = \{invokerClassName}.BASE_DESC.appendArgumentLayouts(layouts);
-                    Linker.Option fva$ = Linker.Option.firstVariadicArg(\{invokerClassName}.BASE_DESC.argumentLayouts().size());
-                    var mh$ = Linker.nativeLinker().downcallHandle(\{invokerClassName}.ADDR, desc$, fva$);
-                    return new \{invokerClassName}(mh$, desc$);
+                    return \{invokerClassName}.specialize(layouts);
                 }
 
                 """);
