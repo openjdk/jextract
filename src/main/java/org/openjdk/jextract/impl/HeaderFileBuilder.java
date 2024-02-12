@@ -218,14 +218,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     }
 
                     /**
-                     * {@return specialized method handle}
+                     * {@return the specialized method handle}
                      */
                     public MethodHandle handle() {
                         return handle;
                     }
 
                     /**
-                     * {@return specialized descriptor}
+                     * {@return the specialized descriptor}
                      */
                     public FunctionDescriptor descriptor() {
                         return descriptor;
