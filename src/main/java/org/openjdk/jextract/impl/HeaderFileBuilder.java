@@ -195,51 +195,33 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendBlankLine();
             emitDocComment(decl, "Variadic invoker interface for:");
             appendLines(STR."""
-                public interface \{invokerClassName} {
-                    FunctionDescriptor BASE_DESC = \{functionDescriptorString(2, decl.type())};
-                    MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{nativeName}");
+                public record \{invokerClassName}(MethodHandle handle, FunctionDescriptor descriptor) {
+                    private static final FunctionDescriptor BASE_DESC = \{functionDescriptorString(2, decl.type())};
+                    private static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{nativeName}");
 
-                    \{retType} apply(\{paramExprs});
-                """);
-
-            incrAlign();
-            appendBlankLine();
-            emitDocComment(decl, "Specialized method handle factory for:");
-            appendLines(STR."""
-                static MethodHandle handle(MemoryLayout... layouts) {
-                    FunctionDescriptor desc = descriptor(layouts);
-                    Linker.Option fva = Linker.Option.firstVariadicArg(BASE_DESC.argumentLayouts().size());
-                    return Linker.nativeLinker().downcallHandle(ADDR, desc, fva);
-                }
-                """);
-            appendBlankLine();
-            emitDocComment(decl, "Specialized function descriptor factory for:");
-            appendLines(STR."""
-                static FunctionDescriptor descriptor(MemoryLayout... layouts) {
-                    return BASE_DESC.appendArgumentLayouts(layouts);
-                }
-                """);
-            decrAlign();
-            appendLines("""
+                    public \{retType} apply(\{paramExprs}) {
+                        try {
+                            if (TRACE_DOWNCALLS) {
+                                traceDowncall(\{traceArgList});
+                            }
+                            int trailingArgCount$ = descriptor.argumentLayouts().size() - BASE_DESC.argumentLayouts().size();
+                            \{returnWithCast}handle.asSpreader(Object[].class, trailingArgCount$).invokeExact(\{paramList});
+                        } catch(IllegalArgumentException | ClassCastException ex$)  {
+                            throw ex$; // rethrow IAE from passing wrong number/type of args
+                        } catch (Throwable ex$) {
+                           throw new AssertionError("should not reach here", ex$);
+                        }
+                    }
                 }
 
                 """);
             emitDocComment(decl, "Variadic invoker factory for:");
             appendLines(STR."""
                 public static \{invokerClassName} \{javaName}(MemoryLayout... layouts) {
-                    var mh$ = \{invokerClassName}.handle(layouts).asSpreader(Object[].class, layouts.length);
-                    return (\{paramExprs}) -> {
-                        try {
-                            if (TRACE_DOWNCALLS) {
-                                traceDowncall(\{traceArgList});
-                            }
-                            \{returnWithCast}mh$.invokeExact(\{paramList});
-                        } catch(IllegalArgumentException | ClassCastException ex$)  {
-                            throw ex$; // rethrow IAE from passing wrong number/type of args
-                        } catch (Throwable ex$) {
-                           throw new AssertionError("should not reach here", ex$);
-                        }
-                    };
+                    FunctionDescriptor desc$ = \{invokerClassName}.BASE_DESC.appendArgumentLayouts(layouts);
+                    Linker.Option fva$ = Linker.Option.firstVariadicArg(\{invokerClassName}.BASE_DESC.argumentLayouts().size());
+                    var mh$ = Linker.nativeLinker().downcallHandle(\{invokerClassName}.ADDR, desc$, fva$);
+                    return new \{invokerClassName}(mh$, desc$);
                 }
 
                 """);

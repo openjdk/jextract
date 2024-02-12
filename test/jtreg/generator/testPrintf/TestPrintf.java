@@ -46,15 +46,15 @@ public class TestPrintf {
 
     @Test
     public void testBaseDescriptor() {
-        FunctionDescriptor baseDesc = my_sprintf.descriptor();
-        assertEquals(baseDesc, FunctionDescriptor.of(C_INT, C_POINTER, C_POINTER, C_INT));
+        my_sprintf invoker = my_sprintf();
+        assertEquals(invoker.descriptor(), FunctionDescriptor.of(C_INT, C_POINTER, C_POINTER, C_INT));
     }
 
     @Test(dataProvider = "cases")
     public void testsPrintfHandle(String fmt, Object[] args, String expected, MemoryLayout[] layouts) throws Throwable {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment s = arena.allocate(1024);
-            MethodHandle handle = my_sprintf.handle(layouts);
+            MethodHandle handle = my_sprintf(layouts).handle();
             Object[] fullArgs = new Object[args.length + 3];
             fullArgs[0] = s;
             fullArgs[1] = arena.allocateFrom(fmt);
