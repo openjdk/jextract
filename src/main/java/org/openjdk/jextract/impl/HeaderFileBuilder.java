@@ -192,42 +192,65 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         } else {
             String invokerClassName = newHolderClassName(javaName);
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
-            String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
             appendBlankLine();
-            emitDocComment(decl, "Variadic invoker interface for:");
+            emitDocComment(decl, "Variadic invoker class for:");
             appendLines(STR."""
-                public interface \{invokerClassName} {
-                    \{retType} apply(\{paramExprs});
+                public static class \{invokerClassName} {
+                    private static final FunctionDescriptor BASE_DESC = \{functionDescriptorString(2, decl.type())};
+                    private static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{nativeName}");
 
-                    /**
-                     * Invoke the variadic function with the given parameters. Layouts for variadic arguments are inferred.
-                     */
-                    static \{retType} invoke(\{paramExprs}) {
-                        MemoryLayout[] inferredLayouts$ = \{runtimeHelperName()}.inferVariadicLayouts(\{varargsParam});
-                        \{returnNoCast}\{javaName}(inferredLayouts$).apply(\{String.join(", ", finalParamNames)});
+                    private final MethodHandle handle;
+                    private final FunctionDescriptor descriptor;
+                    private final MethodHandle spreader;
+
+                    private \{invokerClassName}(MethodHandle handle, FunctionDescriptor descriptor, MethodHandle spreader) {
+                        this.handle = handle;
+                        this.descriptor = descriptor;
+                        this.spreader = spreader;
                     }
-                }
-
                 """);
+            incrAlign();
+            appendBlankLine();
             emitDocComment(decl, "Variadic invoker factory for:");
             appendLines(STR."""
-                public static \{invokerClassName} \{javaName}(MemoryLayout... layouts) {
-                    FunctionDescriptor baseDesc$ = \{functionDescriptorString(2, decl.type())};
-                    var mh$ = \{runtimeHelperName()}.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
-                    return (\{paramExprs}) -> {
+                public static \{invokerClassName} makeInvoker(MemoryLayout... layouts) {
+                    FunctionDescriptor desc$ = BASE_DESC.appendArgumentLayouts(layouts);
+                    Linker.Option fva$ = Linker.Option.firstVariadicArg(BASE_DESC.argumentLayouts().size());
+                    var mh$ = Linker.nativeLinker().downcallHandle(ADDR, desc$, fva$);
+                    var spreader$ = mh$.asSpreader(Object[].class, layouts.length);
+                    return new \{invokerClassName}(mh$, desc$, spreader$);
+                }
+                """);
+            decrAlign();
+            appendLines(STR."""
+
+                    /**
+                     * {@return the specialized method handle}
+                     */
+                    public MethodHandle handle() {
+                        return handle;
+                    }
+
+                    /**
+                     * {@return the specialized descriptor}
+                     */
+                    public FunctionDescriptor descriptor() {
+                        return descriptor;
+                    }
+
+                    public \{retType} apply(\{paramExprs}) {
                         try {
                             if (TRACE_DOWNCALLS) {
                                 traceDowncall(\{traceArgList});
                             }
-                            \{returnWithCast}mh$.invokeExact(\{paramList});
+                            \{returnWithCast}spreader.invokeExact(\{paramList});
                         } catch(IllegalArgumentException | ClassCastException ex$)  {
                             throw ex$; // rethrow IAE from passing wrong number/type of args
                         } catch (Throwable ex$) {
                            throw new AssertionError("should not reach here", ex$);
                         }
-                    };
+                    }
                 }
-
                 """);
         }
         decrAlign();
@@ -303,46 +326,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
             }
 
-            static MemoryLayout[] inferVariadicLayouts(Object[] varargs) {
-                MemoryLayout[] result = new MemoryLayout[varargs.length];
-                for (int i = 0; i < varargs.length; i++) {
-                    result[i] = variadicLayout(varargs[i].getClass());
-                }
-                return result;
-            }
-
             static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
                 try {
                     return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
                 } catch (ReflectiveOperationException ex) {
                     throw new AssertionError(ex);
                 }
-            }
-
-            static MethodHandle downcallHandleVariadic(String name, FunctionDescriptor baseDesc, MemoryLayout[] variadicLayouts) {
-                FunctionDescriptor variadicDesc = baseDesc.appendArgumentLayouts(variadicLayouts);
-                Linker.Option fva = Linker.Option.firstVariadicArg(baseDesc.argumentLayouts().size());
-                return SYMBOL_LOOKUP.find(name)
-                        .map(addr -> Linker.nativeLinker().downcallHandle(addr, variadicDesc, fva)
-                                .asSpreader(Object[].class, variadicLayouts.length))
-                        .orElse(null);
-            }
-
-            // Internals only below this point
-
-            private static MemoryLayout variadicLayout(Class<?> c) {
-                // apply default argument promotions per C spec
-                // note that all primitives are boxed, since they are passed through an Object[]
-                if (c == Boolean.class || c == Byte.class || c == Character.class || c == Short.class || c == Integer.class) {
-                    return JAVA_INT;
-                } else if (c == Long.class) {
-                    return JAVA_LONG;
-                } else if (c == Float.class || c == Double.class) {
-                    return JAVA_DOUBLE;
-                } else if (MemorySegment.class.isAssignableFrom(c)) {
-                    return ADDRESS;
-                }
-                throw new IllegalArgumentException("Invalid type for ABI: " + c.getTypeName());
             }
             """);
     }
