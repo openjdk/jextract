@@ -120,8 +120,6 @@ public class JextractToolProviderTest extends JextractToolRunner {
     private static void checkHeaderMembers(Class<?> header) {
         // check a method for "void func(int)"
         assertNotNull(findMethod(header, "func", int.class));
-        // check a method for "printf(MemoryLayout...)"
-        assertNotNull(findMethod(header, "printf", MemoryLayout[].class));
         // check an interface for printf$invoker
         Class<?> invokerCls = findNestedClass(header, "printf");
         assertNotNull(invokerCls);
@@ -129,6 +127,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
         assertNotNull(findMethod(invokerCls, "handle"));
         // check a method for "FunctionDescriptor descriptor()"
         assertNotNull(findMethod(invokerCls, "descriptor"));
+        // check a method for "<invokerCls> invoker(MemoryLayout...)"
+        assertNotNull(findMethod(invokerCls, "makeInvoker", MemoryLayout[].class));
     }
 
     @Test

@@ -208,14 +208,21 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                         this.descriptor = descriptor;
                         this.spreader = spreader;
                     }
-
-                    static \{invokerClassName} specialize(MemoryLayout... layouts) {
-                        FunctionDescriptor desc$ = BASE_DESC.appendArgumentLayouts(layouts);
-                        Linker.Option fva$ = Linker.Option.firstVariadicArg(BASE_DESC.argumentLayouts().size());
-                        var mh$ = Linker.nativeLinker().downcallHandle(ADDR, desc$, fva$);
-                        var spreader$ = mh$.asSpreader(Object[].class, layouts.length);
-                        return new \{invokerClassName}(mh$, desc$, spreader$);
-                    }
+                """);
+            incrAlign();
+            appendBlankLine();
+            emitDocComment(decl, "Variadic invoker factory for:");
+            appendLines(STR."""
+                public static \{invokerClassName} makeInvoker(MemoryLayout... layouts) {
+                    FunctionDescriptor desc$ = BASE_DESC.appendArgumentLayouts(layouts);
+                    Linker.Option fva$ = Linker.Option.firstVariadicArg(BASE_DESC.argumentLayouts().size());
+                    var mh$ = Linker.nativeLinker().downcallHandle(ADDR, desc$, fva$);
+                    var spreader$ = mh$.asSpreader(Object[].class, layouts.length);
+                    return new \{invokerClassName}(mh$, desc$, spreader$);
+                }
+                """);
+            decrAlign();
+            appendLines(STR."""
 
                     /**
                      * {@return the specialized method handle}
@@ -244,14 +251,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                         }
                     }
                 }
-
-                """);
-            emitDocComment(decl, "Variadic invoker factory for:");
-            appendLines(STR."""
-                public static \{invokerClassName} \{javaName}(MemoryLayout... layouts) {
-                    return \{invokerClassName}.specialize(layouts);
-                }
-
                 """);
         }
         decrAlign();
