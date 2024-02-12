@@ -26,9 +26,10 @@ import java.lang.foreign.Arena;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.invoke.MethodHandle;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
 
 import static org.testng.Assert.assertEquals;
 import static test.jextract.printf.printf_h.*;
@@ -43,11 +44,23 @@ import static test.jextract.printf.printf_h.*;
  */
 public class TestPrintf {
 
+    @Test
+    public void testBaseDescriptor() {
+        FunctionDescriptor baseDesc = my_sprintf.descriptor();
+        assertEquals(baseDesc, FunctionDescriptor.of(C_INT, C_POINTER, C_POINTER, C_INT));
+    }
+
     @Test(dataProvider = "cases")
-    public void testsPrintf(String fmt, Object[] args, String expected, MemoryLayout[] unused) {
+    public void testsPrintfHandle(String fmt, Object[] args, String expected, MemoryLayout[] layouts) throws Throwable {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment s = arena.allocate(1024);
-            my_sprintf.invoke(s, arena.allocateFrom(fmt), args.length, args);
+            MethodHandle handle = my_sprintf.handle(layouts);
+            Object[] fullArgs = new Object[args.length + 3];
+            fullArgs[0] = s;
+            fullArgs[1] = arena.allocateFrom(fmt);
+            fullArgs[2] = args.length;
+            System.arraycopy(args, 0, fullArgs, 3, args.length);
+            handle.invokeWithArguments(fullArgs);
             String str = s.getString(0);
             assertEquals(str, expected);
         }

@@ -125,8 +125,13 @@ public class JextractToolProviderTest extends JextractToolRunner {
         // check an interface for printf$invoker
         Class<?> invokerCls = findNestedClass(header, "printf");
         assertNotNull(invokerCls);
-        // check a method for "int printf(MemorySegment, Object[])"
-        assertNotNull(findMethod(invokerCls, "invoke", MemorySegment.class, Object[].class));
+        // check for base desc and address fields
+        assertNotNull(findField(invokerCls, "BASE_DESC"));
+        assertNotNull(findField(invokerCls, "ADDR"));
+        // check a method for "MethodHandle handle(MemoryLayout...)"
+        assertNotNull(findMethod(invokerCls, "handle", MemoryLayout[].class));
+        // check a method for "FunctionDescriptor descriptor(MemoryLayout...)"
+        assertNotNull(findMethod(invokerCls, "descriptor", MemoryLayout[].class));
     }
 
     @Test

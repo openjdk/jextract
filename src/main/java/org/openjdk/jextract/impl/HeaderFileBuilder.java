@@ -192,28 +192,42 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         } else {
             String invokerClassName = newHolderClassName(javaName);
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
-            String varargsParam = finalParamNames.get(finalParamNames.size() - 1);
             appendBlankLine();
             emitDocComment(decl, "Variadic invoker interface for:");
             appendLines(STR."""
                 public interface \{invokerClassName} {
-                    \{retType} apply(\{paramExprs});
+                    FunctionDescriptor BASE_DESC = \{functionDescriptorString(2, decl.type())};
+                    MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{nativeName}");
 
-                    /**
-                     * Invoke the variadic function with the given parameters. Layouts for variadic arguments are inferred.
-                     */
-                    static \{retType} invoke(\{paramExprs}) {
-                        MemoryLayout[] inferredLayouts$ = \{runtimeHelperName()}.inferVariadicLayouts(\{varargsParam});
-                        \{returnNoCast}\{javaName}(inferredLayouts$).apply(\{String.join(", ", finalParamNames)});
-                    }
+                    \{retType} apply(\{paramExprs});
+                """);
+
+            incrAlign();
+            appendBlankLine();
+            emitDocComment(decl, "Specialized method handle factory for:");
+            appendLines(STR."""
+                static MethodHandle handle(MemoryLayout... layouts) {
+                    FunctionDescriptor desc = descriptor(layouts);
+                    Linker.Option fva = Linker.Option.firstVariadicArg(BASE_DESC.argumentLayouts().size());
+                    return Linker.nativeLinker().downcallHandle(ADDR, desc, fva);
+                }
+                """);
+            appendBlankLine();
+            emitDocComment(decl, "Specialized function descriptor factory for:");
+            appendLines(STR."""
+                static FunctionDescriptor descriptor(MemoryLayout... layouts) {
+                    return BASE_DESC.appendArgumentLayouts(layouts);
+                }
+                """);
+            decrAlign();
+            appendLines("""
                 }
 
                 """);
             emitDocComment(decl, "Variadic invoker factory for:");
             appendLines(STR."""
                 public static \{invokerClassName} \{javaName}(MemoryLayout... layouts) {
-                    FunctionDescriptor baseDesc$ = \{functionDescriptorString(2, decl.type())};
-                    var mh$ = \{runtimeHelperName()}.downcallHandleVariadic("\{nativeName}", baseDesc$, layouts);
+                    var mh$ = \{invokerClassName}.handle(layouts).asSpreader(Object[].class, layouts.length);
                     return (\{paramExprs}) -> {
                         try {
                             if (TRACE_DOWNCALLS) {
@@ -303,46 +317,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
             }
 
-            static MemoryLayout[] inferVariadicLayouts(Object[] varargs) {
-                MemoryLayout[] result = new MemoryLayout[varargs.length];
-                for (int i = 0; i < varargs.length; i++) {
-                    result[i] = variadicLayout(varargs[i].getClass());
-                }
-                return result;
-            }
-
             static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
                 try {
                     return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
                 } catch (ReflectiveOperationException ex) {
                     throw new AssertionError(ex);
                 }
-            }
-
-            static MethodHandle downcallHandleVariadic(String name, FunctionDescriptor baseDesc, MemoryLayout[] variadicLayouts) {
-                FunctionDescriptor variadicDesc = baseDesc.appendArgumentLayouts(variadicLayouts);
-                Linker.Option fva = Linker.Option.firstVariadicArg(baseDesc.argumentLayouts().size());
-                return SYMBOL_LOOKUP.find(name)
-                        .map(addr -> Linker.nativeLinker().downcallHandle(addr, variadicDesc, fva)
-                                .asSpreader(Object[].class, variadicLayouts.length))
-                        .orElse(null);
-            }
-
-            // Internals only below this point
-
-            private static MemoryLayout variadicLayout(Class<?> c) {
-                // apply default argument promotions per C spec
-                // note that all primitives are boxed, since they are passed through an Object[]
-                if (c == Boolean.class || c == Byte.class || c == Character.class || c == Short.class || c == Integer.class) {
-                    return JAVA_INT;
-                } else if (c == Long.class) {
-                    return JAVA_LONG;
-                } else if (c == Float.class || c == Double.class) {
-                    return JAVA_DOUBLE;
-                } else if (MemorySegment.class.isAssignableFrom(c)) {
-                    return ADDRESS;
-                }
-                throw new IllegalArgumentException("Invalid type for ABI: " + c.getTypeName());
             }
             """);
     }
