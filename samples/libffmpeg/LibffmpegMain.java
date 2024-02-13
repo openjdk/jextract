@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -105,10 +105,10 @@ public class LibffmpegMain {
                 int videoStream = -1;
                 // AVFrameContext formatCtx;
                 // formatCtx.nb_streams
-                int nb_streams = AVFormatContext.nb_streams$get(pFormatCtx);
+                int nb_streams = AVFormatContext.nb_streams(pFormatCtx);
                 System.out.println("number of streams: " + nb_streams);
                 // formatCtx.streams
-                var pStreams = AVFormatContext.streams$get(pFormatCtx);
+                var pStreams = AVFormatContext.streams(pFormatCtx);
 
                 // AVCodecContext* pVideoCodecCtx;
                 var pVideoCodecCtx = NULL;
@@ -118,12 +118,12 @@ public class LibffmpegMain {
                     // AVStream* pStream;
                     var pStream = pStreams.getAtIndex(C_POINTER, i);
                     // AVCodecContext* pCodecCtx;
-                    pCodecCtx = AVStream.codec$get(pStream);
-                    if (AVCodecContext.codec_type$get(pCodecCtx) == AVMEDIA_TYPE_VIDEO()) {
+                    pCodecCtx = AVStream.codec(pStream);
+                    if (AVCodecContext.codec_type(pCodecCtx) == AVMEDIA_TYPE_VIDEO()) {
                         videoStream = i;
                         pVideoCodecCtx = pCodecCtx;
                         // Find the decoder for the video stream
-                        pCodec = avcodec_find_decoder(AVCodecContext.codec_id$get(pCodecCtx));
+                        pCodec = avcodec_find_decoder(AVCodecContext.codec_id(pCodecCtx));
                         break;
                     }
                 }
@@ -160,8 +160,8 @@ public class LibffmpegMain {
                 pFrameRGB = av_frame_alloc();
 
                 // Determine required buffer size and allocate buffer
-                int width = AVCodecContext.width$get(pCodecCtx);
-                int height = AVCodecContext.height$get(pCodecCtx);
+                int width = AVCodecContext.width(pCodecCtx);
+                int height = AVCodecContext.height(pCodecCtx);
                 int numBytes = avpicture_get_size(AV_PIX_FMT_RGB24(), width, height);
                 buffer = av_malloc(numBytes * C_CHAR.byteSize());
 
@@ -182,7 +182,7 @@ public class LibffmpegMain {
                 avpicture_fill(pFrameRGB, buffer, AV_PIX_FMT_RGB24(), width, height);
 
                 // initialize SWS context for software scaling
-                int pix_fmt = AVCodecContext.pix_fmt$get(pCodecCtx);
+                int pix_fmt = AVCodecContext.pix_fmt(pCodecCtx);
                 var sws_ctx = sws_getContext(width, height, pix_fmt, width, height,
                         AV_PIX_FMT_RGB24(), SWS_BILINEAR(), NULL, NULL, NULL);
 
@@ -195,7 +195,7 @@ public class LibffmpegMain {
                 while (av_read_frame(pFormatCtx, packet) >= 0) {
                     // Is this a packet from the video stream?
                     // packet.stream_index == videoStream
-                    if (AVPacket.stream_index$get(packet) == videoStream) {
+                    if (AVPacket.stream_index(packet) == videoStream) {
                         // Decode video frame
                         avcodec_decode_video2(pCodecCtx, pFrame, pFrameFinished, packet);
 
@@ -203,9 +203,9 @@ public class LibffmpegMain {
                         // Did we get a video frame?
                         if (frameFinished != 0) {
                             // Convert the image from its native format to RGB
-                            sws_scale(sws_ctx, AVFrame.data$slice(pFrame),
-                                    AVFrame.linesize$slice(pFrame), 0, height,
-                                    AVFrame.data$slice(pFrameRGB), AVFrame.linesize$slice(pFrameRGB));
+                            sws_scale(sws_ctx, AVFrame.data(pFrame),
+                                    AVFrame.linesize(pFrame), 0, height,
+                                    AVFrame.data(pFrameRGB), AVFrame.linesize(pFrameRGB));
 
                             // Save the frame to disk
                             if (++i <= NUM_FRAMES_TO_CAPTURE) {
@@ -266,11 +266,11 @@ public class LibffmpegMain {
         try (var os = Files.newOutputStream(path)) {
             System.out.println("writing " + path.toString());
             os.write(header.getBytes());
-            var data = AVFrame.data$slice(frameRGB);
+            var data = AVFrame.data(frameRGB);
             // frameRGB.data[0]
             var pdata = data.get(C_POINTER, 0);
             // frameRGB.linespace[0]
-            var linesize = AVFrame.linesize$slice(frameRGB).get(C_INT, 0);
+            var linesize = AVFrame.linesize(frameRGB).get(C_INT, 0);
             // Write pixel data
             for (int y = 0; y < height; y++) {
                 // frameRGB.data[0] + y*frameRGB.linesize[0] is the pointer. And 3*width size of data

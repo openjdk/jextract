@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -31,26 +31,18 @@ import org.testng.annotations.Test;
 import org.testng.SkipException;
 
 import test.jextract.unsupported.unsupported_h;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+
+import static org.testng.Assert.*;
 import static test.jextract.unsupported.unsupported_h.*;
 import test.jextract.unsupported.*;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
- * @run main/othervm JtregJextract -l Unsupported -t test.jextract.unsupported unsupported.h
+ * @run main/othervm JtregJextract -l Unsupported --use-system-load-library -t test.jextract.unsupported unsupported.h
+ * @build LibUnsupportedTest
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibUnsupportedTest
  */
-
-/*
- * @test id=sources
- * @library /lib
- *
- * @run main/othervm JtregJextractSources -l Unsupported -t test.jextract.unsupported unsupported.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibUnsupportedTest
- */
-
 public class LibUnsupportedTest {
 
     private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
@@ -59,21 +51,21 @@ public class LibUnsupportedTest {
     public void testAllocateFoo() {
         try (Arena arena = Arena.ofConfined()) {
             var seg = Foo.allocate(arena);
-            Foo.i$set(seg, 32);
-            Foo.c$set(seg, (byte)'z');
-            assertEquals(Foo.i$get(seg), 32);
-            assertEquals(Foo.c$get(seg), (byte)'z');
+            Foo.i(seg, 32);
+            Foo.c(seg, (byte)'z');
+            assertEquals(Foo.i(seg), 32);
+            assertEquals(Foo.c(seg), (byte)'z');
         }
     }
 
     @Test
     public void testGetFoo() {
         try (Arena arena = Arena.ofConfined()) {
-            var seg = Foo.ofAddress(getFoo(), arena);
-            Foo.i$set(seg, 42);
-            Foo.c$set(seg, (byte)'j');
-            assertEquals(Foo.i$get(seg), 42);
-            assertEquals(Foo.c$get(seg), (byte)'j');
+            var seg = Foo.reinterpret(getFoo(), arena, null);
+            Foo.i(seg, 42);
+            Foo.c(seg, (byte)'j');
+            assertEquals(Foo.i(seg), 42);
+            assertEquals(Foo.c(seg), (byte)'j');
         }
     }
 
@@ -83,22 +75,25 @@ public class LibUnsupportedTest {
 
     @Test
     public void testFieldTypes() {
-        GroupLayout g = (GroupLayout)Foo.$LAYOUT();
+        GroupLayout g = (GroupLayout)Foo.layout();
         checkField(g, "i", C_INT);
         checkField(g, "c", C_CHAR);
     }
 
     @Test
-    public void testIgnoredMethods() {
+    public void testProblematicMethods() {
         if (IS_WINDOWS) {
-            throw new SkipException("long double works on Windows");
+            assertNotNull(findMethod(unsupported_h.class, "func"));
+            assertNotNull(findMethod(unsupported_h.class, "func2"));
+            assertNotNull(findMethod(unsupported_h.class, "func3"));
+        } else {
+            assertNull(findMethod(unsupported_h.class, "func"));
+            assertNull(findMethod(unsupported_h.class, "func2"));
+            assertNull(findMethod(unsupported_h.class, "func3"));
         }
-        assertNull(findMethod(unsupported_h.class, "func"));
-        assertNull(findMethod(unsupported_h.class, "func2"));
-        assertNull(findMethod(unsupported_h.class, "func3"));
-        assertNull(findMethod(unsupported_h.class, "func4"));
-        assertNull(findMethod(unsupported_h.class, "makeFoo"));
-        assertNull(findMethod(unsupported_h.class, "copyFoo"));
+        assertNotNull(findMethod(unsupported_h.class, "func4"));
+        assertNotNull(findMethod(unsupported_h.class, "makeFoo"));
+        assertNotNull(findMethod(unsupported_h.class, "copyFoo"));
     }
 
     private Method findMethod(Class<?> cls, String name) {

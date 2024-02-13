@@ -6,7 +6,10 @@ param(
 )
 
 jextract `
+  --output src `
   -I "$pythonPath\include" `
   "-l" $pythonLibName `
   "-t" "org.python" `
   "$pythonPath\include\Python.h"
+
+javac -d classes (ls -r src/*.java)

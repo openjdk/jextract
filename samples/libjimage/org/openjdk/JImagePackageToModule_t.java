@@ -2,32 +2,51 @@
 
 package org.openjdk;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
+
 /**
- * {@snippet :
- * char* (*JImagePackageToModule_t)(struct JImageFile* jimage,char* package_name);
+ * {@snippet lang=c :
+ * typedef const char *(*JImagePackageToModule_t)(JImageFile *, const char *)
  * }
  */
-public interface JImagePackageToModule_t {
+public class JImagePackageToModule_t {
 
-    java.lang.foreign.MemorySegment apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment package_name);
-    static MemorySegment allocate(JImagePackageToModule_t fi, Arena scope) {
-        return RuntimeHelper.upcallStub(constants$1.const$3, fi, constants$0.const$0, scope);
+    public interface Function {
+        MemorySegment apply(MemorySegment jimage, MemorySegment package_name);
     }
-    static JImagePackageToModule_t ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena, null);
-        return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _package_name) -> {
-            try {
-                return (java.lang.foreign.MemorySegment)constants$0.const$3.invokeExact(symbol, _jimage, _package_name);
-            } catch (Throwable ex$) {
-                throw new AssertionError("should not reach here", ex$);
-            }
-        };
+
+    private static final FunctionDescriptor $DESC = FunctionDescriptor.of(
+        jimage_h.C_POINTER,
+        jimage_h.C_POINTER,
+        jimage_h.C_POINTER
+    );
+
+    public static FunctionDescriptor descriptor() {
+        return $DESC;
+    }
+
+    private static final MethodHandle UP$MH = jimage_h.upcallHandle(JImagePackageToModule_t.Function.class, "apply", $DESC);
+
+    public static MemorySegment allocate(JImagePackageToModule_t.Function fi, Arena scope) {
+        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
+    }
+
+    private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
+    public static MemorySegment invoke(MemorySegment funcPtr,MemorySegment jimage, MemorySegment package_name) {
+        try {
+            return (MemorySegment) DOWN$MH.invokeExact(funcPtr, jimage, package_name);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
     }
 }
-
 

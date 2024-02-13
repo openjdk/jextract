@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -26,15 +26,14 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.constant.Constable;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.lang.foreign.MemoryLayout;
+import java.util.OptionalLong;
+
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
@@ -43,12 +42,11 @@ public abstract class DeclarationImpl implements Declaration {
 
     private final String name;
     private final Position pos;
-    private final Optional<Map<String, List<Constable>>> attributes;
+    private final Map<Class<?>, Record> attributes = new HashMap<>();
 
-    public DeclarationImpl(String name, Position pos, Map<String, List<Constable>> attrs) {
+    DeclarationImpl(String name, Position pos) {
         this.name = name;
         this.pos = pos;
-        this.attributes = Optional.ofNullable(attrs);
     }
 
     public String toString() {
@@ -65,45 +63,45 @@ public abstract class DeclarationImpl implements Declaration {
     }
 
     @Override
-    public Optional<List<Constable>> getAttribute(String name) {
-        return attributes.map(attrs -> attrs.get(name));
-    }
-
-    @Override
-    public Set<String> attributeNames() { return Collections.unmodifiableSet(
-            attributes.map(Map::keySet).orElse(Collections.emptySet()));
-    }
-
-    @Override
-    public Declaration withAttribute(String name, Constable... values) {
-        if (values == null || values.length == 0) {
-            return withAttributes(null);
-        }
-        var attrs = attributes.map(HashMap::new).orElseGet(HashMap::new);
-        attrs.put(name, List.of(values));
-        return withAttributes(attrs);
-    }
-
-    abstract protected Declaration withAttributes(Map<String, List<Constable>> attrs);
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        return o instanceof Declaration decl && name().equals(decl.name());
+        return o instanceof Declaration decl &&
+                name().equals(decl.name()) &&
+                attributes.equals(decl.attributes());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(name, attributes);
+    }
+
+    @Override
+    public Collection<Record> attributes() {
+        return attributes.values();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R extends Record> Optional<R> getAttribute(Class<R> attributeClass) {
+        return Optional.ofNullable((R)attributes.get(attributeClass));
+    }
+
+    @Override
+    public <R extends Record> void addAttribute(R attribute) {
+        Record attr = attributes.get(attribute.getClass());
+        if (attr != null && !attr.equals(attribute)) {
+            throw new IllegalStateException("Attribute already exists: " + attribute.getClass().getSimpleName());
+        }
+        attributes.put(attribute.getClass(), attribute);
     }
 
     public static final class TypedefImpl extends DeclarationImpl implements Declaration.Typedef {
         final Type type;
 
-        public TypedefImpl(Type type, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
+        public TypedefImpl(Type type, String name, Position pos) {
+            super(name, pos);
             this.type = Objects.requireNonNull(type);
         }
 
@@ -118,20 +116,10 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Typedef withAttributes(Map<String, List<Constable>> attrs) {
-            return new TypedefImpl(type, name(), pos(), attrs);
-        }
-
-        @Override
-        public Typedef stripAttributes() {
-            return new TypedefImpl(type, name(), pos(), null);
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             return o instanceof Declaration.Typedef other &&
-                    name().equals(other.name()) &&
+                    super.equals(other) &&
                     type.equals(other.type());
         }
 
@@ -145,21 +133,11 @@ public abstract class DeclarationImpl implements Declaration {
 
         final Variable.Kind kind;
         final Type type;
-        final Optional<MemoryLayout> layout;
-
-        private VariableImpl(Type type, Optional<MemoryLayout> layout, Variable.Kind kind, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
-            this.kind = Objects.requireNonNull(kind);
-            this.type = Objects.requireNonNull(type);
-            this.layout = Objects.requireNonNull(layout);
-        }
 
         public VariableImpl(Type type, Variable.Kind kind, String name, Position pos) {
-            this(type, TypeImpl.getLayout(type), kind, name, pos, null);
-        }
-
-        public VariableImpl(Type type, MemoryLayout layout, Variable.Kind kind, String name, Position pos) {
-            this(type, Optional.of(layout), kind, name, pos, null);
+            super(name, pos);
+            this.kind = Objects.requireNonNull(kind);
+            this.type = Objects.requireNonNull(type);
         }
 
         @Override
@@ -178,21 +156,11 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Variable withAttributes(Map<String, List<Constable>> attrs) {
-            return new VariableImpl(type, layout, kind, name(), pos(), attrs);
-        }
-
-        @Override
-        public Variable stripAttributes() {
-            return new VariableImpl(type, layout, kind, name(), pos(), null);
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Variable variable)) return false;
-            if (!super.equals(o)) return false;
-            return kind == variable.kind() &&
+            return o instanceof Declaration.Variable variable &&
+                    super.equals(o) &&
+                    kind == variable.kind() &&
                     type.equals(variable.type());
         }
 
@@ -204,22 +172,11 @@ public abstract class DeclarationImpl implements Declaration {
 
     public static final class BitfieldImpl extends VariableImpl implements Declaration.Bitfield {
 
-        final long offset;
         final long width;
 
-        private BitfieldImpl(Type type, long offset, long width, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(type, Optional.<MemoryLayout>empty(), Kind.BITFIELD, name, pos, attrs);
-            this.offset = offset;
+        public BitfieldImpl(Type type, long width, String name, Position pos) {
+            super(type, Kind.BITFIELD, name, pos);
             this.width = width;
-        }
-
-        public BitfieldImpl(Type type, long offset, long width, String name, Position pos) {
-            this(type, offset, width, name, pos, null);
-        }
-
-        @Override
-        public long offset() {
-            return offset;
         }
 
         @Override
@@ -228,27 +185,16 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Variable withAttributes(Map<String, List<Constable>> attrs) {
-            return new BitfieldImpl(type, offset, width, name(), pos(), attrs);
-        }
-
-        @Override
-        public Variable stripAttributes() {
-            return new BitfieldImpl(type, offset, width, name(), pos(), null);
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof BitfieldImpl bitfield)) return false;
-            if (!super.equals(o)) return false;
-            return offset == bitfield.offset &&
-                    width == bitfield.width;
+            return o instanceof Declaration.Bitfield bitfield &&
+                    super.equals(o) &&
+                    width == bitfield.width();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(super.hashCode(), offset, width);
+            return Objects.hash(super.hashCode(), width);
         }
     }
 
@@ -258,11 +204,7 @@ public abstract class DeclarationImpl implements Declaration {
         final Type.Function type;
 
         public FunctionImpl(Type.Function type, List<Variable> params, String name, Position pos) {
-            this(type, params, name, pos, null);
-        }
-
-        public FunctionImpl(Type.Function type, List<Variable> params, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
+            super(name, pos);
             this.params = Objects.requireNonNull(params);
             this.type = Objects.requireNonNull(type);
         }
@@ -283,26 +225,17 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Function withAttributes(Map<String, List<Constable>> attrs) {
-            return new FunctionImpl(type, params, name(), pos(), attrs);
-        }
-
-        @Override
-        public Function stripAttributes() {
-            return new FunctionImpl(type, params, name(), pos(), null);
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Function function)) return false;
-            if (!super.equals(o)) return false;
-            return type.equals(function.type());
+            return o instanceof Declaration.Function function &&
+                    super.equals(o) &&
+                    params.equals(function.parameters()) &&
+                    type.equals(function.type());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(super.hashCode(), type);
+            return Objects.hash(super.hashCode(), params, type);
         }
     }
 
@@ -310,22 +243,11 @@ public abstract class DeclarationImpl implements Declaration {
 
         private final Scoped.Kind kind;
         private final List<Declaration> declarations;
-        private final Optional<MemoryLayout> optLayout;
-
-        public ScopedImpl(Kind kind, MemoryLayout layout, List<Declaration> declarations, String name, Position pos) {
-            this(kind, Optional.of(layout), declarations, name, pos, null);
-        }
 
         public ScopedImpl(Kind kind, List<Declaration> declarations, String name, Position pos) {
-            this(kind, Optional.empty(), declarations, name, pos, null);
-        }
-
-        ScopedImpl(Kind kind, Optional<MemoryLayout> optLayout, List<Declaration> declarations,
-                String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
+            super(name, pos);
             this.kind = Objects.requireNonNull(kind);
             this.declarations = Objects.requireNonNull(declarations);
-            this.optLayout = Objects.requireNonNull(optLayout);
         }
 
         @Override
@@ -339,31 +261,16 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Optional<MemoryLayout> layout() {
-            return optLayout;
-        }
-
-        @Override
         public Kind kind() {
             return kind;
         }
 
         @Override
-        public Scoped withAttributes(Map<String, List<Constable>> attrs) {
-            return new ScopedImpl(kind, optLayout, declarations, name(), pos(), attrs);
-        }
-
-        @Override
-        public Scoped stripAttributes() {
-            return new ScopedImpl(kind, optLayout, declarations, name(), pos(), null);
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Scoped scoped)) return false;
-            if (!super.equals(o)) return false;
-            return kind == scoped.kind() &&
+            return o instanceof Declaration.Scoped scoped &&
+                    super.equals(o) &&
+                    kind == scoped.kind() &&
                     declarations.equals(scoped.members());
         }
 
@@ -379,11 +286,7 @@ public abstract class DeclarationImpl implements Declaration {
         final Type type;
 
         public ConstantImpl(Type type, Object value, String name, Position pos) {
-            this(type, value, name, pos, null);
-        }
-
-        public ConstantImpl(Type type, Object value, String name, Position pos, Map<String, List<Constable>> attrs) {
-            super(name, pos, attrs);
+            super(name, pos);
             this.value = Objects.requireNonNull(value);
             this.type = Objects.requireNonNull(type);
         }
@@ -404,27 +307,185 @@ public abstract class DeclarationImpl implements Declaration {
         }
 
         @Override
-        public Constant withAttributes(Map<String, List<Constable>> attrs) {
-            return new ConstantImpl(type, value, name(), pos(), attrs);
-        }
-
-        @Override
-        public Constant stripAttributes() {
-            return new ConstantImpl(type, value, name(), pos(), null);
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Declaration.Constant constant)) return false;
-            if (!super.equals(o)) return false;
-            return value.equals(constant.value()) &&
+            return o instanceof Declaration.Constant constant &&
+                    super.equals(o) &&
+                    value == constant.value() &&
                     type.equals(constant.type());
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(super.hashCode(), value, type);
+        }
+    }
+
+    // attributes
+
+    /**
+     * An attribute to mark anonymous struct declarations.
+     */
+    record AnonymousStruct(OptionalLong offset) {
+        public static void with(Scoped scoped, OptionalLong offset) {
+            scoped.addAttribute(new AnonymousStruct(offset));
+        }
+
+        public static AnonymousStruct getOrThrow(Scoped scoped) {
+            return scoped.getAttribute(AnonymousStruct.class).orElseThrow();
+        }
+
+        public static boolean isPresent(Scoped scoped) {
+            return scoped.getAttribute(AnonymousStruct.class).isPresent();
+        }
+
+        public static String anonName(Scoped scoped) {
+            return "$anon$" + scoped.pos().line() + ":" + scoped.pos().col();
+        }
+    }
+
+    /**
+     * An attribute to mark enum constants, with a link to the name of their parent enum.
+     */
+    record EnumConstant(String get) {
+        public static void with(Constant constant, String enumName) {
+            constant.addAttribute(new EnumConstant(enumName));
+        }
+
+        public static Optional<String> get(Constant constant) {
+            return constant.getAttribute(EnumConstant.class)
+                    .map(EnumConstant::get);
+        }
+    }
+
+    /**
+     * An attribute to mark declaration for which no code should be generated.
+     */
+    record Skip() {
+        private static final Skip INSTANCE = new Skip();
+
+        public static void with(Declaration declaration) {
+            declaration.addAttribute(INSTANCE);
+        }
+
+        public static boolean isPresent(Declaration declaration) {
+            return declaration.getAttribute(Skip.class).isPresent();
+        }
+    }
+
+    /**
+     * An attribute to attach a Java name to a C declaration.
+     */
+    record JavaName(List<String> names) {
+        public static void with(Declaration declaration, List<String> names) {
+            declaration.addAttribute(new JavaName(names));
+        }
+
+        public static String getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(JavaName.class)
+                    .map(javaName -> javaName.names.getLast()).get();
+        }
+
+        public static String getFullNameOrThrow(Declaration declaration) {
+            return declaration.getAttribute(JavaName.class)
+                    .map(javaName -> String.join(".", javaName.names)).get();
+        }
+
+        public static boolean isPresent(Declaration declaration) {
+            return declaration.getAttribute(JavaName.class).isPresent();
+        }
+    }
+
+    /**
+     * An attribute to attach a Java functional interface name to a C declaration.
+     */
+    record JavaFunctionalInterfaceName(String fiName) {
+        public static void with(Declaration declaration, String fiName) {
+            declaration.addAttribute(new JavaFunctionalInterfaceName(fiName));
+        }
+
+        public static String getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(JavaFunctionalInterfaceName.class)
+                    .map(JavaFunctionalInterfaceName::fiName).get();
+        }
+    }
+
+    record ClangAlignOf(long align) {
+        public static void with(Declaration declaration, long align) {
+            declaration.addAttribute(new ClangAlignOf(align));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangAlignOf.class)
+                    .stream().mapToLong(ClangAlignOf::align).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangAlignOf.class)
+                    .stream().mapToLong(ClangAlignOf::align).findFirst().getAsLong();
+        }
+    }
+
+    record ClangSizeOf(long size) {
+        public static void with(Declaration declaration, long size) {
+            declaration.addAttribute(new ClangSizeOf(size));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangSizeOf.class)
+                    .stream().mapToLong(ClangSizeOf::size).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangSizeOf.class)
+                    .stream().mapToLong(ClangSizeOf::size).findFirst().getAsLong();
+        }
+    }
+
+    record ClangOffsetOf(long offset) {
+        public static void with(Declaration declaration, long size) {
+            declaration.addAttribute(new ClangOffsetOf(size));
+        }
+
+        public static OptionalLong get(Declaration declaration) {
+            return declaration.getAttribute(ClangOffsetOf.class)
+                    .stream().mapToLong(ClangOffsetOf::offset).findFirst();
+        }
+
+        public static long getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(ClangOffsetOf.class)
+                    .stream().mapToLong(ClangOffsetOf::offset).findFirst().getAsLong();
+        }
+    }
+
+    /**
+     * An attribute to attach nested struct/union/enum declarations to other declarations.
+     */
+    record NestedDeclarations(List<Scoped> nestedDeclarations) {
+
+        public static void with(Declaration declaration, List<Scoped> nestedDeclarations) {
+            declaration.addAttribute(new NestedDeclarations(nestedDeclarations));
+        }
+
+        public static Optional<List<Scoped>> get(Declaration declaration) {
+            return declaration.getAttribute(NestedDeclarations.class)
+                    .stream().map(NestedDeclarations::nestedDeclarations).findFirst();
+        }
+    }
+
+    record DeclarationString(String declString) {
+        public static void with(Declaration declaration, String declString) {
+            declaration.addAttribute(new DeclarationString(declString));
+        }
+
+        public static Optional<String> get(Declaration declaration) {
+            return declaration.getAttribute(DeclarationString.class)
+                    .stream().map(DeclarationString::declString).findFirst();
+        }
+
+        public static String getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(DeclarationString.class)
+                    .stream().map(DeclarationString::declString).findFirst().get();
         }
     }
 }

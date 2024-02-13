@@ -1,3 +1,3 @@
 #include <stdarg.h>
 
-int getpid();
+int getpid(void);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -38,7 +38,7 @@ public class TestSplit extends JextractToolRunner {
     public void testSplit() {
         Path splitOutput = getOutputFilePath("split");
         Path splitH = getInputFilePath("split.h");
-        run("--output", splitOutput.toString(), splitH.toString()).checkSuccess();
+        runAndCompile(splitOutput, splitH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(splitOutput)) {
             checkPresent(loader, "split_h");
             checkPresent(loader, "split_h_1");

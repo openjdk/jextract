@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -36,12 +36,12 @@ public class Test8261578 extends JextractToolRunner {
     public void test1() {
         Path outputPath = getOutputFilePath("output_1");
         Path headerFile = getInputFilePath("test8261578_1.h");
-        run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
+        runAndCompile(outputPath, headerFile.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> ndpi_class = loader.loadClass("ndpi_flow_tcp_struct");
             assertNotNull(ndpi_class);
 
-            checkMethod(ndpi_class, "gnutella_msg_id$slice", MemorySegment.class, MemorySegment.class);
+            checkMethod(ndpi_class, "gnutella_msg_id", MemorySegment.class, MemorySegment.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }
@@ -51,16 +51,16 @@ public class Test8261578 extends JextractToolRunner {
     public void test2() {
         Path outputPath = getOutputFilePath("output_2");
         Path headerFile = getInputFilePath("test8261578_2.h");
-        run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
+        runAndCompile(outputPath, headerFile.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> foo_class = loader.loadClass("foo");
             assertNotNull(foo_class);
 
-            checkMethod(foo_class, "clear_color$slice", MemorySegment.class, MemorySegment.class);
-            checkMethod(foo_class, "clear_z$get", int.class, MemorySegment.class);
-            checkMethod(foo_class, "clear_z$set", void.class, MemorySegment.class, int.class);
-            checkMethod(foo_class, "clear_s$get", byte.class, MemorySegment.class);
-            checkMethod(foo_class, "clear_s$set", void.class, MemorySegment.class, byte.class);
+            checkMethod(foo_class, "clear_color", MemorySegment.class, MemorySegment.class);
+            checkMethod(foo_class, "clear_z", int.class, MemorySegment.class);
+            checkMethod(foo_class, "clear_z", void.class, MemorySegment.class, int.class);
+            checkMethod(foo_class, "clear_s", byte.class, MemorySegment.class);
+            checkMethod(foo_class, "clear_s", void.class, MemorySegment.class, byte.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }
@@ -70,13 +70,13 @@ public class Test8261578 extends JextractToolRunner {
     public void test3() {
         Path outputPath = getOutputFilePath("output_3");
         Path headerFile = getInputFilePath("test8261578_3.h");
-        run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
+        runAndCompile(outputPath, headerFile.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> plugin_class = loader.loadClass("PluginCodec_H323AudioG7231AnnexC");
             assertNotNull(plugin_class);
 
-            checkMethod(plugin_class, "maxAl_sduAudioFrames$get", byte.class, MemorySegment.class);
-            checkMethod(plugin_class, "maxAl_sduAudioFrames$set", void.class, MemorySegment.class, byte.class);
+            checkMethod(plugin_class, "maxAl_sduAudioFrames", byte.class, MemorySegment.class);
+            checkMethod(plugin_class, "maxAl_sduAudioFrames", void.class, MemorySegment.class, byte.class);
         } finally {
             TestUtils.deleteDir(outputPath);
         }

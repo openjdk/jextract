@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,7 @@ package org.openjdk.jextract.test.toolprovider;
 
 import java.nio.file.Path;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySegment;
+
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
@@ -39,14 +39,14 @@ public class Test8251943 extends JextractToolRunner {
     public void test() {
         Path outputPath = getOutputFilePath("output");
         Path headerFile = getInputFilePath("test8251943.h");
-        run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
+        runAndCompile(outputPath, headerFile.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(outputPath)) {
             Class<?> headerClass = loader.loadClass("test8251943_h");
-            assertNull(findMethod(headerClass, "tzname$SEGMENT"));
+            assertNotNull(findMethod(headerClass, "tzname"));
 
             Class<?> fooClass = loader.loadClass("Foo");
-            assertNotNull(findMethod(fooClass, "bar$get", MemorySegment.class));
-            assertNull(findMethod(fooClass, "names$get", MemorySegment.class));
+            assertNotNull(findMethod(fooClass, "bar", MemorySegment.class));
+            assertNotNull(findMethod(fooClass, "names", MemorySegment.class));
         } finally {
             TestUtils.deleteDir(outputPath);
         }

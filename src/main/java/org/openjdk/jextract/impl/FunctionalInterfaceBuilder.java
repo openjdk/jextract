@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,9 +25,7 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.*;
-
-import org.openjdk.jextract.impl.Constants.Constant;
+import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 
 import java.lang.invoke.MethodType;
@@ -36,37 +34,81 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
-
-    private static final String MEMBER_MODS = "static";
+final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private final Type.Function funcType;
-    private final MethodType fiType;
-    private final MethodType downcallType;
-    private final FunctionDescriptor fiDesc;
+    private final MethodType methodType;
     private final Optional<List<String>> parameterNames;
 
-    FunctionalInterfaceBuilder(JavaSourceBuilder enclosing, Type.Function funcType, String className,
-                               FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        super(enclosing, Kind.INTERFACE, className);
+    private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
+                                       String runtimeHelperName, Type.Function funcType) {
+        super(builder, "public", Kind.CLASS, className, null, enclosing, runtimeHelperName);
+        this.parameterNames = funcType.parameterNames().map(NameMangler::javaSafeIdentifiers);
         this.funcType = funcType;
-        this.fiType = descriptor.toMethodType();
-        this.downcallType = descriptor.toMethodType();
-        this.fiDesc = descriptor;
-        this.parameterNames = parameterNames;
+        this.methodType = Utils.methodTypeFor(funcType);
     }
 
-    @Override
-    void classDeclBegin() {
-        emitDocComment(funcType, className());
+    public static void generate(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing, String runtimeHelperName,
+                                Declaration parentDecl, Type.Function funcType) {
+        FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className,
+                enclosing, runtimeHelperName, funcType);
+        fib.appendBlankLine();
+        fib.emitDocComment(parentDecl);
+        fib.classBegin();
+        fib.emitFunctionalInterface();
+        fib.emitDescriptorDecl();
+        fib.emitFunctionalFactory();
+        fib.emitInvoke();
+        fib.classEnd();
     }
 
-    @Override
-    JavaSourceBuilder classEnd() {
-        emitFunctionalInterfaceMethod();
-        emitFunctionalFactories();
-        emitFunctionalFactoryForPointer();
-        return super.classEnd();
+    private void emitFunctionalInterface() {
+        appendIndentedLines(STR."""
+
+            /**
+             * The function pointer signature, expressed as a functional interface
+             */
+            public interface Function {
+                \{methodType.returnType().getSimpleName()} apply(\{paramExprs()});
+            }
+            """);
+    }
+
+    private void emitFunctionalFactory() {
+        appendIndentedLines(STR."""
+
+            private static final MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.Function.class, "apply", $DESC);
+
+            /**
+             * Allocates a new upcall stub, whose implementation is defined by {@code fi}.
+             * The lifetime of the returned segment is managed by {@code arena}
+             */
+            public static MemorySegment allocate(\{className()}.Function fi, Arena arena) {
+                return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, arena);
+            }
+            """);
+    }
+
+    private void emitInvoke() {
+        boolean needsAllocator = Utils.isStructOrUnion(funcType.returnType());
+        String allocParam = needsAllocator ? ", SegmentAllocator alloc" : "";
+        String allocArg = needsAllocator ? ", alloc" : "";
+        String paramStr = methodType.parameterCount() != 0 ? STR.",\{paramExprs()}" : "";
+        appendIndentedLines(STR."""
+
+            private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
+            /**
+             * Invoke the upcall stub {@code funcPtr}, with given parameters
+             */
+            public static \{methodType.returnType().getSimpleName()} invoke(MemorySegment funcPtr\{allocParam}\{paramStr}) {
+                try {
+                    \{retExpr()} DOWN$MH.invokeExact(funcPtr\{allocArg}\{otherArgExprs()});
+                } catch (Throwable ex$) {
+                    throw new AssertionError("should not reach here", ex$);
+                }
+            }
+            """);
     }
 
     // private generation
@@ -78,99 +120,47 @@ public class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         return name.isEmpty()? "_x" + i : name;
     }
 
-    private void emitFunctionalInterfaceMethod() {
-        incrAlign();
-        indent();
-        append(fiType.returnType().getName() + " apply(");
+    private String paramExprs() {
+        StringBuilder result = new StringBuilder();
         String delim = "";
-        for (int i = 0 ; i < fiType.parameterCount(); i++) {
-            append(delim + fiType.parameterType(i).getName());
-            append(" ");
-            append(parameterName(i));
+        for (int i = 0 ; i < methodType.parameterCount(); i++) {
+            result.append(delim).append(methodType.parameterType(i).getSimpleName());
+            result.append(" ");
+            result.append(parameterName(i));
             delim = ", ";
         }
-        append(");\n");
-        decrAlign();
+        return result.toString();
     }
 
-    private void emitFunctionalFactories() {
-        Constant functionDesc = constants().addFunctionDesc(fiDesc);
-        Constant upcallHandle = constants().addUpcallMethodHandle(fullName(), "apply", fiDesc);
-        incrAlign();
-        indent();
-        append(MEMBER_MODS + " MemorySegment allocate(" + className() + " fi, Arena scope) {\n");
-        incrAlign();
-        indent();
-        append("return RuntimeHelper.upcallStub(" +
-            upcallHandle.accessExpression() + ", fi, " + functionDesc.accessExpression() + ", scope);\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+    private String retExpr() {
+        String retExpr = "";
+        if (!methodType.returnType().equals(void.class)) {
+            retExpr = STR."return (\{methodType.returnType().getSimpleName()})";
+        }
+        return retExpr;
     }
 
-    private void emitFunctionalFactoryForPointer() {
-        Constant mhConstant = constants().addVirtualDowncallMethodHandle(fiDesc);
-        incrAlign();
-        indent();
-        append(MEMBER_MODS + " " + className() + " ofAddress(MemorySegment addr, Arena arena) {\n");
-        incrAlign();
-        indent();
-        append("MemorySegment symbol = addr.reinterpret(");
-        append("arena, null);\n");
-        indent();
-        append("return (");
-        String delim = "";
-        for (int i = 0 ; i < fiType.parameterCount(); i++) {
-            append(delim + fiType.parameterType(i).getName());
-            append(" ");
-            append("_" + parameterName(i));
-            delim = ", ";
-        }
-        append(") -> {\n");
-        incrAlign();
-        indent();
-        append("try {\n");
-        incrAlign();
-        indent();
-        if (!fiType.returnType().equals(void.class)) {
-            append("return (" + fiType.returnType().getName() + ")");
-            if (fiType.returnType() != downcallType.returnType()) {
-                // add cast for invokeExact
-                append("(" + downcallType.returnType().getName() + ")");
-            }
-        }
-        append(mhConstant.accessExpression() + ".invokeExact(symbol");
-        if (fiType.parameterCount() > 0) {
-            String params = IntStream.range(0, fiType.parameterCount())
-                    .mapToObj(i -> {
-                        String paramExpr = "_" + parameterName(i);
-                        if (fiType.parameterType(i) != downcallType.parameterType(i)) {
-                            // add cast for invokeExact
-                            return "(" + downcallType.parameterType(i).getName() + ")" + paramExpr;
-                        } else {
-                            return paramExpr;
-                        }
-                    })
+    private String otherArgExprs() {
+        String argsExprs = "";
+        if (methodType.parameterCount() > 0) {
+            argsExprs += ", " + IntStream.range(0, methodType.parameterCount())
+                    .mapToObj(this::parameterName)
                     .collect(Collectors.joining(", "));
-            append(", " + params);
         }
-        append(");\n");
-        decrAlign();
-        indent();
-        append("} catch (Throwable ex$) {\n");
-        incrAlign();
-        indent();
-        append("throw new AssertionError(\"should not reach here\", ex$);\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
-        indent();
-        append("};\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+        return argsExprs;
+    }
+
+    private void emitDescriptorDecl() {
+        appendIndentedLines(STR."""
+
+            private static final FunctionDescriptor $DESC = \{functionDescriptorString(0, funcType)};
+
+            /**
+             * The descriptor of this function pointer
+             */
+            public static FunctionDescriptor descriptor() {
+                return $DESC;
+            }
+            """);
     }
 }

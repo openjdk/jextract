@@ -26,11 +26,8 @@
 
 package org.openjdk.jextract;
 
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.impl.TypeImpl;
-import org.openjdk.jextract.impl.UnsupportedLayouts;
+import org.openjdk.jextract.impl.TypeImpl.ErronrousTypeImpl;
 
 import java.util.List;
 import java.util.Optional;
@@ -91,86 +88,72 @@ public interface Type {
             /**
              * {@code void} type.
              */
-            Void("void", null),
+            Void("void"),
             /**
              * {@code Bool} type.
              */
-            Bool("_Bool", ValueLayout.JAVA_BOOLEAN),
+            Bool("_Bool"),
             /**
              * {@code char} type.
              */
-            Char("char", ValueLayout.JAVA_BYTE),
+            Char("char"),
             /**
              * {@code char16} type.
              */
-            Char16("char16", UnsupportedLayouts.CHAR16),
+            Char16("char16"),
             /**
              * {@code short} type.
              */
-            Short("short", ValueLayout.JAVA_SHORT),
+            Short("short"),
             /**
              * {@code int} type.
              */
-            Int("int", ValueLayout.JAVA_INT),
+            Int("int"),
             /**
              * {@code long} type.
              */
-            Long("long", TypeImpl.IS_WINDOWS ?
-                ValueLayout.JAVA_INT :
-                ValueLayout.JAVA_LONG),
+            Long("long"),
             /**
              * {@code long long} type.
              */
-            LongLong("long long", ValueLayout.JAVA_LONG),
+            LongLong("long long"),
             /**
              * {@code int128} type.
              */
-            Int128("__int128", UnsupportedLayouts.__INT128),
+            Int128("__int128"),
             /**
              * {@code float} type.
              */
-            Float("float", ValueLayout.JAVA_FLOAT),
+            Float("float"),
             /**
              * {@code double} type.
              */
-            Double("double", ValueLayout.JAVA_DOUBLE),
+            Double("double"),
             /**
               * {@code long double} type.
               */
-            LongDouble("long double", TypeImpl.IS_WINDOWS ?
-                    ValueLayout.JAVA_DOUBLE :
-                    UnsupportedLayouts.LONG_DOUBLE),
+            LongDouble("long double"),
             /**
              * {@code float128} type.
              */
-            Float128("float128", UnsupportedLayouts._FLOAT128),
+            Float128("float128"),
             /**
              * {@code float16} type.
              */
-            HalfFloat("__fp16", UnsupportedLayouts.__FP16),
+            HalfFloat("__fp16"),
             /**
              * {@code wchar} type.
              */
-            WChar("wchar_t", UnsupportedLayouts.WCHAR_T);
+            WChar("wchar_t");
 
             private final String typeName;
-            private final MemoryLayout layout;
 
-            Kind(String typeName, MemoryLayout layout) {
+            Kind(String typeName) {
                 this.typeName = typeName;
-                this.layout = layout;
             }
 
             public String typeName() {
                 return typeName;
-            }
-
-            /**
-             * The primitive type (optional) layout.
-             * @return The primitive type (optional) layout.
-             */
-            public Optional<MemoryLayout> layout() {
-                return Optional.ofNullable(layout);
             }
         }
 
@@ -392,24 +375,6 @@ public interface Type {
     }
 
     /**
-     * Compute the layout for a given type.
-     * @param t the type.
-     * @return the layout for given type.
-     */
-    static Optional<MemoryLayout> layoutFor(Type t) {
-        return TypeImpl.getLayout(t);
-    }
-
-    /**
-     * Compute the function descriptor for a given function type.
-     * @param function the function type.
-     * @return the function descriptor for given function type.
-     */
-    static Optional<FunctionDescriptor> descriptorFor(Function function) {
-        return TypeImpl.getDescriptor(function);
-    }
-
-    /**
      * Create the {@code void} type.
      * @return the {@code void} type.
      */
@@ -522,10 +487,10 @@ public interface Type {
     }
 
     /**
-     * Creates an erroneous type.
-     * @return an erroneous type.
+     * Creates an erroneous type with the given name.
+     * @return an erroneous type with the given name.
      */
-    static Type error() {
-        return TypeImpl.ERROR;
+    static Type error(String erroneousName) {
+        return new ErronrousTypeImpl(erroneousName);
     }
 }

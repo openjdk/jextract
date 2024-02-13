@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,14 +23,12 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
-import java.lang.reflect.Method;
 import java.nio.file.Path;
 
 import testlib.TestUtils;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
 
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
@@ -39,14 +37,10 @@ public class Test8245767 extends JextractToolRunner {
     public void testTypedefs() {
         Path test8245767Output = getOutputFilePath("test8245767_gen");
         Path test8245767H = getInputFilePath("test8245767.h");
-        run("--output", test8245767Output.toString(), test8245767H.toString()).checkSuccess();
+        runAndCompile(test8245767Output, test8245767H.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(test8245767Output)) {
             Class<?> cls = loader.loadClass("test8245767_h");
             assertNotNull(cls);
-
-            // class should be generated for typedef on opaque struct
-            Class<?> fooCls = loader.loadClass("Foo");
-            assertNotNull(fooCls);
 
             // check Point_t
             Class<?> point_tCls = loader.loadClass("Point_t");

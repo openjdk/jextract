@@ -6,6 +6,21 @@ plugins {
     id "java"
 }
 
+sourceSets {
+    test {
+        java {
+            srcDirs = ['test/jtreg', file("test/jtreg/generator").listFiles(), 'test/lib', 'test/testng']
+            // exclude all test files from compilation. Jtreg compiles these for us when tests run
+            exclude "**/*"
+        }
+    }
+}
+
+dependencies {
+    // add jtreg jars as dependencies of tests
+    testImplementation fileTree(dir: findProperty("jtreg_home") + "/lib/", include: "*.jar")
+}
+
 def static checkPath(String p) {
     if (!Files.exists(Path.of(p))) {
         throw new IllegalArgumentException("Error: the path ${p} does not exist");
@@ -25,8 +40,7 @@ def clang_version = clang_versions[0]
 def jextract_version = "22"
 def jmods_dir = "$buildDir/jmods"
 def jextract_jmod_file = "$jmods_dir/org.openjdk.jextract.jmod"
-def jextract_jmod_libs_dir = "$buildDir/jextract_jmod_libs"
-def jextract_jmod_conf_dir = "$buildDir/jextract_jmod_conf";
+def jextract_jmod_inputs = "$buildDir/jmod_inputs"
 def jextract_app_dir = "$buildDir/jextract"
 def clang_include_dir = "${llvm_home}/lib/clang/${clang_version}/include"
 checkPath(clang_include_dir)
@@ -41,6 +55,7 @@ repositories {
 
 compileJava {
     options.release = 22
+    options.compilerArgs << "--enable-preview"
     options.fork = true
     options.forkOptions.executable = "${jdk22_home}/bin/javac"
 }
@@ -50,32 +65,28 @@ jar {
     archiveVersion = project.version
 }
 
-task copyLibClang(type: Copy) {
-    dependsOn jar
-
-    def dir_prefix_len = "$buildDir".length()
-    def libs_dir = jextract_jmod_libs_dir.substring(dir_prefix_len)
-    def conf_dir = jextract_jmod_conf_dir.substring(dir_prefix_len)
-
-    into("$buildDir")
+task copyLibClang(type: Sync) {
+    into("$buildDir/jmod_inputs")
 
     from("${libclang_dir}") {
         include("*clang.*")
         include("libLLVM.*")
-        into(libs_dir)
+        exclude("clang.exe")
+        into("libs")
     }
 
     from("$clang_include_dir") {
         include("*.h")
-        into(conf_dir + "/jextract")
+        into("conf/jextract")
     }
 }
 
 task createJextractJmod(type: Exec) {
-    dependsOn copyLibClang
+    dependsOn jar, copyLibClang
 
     // if these inputs or outputs change, gradle will rerun the task
     inputs.file(jar.archiveFile.get())
+    inputs.dir("$jextract_jmod_inputs")
     outputs.file(jextract_jmod_file)
 
     doFirst {
@@ -87,8 +98,8 @@ task createJextractJmod(type: Exec) {
           "create",
           "--module-version=$jextract_version",
           "--class-path=" + jar.archiveFile.get(),
-          "--libs=$jextract_jmod_libs_dir",
-          "--conf=$jextract_jmod_conf_dir",
+          "--libs=$jextract_jmod_inputs/libs",
+          "--conf=$jextract_jmod_inputs/conf",
           "${jextract_jmod_file}"
     ]
 }
@@ -97,12 +108,12 @@ task createJextractImage(type: Exec) {
     dependsOn createJextractJmod
 
     // if these inputs or outputs change, gradle will rerun the task
-    inputs.file(jar.archiveFile.get())
+    inputs.file("$jextract_jmod_file")
     outputs.dir(jextract_app_dir)
 
     def quote_jlink_opts = Os.isFamily(Os.FAMILY_WINDOWS)?
-        '\\"--enable-native-access=org.openjdk.jextract\\"' :
-        '"--enable-native-access=org.openjdk.jextract"'
+        '\\"--enable-native-access=org.openjdk.jextract\\" \\"--enable-preview\""' :
+        '"--enable-native-access=org.openjdk.jextract" "--enable-preview"'
 
     doFirst {
         delete(jextract_app_dir)
@@ -111,9 +122,10 @@ task createJextractImage(type: Exec) {
     executable = "${jdk22_home}/bin/jlink"
     args = [
          "--module-path=$jmods_dir",
-         "--add-modules=org.openjdk.jextract,jdk.compiler,jdk.zipfs",
+         "--add-modules=org.openjdk.jextract",
          "--output=${jextract_app_dir}",
          "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
+         "--strip-debug", "--no-man-pages", "--no-header-files",
          "--add-options",
          "${quote_jlink_opts}"
     ]
@@ -132,12 +144,12 @@ task verify(type: Exec) {
 
 // jlink a JDK image with org.openjdk.jextract for testing
 task createRuntimeImageForTest(type: Exec) {
-    dependsOn verify
+    dependsOn createJextractJmod
 
     def out_dir = "$buildDir/jextract-jdk-test-image"
 
     // if these inputs or outputs change, gradle will rerun the task
-    inputs.file(jar.archiveFile.get())
+    inputs.file("$jextract_jmod_file")
     outputs.dir(out_dir)
 
     doFirst {
@@ -174,25 +186,60 @@ task cmakeBuild(type: Exec) {
     ]
 }
 
-// run jtreg tests. Note: needs jtreg_home variable set to point to the jtreg
-task jtreg(type: JavaExec) {
-    dependsOn createRuntimeImageForTest,cmakeBuild
+void createJtregTask(String name, boolean coverage, String os_lib_dir) {
+    tasks.register(name, JavaExec) {
+        dependsOn createRuntimeImageForTest,cmakeBuild
 
-    doFirst {
         if (findProperty("jtreg_home") == null) {
             throw new GradleException("jtreg_home is not defined")
         }
+        // e.g.: <jacoco repo>/org.jacoco.agent/target/classes/jacocoagent.jar
+        if (coverage && findProperty("jacoco_agent") == null) {
+            throw new GradleException("jacoco_agent is not defined")
+        }
+
+        workingDir = "$buildDir"
+
+        classpath = files(findProperty("jtreg_home") + "/lib/jtreg.jar")
+
+        args = [
+                "-jdk", "$buildDir/jextract-jdk-test-image",
+                "-nativepath:$buildDir/testlib-install/${os_lib_dir}",
+                "-javaoption:--enable-preview",
+                "-javaoption:--enable-native-access=org.openjdk.jextract,ALL-UNNAMED",
+                "-avm", "-conc:auto", "-verbose:summary,fail,error",
+                "-retain:fail,error",
+        ]
+
+        if (coverage) {
+            String jacocoAgent = findProperty("jacoco_agent")
+            String coverageFile = "$buildDir/jacoco-run/jextract.exec"
+            String includes = "org.openjdk.jextract.*"
+            args += "-javaoption:-javaagent:$jacocoAgent=destfile=$coverageFile,includes=$includes"
+        }
+
+        args += "../test"
+    }
+}
+
+createJtregTask("jtreg", false, os_lib_dir)
+createJtregTask("jtregWithCoverage", true, os_lib_dir)
+
+tasks.register("coverage", JavaExec) {
+    dependsOn jtregWithCoverage
+
+    // e.g.: <jacoco repo>/org.jacoco.cli/target/org.jacoco.cli-0.8.12-SNAPSHOT-nodeps.jar
+    if (findProperty("jacoco_cli") == null) {
+        throw new GradleException("jacoco_cli is not defined")
     }
 
-    workingDir = "$buildDir"
-
-    classpath = files(findProperty("jtreg_home") + "/lib/jtreg.jar")
+    classpath = files(findProperty("jacoco_cli"))
 
     args = [
-            "-jdk", "$buildDir/jextract-jdk-test-image",
-            "-nativepath:$buildDir/testlib-install/${os_lib_dir}",
-            "-javaoption:--enable-native-access=org.openjdk.jextract,ALL-UNNAMED",
-            "-avm", "-conc:auto", "-verbose:summary",
-            "../test"
+            "report",
+            "$buildDir/jacoco-run/jextract.exec",
+            "--classfiles", "$buildDir/classes/java/main",
+            "--sourcefiles", "$projectDir/src/main/java",
+            "--html", "$buildDir/jacoco-report"
     ]
 }

@@ -1,61 +1,14 @@
 ## Jextract
 
-`jextract` is a tool which mechanically generates Java bindings from a native library headers. This tools leverages the [clang C API](https://clang.llvm.org/doxygen/group__CINDEX.html) in order to parse the headers associated with a given native library, and the generated Java bindings build upon the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424). The `jextract` tool was originally developed in the context of [Project Panama](https://openjdk.java.net/projects/panama/) (and then made available in the Project Panama [Early Access binaries](https://jdk.java.net/panama/)).
+`jextract` is a tool which mechanically generates Java bindings from a native library headers. This tools leverages the [clang C API](https://clang.llvm.org/doxygen/group__CINDEX.html) in order to parse the headers associated with a given native library, and the generated Java bindings build upon the [Foreign Function & Memory API](https://openjdk.java.net/jeps/454). The `jextract` tool was originally developed in the context of [Project Panama](https://openjdk.java.net/projects/panama/) (and then made available in the Project Panama [Early Access binaries](https://jdk.java.net/panama/)).
 
-### Getting started
+### Getting jextract
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (a version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/424), so a suitable build of the [panama/foreign repository](https://github.com/openjdk/panama-foreign) is also required.
+Pre-built binaries for jextract are periodically released [here](https://jdk.java.net/jextract). These binaries are built from the `master` branch of this repo, and target the foreign memory access and function API in the latest mainline JDK (for which binaries can be found [here](https://jdk.java.net)).
 
-> <details><summary><strong>Building older jextract versions</strong></summary>
-> 
-> The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by chercking out the appropriate branch.
-> For example, to build a jextract tool which works against JDK 18:
-> 
-> `git checkout jdk18`
-> 
-> Over time, new branches will be added, each targeting a specific JDK version.
-> </details>
+Alternatively, to build jextract from the latest sources (which include all the latest updates and fixes) please refer to the [building](#building) section below.
 
-`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
-
-(**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
-supports JDK 18. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
-
-
-
-```sh
-$ sh ./gradlew -Pjdk22_home=<jdk22_home_dir> -Pllvm_home=<libclang_dir> clean verify
-```
-
-
-> <details><summary><strong>Using a local installation of LLVM</strong></summary>
-> 
-> While the recommended way is to use a [release from the LLVM project](https://releases.llvm.org/download.html),
-> extract it then make `llvm_home` point to this directory, it may be possible to use a local installation instead.
->
-> E.g. on macOs the `llvm_home` can also be set as one of these locations :
-> 
-> * `/Library/Developer/CommandLineTools/usr/` if using Command Line Tools
-> * `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/` if using XCode
-> * `$(brew --prefix llvm)` if using the [LLVM install from Homebrew](https://formulae.brew.sh/formula/llvm#default)
-> 
-> </details>
-
-After building, there should be a new `jextract` folder under `build`.
-To run the `jextract` tool, simply run the `jextract` command in the `bin` folder:
-
-```sh
-$ build/jextract/bin/jextract
-Expected a header file
-```
-
-The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
-
-```sh
-$ sh ./gradlew -Pjdk22_home=<jdk22_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
-```
-
-Note however that running `jtreg` task requires `cmake` to be available on the `PATH`.
+---
 
 ### Using jextract
 
@@ -74,7 +27,7 @@ double distance(struct Point2d);
 We can run `jextract`, as follows:
 
 ```
-jextract --source -t org.jextract point.h
+jextract -t org.jextract point.h
 ```
 
 We can then use the generated code as follows:
@@ -87,39 +40,29 @@ import org.jextract.Point2d;
 class TestPoint {
     public static void main(String[] args) {
         try (Arena arena = Arena.ofConfined()) {
-           MemorySegment point = arena.allocate(Point2d.$LAYOUT());
-           Point2d.x$set(point, 3d);
-           Point2d.y$set(point, 4d);
+           MemorySegment point = Point2d.allocate(arena);
+           Point2d.x(point, 3d);
+           Point2d.y(point, 4d);
            distance(point);
         }
     }
 }
 ```
 
-As we can see, the `jextract` tool generated a `Point2d` class, modelling the C struct, and a `point_h` class which contains static native function wrappers, such as `distance`. If we look inside the generated code for `distance` we can find the following:
+As we can see, the `jextract` tool generated a `Point2d` class, modelling the C struct, and a `point_h` class which contains static native function wrappers, such as `distance`. If we look inside the generated code for `distance` we can find the following (for clarity, some details have been omitted):
 
 ```java
-static final FunctionDescriptor distance$FUNC = FunctionDescriptor.of(Constants$root.C_DOUBLE$LAYOUT,
-    MemoryLayout.structLayout(
-         Constants$root.C_DOUBLE$LAYOUT.withName("x"),
-         Constants$root.C_DOUBLE$LAYOUT.withName("y")
-    ).withName("Point2d")
-);
-static final MethodHandle distance$MH = RuntimeHelper.downcallHandle(
-    "distance",
-    constants$0.distance$FUNC
+static final FunctionDescriptor DESC = FunctionDescriptor.of(
+        foo_h.C_DOUBLE,
+        Point2d.$LAYOUT()
 );
 
-public static MethodHandle distance$MH() {
-    return RuntimeHelper.requireNonNull(constants$0.distance$MH,"distance");
-}
-public static double distance ( MemorySegment x0) {
-    var mh$ = distance$MH();
-    try {
-        return (double)mh$.invokeExact(x0);
-    } catch (Throwable ex$) {
-        throw new AssertionError("should not reach here", ex$);
-    }
+static final MethodHandle MH = Linker.nativeLinker().downcallHandle(
+        foo_h.findOrThrow("distance"),
+        DESC);
+
+public static double distance(MemorySegment x0) {
+    return (double) mh$.invokeExact(x0);
 }
 ```
 
@@ -134,13 +77,13 @@ A complete list of all the supported options is given below:
 
 | Option                                                       | Meaning                                                      |
 | :----------------------------------------------------------- | ------------------------------------------------------------ |
-| `-D --define-macro <macro>=<value>`                          | define <macro> to <value> (or 1 if <value> omitted)          |
+| `-D --define-macro <macro>=<value>`                          | define `<macro>` to `<value>` (or 1 if `<value>` omitted)          |
 | `--header-class-name <name>`                                 | name of the generated header class. If this option is not specified, then header class name is derived from the header file name. For example, class "foo_h" for header "foo.h". |
 | `-t, --target-package <package>`                             | target package name for the generated classes. If this option is not specified, then unnamed package is used.  |
 | `-I, --include-dir <dir>`                                    | append directory to the include search paths. Include search paths are searched in order. For example, if `-I foo -I bar` is specified, header files will be searched in "foo" first, then (if nothing is found) in "bar".|
-| `-l, --library <name \| path>`                               | specify a library by platform-independent name (e.g. "GL") or by absolute path ("/usr/lib/libGL.so") that will be loaded by the generated class. |
+| `-l, --library <name \| path>`                               | specify a shared library that should be loaded by the generated header class. If <libspec> starts with `:`, then what follows is interpreted as a library path. Otherwise, `<libspec>` denotes a library name. Examples: <br>`-l GL`<br>`-l :libGL.so.1`<br>`-l :/usr/lib/libGL.so.1`|
+| `--use-system-load-library`                                  | libraries specified using `-l` are loaded in the loader symbol lookup (using either `System::loadLibrary`, or `System::load`). Useful if the libraries must be loaded from one of the paths in `java.library.path`.| 
 | `--output <path>`                                            | specify where to place generated files                       |
-| `--source`                                                   | generate java sources instead of classfiles                  |
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
 | `--include-[function,constant,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings (see below). When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 | `--version`                                                  | print version information and exit                           |
@@ -171,8 +114,100 @@ We obtain the following file (`includes.txt`):
 This file can be passed back to `jextract`, as follows:
 
 ```
-jextract -t org.jextract --source @includes.txt point.h
+jextract -t org.jextract @includes.txt point.h
 ```
 
 It is easy to see how this mechanism allows developers to look into the set of symbols seen by `jextract` while parsing, and then process the generated include file, so as to prevent code generation for otherwise unused symbols.
 
+#### Tracing support
+
+It is sometimes useful to inspect the parameters passed to a native call, especially when diagnosing application
+bugs and/or crashes. The code generated by the `jextract` tool supports *tracing* of native calls, that is, parameters
+passed to native calls can be printed on the standard output.
+
+To enable the tracing support, just pass the `-Djextract.trace.downcalls=true` flag to the launcher used to start the application.
+Below we show an excerpt of the output when running the [OpenGL example](samples/opengl) with tracing support enabled:
+
+```
+glutInit(MemorySegment{ address: 0x7fa6b03d6400, byteSize: 4 }, MemorySegment{ address: 0x7fa6b03d6400, byteSize: 4 })
+glutInitDisplayMode(18)
+glutInitWindowSize(900, 900)
+glutCreateWindow(MemorySegment{ address: 0x7fa6b03f8e70, byteSize: 14 })
+glClearColor(0.0, 0.0, 0.0, 0.0)
+glShadeModel(7425)
+glLightfv(16384, 4611, MemorySegment{ address: 0x7fa6b03de8d0, byteSize: 16 })
+glLightfv(16384, 4608, MemorySegment{ address: 0x7fa6b0634840, byteSize: 16 })
+glLightfv(16384, 4609, MemorySegment{ address: 0x7fa6b0634840, byteSize: 16 })
+glLightfv(16384, 4610, MemorySegment{ address: 0x7fa6b0634840, byteSize: 16 })
+glMaterialfv(1028, 5633, MemorySegment{ address: 0x7fa6b0634860, byteSize: 4 })
+glEnable(2896)
+glEnable(16384)
+glEnable(2929)
+glutDisplayFunc(MemorySegment{ address: 0x7fa6a002e820, byteSize: 0 })
+glutIdleFunc(MemorySegment{ address: 0x7fa6a015a620, byteSize: 0 })
+glutMainLoop()
+glClear(16640)
+glPushMatrix()
+glRotatef(-20.0, 1.0, 1.0, 0.0)
+glRotatef(0.0, 0.0, 1.0, 0.0)
+glutSolidTeapot(0.5)
+```
+
+---
+
+### Building
+
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/434), so a suitable [jdk 22 distribution](https://jdk.java.net/22/) is also required.
+
+> <details><summary><strong>Building older jextract versions</strong></summary>
+>
+> The `master` branch always tracks the latest version of the JDK. If you wish to build an older version of jextract, which targets an earlier version of the JDK you can do so by checking out the appropriate branch.
+> For example, to build a jextract tool which works against JDK 21:
+>
+> `git checkout jdk21`
+>
+> Over time, new branches will be added, each targeting a specific JDK version.
+> </details>
+
+`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
+
+(**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
+supports JDK 21. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
+
+
+
+```sh
+$ sh ./gradlew -Pjdk21_home=<jdk21_home_dir> -Pllvm_home=<libclang_dir> clean verify
+```
+
+
+> <details><summary><strong>Using a local installation of LLVM</strong></summary>
+>
+> While the recommended way is to use a [release from the LLVM project](https://releases.llvm.org/download.html),
+> extract it then make `llvm_home` point to this directory, it may be possible to use a local installation instead.
+>
+> E.g. on macOs the `llvm_home` can also be set as one of these locations :
+>
+> * `/Library/Developer/CommandLineTools/usr/` if using Command Line Tools
+> * `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/` if using XCode
+> * `$(brew --prefix llvm)` if using the [LLVM install from Homebrew](https://formulae.brew.sh/formula/llvm#default)
+>
+> </details>
+
+After building, there should be a new `jextract` folder under `build`.
+To run the `jextract` tool, simply run the `jextract` command in the `bin` folder:
+
+```sh
+$ build/jextract/bin/jextract
+Expected a header file
+```
+
+### Testing
+
+The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
+
+```sh
+$ sh ./gradlew -Pjdk21_home=<jdk21_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+```
+
+Note: running `jtreg` task requires `cmake` to be available on the `PATH`.

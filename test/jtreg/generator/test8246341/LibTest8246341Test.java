@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,19 +30,12 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.test8246341.test8246341_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8246341
  * @summary jextract should generate Cpointer utilities class
  * @library /lib
- * @run main/othervm JtregJextract -l Test8246341 -t test.jextract.test8246341 test8246341.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8246341Test
- */
-/*
- * @test id=sources
- * @bug 8246341
- * @summary jextract should generate Cpointer utilities class
- * @library /lib
- * @run main/othervm JtregJextractSources -l Test8246341 -t test.jextract.test8246341 test8246341.h
+ * @run main/othervm JtregJextract -l Test8246341 --use-system-load-library -t test.jextract.test8246341 test8246341.h
+ * @build LibTest8246341Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8246341Test
  */
 public class LibTest8246341Test {
