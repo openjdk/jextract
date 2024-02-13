@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -41,8 +41,8 @@ import java.lang.foreign.AddressLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.ValueLayout;
+
 import org.openjdk.jextract.JextractTool;
-import org.openjdk.jextract.Type;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
@@ -52,7 +52,7 @@ import static org.testng.Assert.fail;
 
 public class JextractToolRunner {
 
-    private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+    public static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
     public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
@@ -139,14 +139,27 @@ public class JextractToolRunner {
         }
     }
 
-    protected static JextractResult run(Object... options) {
-        return run(Arrays.stream(options).map(Objects::toString).toArray(String[]::new));
+    protected static JextractResult runAndCompile(Path outputDir, Object... options) {
+        return runAndCompile(outputDir, Arrays.stream(options).map(Objects::toString).toArray(String[]::new));
     }
 
-    protected static JextractResult run(String... options) {
+    protected static JextractResult runAndCompile(Path outputDir, String... options) {
+        JextractResult jextractResult = run(outputDir, options).checkSuccess();
+        TestUtils.compile(outputDir, outputDir);
+        return jextractResult;
+    }
+
+    protected static JextractResult run(Path outputDir, String... options) {
+        String[] extendedOptions = new String[options.length + 2];
+        extendedOptions[0] = "--output";
+        extendedOptions[1] = outputDir.toString();
+        System.arraycopy(options, 0, extendedOptions, 2, options.length);
+        return runNoOuput(extendedOptions);
+    }
+
+    protected static JextractResult runNoOuput(String... options) {
         StringWriter writer = new StringWriter();
         PrintWriter pw = new PrintWriter(writer);
-        String[] args = new String[options.length + 1];
         int result = JEXTRACT_TOOL.run(pw, pw, options);
         String output = writer.toString();
         System.err.println(output);
@@ -171,7 +184,9 @@ public class JextractToolRunner {
 
     protected static Field findField(Class<?> cls, String name) {
         try {
-            return cls.getField(name);
+            Field field = cls.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
         } catch (Exception e) {
             System.err.println(e);
             return null;
@@ -234,7 +249,7 @@ public class JextractToolRunner {
     protected Method checkMethod(Class<?> cls, String name, Class<?> returnType, Class<?>... args) {
         Method m = findMethod(cls, name, args);
         assertNotNull(m);
-        assertEquals(m.getReturnType(), returnType);
+        assertTrue(returnType.isAssignableFrom(m.getReturnType())); // tolerate more specific type
         assertEquals(m.getParameterTypes(), args);
         return m;
     }
@@ -242,7 +257,7 @@ public class JextractToolRunner {
     protected static MemoryLayout findLayout(Class<?> cls, String name) {
         Method method = findMethod(cls, name + "$LAYOUT");
         assertNotNull(method);
-        assertEquals(method.getReturnType(), MemoryLayout.class);
+        assertTrue(MemoryLayout.class.isAssignableFrom(method.getReturnType()));
         try {
             return (MemoryLayout)method.invoke(null);
         } catch (Exception exp) {
@@ -253,7 +268,16 @@ public class JextractToolRunner {
     }
 
     protected static MemoryLayout findLayout(Class<?> cls) {
-        return findLayout(cls, "");
+        Method method = findMethod(cls, "layout");
+        assertNotNull(method);
+        assertTrue(MemoryLayout.class.isAssignableFrom(method.getReturnType()));
+        try {
+            return (MemoryLayout)method.invoke(null);
+        } catch (Exception exp) {
+            System.err.println(exp);
+            assertTrue(false, "should not reach here");
+        }
+        return null;
     }
 
     protected static void checkField(MemoryLayout group, String fieldName, MemoryLayout expected) {

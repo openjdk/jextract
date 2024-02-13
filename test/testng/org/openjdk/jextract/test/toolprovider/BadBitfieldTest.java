@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -54,7 +54,7 @@ import testlib.JextractToolRunner;
 public class BadBitfieldTest extends JextractToolRunner {
     @Test
     public void testBadBitfield() {
-        run("--output", getOutputFilePath("badBitfieldsGen").toString(),
-                getInputFilePath("badBitfields.h").toString()).checkSuccess();
+        runAndCompile(getOutputFilePath("badBitfieldsGen"),
+                getInputFilePath("badBitfields.h").toString());
     }
 }

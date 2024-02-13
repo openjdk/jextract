@@ -43,7 +43,7 @@ public class CurlMain {
        if(!curl.equals(NULL)) {
            try (var arena = Arena.ofConfined()) {
                var url = arena.allocateFrom(urlStr);
-               curl_easy_setopt(curl, CURLOPT_URL(), url.address());
+               curl_easy_setopt.invoke(curl, CURLOPT_URL(), url.address());
                int res = curl_easy_perform(curl);
                if (res != CURLE_OK()) {
                    String error = curl_easy_strerror(res).getString(0);

@@ -33,7 +33,6 @@ import java.util.OptionalLong;
 import java.util.function.Supplier;
 
 import java.lang.foreign.AddressLayout;
-import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.Declaration;
@@ -57,7 +56,13 @@ public abstract class TypeImpl implements Type {
         return (t2.kind() == Delegated.Kind.TYPEDEF) && t1.equals(t2.type());
     }
 
-    public static final TypeImpl ERROR = new TypeImpl() {
+    public static class ErronrousTypeImpl extends TypeImpl {
+        final String erroneousName;
+
+        public ErronrousTypeImpl(String erroneousName) {
+            this.erroneousName = erroneousName;
+        }
+
         @Override
         public <R, D> R accept(Visitor<R, D> visitor, D data) {
             return visitor.visitType(this, data);
@@ -367,90 +372,4 @@ public abstract class TypeImpl implements Type {
     public String toString() {
         return PrettyPrinter.type(this);
     }
-
-    // Utilities to fetch layouts/descriptor from types
-
-    public static Optional<MemoryLayout> getLayout(org.openjdk.jextract.Type t) {
-        try {
-            return Optional.of(getLayoutInternal(t));
-        } catch (UnsupportedOperationException ex) {
-            return Optional.empty();
-        }
-    }
-
-    public static Optional<FunctionDescriptor> getDescriptor(Function t) {
-        try {
-            MemoryLayout[] args = t.argumentTypes().stream()
-                    .map(TypeImpl::getLayoutInternal)
-                    .toArray(MemoryLayout[]::new);
-            Type retType = t.returnType();
-            if (isVoidType(retType)) {
-                return Optional.of(FunctionDescriptor.ofVoid(args));
-            } else {
-                return Optional.of(FunctionDescriptor.of(getLayoutInternal(retType), args));
-            }
-        } catch (UnsupportedOperationException ex) {
-            return Optional.empty();
-        }
-    }
-
-    private static boolean isVoidType(org.openjdk.jextract.Type type) {
-        if (type instanceof org.openjdk.jextract.Type.Primitive pt) {
-            return pt.kind() == org.openjdk.jextract.Type.Primitive.Kind.Void;
-        } else if (type instanceof org.openjdk.jextract.Type.Delegated dt) {
-            return dt.kind() == org.openjdk.jextract.Type.Delegated.Kind.TYPEDEF? isVoidType(dt.type()) : false;
-        }
-        return false;
-    }
-
-    public static MemoryLayout getLayoutInternal(org.openjdk.jextract.Type t) {
-        return t.accept(layoutMaker, null);
-    }
-
-    private static org.openjdk.jextract.Type.Visitor<MemoryLayout, Void> layoutMaker = new org.openjdk.jextract.Type.Visitor<>() {
-        @Override
-        public MemoryLayout visitPrimitive(org.openjdk.jextract.Type.Primitive t, Void _ignored) {
-            return t.kind().layout().orElseThrow(UnsupportedOperationException::new);
-        }
-
-        @Override
-        public MemoryLayout visitDelegated(org.openjdk.jextract.Type.Delegated t, Void _ignored) {
-            if (t.kind() == org.openjdk.jextract.Type.Delegated.Kind.POINTER) {
-                return PointerImpl.POINTER_LAYOUT;
-            } else {
-                return t.type().accept(this, null);
-            }
-        }
-
-        @Override
-        public MemoryLayout visitFunction(org.openjdk.jextract.Type.Function t, Void _ignored) {
-            /*
-             * // pointer to function declared as function like this
-             *
-             * typedef void CB(int);
-             * void func(CB cb);
-             */
-            return PointerImpl.POINTER_LAYOUT;
-        }
-
-        @Override
-        public MemoryLayout visitDeclared(org.openjdk.jextract.Type.Declared t, Void _ignored) {
-            return t.tree().layout().orElseThrow(UnsupportedOperationException::new);
-        }
-
-        @Override
-        public MemoryLayout visitArray(org.openjdk.jextract.Type.Array t, Void _ignored) {
-            MemoryLayout elem = t.elementType().accept(this, null);
-            if (t.elementCount().isPresent()) {
-                return MemoryLayout.sequenceLayout(t.elementCount().getAsLong(), elem);
-            } else {
-                return MemoryLayout.sequenceLayout(0, elem);
-            }
-        }
-
-        @Override
-        public MemoryLayout visitType(org.openjdk.jextract.Type t, Void _ignored) {
-            throw new UnsupportedOperationException();
-        }
-    };
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,10 +30,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import java.nio.file.Path;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemorySegment;
+
 import testlib.JextractToolRunner;
 
 import static org.testng.Assert.assertEquals;
@@ -49,7 +46,7 @@ public class ConstantsTest extends JextractToolRunner {
     @BeforeTest
     public void setup() {
         dirPath = getOutputFilePath("ConstantsTest_output");
-        run( "--output", dirPath.toString(), getInputFilePath("constants.h").toString()).checkSuccess();
+        runAndCompile(dirPath, getInputFilePath("constants.h").toString());
         loader = TestUtils.classLoader(dirPath);
         constants = loader.loadClass("constants_h");
     }
@@ -93,6 +90,8 @@ public class ConstantsTest extends JextractToolRunner {
                 { "MULTICHAR_VALUE", int.class, equalsTo(26728) },  //integer char constants have type int
                 { "BOOL_VALUE", boolean.class, equalsTo(true) },
                 { "SUB", int.class, equalsTo( 7 ) },
+                { "SEVEN", int.class, equalsTo(7) },
+                { "EIGHT", int.class, equalsTo(8) },
                 // pointer type values
                 { "STR", MemorySegment.class, equalsToJavaStr("Hello") },
                 { "QUOTE", MemorySegment.class, equalsToJavaStr("QUOTE") },

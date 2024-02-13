@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,19 +30,12 @@ import static org.testng.Assert.assertTrue;
 import static test.jextract.test8258605.funcParam_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8258605
  * @summary regression: jextract can not handle function prototypes as function arguments
  * @library /lib
- * @run main/othervm JtregJextract -l FuncParam -t test.jextract.test8258605 funcParam.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8258605Test
- */
-/*
- * @test id=sources
- * @bug 8258605
- * @summary regression: jextract can not handle function prototypes as function arguments
- * @library /lib
- * @run main/othervm JtregJextractSources -l FuncParam -t test.jextract.test8258605 funcParam.h
+ * @run main/othervm JtregJextract -l FuncParam --use-system-load-library -t test.jextract.test8258605 funcParam.h
+ * @build LibTest8258605Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8258605Test
  */
 public class LibTest8258605Test {
@@ -66,7 +59,7 @@ public class LibTest8258605Test {
              // get struct Foo instance
              var foo = getFoo(arena);
              // make sure that foo.bar is not NULL
-             assertFalse(Foo.bar$get(foo).equals(NULL));
+             assertFalse(Foo.bar(foo).equals(NULL));
 
              f2(foo, CB.allocate(i -> {
                  assertTrue(i == 42);

@@ -100,7 +100,6 @@ public class Parser {
 
             decls.addAll(macroParser.macroTable.reparseConstants());
             Declaration.Scoped rv = treeMaker.createHeader(tuCursor, decls);
-            treeMaker.freeze();
             return rv;
         }
     }

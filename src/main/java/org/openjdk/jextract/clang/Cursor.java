@@ -28,10 +28,17 @@ package org.openjdk.jextract.clang;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+
+import org.openjdk.jextract.clang.libclang.CXCursor;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
+import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+import static org.openjdk.jextract.clang.libclang.Index_h.C_CHAR;
 
 public final class Cursor extends ClangDisposable.Owned {
 
@@ -194,6 +201,10 @@ public final class Cursor extends ClangDisposable.Owned {
         CursorChildren.forEach(this, action);
     }
 
+    public void forEachShortCircuit(Predicate<Cursor> action) {
+        CursorChildren.forEachShortCircuit(this, action);
+    }
+
     /**
      * We run the visitor action inside the upcall, so that we do not have to worry about
      * having to copy cursors into separate off-heap storage. To do this, we have to setup
@@ -204,11 +215,11 @@ public final class Cursor extends ClangDisposable.Owned {
     private static class CursorChildren {
 
         static class Context {
-            private final Consumer<Cursor> action;
+            private final Predicate<Cursor> action;
             private final ClangDisposable owner;
             private RuntimeException exception;
 
-            Context(Consumer<Cursor> action, ClangDisposable owner) {
+            Context(Predicate<Cursor> action, ClangDisposable owner) {
                 this.action = action;
                 this.owner = owner;
             }
@@ -220,8 +231,7 @@ public final class Cursor extends ClangDisposable.Owned {
                 // at a later time (or the liveness check will fail with IllegalStateException).
                 try {
                     // run the visitor action
-                    action.accept(new Cursor(segment, owner));
-                    return true;
+                    return action.test(new Cursor(segment, owner));
                 } catch (RuntimeException ex) {
                     // if we fail, record the exception, and return false to stop the visit
                     exception = ex;
@@ -246,7 +256,14 @@ public final class Cursor extends ClangDisposable.Owned {
             }
         }, Arena.global());
 
-        synchronized static void forEach(Cursor c, Consumer<Cursor> op) {
+        static void forEach(Cursor c, Consumer<Cursor> op) {
+            forEachShortCircuit(c, decl -> {
+                op.accept(decl);
+                return true;
+            });
+        }
+
+        synchronized static void forEachShortCircuit(Cursor c, Predicate<Cursor> op) {
             // everything is confined, no need to synchronize
             Context prevContext = pendingContext;
             try {
@@ -276,17 +293,48 @@ public final class Cursor extends ClangDisposable.Owned {
         return new PrintingPolicy(Index_h.clang_getCursorPrintingPolicy(segment));
     }
 
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        return other instanceof Cursor otherCursor &&
-                (Index_h.clang_equalCursors(segment, otherCursor.segment) != 0);
+    public Key toKey() {
+        return new Key(this);
     }
 
-    @Override
-    public int hashCode() {
-        return spelling().hashCode();
+    /**
+     * A key that can be used for cursor comparisons. This avoids the problem of comparing cursors
+     * which are already closed, and also optimizes the use of the underlying 'clang_equalCursors' function,
+     * to avoid unnecessary off-heap allocation. This is required by the deduplication logic in TreeMaker.
+     */
+    public static class Key {
+
+        final String spelling;
+        final CursorKind kind;
+        final MemorySegment payload;
+
+        private Key(Cursor cursor) {
+            spelling = cursor.spelling();
+            kind = cursor.kind();
+            payload = MemorySegment.ofArray(new byte[(int)CXCursor.sizeof()]);
+            payload.copyFrom(cursor.segment);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Key key)) return false;
+            if (kind != key.kind) return false;
+            if (!spelling.equals(key.spelling)) return false;
+            // slow path
+            SegmentAllocator allocator = SegmentAllocator.slicingAllocator(COMPARISON_SEGMENT);
+            return Index_h.clang_equalCursors(toSegment(allocator), key.toSegment(allocator)) != 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(kind, spelling);
+        }
+
+        private MemorySegment toSegment(SegmentAllocator allocator) {
+            return allocator.allocateFrom(C_CHAR, payload,
+                                          C_CHAR, 0, CXCursor.sizeof());
+        }
+
+        private static final MemorySegment COMPARISON_SEGMENT = Arena.ofAuto().allocate(CXCursor.layout(), 2);
     }
 }
