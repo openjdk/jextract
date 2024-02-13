@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -36,7 +36,7 @@ public class Test7903285 extends JextractToolRunner {
     public void testStaticSymbols() {
         Path test7903285Output = getOutputFilePath("test7903285gen");
         Path test7903285H = getInputFilePath("test7903285.h");
-        run("--output", test7903285Output.toString(), test7903285H.toString()).checkSuccess();
+        runAndCompile(test7903285Output, test7903285H.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(test7903285Output)) {
             Class<?> cls = loader.loadClass("test7903285_h");
             assertNull(findMethod(cls, "func", int.class));

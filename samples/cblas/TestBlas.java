@@ -54,16 +54,16 @@ public class TestBlas {
         beta = 0;
 
         try (var arena = Arena.ofConfined()) {
-            var a = arena.allocateArray(C_DOUBLE,
+            var a = arena.allocateFrom(C_DOUBLE,
                 1.0, 2.0, 3.0, 4.0,
                 1.0, 1.0, 1.0, 1.0,
                 3.0, 4.0, 5.0, 6.0,
                 5.0, 6.0, 7.0, 8.0
             );
-            var x = arena.allocateArray(C_DOUBLE,
+            var x = arena.allocateFrom(C_DOUBLE,
                 1.0, 2.0, 1.0, 1.0
             );
-            var y = arena.allocateArray(C_DOUBLE, n);
+            var y = arena.allocate(C_DOUBLE, n);
 
             cblas_dgemv(Layout, transa, m, n, alpha, a, lda, x, incx, beta, y, incy);
             /* Print y */

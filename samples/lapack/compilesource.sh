@@ -1,6 +1,5 @@
-jextract --source \
-   -I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include \
+jextract --output src \
    -l lapacke -t lapack \
    /usr/local/opt/lapack/include/lapacke.h 
 
-javac --enable-preview --source=21 lapack/*.java
+javac --source=22 -d . src/lapack/*.java

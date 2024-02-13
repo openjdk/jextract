@@ -2,32 +2,49 @@
 
 package org.openjdk;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
+
 /**
- * {@snippet :
- * void (*JImageClose_t)(struct JImageFile* jimage);
+ * {@snippet lang=c :
+ * typedef void (*JImageClose_t)(JImageFile *)
  * }
  */
-public interface JImageClose_t {
+public class JImageClose_t {
 
-    void apply(java.lang.foreign.MemorySegment jimage);
-    static MemorySegment allocate(JImageClose_t fi, Arena scope) {
-        return RuntimeHelper.upcallStub(constants$1.const$0, fi, constants$0.const$4, scope);
+    public interface Function {
+        void apply(MemorySegment jimage);
     }
-    static JImageClose_t ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena, null);
-        return (java.lang.foreign.MemorySegment _jimage) -> {
-            try {
-                constants$1.const$1.invokeExact(symbol, _jimage);
-            } catch (Throwable ex$) {
-                throw new AssertionError("should not reach here", ex$);
-            }
-        };
+
+    private static final FunctionDescriptor $DESC = FunctionDescriptor.ofVoid(
+        jimage_h.C_POINTER
+    );
+
+    public static FunctionDescriptor descriptor() {
+        return $DESC;
+    }
+
+    private static final MethodHandle UP$MH = jimage_h.upcallHandle(JImageClose_t.Function.class, "apply", $DESC);
+
+    public static MemorySegment allocate(JImageClose_t.Function fi, Arena scope) {
+        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
+    }
+
+    private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
+    public static void invoke(MemorySegment funcPtr,MemorySegment jimage) {
+        try {
+             DOWN$MH.invokeExact(funcPtr, jimage);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
     }
 }
-
 

@@ -4,7 +4,7 @@ param(
 )
 
 java `
+  -cp classes `
   --enable-native-access=ALL-UNNAMED `
-  --enable-preview --source=21 `
   -D"java.library.path=$clangPath\bin" `
   ASTPrinter.java hello.c

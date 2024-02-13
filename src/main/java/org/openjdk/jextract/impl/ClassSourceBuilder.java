@@ -24,21 +24,31 @@
  */
 package org.openjdk.jextract.impl;
 
-import javax.tools.JavaFileObject;
-import java.lang.constant.ClassDesc;
-import java.util.List;
-
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Declaration.Constant;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.impl.Constants.Constant;
+import org.openjdk.jextract.Type.Array;
+import org.openjdk.jextract.Type.Declared;
+import org.openjdk.jextract.Type.Delegated;
+import org.openjdk.jextract.Type.Function;
+import org.openjdk.jextract.Type.Primitive;
+import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
+
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.VarHandle;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Superclass for .java source generator classes.
  */
-abstract class ClassSourceBuilder extends JavaSourceBuilder {
-
-    private static final boolean SHOW_GENERATING_CLASS = Boolean.getBoolean("jextract.showGeneratingClass");
-
+abstract class ClassSourceBuilder {
     enum Kind {
         CLASS("class"),
         INTERFACE("interface");
@@ -50,250 +60,224 @@ abstract class ClassSourceBuilder extends JavaSourceBuilder {
         }
     }
 
-    final Kind kind;
-    final ClassDesc desc;
-    protected final JavaSourceBuilder enclosing;
+    private final SourceFileBuilder sb;
+    private final String modifiers;
+    private final Kind kind;
+    private final String className;
+    private final String superName;
+    private final ClassSourceBuilder enclosing;
+    private final String runtimeHelperName;
 
-    // code buffer
-    private StringBuilder sb = new StringBuilder();
-    // current line alignment (number of 4-spaces)
-    private int align;
-
-    ClassSourceBuilder(JavaSourceBuilder enclosing, Kind kind, String name) {
-        this.enclosing = enclosing;
-        this.align = (enclosing instanceof ClassSourceBuilder classSourceBuilder)
-                ? classSourceBuilder.align : 0;
+    ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName,
+                       ClassSourceBuilder enclosing, String runtimeHelperName) {
+        this.sb = builder;
+        this.modifiers = modifiers;
         this.kind = kind;
-        this.desc = ClassDesc.of(enclosing.packageName(), name);
+        this.className = className;
+        this.superName = superName;
+        this.enclosing = enclosing;
+        this.runtimeHelperName = runtimeHelperName;
     }
 
-    boolean isNested() {
-        return enclosing instanceof ClassSourceBuilder;
+    final String className() {
+        // for a (nested) class 'com.foo.package.A.B.C' this will return 'C'
+        return className;
     }
 
-    String className() {
-        return desc.displayName();
+    final String runtimeHelperName() {
+        return runtimeHelperName;
     }
 
-    String fullName() {
-        return isNested() ?
-                ((ClassSourceBuilder)enclosing).className() + "." + className() :
-                className();
+    // is the name enclosed by a class of the same name?
+    protected final boolean isEnclosedBySameName(String name) {
+        return className().equals(name) || (isNested() && enclosing.isEnclosedBySameName(name));
     }
 
-    @Override
-    public final String packageName() {
-        return desc.packageName();
+    protected final boolean isNested() {
+        return enclosing != null;
     }
 
-    String superClass() {
-        return null;
+    final SourceFileBuilder sourceFileBuilder() {
+        return sb;
     }
 
-    String mods() {
-        if (kind == Kind.INTERFACE) {
-            return "public ";
+    final void classBegin() {
+        String extendsExpr = "";
+        if (superName != null) {
+            extendsExpr = " extends " + superName;
         }
-        return (isNested() ? "public static " : "public ") +
-                (isClassFinal() ? "final " : "");
+        appendLines(STR."""
+            \{modifiers} \{kind.kindName} \{className}\{extendsExpr} {
+            """);
     }
 
-    boolean isClassFinal() {
-        return true;
-    }
-
-    void classBegin() {
-        if (isNested()) {
-            incrAlign();
-        }
-        emitPackagePrefix();
-        emitImportSection();
-
-        classDeclBegin();
-        indent();
-        append(mods());
-        append(kind.kindName + " " + className());
-        if (superClass() != null) {
-            append(" extends ");
-            append(superClass());
-        }
-        append(" {\n\n");
-        if (kind != Kind.INTERFACE) {
-            emitConstructor();
-        }
-    }
-
-    void classDeclBegin() {}
-
-    void emitConstructor() {
-        incrAlign();
-        indent();
-        append("// Suppresses default constructor, ensuring non-instantiability.\n");
-        indent();
-        append("private ");
-        append(className());
-        append("() {}");
-        append('\n');
-        decrAlign();
-    }
-
-    JavaSourceBuilder classEnd() {
-        indent();
-        append("}\n\n");
-        if (isNested()) {
-            decrAlign();
-            ((ClassSourceBuilder)enclosing).append(build());
-            sb = null;
-        }
-        return enclosing;
-    }
-
-    @Override
-    public List<JavaFileObject> toFiles() {
-        if (isNested()) {
-            throw new UnsupportedOperationException("Nested builder!");
-        }
-        String res = build();
-        sb = null;
-        return List.of(Utils.fileFromString(packageName(), className(), res));
+    final void classEnd() {
+        appendLines("""
+            }
+            """);
     }
 
     // Internal generation helpers (used by other builders)
 
-    void append(Object o) {
-        sb.append(o);
+    final void incrAlign() {
+        sb.incrAlign();
     }
 
-    void append(String s) {
-        sb.append(s);
+    final void decrAlign() {
+        sb.decrAlign();
     }
 
-    void append(char c) {
-        sb.append(c);
+    // append multiple lines (indentation is added automatically)
+    void appendLines(String s) {
+        sb.appendLines(s);
     }
 
-    void append(boolean b) {
-        sb.append(b);
+    void appendBlankLine() {
+        appendLines("\n");
     }
 
-    void append(long l) {
-        sb.append(l);
+    // increase indentation before appending lines
+    // decrease afterwards
+    void appendIndentedLines(String s) {
+        sb.appendIndentedLines(s);
     }
 
-    void indent() {
-        for (int i = 0; i < align; i++) {
-            append("    ");
-        }
+    final void emitDefaultConstructor() {
+        appendIndentedLines(STR."""
+
+            \{className}() {
+                // Should not be called directly
+            }
+            """);
     }
 
-    void incrAlign() {
-        align++;
-    }
-
-    void decrAlign() {
-        align--;
-    }
-
-    String build() {
-        String s = sb.toString();
-        return s;
-    }
-
-    void emitDocComment(Declaration decl) {
+    final void emitDocComment(Declaration decl) {
         emitDocComment(decl, "");
     }
 
-    void emitDocComment(Declaration decl, String header) {
-        indent();
-        append("/**\n");
-        if (!header.isEmpty()) {
-            indent();
-            append(" * ");
-            append(header);
-            append("\n");
+    final void emitDocComment(Declaration decl, String header) {
+        appendLines(STR."""
+            /**
+            \{!header.isEmpty() ? STR." * \{header}\n" : ""}\
+             * {@snippet lang=c :
+            \{declarationComment(decl)}
+             * }
+             */
+            """);
+    }
+
+    public String mangleName(String javaName, Class<?> type) {
+        return javaName + nameSuffix(type);
+    }
+
+    String nameSuffix(Class<?> type) {
+        if (type.equals(MemorySegment.class)) {
+            return "$SEGMENT";
+        } else if (type.equals(MemoryLayout.class)) {
+            return "$LAYOUT";
+        } else if (type.equals(MethodHandle.class)) {
+            return "$MH";
+        } else if (type.equals(VarHandle.class)) {
+            return "$VH";
         }
-        indent();
-        append(" * {@snippet lang=c :\n");
-        append(CDeclarationPrinter.declaration(decl, " ".repeat(align*4) + " * "));
-        indent();
-        append(" * }\n");
-        indent();
-        append(" */\n");
+        throw new IllegalArgumentException("Not handled: " + type);
     }
 
-    void emitDocComment(Type.Function funcType, String name) {
-        indent();
-        append("/**\n");
-        indent();
-        append(" * {@snippet lang=c :\n");
-        append(" * ");
-        append(CDeclarationPrinter.declaration(funcType, name));
-        append(";\n");
-        indent();
-        append(" * }\n");
-        indent();
-        append(" */\n");
+    String layoutString(Type type) {
+        return layoutString(type, Long.MAX_VALUE);
     }
 
-    // is the name enclosed enclosed by a class of the same name?
-    boolean isEnclosedBySameName(String name) {
-        return className().equals(name) ||
-                (isNested() && enclosing.isEnclosedBySameName(name));
+    String layoutString(Type type, long align) {
+        return switch (type) {
+            case Primitive p -> primitiveLayoutString(p, align);
+            case Declared d when Utils.isEnum(d) -> layoutString(((Constant)d.tree().members().get(0)).type(), align);
+            case Declared d when Utils.isStructOrUnion(d) -> STR."\{JavaName.getFullNameOrThrow(d.tree())}.layout()";
+            case Delegated d when d.kind() == Delegated.Kind.POINTER -> STR."\{runtimeHelperName()}.C_POINTER";
+            case Delegated d -> layoutString(d.type(), align);
+            case Function _ -> STR."\{runtimeHelperName()}.C_POINTER";
+            case Array a -> STR."MemoryLayout.sequenceLayout(\{a.elementCount().orElse(0L)}, \{layoutString(a.elementType(), align)})";
+            default -> throw new UnsupportedOperationException();
+        };
     }
 
-    protected void emitPackagePrefix() {
-        if (!isNested()) {
-            assert packageName().indexOf('/') == -1 : "package name invalid: " + packageName();
-            append("// Generated by jextract");
-            if (SHOW_GENERATING_CLASS) {
-                append(" (via ");
-                append(getClass().getName());
-                append(")");
+    String functionDescriptorString(int textBoxIndent, Type.Function functionType) {
+        final MethodType type = Utils.methodTypeFor(functionType);
+        boolean noArgs = type.parameterCount() == 0;
+        StringBuilder builder = new StringBuilder();
+        if (!type.returnType().equals(void.class)) {
+            builder.append("FunctionDescriptor.of(");
+            builder.append("\n");
+            builder.append(STR."\{indentString(textBoxIndent + 1)}\{layoutString(functionType.returnType())}");
+            if (!noArgs) {
+                builder.append(",");
             }
-            append("\n\n");
-            if (!packageName().isEmpty()) {
-                append("package ");
-                append(packageName());
-                append(";\n\n");
+        } else {
+            builder.append("FunctionDescriptor.ofVoid(");
+        }
+        if (!noArgs) {
+            builder.append("\n");
+            String delim = "";
+            for (Type arg : functionType.argumentTypes()) {
+                builder.append(delim);
+                builder.append(STR."\{indentString(textBoxIndent + 1)}\{layoutString(arg)}");
+                delim = ",\n";
             }
+            builder.append("\n");
         }
+        builder.append(STR."\{indentString(textBoxIndent)})");
+        return builder.toString();
     }
 
-    protected void emitImportSection() {
-        if (!isNested()) {
-            append("import java.lang.invoke.MethodHandle;\n");
-            append("import java.lang.invoke.VarHandle;\n");
-            append("import java.nio.ByteOrder;\n");
-            append("import java.lang.foreign.*;\n");
-            append("import static java.lang.foreign.ValueLayout.*;\n");
-        }
+    String indentString(int size) {
+        return " ".repeat(size * 4);
     }
 
-    void emitConstantGetter(String mods, String getterName, boolean nullCheck, String symbolName, Constant constant) {
-        incrAlign();
-        indent();
-        append(mods + " " + constant.type().getSimpleName() + " " + getterName + "() {\n");
-        incrAlign();
-        indent();
-        append("return ");
-        if (nullCheck) {
-            append("RuntimeHelper.requireNonNull(");
-        }
-        append(constant.accessExpression());
-        if (nullCheck) {
-            append(",\"");
-            append(symbolName);
-            append("\")");
-        }
-        append(";\n");
-        decrAlign();
-        indent();
-        append("}\n");
-        decrAlign();
+    private String primitiveLayoutString(Primitive primitiveType, long align) {
+        return switch (primitiveType.kind()) {
+            case Bool -> STR."\{runtimeHelperName()}.C_BOOL";
+            case Char -> STR."\{runtimeHelperName()}.C_CHAR";
+            case Short -> alignIfNeeded(STR."\{runtimeHelperName()}.C_SHORT", 2, align);
+            case Int -> alignIfNeeded(STR."\{runtimeHelperName()}.C_INT", 4, align);
+            case Long -> alignIfNeeded(STR."\{runtimeHelperName()}.C_LONG", TypeImpl.IS_WINDOWS ? 4 : 8, align);
+            case LongLong -> alignIfNeeded(STR."\{runtimeHelperName()}.C_LONG_LONG", 8, align);
+            case Float -> alignIfNeeded(STR."\{runtimeHelperName()}.C_FLOAT", 4, align);
+            case Double -> alignIfNeeded(STR."\{runtimeHelperName()}.C_DOUBLE", 8, align);
+            case LongDouble -> TypeImpl.IS_WINDOWS ?
+                    alignIfNeeded(STR."\{runtimeHelperName()}.C_LONG_DOUBLE", 8, align) :
+                    paddingLayoutString(8, 0);
+            case HalfFloat, Char16, WChar -> paddingLayoutString(2, 0); // unsupported
+            case Float128, Int128 -> paddingLayoutString(16, 0); // unsupported
+            default -> throw new UnsupportedOperationException(primitiveType.toString());
+        };
     }
 
-    @Override
-    protected Constants constants() {
-        return enclosing.constants();
+    private String alignIfNeeded(String layoutPrefix, long align, long expectedAlign) {
+        return align > expectedAlign ?
+                STR."\{layoutPrefix}.withByteAlignment(\{expectedAlign})" :
+                layoutPrefix;
+    }
+
+    String paddingLayoutString(long size, int indent) {
+        return STR."\{indentString(indent)}MemoryLayout.paddingLayout(\{size})";
+    }
+
+    // Return C source style signature for the given declaration.
+    // A " * " prefix is emitted for every line.
+    static String declarationComment(Declaration decl) {
+        Objects.requireNonNull(decl);
+        String declString = DeclarationString.getOrThrow(decl);
+        return declString.lines().collect(Collectors.joining("\n * ", " * ", ""));
+    }
+
+    record IndexList(String decl, String use) {
+        static IndexList of(int dims) {
+            List<String> indexNames = IntStream.range(0, dims).mapToObj(i -> "index" + i).toList();
+            String indexDecls = indexNames.stream()
+                    .map(i -> "long " + i)
+                    .collect(Collectors.joining(", "));
+            String indexUses = indexNames.stream()
+                    .collect(Collectors.joining(", "));
+            return new IndexList(indexDecls, indexUses);
+        }
     }
 }

@@ -42,9 +42,9 @@ public class Teapot {
         glClearColor(0f, 0f, 0f, 0f);
         // Setup Lighting
         glShadeModel(GL_SMOOTH());
-        var pos = allocator.allocateArray(C_FLOAT, new float[] {0.0f, 15.0f, -15.0f, 0});
+        var pos = allocator.allocateFrom(C_FLOAT, new float[] {0.0f, 15.0f, -15.0f, 0});
         glLightfv(GL_LIGHT0(), GL_POSITION(), pos);
-        var spec = allocator.allocateArray(C_FLOAT, new float[] {1, 1, 1, 0});
+        var spec = allocator.allocateFrom(C_FLOAT, new float[] {1, 1, 1, 0});
         glLightfv(GL_LIGHT0(), GL_AMBIENT(), spec);
         glLightfv(GL_LIGHT0(), GL_DIFFUSE(), spec);
         glLightfv(GL_LIGHT0(), GL_SPECULAR(), spec);
@@ -72,11 +72,11 @@ public class Teapot {
 
     public static void main(String[] args) {
         try (var arena = Arena.ofConfined()) {
-            var argc = arena.allocate(C_INT, 0);
+            var argc = arena.allocateFrom(C_INT, 0);
             glutInit(argc, argc);
             glutInitDisplayMode(GLUT_DOUBLE() | GLUT_RGB() | GLUT_DEPTH());
             glutInitWindowSize(500, 500);
-            glutCreateWindow(arena.allocateUtf8String("Hello Panama!"));
+            glutCreateWindow(arena.allocateFrom("Hello Panama!"));
             var teapot = new Teapot(arena);
             var displayStub = glutDisplayFunc$callback.allocate(teapot::display, arena);
             var idleStub = glutIdleFunc$callback.allocate(teapot::onIdle, arena);

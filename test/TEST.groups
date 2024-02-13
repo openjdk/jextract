@@ -3,7 +3,7 @@ native_tests = \
     jtreg/generator/funcPointerInvokers/TestFuncPointerInvokers.java \
     jtreg/generator/test8239918/LibTest8239918Test.java \
     jtreg/generator/test8244938/Test8244938.java \
-    jtreg/generator/test8244959/Test8244959.java \
+    jtreg/generator/testPrintf/TestPrintf.java \
     jtreg/generator/test8245003/Test8245003.java \
     jtreg/generator/test8246341/LibTest8246341Test.java \
     jtreg/generator/test8246341/LibTest8246341Test.java \
@@ -11,7 +11,7 @@ native_tests = \
     jtreg/generator/test8249757/LibTest8249757Test.java \
     jtreg/generator/test8252016/Test8252016.java \
     jtreg/generator/test8252121/Test8252121.java \
-    jtreg/generator/test8253102/LibTest8253102Test.java \
+    jtreg/generator/reinterpret/TestReinterpret.java \
     jtreg/generator/test8257892/LibUnsupportedTest.java \
     jtreg/generator/test8258605/LibTest8258605Test.java \
     jtreg/generator/test8261511/Test8261511.java \

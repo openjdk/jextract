@@ -48,7 +48,7 @@ public class JImageFile {
         }
         try (var arena = Arena.ofConfined()) {
             var jintResPtr = arena.allocate(jint);
-            var moduleFilePath = arena.allocateUtf8String(javaHome + "/lib/modules");
+            var moduleFilePath = arena.allocateFrom(javaHome + "/lib/modules");
             var jimageFile = JIMAGE_Open(moduleFilePath, jintResPtr);
 
             if (jimageFile == NULL) {
@@ -56,7 +56,7 @@ public class JImageFile {
                 return;
             }
             var mod = JIMAGE_PackageToModule(jimageFile,
-                arena.allocateUtf8String("java/util"));
+                arena.allocateFrom("java/util"));
             System.out.println(mod);
 
             // const char* module_name, const char* version, const char* package,
@@ -64,9 +64,9 @@ public class JImageFile {
 
             var visitor = JImageResourceVisitor_t.allocate(
                 (jimage, module_name, version, package_name, name, extension, arg) -> {
-                   System.out.println("module " + module_name.getUtf8String(0));
-                   System.out.println("package " + package_name.getUtf8String(0));
-                   System.out.println("name " + name.getUtf8String(0));
+                   System.out.println("module " + module_name.getString(0));
+                   System.out.println("package " + package_name.getString(0));
+                   System.out.println("name " + name.getString(0));
                    return 1;
                 }, arena);
 

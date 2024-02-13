@@ -44,8 +44,8 @@ public class GitClone {
           git_libgit2_init();
           try (var arena = Arena.ofConfined()) {
               var repo = arena.allocate(C_POINTER);
-              var url = arena.allocateUtf8String(args[0]);
-              var path = arena.allocateUtf8String(args[1]);
+              var url = arena.allocateFrom(args[0]);
+              var path = arena.allocateFrom(args[1]);
               System.out.println(git_clone(repo, url, path, NULL));
           }
           git_libgit2_shutdown();

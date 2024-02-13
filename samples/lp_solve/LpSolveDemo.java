@@ -48,8 +48,8 @@ class LpSolveDemo {
         }
 
         try (var arena = Arena.ofConfined()) {
-            var colno = arena.allocateArray(C_INT, Ncol);
-            var row = arena.allocateArray(C_DOUBLE, Ncol);
+            var colno = arena.allocate(C_INT, Ncol);
+            var row = arena.allocate(C_DOUBLE, Ncol);
 
             // makes building the model faster if it is done rows by row
             set_add_rowmode(lp, TRUE);

@@ -54,7 +54,7 @@ public class TCLMain {
         """;
 
         try (var arena = Arena.ofConfined()) {
-            var str = arena.allocateUtf8String(script);
+            var str = arena.allocateFrom(script);
             Tcl_Eval(interp, str);
         }
 

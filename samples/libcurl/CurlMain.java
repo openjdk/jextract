@@ -42,11 +42,11 @@ public class CurlMain {
        var curl = curl_easy_init();
        if(!curl.equals(NULL)) {
            try (var arena = Arena.ofConfined()) {
-               var url = arena.allocateUtf8String(urlStr);
-               curl_easy_setopt(curl, CURLOPT_URL(), url.address());
+               var url = arena.allocateFrom(urlStr);
+               curl_easy_setopt.invoke(curl, CURLOPT_URL(), url.address());
                int res = curl_easy_perform(curl);
                if (res != CURLE_OK()) {
-                   String error = curl_easy_strerror(res).getUtf8String(0);
+                   String error = curl_easy_strerror(res).getString(0);
                    System.out.println("Curl error: " + error);
                    curl_easy_cleanup(curl);
                }

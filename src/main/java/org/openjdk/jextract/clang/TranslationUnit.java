@@ -57,7 +57,7 @@ public class TranslationUnit extends ClangDisposable {
 
     public final void save(Path path) throws TranslationUnitSaveException {
         try (Arena arena = Arena.ofConfined()) {
-            MemorySegment pathStr = arena.allocateUtf8String(path.toAbsolutePath().toString());
+            MemorySegment pathStr = arena.allocateFrom(path.toAbsolutePath().toString());
             SaveError res = SaveError.valueOf(Index_h.clang_saveTranslationUnit(ptr, pathStr, 0));
             if (res != SaveError.None) {
                 throw new TranslationUnitSaveException(path, res);
@@ -74,19 +74,19 @@ public class TranslationUnit extends ClangDisposable {
         }
     }
 
-    static long FILENAME_OFFSET = CXUnsavedFile.$LAYOUT().byteOffset(MemoryLayout.PathElement.groupElement("Filename"));
-    static long CONTENTS_OFFSET = CXUnsavedFile.$LAYOUT().byteOffset(MemoryLayout.PathElement.groupElement("Contents"));
-    static long LENGTH_OFFSET = CXUnsavedFile.$LAYOUT().byteOffset(MemoryLayout.PathElement.groupElement("Length"));
+    static long FILENAME_OFFSET = CXUnsavedFile.layout().byteOffset(MemoryLayout.PathElement.groupElement("Filename"));
+    static long CONTENTS_OFFSET = CXUnsavedFile.layout().byteOffset(MemoryLayout.PathElement.groupElement("Contents"));
+    static long LENGTH_OFFSET = CXUnsavedFile.layout().byteOffset(MemoryLayout.PathElement.groupElement("Length"));
 
     public void reparse(Index.UnsavedFile... inMemoryFiles) {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment files = inMemoryFiles.length == 0 ?
                     null :
-                    arena.allocateArray(CXUnsavedFile.$LAYOUT(), inMemoryFiles.length);
+                    arena.allocate(CXUnsavedFile.layout(), inMemoryFiles.length);
             for (int i = 0; i < inMemoryFiles.length; i++) {
-                MemorySegment start = files.asSlice(i * CXUnsavedFile.$LAYOUT().byteSize());
-                start.set(C_POINTER, FILENAME_OFFSET, arena.allocateUtf8String(inMemoryFiles[i].file));
-                start.set(C_POINTER, CONTENTS_OFFSET, arena.allocateUtf8String(inMemoryFiles[i].contents));
+                MemorySegment start = files.asSlice(i * CXUnsavedFile.sizeof());
+                start.set(C_POINTER, FILENAME_OFFSET, arena.allocateFrom(inMemoryFiles[i].file));
+                start.set(C_POINTER, CONTENTS_OFFSET, arena.allocateFrom(inMemoryFiles[i].contents));
                 start.set(C_INT, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
             }
             ErrorCode code;
@@ -134,7 +134,7 @@ public class TranslationUnit extends ClangDisposable {
         private final int size;
 
         Tokens(MemorySegment addr, int size) {
-            super(addr, size * CXToken.$LAYOUT().byteSize(),
+            super(addr, size * CXToken.sizeof(),
                     (addrCleanup) -> Index_h.clang_disposeTokens(TranslationUnit.this.ptr, addrCleanup, size));
             this.size = size;
         }
@@ -144,7 +144,7 @@ public class TranslationUnit extends ClangDisposable {
         }
 
         public MemorySegment getTokenSegment(int idx) {
-            return ptr.asSlice(idx * CXToken.$LAYOUT().byteSize());
+            return ptr.asSlice(idx * CXToken.sizeof());
         }
 
         public Token getToken(int index) {

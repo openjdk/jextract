@@ -2,32 +2,54 @@
 
 package org.openjdk;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import java.lang.invoke.*;
 import java.lang.foreign.*;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
+
 import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.MemoryLayout.PathElement.*;
+
 /**
- * {@snippet :
- * long long (*JImageFindResource_t)(struct JImageFile* jimage,char* module_name,char* version,char* name,long long* size);
+ * {@snippet lang=c :
+ * typedef JImageLocationRef (*JImageFindResource_t)(JImageFile *, const char *, const char *, const char *, jlong *)
  * }
  */
-public interface JImageFindResource_t {
+public class JImageFindResource_t {
 
-    long apply(java.lang.foreign.MemorySegment jimage, java.lang.foreign.MemorySegment module_name, java.lang.foreign.MemorySegment version, java.lang.foreign.MemorySegment name, java.lang.foreign.MemorySegment size);
-    static MemorySegment allocate(JImageFindResource_t fi, Arena scope) {
-        return RuntimeHelper.upcallStub(constants$2.const$0, fi, constants$1.const$4, scope);
+    public interface Function {
+        long apply(MemorySegment jimage, MemorySegment module_name, MemorySegment version, MemorySegment name, MemorySegment size);
     }
-    static JImageFindResource_t ofAddress(MemorySegment addr, Arena arena) {
-        MemorySegment symbol = addr.reinterpret(arena, null);
-        return (java.lang.foreign.MemorySegment _jimage, java.lang.foreign.MemorySegment _module_name, java.lang.foreign.MemorySegment _version, java.lang.foreign.MemorySegment _name, java.lang.foreign.MemorySegment _size) -> {
-            try {
-                return (long)constants$2.const$1.invokeExact(symbol, _jimage, _module_name, _version, _name, _size);
-            } catch (Throwable ex$) {
-                throw new AssertionError("should not reach here", ex$);
-            }
-        };
+
+    private static final FunctionDescriptor $DESC = FunctionDescriptor.of(
+        jimage_h.C_LONG_LONG,
+        jimage_h.C_POINTER,
+        jimage_h.C_POINTER,
+        jimage_h.C_POINTER,
+        jimage_h.C_POINTER,
+        jimage_h.C_POINTER
+    );
+
+    public static FunctionDescriptor descriptor() {
+        return $DESC;
+    }
+
+    private static final MethodHandle UP$MH = jimage_h.upcallHandle(JImageFindResource_t.Function.class, "apply", $DESC);
+
+    public static MemorySegment allocate(JImageFindResource_t.Function fi, Arena scope) {
+        return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, scope);
+    }
+
+    private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+
+    public static long invoke(MemorySegment funcPtr,MemorySegment jimage, MemorySegment module_name, MemorySegment version, MemorySegment name, MemorySegment size) {
+        try {
+            return (long) DOWN$MH.invokeExact(funcPtr, jimage, module_name, version, name, size);
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
     }
 }
-
 

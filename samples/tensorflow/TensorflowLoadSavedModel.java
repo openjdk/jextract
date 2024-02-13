@@ -38,7 +38,7 @@ import org.tensorflow.*;
 
 public class TensorflowLoadSavedModel {
     public static void main(String... args) throws Exception {
-        System.out.println("TensorFlow C library version: " + TF_Version().getUtf8String(0));
+        System.out.println("TensorFlow C library version: " + TF_Version().getString(0));
 
         if (args.length == 0) {
             System.err.println("java TensorflowLoadSavedModel <saved model dir>");
@@ -50,13 +50,13 @@ public class TensorflowLoadSavedModel {
             var status = TF_NewStatus();
             var sessionOpts = TF_NewSessionOptions();
 
-            var savedModelDir = arena.allocateUtf8String(args[0]);
-            var tags = arena.allocate(C_POINTER, arena.allocateUtf8String("serve"));
+            var savedModelDir = arena.allocateFrom(args[0]);
+            var tags = arena.allocateFrom(C_POINTER, arena.allocateFrom("serve"));
             var tf_session = TF_LoadSessionFromSavedModel(sessionOpts, NULL, savedModelDir, tags, 1, graph, NULL, status);
 
             if (TF_GetCode(status) != TF_OK()) {
                 System.err.printf("cannot load session from saved model: %s\n",
-                    TF_Message(status).getUtf8String(0));
+                    TF_Message(status).getString(0));
             } else {
                 System.err.println("load session from saved model works!");
             }
@@ -66,8 +66,8 @@ public class TensorflowLoadSavedModel {
             var operation = NULL;
             while (!(operation = TF_GraphNextOperation(graph, size)).equals(NULL)) {
                 System.out.printf("%s : %s\n",
-                    TF_OperationName(operation).getUtf8String(0),
-                    TF_OperationOpType(operation).getUtf8String(0));
+                    TF_OperationName(operation).getString(0),
+                    TF_OperationOpType(operation).getString(0));
             }
 
             TF_DeleteGraph(graph);

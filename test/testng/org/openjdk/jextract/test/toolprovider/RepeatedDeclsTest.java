@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -28,9 +28,7 @@ import testlib.TestUtils;
 import org.testng.annotations.Test;
 
 import java.nio.file.Path;
-import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemorySegment;
 import java.lang.foreign.StructLayout;
 import testlib.JextractToolRunner;
 
@@ -42,7 +40,7 @@ public class RepeatedDeclsTest extends JextractToolRunner {
     public void repeatedDecls() throws Throwable {
         Path repeatedDeclsOutput = getOutputFilePath("repeatedDeclsgen");
         Path repeatedDeclsH = getInputFilePath("repeatedDecls.h");
-        run("--output", repeatedDeclsOutput.toString(), repeatedDeclsH.toString()).checkSuccess();
+        runAndCompile(repeatedDeclsOutput, repeatedDeclsH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(repeatedDeclsOutput)) {
             Class<?> cls = loader.loadClass("repeatedDecls_h");
             // check a method for "void func(int)"
@@ -64,10 +62,10 @@ public class RepeatedDeclsTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "distance", MemorySegment.class));
 
             // check a getter method for "i"
-            assertNotNull(findMethod(cls, "i$get"));
+            assertNotNull(findMethod(cls, "i"));
 
             // check a setter method for "i"
-            assertNotNull(findMethod(cls, "i$set", int.class));
+            assertNotNull(findMethod(cls, "i", int.class));
 
             // make sure that enum constants are generated fine
             checkIntGetter(cls, "R", 0);

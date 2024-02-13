@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,25 +26,18 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8253390.test8253390_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
  * @bug 8253390
  * @summary jextract should quote string literals
  * @run main/othervm JtregJextract -t test.jextract.test8253390 test8253390.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8253390Test
- */
-/*
- * @test id=sources
- * @library /lib
- * @bug 8253390
- * @summary jextract should quote string literals
- * @run main/othervm JtregJextractSources -t test.jextract.test8253390 test8253390.h
+ * @build LibTest8253390Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8253390Test
  */
 public class LibTest8253390Test {
     @Test
     public void testSquare() {
-        assertEquals(GREETING().getUtf8String(0), "hello\nworld");
-        assertEquals(GREETING2().getUtf8String(0), "hello\tworld");
+        assertEquals(GREETING().getString(0), "hello\nworld");
+        assertEquals(GREETING2().getString(0), "hello\tworld");
     }
 }

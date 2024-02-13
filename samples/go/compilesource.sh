@@ -1,3 +1,3 @@
 go build -o libhello.dylib  -buildmode=c-shared
-jextract --source -l hello -t org.golang libhello.h
-javac --enable-preview --source=21 org/golang/*.java
+jextract -l hello -t org.golang libhello.h
+javac --source=22 org/golang/*.java

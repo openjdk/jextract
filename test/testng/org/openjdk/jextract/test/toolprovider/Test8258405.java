@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -36,16 +36,16 @@ public class Test8258405 extends JextractToolRunner {
     public void test() {
         Path test8258405Output = getOutputFilePath("test8258405_gen");
         Path test8258405H = getInputFilePath("test8258405.h");
-        run("--output", test8258405Output.toString(), test8258405H.toString()).checkSuccess();
+        runAndCompile(test8258405Output, test8258405H.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(test8258405Output)) {
             Class<?> cls = loader.loadClass("test8258405_h");
             assertNotNull(cls);
             // check global function pointer variable 'func'
-            cls = loader.loadClass("func");
+            cls = loader.loadClass("func$Function");
             assertNotNull(cls);
             assertNotNull(findMethod(cls, "apply", int.class));
             // check function pointer member 'bar' of struct 'Foo'
-            cls = loader.loadClass("Foo$bar");
+            cls = loader.loadClass("Foo$bar$Function");
             assertNotNull(cls);
             assertNotNull(findMethod(cls, "apply", float.class, double.class));
         } finally {

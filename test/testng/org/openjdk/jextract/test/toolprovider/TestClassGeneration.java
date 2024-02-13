@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,9 +23,10 @@
 package org.openjdk.jextract.test.toolprovider;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemoryLayout.PathElement;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.Arena;
+
 import testlib.TestUtils;
 import org.testng.annotations.*;
 import testlib.JextractToolRunner;
@@ -33,6 +34,7 @@ import testlib.JextractToolRunner;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -44,7 +46,7 @@ import static org.testng.Assert.assertNotNull;
 
 public class TestClassGeneration extends JextractToolRunner {
 
-    private static final VarHandle VH_bytes = MemoryLayout.sequenceLayout(C_CHAR).varHandle(sequenceElement());
+    private static final VarHandle VH_bytes = C_CHAR.varHandle();
 
     private Path outputDir;
     private TestUtils.Loader loader;
@@ -148,33 +150,16 @@ public class TestClassGeneration extends JextractToolRunner {
 
     @Test(dataProvider = "method")
     public void testMethod(String name, MethodType expectedType, Object expectedReturn, Object[] args) throws Throwable {
-        Method mh_getter = checkMethod(cls, name + "$MH", MethodHandle.class);
-        MethodHandle mh = (MethodHandle) mh_getter.invoke(null);
-        assertEquals(mh.type(), expectedType);
-
-        Object actualReturn = mh.invokeWithArguments(args);
-        assertEquals(actualReturn.getClass(), expectedReturn.getClass());
-        assertEquals(actualReturn, expectedReturn);
-
         Method func = checkMethod(cls, name, expectedType);
         assertEquals(func.invoke(null, args), expectedReturn);
     }
 
     @Test(dataProvider = "globals")
     public void testGlobal(String name, Class<?> expectedType, MemoryLayout expectedLayout, Object expectedValue) throws Throwable {
-        Method layout_getter = checkMethod(cls, name + "$LAYOUT", MemoryLayout.class);
-        assertEquals(layout_getter.invoke(null), expectedLayout);
+        Method getter = checkMethod(cls, name, expectedType);
+        assertEquals(getter.invoke(null), expectedValue);
 
-        Method addr_getter = checkMethod(cls, name + "$SEGMENT", MemorySegment.class);
-        MemorySegment segment = (MemorySegment)addr_getter.invoke(null);
-
-        Method vh_getter = checkMethod(cls, name + "$VH", VarHandle.class);
-        VarHandle vh = (VarHandle) vh_getter.invoke(null);
-        assertEquals(vh.varType(), expectedType);
-        assertEquals(vh.get(segment), expectedValue);
-
-        checkMethod(cls, name + "$get", expectedType);
-        checkMethod(cls, name + "$set", void.class, expectedType);
+        checkMethod(cls, name, void.class, expectedType);
     }
 
     @Test(dataProvider = "structMembers")
@@ -182,16 +167,17 @@ public class TestClassGeneration extends JextractToolRunner {
         String memberName = memberLayout.name().orElseThrow();
 
         Class<?> structCls = loader.loadClass("com.acme." + structName);
-        Method layout_getter = checkMethod(structCls, "$LAYOUT", MemoryLayout.class);
+        Method layout_getter = checkMethod(structCls, "layout", MemoryLayout.class);
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment struct = arena.allocate(structLayout);
-            Method vh_getter = checkMethod(structCls, memberName + "$VH", VarHandle.class);
-            VarHandle vh = (VarHandle) vh_getter.invoke(null);
-            assertEquals(vh.varType(), expectedType);
+            Method offsetMethod = findMethod(structCls, memberName + "$offset");
+            assertNotNull(offsetMethod);
+            assertEquals(offsetMethod.getReturnType(), long.class);
+            assertEquals(offsetMethod.invoke(null), structLayout.byteOffset(PathElement.groupElement(memberName)));
 
-            Method getter = checkMethod(structCls, memberName + "$get", expectedType, MemorySegment.class);
-            Method setter = checkMethod(structCls, memberName + "$set", void.class, MemorySegment.class, expectedType);
+            Method getter = checkMethod(structCls, memberName, expectedType, MemorySegment.class);
+            Method setter = checkMethod(structCls, memberName, void.class, MemorySegment.class, expectedType);
             MemorySegment addr = struct;
             setter.invoke(null, addr, testValue);
             assertEquals(getter.invoke(null, addr), testValue);
@@ -200,22 +186,23 @@ public class TestClassGeneration extends JextractToolRunner {
 
     @Test(dataProvider = "functionalInterfaces")
     public void testFunctionalInterface(String name, MethodType type) {
-        Class<?> fiClass = loader.loadClass("com.acme." + name);
+        Class<?> fiClass = loader.loadClass("com.acme." + name + "$Function");
         assertNotNull(fiClass);
         checkMethod(fiClass, "apply", type);
-        checkMethod(fiClass, "allocate", MemorySegment.class, fiClass, Arena.class);
+        Class<?> cbClass = loader.loadClass("com.acme." + name);
+        assertNotNull(cbClass);
+        checkMethod(cbClass, "allocate", MemorySegment.class, fiClass, Arena.class);
     }
 
     @BeforeClass
     public void setup() {
         outputDir = getOutputFilePath("exmples_out");
         Path inputHeader = getInputFilePath("examples.h");
-        run(
+        runAndCompile(outputDir,
             "-t", "com.acme",
-            "--output", outputDir,
-            "-l", "Examples",
+            "-l", "Examples", "--use-system-load-library",
             inputHeader
-        ).checkSuccess();
+        );
         loader = TestUtils.classLoader(outputDir);
         cls = loader.loadClass("com.acme.examples_h");
     }

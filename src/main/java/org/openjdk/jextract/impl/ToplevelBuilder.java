@@ -24,91 +24,121 @@
  */
 package org.openjdk.jextract.impl;
 
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.JavaSourceFile;
 import org.openjdk.jextract.Type;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
+import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
-import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A helper class to generate header interface class in source form.
  * After aggregating various constituents of a .java source, build
  * method is called to get overall generated source string.
  */
-class ToplevelBuilder extends JavaSourceBuilder {
+class ToplevelBuilder implements OutputFactory.Builder {
+    private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
 
     private int declCount;
-    private final List<JavaSourceBuilder> builders = new ArrayList<>();
-    private SplitHeader lastHeader;
-    private int headersCount;
+    private final List<SourceFileBuilder> headerBuilders = new ArrayList<>();
+    private final List<SourceFileBuilder> otherBuilders = new ArrayList<>();
+    private HeaderFileBuilder lastHeader;
     private final ClassDesc headerDesc;
 
-    Constants constants;
-
-    static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
-
-    ToplevelBuilder(String packageName, String headerClassName) {
+    ToplevelBuilder(String packageName, String headerClassName,
+                    List<Options.Library> libs, boolean useSystemLoadLibrary) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
-        SplitHeader first = lastHeader = new FirstHeader(headerClassName);
-        builders.add(first);
-        constants = new Constants(this);
-        first.classBegin();
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
+        headerBuilders.add(sfb);
+        lastHeader = createFirstHeader(sfb, libs, useSystemLoadLibrary);
     }
 
-    public List<JavaFileObject> toFiles() {
+    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs, boolean useSystemLoadLibrary) {
+        HeaderFileBuilder first = new HeaderFileBuilder(sfb, STR."\{sfb.className()}#{SUFFIX}", null, sfb.className());
+        first.appendBlankLine();
+        first.classBegin();
+        first.emitDefaultConstructor();
+        first.emitRuntimeHelperMethods();
+        first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
+        // emit basic primitive types
+        first.appendIndentedLines(STR."""
+
+            public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
+            public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
+            public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;
+            public static final ValueLayout.OfInt C_INT = ValueLayout.JAVA_INT;
+            public static final ValueLayout.OfLong C_LONG_LONG = ValueLayout.JAVA_LONG;
+            public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT;
+            public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
+            public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
+                    .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
+            """);
+        if (TypeImpl.IS_WINDOWS) {
+            first.appendIndentedLines("public static final ValueLayout.OfInt C_LONG = ValueLayout.JAVA_INT;");
+            first.appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = ValueLayout.JAVA_DOUBLE;");
+        } else {
+            first.appendIndentedLines("public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;");
+        }
+        return first;
+    }
+
+    public List<JavaSourceFile> toFiles() {
         lastHeader.classEnd();
-        List<JavaFileObject> files = new ArrayList<>();
-        files.addAll(builders.stream()
-                .flatMap(b -> b.toFiles().stream()).toList());
-        files.addAll(constants.toFiles());
+
+        List<JavaSourceFile> files = new ArrayList<>();
+
+        if (headerBuilders.size() == 1) {
+            files.add(headerBuilders.get(0).toFile(s -> s.replace("#{SUFFIX}", "")));
+        } else {
+            // adjust suffixes so that the last header class becomes the main header class,
+            // and extends all the other header classes
+            int suffix = headerBuilders.size() - 1;
+            for (SourceFileBuilder header : headerBuilders) {
+                String currentSuffix = suffix == 0 ?
+                        "" : // main header class, drop the suffix
+                        STR."_\{suffix}";
+                String prevSuffix = STR."_\{suffix + 1}";
+                files.add(header.toFile(currentSuffix,
+                        s -> s.replace("#{SUFFIX}", currentSuffix)
+                              .replace("#{PREV_SUFFIX}", prevSuffix)));
+                suffix--;
+            }
+        }
+        // add remaining builders
+        files.addAll(otherBuilders.stream()
+                .map(SourceFileBuilder::toFile).toList());
         return files;
     }
 
-    public String headerClassName() {
+    public String mainHeaderClassName() {
         return headerDesc.displayName();
     }
 
-    @Override
-    boolean isEnclosedBySameName(String name) {
-        return false;
-    }
-
-    @Override
     public String packageName() {
         return headerDesc.packageName();
     }
 
     @Override
-    protected Constants constants() {
-        return constants;
+    public void addVar(Declaration.Variable varTree) {
+        nextHeader().addVar(varTree);
     }
 
     @Override
-    public void addVar(Declaration.Variable varTree, String javaName,
-        MemoryLayout layout, Optional<String> fiName) {
-        nextHeader().addVar(varTree, javaName, layout, fiName);
+    public void addFunction(Declaration.Function funcTree) {
+        nextHeader().addFunction(funcTree);
     }
 
     @Override
-    public void addFunction(Declaration.Function funcTree, FunctionDescriptor descriptor,
-            String javaName, List<String> parameterNames) {
-        nextHeader().addFunction(funcTree, descriptor, javaName, parameterNames);
+    public void addConstant(Declaration.Constant constantTree) {
+        nextHeader().addConstant(constantTree);
     }
 
     @Override
-    public void addConstant(Declaration.Constant constantTree, String javaName, Class<?> javaType) {
-        nextHeader().addConstant(constantTree, javaName, javaType);
-    }
-
-    @Override
-    public void addTypedef(Declaration.Typedef typedefTree, String javaName,
-        String superClass, Type type) {
+    public void addTypedef(Declaration.Typedef typedefTree, String superClass, Type type) {
+        String javaName = JavaName.getOrThrow(typedefTree);
         if (type instanceof Type.Primitive primitive) {
             // primitive
             nextHeader().emitPrimitiveTypedef(typedefTree, primitive, javaName);
@@ -116,99 +146,45 @@ class ToplevelBuilder extends JavaSourceBuilder {
             // pointer typedef
             nextHeader().emitPointerTypedef(typedefTree, javaName);
         } else {
-            TypedefBuilder builder = new TypedefBuilder(this, typedefTree, javaName, superClass);
-            builders.add(builder);
-            builder.classBegin();
-            builder.classEnd();
+            SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
+            TypedefBuilder.generate(sfb, sfb.className(), superClass, mainHeaderClassName(), typedefTree);
+            otherBuilders.add(sfb);
         }
     }
 
     @Override
-    public StructBuilder addStruct(Declaration.Scoped tree, boolean isNestedAnonStruct,
-        String javaName, GroupLayout layout) {
-        StructBuilder structBuilder = new StructBuilder(this, tree, javaName, layout) {
-            @Override
-            boolean isClassFinal() {
-                return false;
-            }
-
-            @Override
-            void emitConstructor() {
-                // None...
-            }
-        };
-        builders.add(structBuilder);
+    public StructBuilder addStruct(Declaration.Scoped tree) {
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaName.getOrThrow(tree));
+        otherBuilders.add(sfb);
+        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree);
+        structBuilder.begin();
         return structBuilder;
     }
 
     @Override
-    public void addFunctionalInterface(Type.Function funcType, String javaName,
-        FunctionDescriptor descriptor, Optional<List<String>> parameterNames) {
-        FunctionalInterfaceBuilder builder = new FunctionalInterfaceBuilder(this, funcType, javaName, descriptor, parameterNames);
-        builders.add(builder);
-        builder.classBegin();
-        builder.classEnd();
+    public void addFunctionalInterface(Declaration parentDecl, Type.Function funcType) {
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaFunctionalInterfaceName.getOrThrow(parentDecl));
+        otherBuilders.add(sfb);
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, mainHeaderClassName(), parentDecl, funcType);
     }
 
-    private SplitHeader nextHeader() {
+    private HeaderFileBuilder nextHeader() {
         if (declCount == DECLS_PER_HEADER_CLASS) {
-            boolean hasSuper = !(lastHeader instanceof FirstHeader);
-            SplitHeader headerFileBuilder = new SplitHeader(headerDesc.displayName() + "_" + ++headersCount,
-                    hasSuper ? lastHeader.className() : null);
+            SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), mainHeaderClassName());
+            String className = mainHeaderClassName() + "#{SUFFIX}";
+            HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, className,
+                    mainHeaderClassName() + "#{PREV_SUFFIX}", mainHeaderClassName());
             lastHeader.classEnd();
+            headerFileBuilder.appendBlankLine();
             headerFileBuilder.classBegin();
-            builders.add(headerFileBuilder);
+            headerFileBuilder.emitDefaultConstructor();
+            headerBuilders.add(sfb);
             lastHeader = headerFileBuilder;
             declCount = 1;
             return headerFileBuilder;
         } else {
             declCount++;
             return lastHeader;
-        }
-    }
-
-    class SplitHeader extends HeaderFileBuilder {
-        SplitHeader(String name, String superclass) {
-            super(ToplevelBuilder.this, name, superclass);
-        }
-
-        @Override
-        boolean isClassFinal() {
-            return false;
-        }
-
-        @Override
-        void emitConstructor() {
-            // None...
-        }
-    }
-
-    class FirstHeader extends SplitHeader {
-
-        FirstHeader(String name) {
-            super(name, "#{SUPER}");
-        }
-
-        @Override
-        void classBegin() {
-            super.classBegin();
-            // emit basic primitive types
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Bool), "C_BOOL");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Char), "C_CHAR");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Short), "C_SHORT");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Int), "C_INT");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Long), "C_LONG");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.LongLong), "C_LONG_LONG");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Float), "C_FLOAT");
-            emitPrimitiveTypedef(Type.primitive(Type.Primitive.Kind.Double), "C_DOUBLE");
-            emitPointerTypedef("C_POINTER");
-        }
-
-        @Override
-        String build() {
-            HeaderFileBuilder last = lastHeader;
-            return super.build().replace("extends #{SUPER}",
-                    last != this ? "extends " + last.className() : "");
         }
     }
 }

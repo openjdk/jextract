@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,7 +36,7 @@ import org.llvm.clang.*;
 
 public class ASTPrinter {
     private static String asJavaString(MemorySegment clangStr) {
-        String str = clang_getCString(clangStr).getUtf8String(0);
+        String str = clang_getCString(clangStr).getString(0);
         clang_disposeString(clangStr);
         return str;
     }
@@ -50,7 +50,7 @@ public class ASTPrinter {
         try (var arena = Arena.ofConfined()) {
             // parse the C header/source passed from the command line
             var index = clang_createIndex(0, 0);
-            var tu = clang_parseTranslationUnit(index, arena.allocateUtf8String(args[0]),
+            var tu = clang_parseTranslationUnit(index, arena.allocateFrom(args[0]),
                     NULL, 0, NULL, 0, CXTranslationUnit_None());
             // array trick to update within lambda
             var level = new int[1];
@@ -63,7 +63,7 @@ public class ASTPrinter {
                 var kindName = asJavaString(clang_getCursorKindSpelling(arena, kind));
                 System.out.printf("%s %s %s", " ".repeat(level[0]), kindName, name);
                 var type = clang_getCursorType(arena, cursor);
-                if (CXType.kind$get(type) != CXType_Invalid()) {
+                if (CXType.kind(type) != CXType_Invalid()) {
                     var typeName = asJavaString(clang_getTypeSpelling(arena, type));
                     System.out.printf(" <%s>", typeName);
                 }

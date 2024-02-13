@@ -1,9 +1,10 @@
-ANACONDA3_HOME=/opt/anaconda3
+if [[ -z "${ANACONDA3_HOME}" ]]; then
+    ANACONDA3_HOME=/opt/anaconda3
+fi
 
-jextract --source -l python3.8 \
-  -I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include \
-  -I ${ANACONDA3_HOME}/include/python3.8 \
+jextract --output src -l python3.11 \
+  -I ${ANACONDA3_HOME}/include/python3.11 \
   -t org.python \
-  ${ANACONDA3_HOME}/include/python3.8/Python.h
+  ${ANACONDA3_HOME}/include/python3.11/Python.h
 
-javac --enable-preview --source=21 org/python/*.java
+javac --source=22 -d . src/org/python/*.java

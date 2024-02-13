@@ -91,7 +91,7 @@ public class EvalResult implements AutoCloseable {
 
     private String getAsString0() {
         MemorySegment value = Index_h.clang_EvalResult_getAsStr(ptr);
-        return value.getUtf8String(0);
+        return value.getString(0);
     }
 
     public String getAsString() {

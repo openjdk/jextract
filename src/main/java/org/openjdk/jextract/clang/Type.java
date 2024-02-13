@@ -99,7 +99,7 @@ public final class Type extends ClangDisposable.Owned {
         return new Type(elementType, owner);
     }
     public Type getValueType() {
-        var valueType = Index_h.clang_getValueType(owner, segment);
+        var valueType = Index_h.clang_Type_getValueType(owner, segment);
         return new Type(valueType, owner);
     }
 
@@ -110,7 +110,7 @@ public final class Type extends ClangDisposable.Owned {
     // Struct/RecordType
     private long getOffsetOf0(String fieldName) {
         try (Arena arena = Arena.ofConfined()) {
-            MemorySegment cfname = arena.allocateUtf8String(fieldName);
+            MemorySegment cfname = arena.allocateFrom(fieldName);
             return Index_h.clang_Type_getOffsetOf(segment, cfname);
         }
     }
@@ -161,7 +161,7 @@ public final class Type extends ClangDisposable.Owned {
     }
 
     public int kind0() {
-        return CXType.kind$get(segment);
+        return CXType.kind(segment);
     }
 
     private long size0() {

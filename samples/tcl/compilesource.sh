@@ -1,5 +1,4 @@
-jextract --source -l tcl -t org.tcl \
-  -I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include \
+jextract --output src -l tcl -t org.tcl \
    /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/tcl.h
 
-javac --enable-preview --source=21 org/tcl/*.java
+javac --source=22 -d . src/org/tcl/*.java

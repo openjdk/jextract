@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -36,7 +36,7 @@ public class Test8248474 extends JextractToolRunner {
     public void testUnsafeHeaderName() {
         Path test8248474Output = getOutputFilePath("test8248474_gen");
         Path test8248474H = getInputFilePath("JDK-8248474.h");
-        run("--output", test8248474Output.toString(), test8248474H.toString()).checkSuccess();
+        runAndCompile(test8248474Output, test8248474H.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(test8248474Output)) {
             Class<?> cls = loader.loadClass("JDK_8248474_h");
             assertNotNull(cls);
