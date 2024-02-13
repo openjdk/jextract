@@ -229,6 +229,10 @@ class TypeMaker {
                 Type iType = Type.primitive(Primitive.Kind.Int128);
                 return Type.qualified(Delegated.Kind.UNSIGNED, iType);
             }
+            case Atomic: {
+                Type aType = makeType(t.getValueType());
+                return Type.qualified(Delegated.Kind.ATOMIC, aType);
+            }
             default:
                 return TypeImpl.ERROR;
         }
