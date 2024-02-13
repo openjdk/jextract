@@ -55,6 +55,7 @@ repositories {
 
 compileJava {
     options.release = 22
+    options.compilerArgs << "--enable-preview"
     options.fork = true
     options.forkOptions.executable = "${jdk22_home}/bin/javac"
 }
@@ -111,8 +112,8 @@ task createJextractImage(type: Exec) {
     outputs.dir(jextract_app_dir)
 
     def quote_jlink_opts = Os.isFamily(Os.FAMILY_WINDOWS)?
-        '\\"--enable-native-access=org.openjdk.jextract\\"' :
-        '"--enable-native-access=org.openjdk.jextract"'
+        '\\"--enable-native-access=org.openjdk.jextract\\" \\"--enable-preview\""' :
+        '"--enable-native-access=org.openjdk.jextract" "--enable-preview"'
 
     doFirst {
         delete(jextract_app_dir)
