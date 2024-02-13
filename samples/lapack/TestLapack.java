@@ -40,10 +40,10 @@ public class TestLapack {
 
         /* Locals */
         try (var arena = Arena.ofConfined()) {
-            var A = arena.allocateArray(C_DOUBLE,
+            var A = arena.allocateFrom(C_DOUBLE,
                     1, 2, 3, 4, 5, 1, 3, 5, 2, 4, 1, 4, 2, 5, 3
             );
-            var b = arena.allocateArray(C_DOUBLE,
+            var b = arena.allocateFrom(C_DOUBLE,
                     -10, 12, 14, 16, 18, -3, 14, 12, 16, 16
             );
             int info, m, n, lda, ldb, nrhs;

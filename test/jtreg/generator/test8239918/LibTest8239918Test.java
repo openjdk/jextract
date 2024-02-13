@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,19 +26,12 @@ import static org.testng.Assert.assertEquals;
 import static test.jextract.test8239918.test8239918_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8239918
  * @summary jextract generates uncompilable code for no argument C function
-  * @library /lib
- * @run main/othervm JtregJextract -l Test8239918 -t test.jextract.test8239918 test8239918.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8239918Test
- */
-/*
- * @test id=sources
- * @bug 8239918
- * @summary jextract generates uncompilable code for no argument C function
-  * @library /lib
- * @run main/othervm JtregJextractSources -l Test8239918 -t test.jextract.test8239918 test8239918.h
+ * @library /lib
+ * @run main/othervm JtregJextract -l Test8239918 --use-system-load-library -t test.jextract.test8239918 test8239918.h
+ * @build LibTest8239918Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8239918Test
  */
 public class LibTest8239918Test {

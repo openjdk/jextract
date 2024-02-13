@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -33,26 +33,19 @@ import test.jextract.test8244412.*;
 import static test.jextract.test8244412.test8244412_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
  * @bug 8244412
  * @summary jextract should generate static utils class for primitive typedefs
  * @run main/othervm JtregJextract -t test.jextract.test8244412 test8244412.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8244412Test
- */
-/*
- * @test id=sources
- * @library /lib
- * @bug 8244412
- * @summary jextract should generate static utils class for primitive typedefs
- * @run main/othervm JtregJextractSources -t test.jextract.test8244412 test8244412.h
+ * @build LibTest8244412Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8244412Test
  */
 public class LibTest8244412Test {
     @Test
     public void test() {
         try (var arena = Arena.ofConfined()) {
-            var addr = arena.allocate(mysize_t, 0L);
+            var addr = arena.allocateFrom(mysize_t, 0L);
             assertEquals(addr.get(C_LONG_LONG, 0), 0L);
             addr.set(C_LONG_LONG, 0, 13455566L);
             assertEquals(addr.get(C_LONG_LONG, 0), 13455566L);

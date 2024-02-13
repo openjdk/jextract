@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -35,7 +35,7 @@ public class Test8260344 extends JextractToolRunner {
         Path test8260344Output = getOutputFilePath("test8260344gen");
         try {
             Path test8260344H = getInputFilePath("test8260344.h");
-            run("--output", test8260344Output.toString(), test8260344H.toString()).checkSuccess();
+            runAndCompile(test8260344Output, test8260344H.toString());
         } finally {
             TestUtils.deleteDir(test8260344Output);
         }

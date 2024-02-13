@@ -1,1 +1,1 @@
-javac -d build --enable-preview --source=21 org/openjdk/*.java
+javac -d build --source=22 org/openjdk/*.java

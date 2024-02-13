@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -45,7 +45,7 @@ public class TestNested extends JextractToolRunner {
     public void testNestedStructs() {
         Path nestedOutput = getOutputFilePath("nestedgen");
         Path nestedH = getInputFilePath("nested.h");
-        run("--output", nestedOutput.toString(), nestedH.toString()).checkSuccess();
+        runAndCompile(nestedOutput, nestedH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(nestedOutput)) {
             checkClass(loader, "Foo",
                 checkField("bar", MemorySegment.class, 0),
@@ -67,14 +67,14 @@ public class TestNested extends JextractToolRunner {
             checkClass(loader, "MyStruct",
                 checkField("a", byte.class, 0),
 
-                checkField("b", int.class, 4, "$anon$0"),
-                checkField("c", int.class, 8, "$anon$0", "$anon$0"),
+                checkField("b", int.class, 4, "$anon$48:5"),
+                checkField("c", int.class, 8, "$anon$48:5", "$anon$50:9"),
 
-                checkField("d", byte.class, 12, "$anon$0"),
-                checkField("f", MemorySegment.class, 13, "$anon$0"),
+                checkField("d", byte.class, 12, "$anon$48:5"),
+                checkField("f", MemorySegment.class, 13, "$anon$48:5"),
 
-                checkField("g", int.class, 16, "$anon$1"),
-                checkField("h", long.class, 16, "$anon$1"),
+                checkField("g", int.class, 16, "$anon$58:5"),
+                checkField("h", long.class, 16, "$anon$58:5"),
 
                 checkField("k", MemorySegment.class, 24)
             );
@@ -88,14 +88,14 @@ public class TestNested extends JextractToolRunner {
             checkClass(loader, "MyUnion",
                 checkField("a", byte.class, 0),
 
-                checkField("b", int.class, 0, "$anon$0"),
-                checkField("c", int.class, 4, "$anon$0", "$anon$0"),
+                checkField("b", int.class, 0, "$anon$73:5"),
+                checkField("c", int.class, 4, "$anon$73:5", "$anon$75:9"),
 
-                checkField("d", byte.class, 8, "$anon$0"),
-                checkField("f", MemorySegment.class, 9, "$anon$0"),
+                checkField("d", byte.class, 8, "$anon$73:5"),
+                checkField("f", MemorySegment.class, 9, "$anon$73:5"),
 
-                checkField("g", int.class, 0, "$anon$1"),
-                checkField("h", int.class, 4, "$anon$1"),
+                checkField("g", int.class, 0, "$anon$83:5"),
+                checkField("h", int.class, 4, "$anon$83:5"),
 
                 checkField("k", MemorySegment.class, 0)
             );
@@ -107,18 +107,18 @@ public class TestNested extends JextractToolRunner {
                 checkField("j", long.class, 0)
             );
             checkClass(loader, "X",
-                checkField("Z", MemorySegment.class, 0, "$anon$0")
+                checkField("Z", MemorySegment.class, 0, "$anon$97:5")
             );
             checkClass(loader, "X$Z",
                 checkField("y", int.class, 0)
             );
             checkClass(loader, "X2",
-                checkField("y", int.class, 0, "$anon$0", "$anon$0")
+                checkField("y", int.class, 0, "$anon$105:5", "$anon$106:9")
             );
             checkClass(loader, "NestedUnion",
                 checkField("x", int.class, 0),
-                checkField("y", int.class, 4, "$anon$0"),
-                checkField("z", int.class, 4, "$anon$0")
+                checkField("y", int.class, 4, "$anon$114:5"),
+                checkField("z", int.class, 4, "$anon$114:5")
             );
         } finally {
             TestUtils.deleteDir(nestedOutput);
@@ -153,7 +153,7 @@ public class TestNested extends JextractToolRunner {
                                        MemoryLayout fieldLayout) {
         try {
             if (type == MemorySegment.class) {
-                Method slicer = cls.getMethod(fieldName + "$slice", MemorySegment.class);
+                Method slicer = cls.getMethod(fieldName, MemorySegment.class);
                 assertEquals(slicer.getReturnType(), MemorySegment.class);
                 try (Arena arena = Arena.ofConfined()) {
                     MemorySegment struct = arena.allocate(layout);
@@ -161,9 +161,9 @@ public class TestNested extends JextractToolRunner {
                     assertEquals(slice.byteSize(), fieldLayout.byteSize());
                 }
             } else {
-                Method getter = cls.getMethod(fieldName + "$get", MemorySegment.class);
+                Method getter = cls.getMethod(fieldName, MemorySegment.class);
                 assertEquals(getter.getReturnType(), type);
-                Method setter = cls.getMethod(fieldName + "$set", MemorySegment.class, type);
+                Method setter = cls.getMethod(fieldName, MemorySegment.class, type);
                 assertEquals(setter.getReturnType(), void.class);
 
                 Object zero = MethodHandles.zero(type).invoke();

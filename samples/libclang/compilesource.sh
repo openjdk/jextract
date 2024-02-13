@@ -1,6 +1,5 @@
-jextract --source -t org.llvm.clang -lclang \
-  -I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ \
+jextract --output src -t org.llvm.clang -lclang \
   -I ${LIBCLANG_HOME}/include/ \
   -I ${LIBCLANG_HOME}/include/clang-c \
   ${LIBCLANG_HOME}/include/clang-c/Index.h
-javac --enable-preview --source=21 org/llvm/clang/*.java
+javac --source=22 -d . src/org/llvm/clang/*.java

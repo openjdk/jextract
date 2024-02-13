@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -33,46 +33,21 @@ import static test.jextract.funcpointers.func_h.*;
 import test.jextract.funcpointers.*;
 
 /*
- * @test id=classes
+ * @test
   * @library /lib
- * @run main/othervm JtregJextract -l Func -t test.jextract.funcpointers func.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestFuncPointerInvokers
- */
-/*
- * @test id=sources
-  * @library /lib
- * @run main/othervm JtregJextract -l Func -t test.jextract.funcpointers func.h
+ * @run main/othervm JtregJextract -l Func --use-system-load-library -t test.jextract.funcpointers func.h
+ * @build TestFuncPointerInvokers
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestFuncPointerInvokers
  */
 public class TestFuncPointerInvokers {
-    @Test
-    public void testStructFieldTypedef() {
-        try (Arena arena = Arena.ofConfined()) {
-            AtomicInteger val = new AtomicInteger(-1);
-            MemorySegment bar = Bar.allocate(arena);
-            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), arena));
-            Bar.foo(bar, arena).apply(42);
-            assertEquals(val.get(), 42);
-        }
-    }
 
     @Test
     public void testStructFieldFITypedef() {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment bar = Bar.allocate(arena);
-            Bar.foo$set(bar, Foo.allocate((i) -> val.set(i), arena));
-            Foo.ofAddress(Bar.foo$get(bar), arena).apply(42);
-            assertEquals(val.get(), 42);
-        }
-    }
-
-    @Test
-    public void testGlobalTypedef() {
-        try (Arena arena = Arena.ofConfined()) {
-            AtomicInteger val = new AtomicInteger(-1);
-            f$set(Foo.allocate((i) -> val.set(i), arena));
-            f().apply(42);
+            Bar.foo(bar, Foo.allocate((i) -> val.set(i), arena));
+            Foo.invoke(Bar.foo(bar), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -81,19 +56,8 @@ public class TestFuncPointerInvokers {
     public void testGlobalFITypedef() {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            f$set(Foo.allocate((i) -> val.set(i), arena));
-            Foo.ofAddress(f$get(), arena).apply(42);
-            assertEquals(val.get(), 42);
-        }
-    }
-
-    @Test
-    public void testStructFieldFunctionPointer() {
-        try (Arena arena = Arena.ofConfined()) {
-            AtomicInteger val = new AtomicInteger(-1);
-            MemorySegment baz = Baz.allocate(arena);
-            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), arena));
-            Baz.fp(baz, arena).apply(42);
+            f(Foo.allocate((i) -> val.set(i), arena));
+            Foo.invoke(f(), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -103,18 +67,8 @@ public class TestFuncPointerInvokers {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
             MemorySegment baz = Baz.allocate(arena);
-            Baz.fp$set(baz, Baz.fp.allocate((i) -> val.set(i), arena));
-            Baz.fp.ofAddress(Baz.fp$get(baz), arena).apply(42);
-            assertEquals(val.get(), 42);
-        }
-    }
-
-    @Test
-    public void testGlobalFunctionPointer() {
-        try (Arena arena = Arena.ofConfined()) {
-            AtomicInteger val = new AtomicInteger(-1);
-            fp$set(fp.allocate((i) -> val.set(i), arena));
-            fp().apply(42);
+            Baz.fp(baz, Baz.fp.allocate((i) -> val.set(i), arena));
+            Baz.fp.invoke(Baz.fp(baz), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -123,8 +77,8 @@ public class TestFuncPointerInvokers {
     public void testGlobalFIFunctionPointer() {
         try (Arena arena = Arena.ofConfined()) {
             AtomicInteger val = new AtomicInteger(-1);
-            fp$set(fp.allocate((i) -> val.set(i), arena));
-            fp.ofAddress(fp$get(), arena).apply(42);
+            fp(fp.allocate((i) -> val.set(i), arena));
+            fp.invoke(fp(), 42);
             assertEquals(val.get(), 42);
         }
     }
@@ -132,8 +86,8 @@ public class TestFuncPointerInvokers {
     @Test
     public void testGlobalFIFunctionPointerAddress() {
         try (Arena arena = Arena.ofConfined()) {
-            fp_addr$set(fp_addr.allocate((addr) -> MemorySegment.ofAddress(addr.address() + 1), arena));
-            assertEquals(fp_addr.ofAddress(fp_addr$get(), arena).apply(MemorySegment.ofAddress(42)), MemorySegment.ofAddress(43));
+            fp_addr(fp_addr.allocate((addr) -> MemorySegment.ofAddress(addr.address() + 1), arena));
+            assertEquals(fp_addr.invoke(fp_addr(), MemorySegment.ofAddress(42)), MemorySegment.ofAddress(43));
         }
     }
 }

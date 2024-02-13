@@ -8,8 +8,8 @@ param(
 )
 
 java `
+  -cp classes `
   --enable-native-access=ALL-UNNAMED `
-  --enable-preview --source=21 `
   -D"java.library.path=$libgit2path\bin" `
   GitClone.java `
   $url $path

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,20 +29,12 @@ import static test.jextract.test8244938.test8244938_h.*;
 import test.jextract.test8244938.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8244938
  * @summary Crash in foreign ABI CallArranger class when a test native function returns a nested struct
  * @library /lib
- * @run main/othervm JtregJextract -l Test8244938 -t test.jextract.test8244938 test8244938.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8244938
- */
-
-/*
- * @test id=sources
- * @bug 8244938
- * @summary Crash in foreign ABI CallArranger class when a test native function returns a nested struct
- * @library /lib
- * @run main/othervm JtregJextractSources -l Test8244938 -t test.jextract.test8244938 test8244938.h
+ * @run main/othervm JtregJextract -l Test8244938 --use-system-load-library -t test.jextract.test8244938 test8244938.h
+ * @build Test8244938
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8244938
  */
 public class Test8244938 {
@@ -51,10 +43,10 @@ public class Test8244938 {
          try (Arena arena = Arena.ofConfined()) {
              var seg = func(arena);
              assertEquals(seg.byteSize(), Point.sizeof());
-             assertEquals(Point.k$get(seg), 44);
-             var point2dSeg = Point.point2d$slice(seg);
-             assertEquals(Point2D.i$get(point2dSeg), 567);
-             assertEquals(Point2D.j$get(point2dSeg), 33);
+             assertEquals(Point.k(seg), 44);
+             var point2dSeg = Point.point2d(seg);
+             assertEquals(Point2D.i(point2dSeg), 567);
+             assertEquals(Point2D.j(point2dSeg), 33);
          }
     }
 }

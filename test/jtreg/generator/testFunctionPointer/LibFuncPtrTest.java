@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,15 +29,10 @@ import static test.jextract.fp.funcPtr_h.*;
 import test.jextract.fp.*;
 
 /*
- * @test id=classes
-  * @library /lib
- * @run main/othervm JtregJextract -l FuncPtr -t test.jextract.fp funcPtr.h
- * @run testng/othervm LibFuncPtrTest
- */
- /*
- * @test id=sources
-  * @library /lib
- * @run main/othervm JtregJextractSources -l FuncPtr -t test.jextract.fp funcPtr.h
+ * @test
+ * @library /lib
+ * @run main/othervm JtregJextract -l FuncPtr --use-system-load-library -t test.jextract.fp funcPtr.h
+ * @build LibFuncPtrTest
  * @run testng/othervm LibFuncPtrTest
  */
 public class LibFuncPtrTest {

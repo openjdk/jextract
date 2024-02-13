@@ -26,11 +26,11 @@
 
 package org.openjdk.jextract;
 
-import java.lang.constant.Constable;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.lang.foreign.MemoryLayout;
+
 import org.openjdk.jextract.impl.DeclarationImpl;
 
 /**
@@ -52,36 +52,6 @@ public interface Declaration {
      * @return The name associated with this declaration.
      */
     String name();
-
-    /**
-     * Get a declaration with specified attribute.
-     * Set the values to the specified attribute while other attributes remains unchanged. If the specified attribute
-     * already exist, the new values are replacing the old ones. By not specifying any value, the attribute will become
-     * empty as {@link #getAttribute(String) getAttribute(name).isEmpty()} will return true.
-     * @param name The attribute name
-     * @param values More attribute values
-     * @return the Declaration with attributes
-     */
-    Declaration withAttribute(String name, Constable... values);
-
-    /**
-     * Get a declaration without current attributes
-     * @return the Declatation without any attributes
-     */
-    Declaration stripAttributes();
-
-    /**
-     * The values of the specified attribute.
-     * @param name The attribute to retrieve
-     * @return The list of values associate with this attribute
-     */
-    Optional<List<Constable>> getAttribute(String name);
-
-    /**
-     * The attributes associated with this declaration
-     * @return The attributes associated with this declaration
-     */
-    Set<String> attributeNames();
 
     /**
      * Entry point for visiting declaration instances.
@@ -109,6 +79,26 @@ public interface Declaration {
      * @return the hash code value for this Declaration.
      */
     int hashCode();
+
+    /**
+     * {@return the attributes associated with this declaration}
+     */
+    Collection<Record> attributes();
+
+    /**
+     * Obtains an attribute from this declaration.
+     * @param attributeClass the class of the attribute to be obtained.
+     * @param <R> the attribute's type.
+     * @return the attribute (if any).
+     */
+    <R extends Record> Optional<R> getAttribute(Class<R> attributeClass);
+
+    /**
+     * Adds a new attribute to this declaration.
+     * @param attribute the attribute to be added.
+     * @param <R> the attribute's type.
+     */
+    <R extends Record> void addAttribute(R attribute);
 
     /**
      * A function declaration.
@@ -139,14 +129,6 @@ public interface Declaration {
          */
         enum Kind {
             /**
-             * Namespace declaration.
-             */
-            NAMESPACE,
-            /**
-             * Class declaration.
-             */
-            CLASS,
-            /**
              * Enum declaration.
              */
             ENUM,
@@ -173,16 +155,6 @@ public interface Declaration {
          * @return The member declarations associated with this scoped declaration.
          */
         List<Declaration> members();
-
-        /**
-         * The (optional) layout associated with this scoped declaration.
-         * @return The (optional) layout associated with this scoped declaration.
-         *
-         * @implSpec a layout is present if the scoped declaration kind is one of {@link Kind#STRUCT}, {@link Kind#UNION},
-         * {@link Kind#ENUM}, {@link Kind#BITFIELDS}, {@link Kind#CLASS} <em>and</em> if this declaration models an entity in the foreign
-         * language that is associated with a <em>definition</em>.
-         */
-        Optional<MemoryLayout> layout();
 
         /**
          * The scoped declaration kind.
@@ -246,10 +218,6 @@ public interface Declaration {
      * an offset (relative to the enclosing container) and a width.
      */
     interface Bitfield extends Variable {
-        /**
-         * {@return The bitfield offset (relative to the enclosing container)}
-         */
-        long offset();
 
         /**
          * {@return The bitfield width (in bits)}
@@ -368,12 +336,10 @@ public interface Declaration {
      * @param pos the bitfield declaration position.
      * @param name the bitfield declaration name.
      * @param type the bitfield declaration type.
-     * @param offset the offset of the bitfield (relative to the enclosing container).
-     * @param width the bitfield width.
      * @return a new bitfield declaration with given name, type and layout.
      */
-    static Declaration.Variable bitfield(Position pos, String name, Type type, long offset, long width) {
-        return new DeclarationImpl.BitfieldImpl(type, offset, width, name, pos);
+    static Declaration.Variable bitfield(Position pos, String name, long width, Type type) {
+        return new DeclarationImpl.BitfieldImpl(type, width, name, pos);
     }
 
     /**
@@ -411,18 +377,6 @@ public interface Declaration {
     }
 
     /**
-     * Creates a new namespace declaration with given name and member declarations.
-     * @param pos the namespace declaration position.
-     * @param name the namespace declaration name.
-     * @param decls the namespace declaration member declarations.
-     * @return a new namespace declaration with given name and member declarations.
-     */
-    static Declaration.Scoped namespace(Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.NAMESPACE, declList, name, pos);
-    }
-
-    /**
      * Creates a new bitfields group declaration with given name and layout.
      * @param pos the bitfields group declaration position.
      * @param bitfields the bitfields group member declarations.
@@ -446,19 +400,6 @@ public interface Declaration {
     }
 
     /**
-     * Creates a new struct declaration with given name, layout and member declarations.
-     * @param pos the struct declaration position.
-     * @param name the struct declaration name.
-     * @param layout the struct declaration layout.
-     * @param decls the struct declaration member declarations.
-     * @return a new struct declaration with given name, layout and member declarations.
-     */
-    static Declaration.Scoped struct(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.STRUCT, layout, declList, name, pos);
-    }
-
-    /**
      * Creates a new union declaration with given name and member declarations.
      * @param pos the union declaration position.
      * @param name the union declaration name.
@@ -468,44 +409,6 @@ public interface Declaration {
     static Declaration.Scoped union(Position pos, String name, Declaration... decls) {
         List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(Scoped.Kind.UNION, declList, name, pos);
-    }
-
-    /**
-     * Creates a new union declaration with given name, layout and member declarations.
-     * @param pos the union declaration position.
-     * @param name the union declaration name.
-     * @param layout the union declaration layout.
-     * @param decls the union declaration member declarations.
-     * @return a new union declaration with given name, layout and member declarations.
-     */
-    static Declaration.Scoped union(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.UNION, layout, declList, name, pos);
-    }
-
-    /**
-     * Creates a new class declaration with given name and member declarations.
-     * @param pos the class declaration position.
-     * @param name the class declaration name.
-     * @param decls the class declaration member declarations.
-     * @return a new class declaration with given name and member declarations.
-     */
-    static Declaration.Scoped class_(Position pos, String name, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.CLASS, declList, name, pos);
-    }
-
-    /**
-     * Creates a new class declaration with given name, layout and member declarations.
-     * @param pos the class declaration position.
-     * @param name the class declaration name.
-     * @param layout the class declaration layout.
-     * @param decls the class declaration member declarations.
-     * @return a new class declaration with given name, layout and member declarations.
-     */
-    static Declaration.Scoped class_(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.CLASS, layout, declList, name, pos);
     }
 
     /**
@@ -521,19 +424,6 @@ public interface Declaration {
     }
 
     /**
-     * Creates a new enum declaration with given name, layout and member declarations.
-     * @param pos the enum declaration position.
-     * @param name the enum declaration name.
-     * @param layout the enum declaration layout.
-     * @param decls the enum declaration member declarations.
-     * @return a new enum declaration with given name, layout and member declarations.
-     */
-    static Declaration.Scoped enum_(Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(Declaration.Scoped.Kind.ENUM, layout, declList, name, pos);
-    }
-
-    /**
      * Creates a new scoped declaration with given kind, name and member declarations.
      * @param kind the kind of the scoped declaration.
      * @param pos the scoped declaration position.
@@ -544,20 +434,6 @@ public interface Declaration {
     static Declaration.Scoped scoped(Scoped.Kind kind, Position pos, String name, Declaration... decls) {
         List<Declaration> declList = List.of(decls);
         return new DeclarationImpl.ScopedImpl(kind, declList, name, pos);
-    }
-
-    /**
-     * Creates a new scoped declaration with given kind, name, layout and member declarations.
-     * @param kind the kind of the scoped declaration.
-     * @param pos the scoped declaration position.
-     * @param name the scoped declaration name.
-     * @param layout the scoped declaration layout.
-     * @param decls the scoped declaration member declarations.
-     * @return a new scoped declaration with given kind, name, layout and member declarations.
-     */
-    static Declaration.Scoped scoped(Scoped.Kind kind, Position pos, String name, MemoryLayout layout, Declaration... decls) {
-        List<Declaration> declList = List.of(decls);
-        return new DeclarationImpl.ScopedImpl(kind, layout, declList, name, pos);
     }
 
     /**
@@ -581,6 +457,12 @@ public interface Declaration {
      * @return a new type declaration with given name and declared type.
      */
     static Declaration.Typedef typedef(Position pos, String name, Type type) {
-        return new DeclarationImpl.TypedefImpl(type, name, pos, null);
+        return new DeclarationImpl.TypedefImpl(type, name, pos);
     }
+
+    /**
+     * A record used to capture clang attributes attached to a declaration.
+     * @param attributes a map from attribute name to attribute values.
+     */
+    record ClangAttributes(Map<String, List<String>> attributes) { }
 }

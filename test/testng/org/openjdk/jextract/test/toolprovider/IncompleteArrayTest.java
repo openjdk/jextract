@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -37,10 +37,9 @@ public class IncompleteArrayTest extends JextractToolRunner {
     public void testIncompleteArray() {
         Path output = getOutputFilePath("incompleteArray_out");
         Path input = getInputFilePath("incompleteArray.h");
-        run(
+        runAndCompile(output,
             "-t", "org.jextract",
-            "--output", output,
-            input).checkSuccess();
+            input);
         try (TestUtils.Loader loader = TestUtils.classLoader(output)) {
             Class<?> cls = loader.loadClass("org.jextract.Foo");
             assertNotNull(cls);

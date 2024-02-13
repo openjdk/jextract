@@ -26,13 +26,10 @@
 
 package org.openjdk.jextract.impl;
 
-import java.lang.constant.Constable;
-import java.util.Set;
+import java.util.Collection;
 import java.util.stream.Collectors;
-import java.lang.foreign.MemoryLayout;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Bitfield;
-import org.openjdk.jextract.Declaration.Variable.Kind;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 
@@ -56,22 +53,23 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
     StringBuilder builder = new StringBuilder();
 
     private void getAttributes(Declaration decl) {
-        Set<String> attrs = decl.attributeNames();
-        if (attrs.isEmpty()) {
-            return;
+        Collection<Record> attrs = decl.attributes();
+        if (!attrs.isEmpty()) {
+            incr();
+            indent();
+            builder.append("Attributes: ");
+            String sep = "\n";
+            for (Record attr : attrs) {
+                builder.append(sep);
+                incr();
+                indent();
+                builder.append(attr);
+                decr();
+                sep = ",\n";
+            }
+            builder.append("\n");
+            decr();
         }
-        incr();
-        indent();
-        for (String k: attrs) {
-            builder.append("Attr: ");
-            builder.append(k);
-            builder.append(" -> [");
-            builder.append(decl.getAttribute(k).get().stream()
-                .map(Constable::toString)
-                .collect(Collectors.joining(", ")));
-            builder.append("]\n");
-        }
-        decr();
     }
 
     public String print(Declaration decl) {
@@ -82,8 +80,7 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
     @Override
     public Void visitScoped(Declaration.Scoped d, Void aVoid) {
         indent();
-        builder.append("Scoped: " + d.kind() + " " + d.name() + d.layout().map(l -> " layout = " + l).orElse(""));
-        builder.append("\n");
+        builder.append("Scoped: " + d.kind() + " " + d.name() + "\n");
         getAttributes(d);
         incr();
         d.members().forEach(m -> m.accept(this, null));
@@ -108,7 +105,7 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
         indent();
         if (d instanceof Bitfield bitfield) {
             builder.append("Bitfield: " + " type = " + d.type().accept(typeVisitor, null) + ", name = " + bitfield.name()
-                    + ", offset = " + bitfield.offset() + ", width = " + bitfield.width());
+                    + ", width = " + bitfield.width());
         } else {
             builder.append("Variable: " + d.kind() + " " + d.name() + " type = " + d.type().accept(typeVisitor, null));
         }
@@ -138,7 +135,7 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
     private static Type.Visitor<String, Void> typeVisitor = new Type.Visitor<>() {
         @Override
         public String visitPrimitive(Type.Primitive t, Void aVoid) {
-            return t.kind().toString() + t.kind().layout().map(l -> "(layout = " + l + ")").orElse("");
+            return t.kind().toString();
         }
 
         @Override
@@ -164,7 +161,7 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
 
         @Override
         public String visitDeclared(Type.Declared t, Void aVoid) {
-            return "Declared(" + t.tree().layout().map(MemoryLayout::toString).orElse("") + ")";
+            return "Declared(" + t.tree().name() + ")";
         }
 
         @Override
@@ -176,7 +173,9 @@ public class PrettyPrinter implements Declaration.Visitor<Void, Void> {
 
         @Override
         public String visitType(Type t, Void aVoid) {
-            return "Unknown type: " + t.getClass().getName();
+            return t.isErroneous() ?
+                    STR."<error: \{((TypeImpl.ErronrousTypeImpl)t).erroneousName}>" :
+                    STR."<unknown: \{t.getClass().getName()}>";
         }
     };
 

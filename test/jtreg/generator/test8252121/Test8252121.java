@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,19 +32,12 @@ import test.jextract.arrayparam.*;
 import static test.jextract.arrayparam.arrayparam_h.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8252121
  * @summary jextract generated code fails with ABI for typedefed array type parameters
  * @library /lib
- * @run main/othervm JtregJextract -t test.jextract.arrayparam -l Arrayparam arrayparam.h
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8252121
- */
-/*
- * @test id=sources
- * @bug 8252121
- * @summary jextract generated code fails with ABI for typedefed array type parameters
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.arrayparam -l Arrayparam arrayparam.h
+ * @run main/othervm JtregJextract -t test.jextract.arrayparam -l Arrayparam --use-system-load-library arrayparam.h
+ * @build Test8252121
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8252121
  */
 public class Test8252121 {
@@ -52,7 +45,7 @@ public class Test8252121 {
     public void test() {
         try (var arena = Arena.ofConfined()) {
             int[] array = { 3, 5, 89, 34, -33 };
-            MemorySegment seg = arena.allocateArray(C_INT, array);
+            MemorySegment seg = arena.allocateFrom(C_INT, array);
             assertEquals(IntStream.of(array).sum(), sum(seg));
             assertEquals(IntStream.of(array).reduce(1, (a,b) -> a*b), mul(seg));
         }

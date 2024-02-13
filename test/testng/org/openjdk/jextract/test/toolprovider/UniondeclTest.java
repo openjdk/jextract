@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -39,7 +39,7 @@ public class UniondeclTest extends JextractToolRunner {
     public void unionDecl() {
         Path uniondeclOutput = getOutputFilePath("uniondecl.h");
         Path uniondeclH = getInputFilePath("uniondecl.h");
-        run("--output", uniondeclOutput.toString(), uniondeclH.toString()).checkSuccess();
+        runAndCompile(uniondeclOutput, uniondeclH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(uniondeclOutput)) {
             Class<?> cls = loader.loadClass("uniondecl_h");
             // check a method for "void func(IntOrFloat*)"

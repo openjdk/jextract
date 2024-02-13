@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,39 +30,32 @@ import static test.jextract.test8254983.test8254983_h.*;
 import test.jextract.test8254983.*;
 
 /*
- * @test id=classes
+ * @test
  * @library /lib
  * @bug 8254983
  * @summary jextract fails to hande layout paths nested structs/union
  * @run main/othervm JtregJextract -t test.jextract.test8254983 test8254983.h
- * @run testng/othervm -Dforeign.restricted=permit LibTest8254983Test
- */
-/*
- * @test id=sources
- * @library /lib
- * @bug 8254983
- * @summary jextract fails to hande layout paths nested structs/union
- * @run main/othervm JtregJextractSources -t test.jextract.test8254983 test8254983.h
+ * @build LibTest8254983Test
  * @run testng/othervm -Dforeign.restricted=permit LibTest8254983Test
  */
 public class LibTest8254983Test {
     @Test
     public void testOuterStruct() {
         try (Arena arena = Arena.ofConfined()) {
-            assertEquals(((GroupLayout)Foo._struct.$LAYOUT()).memberLayouts().size(), 1);
+            assertEquals(((GroupLayout)Foo._struct.layout()).memberLayouts().size(), 1);
             MemorySegment str = Foo._struct.allocate(arena);
-            Foo._struct.x$set(str, 42);
-            assertEquals(Foo._struct.x$get(str), 42);
+            Foo._struct.x(str, 42);
+            assertEquals(Foo._struct.x(str), 42);
         }
     }
 
     @Test
     public void testInnerStruct() {
-        assertEquals(((GroupLayout)Foo._union._struct.$LAYOUT()).memberLayouts().size(), 2);
+        assertEquals(((GroupLayout)Foo._union._struct.layout()).memberLayouts().size(), 2);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment str = Foo._union._struct.allocate(arena);
-            Foo._union._struct.x$set(str, 42);
-            assertEquals(Foo._union._struct.x$get(str), 42);
+            Foo._union._struct.x(str, 42);
+            assertEquals(Foo._union._struct.x(str), 42);
         }
     }
 }

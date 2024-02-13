@@ -9,7 +9,7 @@ $Env:path+="`;$lapackPath\bin" # libblas.dll
 $Env:path+="`;$mingwBinPath" # mingw runtime dlls
 
 java `
+  -cp classes `
   --enable-native-access=ALL-UNNAMED `
-  --enable-preview --source=21 `
   -D"java.library.path=$lapackPath\bin" `
   TestLapack.java `

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,19 +30,12 @@ import static test.jextract.test8252465.test8252465_h.*;
 import test.jextract.test8252465.*;
 
 /*
- * @test id=classes
+ * @test
  * @bug 8252465
  * @summary jextract generates wrong layout and varhandle when different structs have same named field
  * @library /lib
  * @run main/othervm JtregJextract -t test.jextract.test8252465 test8252465.h
- * @run testng/othervm -Dforeign.restricted=permit LibTest8252465Test
- */
-/*
- * @test id=sources
- * @bug 8252465
- * @summary jextract generates wrong layout and varhandle when different structs have same named field
- * @library /lib
- * @run main/othervm JtregJextractSources -t test.jextract.test8252465 test8252465.h
+ * @build LibTest8252465Test
  * @run testng/othervm -Dforeign.restricted=permit LibTest8252465Test
  */
 public class LibTest8252465Test {
@@ -50,11 +43,11 @@ public class LibTest8252465Test {
     public void test() {
         try (var arena = Arena.ofConfined()) {
             var foo = Foo.allocate(arena);
-            Foo.x$set(foo, 3.14f);
-            assertEquals(Foo.x$get(foo), 3.14f, 0.001f);
+            Foo.x(foo, 3.14f);
+            assertEquals(Foo.x(foo), 3.14f, 0.001f);
             var bar = Bar.allocate(arena);
-            Bar.x$set(bar, -42);
-            assertEquals(Bar.x$get(bar), -42);
+            Bar.x(bar, -42);
+            assertEquals(Bar.x(bar), -42);
         }
     }
 }

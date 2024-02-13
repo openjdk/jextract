@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -34,7 +34,7 @@ public class Test8240181 extends JextractToolRunner {
     public void testAnonymousEnum() {
         Path anonenumOutput = getOutputFilePath("anonenumgen");
         Path anonenumH = getInputFilePath("anonenum.h");
-        run("--output", anonenumOutput.toString(), anonenumH.toString()).checkSuccess();
+        runAndCompile(anonenumOutput, anonenumH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(anonenumOutput)) {
             Class<?> cls = loader.loadClass("anonenum_h");
             checkIntGetter(cls, "RED", 0xff0000);

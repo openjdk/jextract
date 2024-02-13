@@ -1,8 +1,7 @@
-jextract --source -l readline -t org.unix \
-  -I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include \
+jextract --output src -l readline -t org.unix \
   --header-class-name readline_h \
   --include-function readline \
   --include-function free \
   myreadline.h
 
-javac --enable-preview --source=21 org/unix/*.java
+javac --source=22 -d . src/org/unix/*.java

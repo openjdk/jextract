@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -36,7 +36,7 @@ public class Test8240657 extends JextractToolRunner {
     public void testKeywordIdentifiers() {
         Path exportsOutput = getOutputFilePath("exportsgen");
         Path exportsH = getInputFilePath("exports.h");
-        run("--output", exportsOutput.toString(), exportsH.toString()).checkSuccess();
+        runAndCompile(exportsOutput, exportsH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(exportsOutput)) {
             Class<?> cls = loader.loadClass("exports_h");
             assertNotNull(cls);

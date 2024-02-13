@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@ package org.openjdk.jextract.test.toolprovider;
 
 import java.nio.file.Path;
 
-import java.lang.foreign.GroupLayout;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.StructLayout;
 import java.lang.foreign.UnionLayout;
@@ -41,7 +40,7 @@ public class Test8240811 extends JextractToolRunner {
     public void testNameCollision() {
         Path nameCollisionOutput = getOutputFilePath("name_collision_gen");
         Path nameCollisionH = getInputFilePath("name_collision.h");
-        run("--output", nameCollisionOutput.toString(), nameCollisionH.toString()).checkSuccess();
+        runAndCompile(nameCollisionOutput, nameCollisionH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(nameCollisionOutput)) {
             Class<?> cls = loader.loadClass("name_collision_h");
             assertNotNull(cls);
@@ -55,9 +54,6 @@ public class Test8240811 extends JextractToolRunner {
             checkField(fooLayout, "y",  C_INT);
             checkField(fooLayout, "z",  C_INT);
 
-            MemoryLayout fooVarLayout = findLayout(cls, "foo");
-            assertNotNull(fooVarLayout);
-
             // check foo2 layout
             Class<?> foo2Cls = loader.loadClass("foo2");
             MemoryLayout foo2Layout = findLayout(foo2Cls);
@@ -66,12 +62,6 @@ public class Test8240811 extends JextractToolRunner {
             checkField(foo2Layout, "i", C_INT);
             checkField(foo2Layout, "l", C_LONG);
 
-            MemoryLayout foo2VarLayout = findLayout(cls, "foo2");
-            assertNotNull(foo2VarLayout);
-
-            MemoryLayout barVarLayout = findLayout(cls, "bar");
-            assertNotNull(barVarLayout);
-
             // check bar layout
             Class<?> barCls = loader.loadClass("bar");
             MemoryLayout barLayout = findLayout(barCls);
@@ -79,9 +69,6 @@ public class Test8240811 extends JextractToolRunner {
             assertTrue(barLayout instanceof StructLayout);
             checkField(barLayout, "f1", C_FLOAT);
             checkField(barLayout, "f2", C_FLOAT);
-
-            MemoryLayout bar2VarLayout = findLayout(cls, "bar2");
-            assertNotNull(bar2VarLayout);
 
             // check bar layout
             Class<?> bar2Cls = loader.loadClass("bar2");

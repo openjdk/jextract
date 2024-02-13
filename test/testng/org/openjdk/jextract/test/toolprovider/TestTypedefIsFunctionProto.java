@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -33,7 +33,7 @@ public class TestTypedefIsFunctionProto extends JextractToolRunner {
     public void testVoidTypedef() {
         Path outputPath = getOutputFilePath("outputTDIFP");
         Path headerFile = getInputFilePath("funcproto.h");
-        run("--output", outputPath.toString(), headerFile.toString()).checkSuccess();
+        runAndCompile(outputPath, headerFile.toString());
         // nothing is generated that we can check, so we just check that jextract ran successfully
         TestUtils.deleteDir(outputPath);
     }

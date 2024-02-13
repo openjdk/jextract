@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -35,7 +35,7 @@ public class Test7903164 extends JextractToolRunner {
     public void testWithoutMacro() {
         Path output = getOutputFilePath("7903164gen_withoutmacro");
         Path outputH = getInputFilePath("test7903164.h");
-        run("--output", output.toString(), outputH.toString()).checkSuccess();
+        runAndCompile(output, outputH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
             assertNotNull(loader.loadClass("test7903164_h"));
             assertNotNull(loader.loadClass("func"));
@@ -49,7 +49,7 @@ public class Test7903164 extends JextractToolRunner {
     public void testWithMacro() {
         Path output = getOutputFilePath("7903164gen_withmacro");
         Path outputH = getInputFilePath("test7903164.h");
-        run("-D", "FOO", "--output", output.toString(), outputH.toString()).checkSuccess();
+        runAndCompile(output, "-D", "FOO", outputH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
             assertNotNull(loader.loadClass("test7903164_h"));
             assertNotNull(loader.loadClass("func"));
@@ -63,7 +63,7 @@ public class Test7903164 extends JextractToolRunner {
     public void testWithMacro2() {
         Path output = getOutputFilePath("7903164gen_withmacro2");
         Path outputH = getInputFilePath("test7903164.h");
-        run("--define-macro", "FOO", "--output", output.toString(), outputH.toString()).checkSuccess();
+        runAndCompile(output, "--define-macro", "FOO", outputH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(output)) {
             assertNotNull(loader.loadClass("test7903164_h"));
             assertNotNull(loader.loadClass("func"));
