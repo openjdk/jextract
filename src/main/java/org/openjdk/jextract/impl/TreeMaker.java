@@ -503,7 +503,7 @@ class TreeMaker {
             default -> {
                 // heuristic, try w/o expanding first, and check if there are <anonymous> strings
                 String cursorString = declarationString(cursor, false);
-                if (cursorString.matches(".*\\(unnamed (struct|union|enum) at.*")) {
+                if (cursorString.matches(".*\\((unnamed|anonymous) (struct|union|enum) at.*")) {
                     // the output contains anonymous definitions, fallback and expand them
                     cursorString = declarationString(cursor, true);
                 }
