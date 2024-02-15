@@ -1,3 +1,1 @@
-java --enable-native-access=ALL-UNNAMED \
-    -Djava.library.path=/usr/local/opt/lapack/lib \
-    TestLapack.java
+java --enable-native-access=ALL-UNNAMED TestLapack.java
