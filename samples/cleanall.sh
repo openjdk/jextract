@@ -35,7 +35,8 @@ rm -rf src
 rm -rf frame*.ppm
 cd ..
 cd libjimage
-rm -rf build
+rm -rf org
+rm -rf src
 cd ..
 cd libgit2
 rm -rf com

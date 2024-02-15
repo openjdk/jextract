@@ -1,4 +1,2 @@
-
-java --enable-native-access=ALL-UNNAMED \
-    PanamaTime.java
+java --enable-native-access=ALL-UNNAMED PanamaTime.java
 
