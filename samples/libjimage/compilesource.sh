@@ -1,1 +1,7 @@
-javac -d build --source=22 org/openjdk/*.java
+jextract \
+  --output src \
+  -l jimage \
+  -t org.openjdk \
+  jimage.h
+
+javac --source=22 -d . src/org/openjdk/*.java

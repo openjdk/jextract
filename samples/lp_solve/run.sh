@@ -1,3 +1,1 @@
-java --enable-native-access=ALL-UNNAMED \
-   -Djava.library.path=/usr/local/Cellar/lp_solve/5.5.2.11/lib \
-    LpSolveDemo.java
+java --enable-native-access=ALL-UNNAMED LpSolveDemo.java
