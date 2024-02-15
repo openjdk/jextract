@@ -1,2 +1,1 @@
-java --enable-native-access=ALL-UNNAMED \
-   Dlopen.java $*
+java --enable-native-access=ALL-UNNAMED Dlopen.java $*

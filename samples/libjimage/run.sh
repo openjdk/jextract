@@ -1,3 +1,1 @@
-java -cp build \
-   --enable-native-access=ALL-UNNAMED \
-   JImageFile.java
+java --enable-native-access=ALL-UNNAMED JImageFile.java
