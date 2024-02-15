@@ -126,7 +126,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     public void addFunctionalInterface(Declaration parentDecl, Type.Function funcType) {
         incrAlign();
         FunctionalInterfaceBuilder.generate(sourceFileBuilder(), JavaFunctionalInterfaceName.getOrThrow(parentDecl),
-                this, runtimeHelperName(), parentDecl, funcType);
+                this, runtimeHelperName(), parentDecl, funcType, true);
         decrAlign();
     }
 

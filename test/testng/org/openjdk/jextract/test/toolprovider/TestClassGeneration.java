@@ -34,8 +34,10 @@ import testlib.JextractToolRunner;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
@@ -43,6 +45,8 @@ import static java.lang.invoke.MethodType.methodType;
 import static java.lang.foreign.MemoryLayout.PathElement.sequenceElement;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 public class TestClassGeneration extends JextractToolRunner {
 
@@ -167,6 +171,7 @@ public class TestClassGeneration extends JextractToolRunner {
         String memberName = memberLayout.name().orElseThrow();
 
         Class<?> structCls = loader.loadClass("com.acme." + structName);
+        checkDefaultConstructor(cls);
         Method layout_getter = checkMethod(structCls, "layout", MemoryLayout.class);
         MemoryLayout structLayout = (MemoryLayout) layout_getter.invoke(null);
         try (Arena arena = Arena.ofConfined()) {
@@ -186,7 +191,9 @@ public class TestClassGeneration extends JextractToolRunner {
 
     @Test(dataProvider = "functionalInterfaces")
     public void testFunctionalInterface(String name, MethodType type) {
-        Class<?> fiClass = loader.loadClass("com.acme." + name + "$Function");
+        Class<?> fpClass = loader.loadClass("com.acme." + name);
+        checkDefaultConstructor(fpClass);
+        Class<?> fiClass = findNestedClass(fpClass, "Function");
         assertNotNull(fiClass);
         checkMethod(fiClass, "apply", type);
         Class<?> cbClass = loader.loadClass("com.acme." + name);
@@ -213,4 +220,12 @@ public class TestClassGeneration extends JextractToolRunner {
         TestUtils.deleteDir(outputDir);
     }
 
+    private void checkDefaultConstructor(Class<?> cls) {
+        try {
+            Constructor<?> c = cls.getDeclaredConstructor();
+            assertEquals(c.getModifiers(), 0, "Unexpected constructor modifiers");
+        } catch (ReflectiveOperationException ex) {
+            fail("Default constructor not found!");
+        }
+    }
 }
