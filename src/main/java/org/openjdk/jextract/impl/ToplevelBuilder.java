@@ -165,7 +165,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     public void addFunctionalInterface(Declaration parentDecl, Type.Function funcType) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaFunctionalInterfaceName.getOrThrow(parentDecl));
         otherBuilders.add(sfb);
-        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, mainHeaderClassName(), parentDecl, funcType);
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, mainHeaderClassName(), parentDecl, funcType, false);
     }
 
     private HeaderFileBuilder nextHeader() {
