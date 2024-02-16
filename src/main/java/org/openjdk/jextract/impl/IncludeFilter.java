@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,6 +25,8 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Type;
+import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 /*
@@ -32,9 +34,11 @@ import org.openjdk.jextract.impl.DeclarationImpl.Skip;
  */
 public final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
     private final IncludeHelper includeHelper;
+    private final Logger logger;
 
-    public IncludeFilter(IncludeHelper includeHelper) {
+    public IncludeFilter(IncludeHelper includeHelper, Logger logger) {
         this.includeHelper = includeHelper;
+        this.logger = logger;
     }
 
     public Declaration.Scoped scan(Declaration.Scoped header) {
@@ -60,6 +64,8 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
             //skip
             Skip.with(funcTree);
         }
+        warnMissingDep(funcTree, funcTree.type().returnType());
+        funcTree.type().argumentTypes().forEach(p -> warnMissingDep(funcTree, p));
         return null;
     }
 
@@ -84,6 +90,7 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
             //skip
             Skip.with(tree);
         }
+        warnMissingDep(tree, tree.type());
         return null;
     }
 
@@ -93,11 +100,26 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
             //skip
             Skip.with(tree);
         }
+        warnMissingDep(parent != null ? parent : tree, tree.type());
         return null;
     }
 
     @Override
     public Void visitDeclaration(Declaration decl, Declaration parent) {
         return null;
+    }
+
+    void warnMissingDep(Declaration decl, Type type) {
+        if (type instanceof Type.Declared declared) {
+            // we only have to check for missing structs because (a) pointers to missing structs can still lead
+            // to valid code and (b) missing typedefs to existing structs are resolved correctly, as typedefs are never
+            // referred to by name in the generated code (because of libclang limitations).
+            if (Skip.isPresent(declared.tree())) {
+                logger.err("jextract.bad.include", decl.name(), declared.tree().name());
+            }
+        } else if (type instanceof Type.Delegated delegated &&
+                        delegated.kind() == Delegated.Kind.TYPEDEF) {
+            warnMissingDep(decl, delegated.type());
+        }
     }
 }

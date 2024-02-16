@@ -64,11 +64,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     }
 
     private void generateDecl(Declaration tree) {
-        try {
-            tree.accept(this, null);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        tree.accept(this, null);
     }
 
     @Override

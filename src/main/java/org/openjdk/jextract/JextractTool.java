@@ -31,6 +31,7 @@ import org.openjdk.jextract.impl.CommandLine;
 import org.openjdk.jextract.impl.DuplicateFilter;
 import org.openjdk.jextract.impl.IncludeFilter;
 import org.openjdk.jextract.impl.IncludeHelper;
+import org.openjdk.jextract.impl.Logger;
 import org.openjdk.jextract.impl.NameMangler;
 import org.openjdk.jextract.impl.Options.Library;
 import org.openjdk.jextract.impl.OutputFactory;
@@ -65,15 +66,8 @@ import java.util.stream.Stream;
  * on top of the underlying memory access var handles. For each struct, a static layout field is generated.
  */
 public final class JextractTool {
-    private static final String MESSAGES_RESOURCE = "org.openjdk.jextract.impl.resources.Messages";
-
-    private static final ResourceBundle MESSAGES_BUNDLE;
-    static {
-        MESSAGES_BUNDLE = ResourceBundle.getBundle(MESSAGES_RESOURCE, Locale.getDefault());
-    }
 
     public static final boolean DEBUG = Boolean.getBoolean("jextract.debug");
-    public static final Optional<Path> PLATFORM_INCLUDE_PATH = inferPlatformIncludePath();
 
     // error codes
     private static final int SUCCESS       = 0;
@@ -83,16 +77,10 @@ public final class JextractTool {
     private static final int RUNTIME_ERROR = 4;
     private static final int OUTPUT_ERROR  = 5;
 
-    private final PrintWriter out;
-    private final PrintWriter err;
-
-    private static String format(String msgId, Object... args) {
-        return new MessageFormat(MESSAGES_BUNDLE.getString(msgId)).format(args);
-    }
+    private final Logger logger;
 
     private JextractTool(PrintWriter out, PrintWriter err) {
-        this.out = out;
-        this.err = err;
+        this.logger = new Logger(out, err);
     }
 
     private static Path generateTmpSource(List<Path> headers) {
@@ -121,28 +109,24 @@ public final class JextractTool {
 
     public static List<JavaSourceFile> generate(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, List<Options.Library> libs,
-                                                boolean useSystemLoadLibrary, PrintWriter errStream) {
-        return List.of(generate(decl, headerName, targetPkg, new IncludeHelper(), libs, useSystemLoadLibrary, errStream));
+                                                boolean useSystemLoadLibrary, PrintWriter outStream, PrintWriter errStream) {
+        return generateInternal(decl, headerName, targetPkg, new IncludeHelper(),
+                libs, useSystemLoadLibrary, new Logger(outStream, errStream));
     }
 
     private static List<JavaSourceFile> generateInternal(Declaration.Scoped decl, String headerName,
                                                          String targetPkg, IncludeHelper includeHelper,
                                                          List<Options.Library> libs, boolean useSystemLoadLibrary,
-                                                         PrintWriter errStream) {
-        return List.of(generate(decl, headerName, targetPkg, includeHelper, libs, useSystemLoadLibrary, errStream));
-    }
-
-    private static JavaSourceFile[] generate(Declaration.Scoped decl, String headerName,
-                                             String targetPkg, IncludeHelper includeHelper,
-                                             List<Options.Library> libs, boolean useSystemLoadLibrary,
-                                             PrintWriter errStream) {
+                                                         Logger logger) {
         var transformedDecl = Stream.of(decl)
-                .map(new IncludeFilter(includeHelper)::scan)
+                .map(new IncludeFilter(includeHelper, logger)::scan)
                 .map(new DuplicateFilter()::scan)
                 .map(new NameMangler(headerName)::scan)
-                .map(new UnsupportedFilter(errStream)::scan)
+                .map(new UnsupportedFilter(logger)::scan)
                 .findFirst().get();
-        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libs, useSystemLoadLibrary);
+        return logger.hasErrors() ?
+                List.of() :
+                List.of(OutputFactory.generateWrapped(transformedDecl, targetPkg, libs, useSystemLoadLibrary));
     }
 
     /**
@@ -185,22 +169,12 @@ public final class JextractTool {
     }
 
     private int printHelp(int exitCode) {
-        err.println(format("jextract.usage"));
+        logger.info("jextract.usage");
         return exitCode;
     }
 
-
-    private void printOptionError(Throwable throwable) {
-        printOptionError(throwable.getMessage());
-        if (DEBUG) {
-            throwable.printStackTrace(err);
-        }
-    }
-
     private void printOptionError(String message) {
-        err.println("OPTION ERROR: " + message);
-        err.println("Usage: jextract <options> <header file>");
-        err.println("Use --help for a list of possible options");
+        logger.err("jextract.opt.error", message);
     }
 
     /**
@@ -214,7 +188,9 @@ public final class JextractTool {
             return;
         }
 
-        JextractTool m = new JextractTool(new PrintWriter(System.out, true), new PrintWriter(System.err, true));
+        JextractTool m = new JextractTool(
+                new PrintWriter(System.out, true),
+                new PrintWriter(System.err, true));
         System.exit(m.run(args));
     }
 
@@ -369,41 +345,39 @@ public final class JextractTool {
         try {
             args = CommandLine.parse(Arrays.asList(args)).toArray(new String[0]);
         } catch (IOException ioexp) {
-            err.println(format("argfile.read.error", ioexp));
-            if (JextractTool.DEBUG) {
-                ioexp.printStackTrace(err);
-            }
+            logger.fatal(ioexp, "argfile.read.error", ioexp);
             return OPTION_ERROR;
         }
 
         OptionParser parser = new OptionParser();
-        parser.accepts("-D", List.of("--define-macro"), format("help.D"), true);
-        parser.accepts("--dump-includes", format("help.dump-includes"), true);
+        parser.accepts("-D", List.of("--define-macro"), "help.D", true);
+        parser.accepts("--dump-includes", "help.dump-includes", true);
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
-            parser.accepts("--" + includeKind.optionName(), format("help." + includeKind.optionName()), true);
+            parser.accepts("--" + includeKind.optionName(), "help." + includeKind.optionName(), true);
         }
-        parser.accepts("-h", List.of("-?", "--help"), format("help.h"), false);
-        parser.accepts("--header-class-name", format("help.header-class-name"), true);
-        parser.accepts("-I", List.of("--include-dir"), format("help.I"), true);
-        parser.accepts("-l", List.of("--library"), format("help.l"), true);
-        parser.accepts("--use-system-load-library", format("help.use.system.load.library"), false);
-        parser.accepts("--output", format("help.output"), true);
-        parser.accepts("-t", List.of("--target-package"), format("help.t"), true);
-        parser.accepts("--version", format("help.version"), false);
+        parser.accepts("-h", List.of("-?", "--help"), "help.h", false);
+        parser.accepts("--header-class-name", "help.header-class-name", true);
+        parser.accepts("-I", List.of("--include-dir"), "help.I", true);
+        parser.accepts("-l", List.of("--library"), "help.l", true);
+        parser.accepts("--use-system-load-library", "help.use.system.load.library", false);
+        parser.accepts("--output", "help.output", true);
+        parser.accepts("-t", List.of("--target-package"), "help.t", true);
+        parser.accepts("--version", "help.version", false);
 
         OptionSet optionSet;
         try {
             optionSet = parser.parse(args);
         } catch (OptionException oe) {
-            printOptionError(oe);
+            printOptionError(oe.getMessage());
             return OPTION_ERROR;
         }
 
         if (optionSet.has("--version")) {
             var version = JextractTool.class.getModule().getDescriptor().version();
-            err.printf("%s %s\n", "jextract", version.get());
-            err.printf("%s %s\n", "JDK version", System.getProperty("java.runtime.version"));
-            err.printf("%s\n", LibClang.version());
+            logger.info("jextract.version",
+                    version.get(),
+                    System.getProperty("java.runtime.version"),
+                    LibClang.version());
             return SUCCESS;
         }
 
@@ -423,10 +397,7 @@ public final class JextractTool {
             try {
                 Files.lines(compileFlagsTxt).forEach(opt -> builder.addClangArg(opt));
             } catch (IOException ioExp) {
-                err.println("compile_flags.txt reading failed " + ioExp);
-                if (JextractTool.DEBUG) {
-                    ioExp.printStackTrace(err);
-                }
+                logger.fatal(ioExp, "jextract.bad.compile.flags", ioExp.getMessage());
                 return OPTION_ERROR;
             }
         }
@@ -444,7 +415,7 @@ public final class JextractTool {
             builder.addClangArg("-I" + builtinInc);
         }
 
-        PLATFORM_INCLUDE_PATH.ifPresent(platformPath -> {
+        inferPlatformIncludePath().ifPresent(platformPath -> {
             builder.addClangArg("-I" + platformPath);
         });
 
@@ -487,10 +458,10 @@ public final class JextractTool {
                         builder.addLibrary(library);
                     } else {
                         // not an absolute path, but--use-system-load-library was specified
-                        err.println(format("l.option.value.absolute.path", lib));
+                        logger.err("l.option.value.absolute.path", lib);
                     }
                 } catch (IllegalArgumentException ex) {
-                    err.println(format("l.option.value.invalid", lib));
+                    logger.err("l.option.value.invalid", lib);
                     return OPTION_ERROR;
                 }
             }
@@ -503,11 +474,11 @@ public final class JextractTool {
 
         Path header = Paths.get(optionSet.nonOptionArguments().get(0));
         if (!Files.isReadable(header)) {
-            err.println(format("cannot.read.header.file", header));
+            logger.err("cannot.read.header.file", header);
             return INPUT_ERROR;
         }
         if (!(Files.isRegularFile(header))) {
-            err.println(format("not.a.file", header));
+            logger.err("not.a.file", header);
             return INPUT_ERROR;
         }
 
@@ -525,18 +496,15 @@ public final class JextractTool {
 
             files = generateInternal(
                 toplevel, headerName,
-                options.targetPackage, options.includeHelper, options.libraries, options.useSystemLoadLibrary, err);
+                options.targetPackage, options.includeHelper, options.libraries, options.useSystemLoadLibrary, logger);
         } catch (ClangException ce) {
-            err.println(ce.getMessage());
+            logger.err("jextract.clang.error", ce.getMessage());
             if (JextractTool.DEBUG) {
-                ce.printStackTrace(err);
+                logger.printStackTrace(ce);
             }
             return CLANG_ERROR;
         } catch (RuntimeException re) {
-            err.println(re.getMessage());
-            if (JextractTool.DEBUG) {
-                re.printStackTrace(err);
-            }
+            logger.fatal(re);
             return RUNTIME_ERROR;
         }
 
@@ -548,18 +516,12 @@ public final class JextractTool {
                 try {
                     write(output, files);
                 } catch (IOException e) {
-                    err.println(e.getMessage());
-                    if (JextractTool.DEBUG) {
-                        e.printStackTrace(err);
-                    }
+                    logger.fatal(e);
                     return OUTPUT_ERROR;
                 }
             }
         } catch (RuntimeException re) {
-            err.println(re.getMessage());
-            if (JextractTool.DEBUG) {
-                re.printStackTrace(err);
-            }
+            logger.fatal(re);
             return RUNTIME_ERROR;
         }
 
@@ -584,7 +546,7 @@ public final class JextractTool {
         }
     }
 
-    private static Optional<Path> inferPlatformIncludePath() {
+    private Optional<Path> inferPlatformIncludePath() {
         String os = System.getProperty("os.name");
         if (os.equals("Mac OS X")) {
             try {
@@ -598,7 +560,7 @@ public final class JextractTool {
                 }
             } catch (IOException ioExp) {
                 if (JextractTool.DEBUG) {
-                    ioExp.printStackTrace(System.err);
+                    logger.printStackTrace(ioExp);
                 }
             }
         }

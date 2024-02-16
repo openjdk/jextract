@@ -42,11 +42,11 @@ public class TestUnsupportedTypes extends JextractToolRunner {
 
     @Test(dataProvider = "cases")
     public void testUnsupportedTypes(String skippedName, String reason) {
-        result.checkContainsOutput("WARNING: skipping " + skippedName + ": " + reason);
+        result.checkContainsOutput("WARNING: Skipping " + skippedName + " (" + reason);
     }
 
-    private static final String REASON_UNSUPPORTED_TYPE = "unsupported type usage";
-    private static final String REASON_VARARGS_CALLBACK = "varargs in callbacks is not supported";
+    private static final String REASON_UNSUPPORTED_TYPE = "type";
+    private static final String REASON_VARARGS_CALLBACK = "variadic callback";
 
     @DataProvider
     public static Object[][] cases() {
