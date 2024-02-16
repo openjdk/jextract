@@ -46,15 +46,12 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.spi.ToolProvider;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,11 +68,12 @@ public final class JextractTool {
 
     // error codes
     private static final int SUCCESS       = 0;
-    private static final int OPTION_ERROR  = 1;
-    private static final int INPUT_ERROR   = 2;
-    private static final int CLANG_ERROR   = 3;
-    private static final int RUNTIME_ERROR = 4;
-    private static final int OUTPUT_ERROR  = 5;
+    private static final int FAILURE       = 1;
+    private static final int OPTION_ERROR  = 2;
+    private static final int INPUT_ERROR   = 3;
+    private static final int CLANG_ERROR   = 4;
+    private static final int FATAL_ERROR   = 5;
+    private static final int OUTPUT_ERROR  = 6;
 
     private final Logger logger;
 
@@ -502,7 +500,7 @@ public final class JextractTool {
             return CLANG_ERROR;
         } catch (RuntimeException re) {
             logger.fatal(re);
-            return RUNTIME_ERROR;
+            return FATAL_ERROR;
         }
 
         try {
@@ -519,10 +517,12 @@ public final class JextractTool {
             }
         } catch (RuntimeException re) {
             logger.fatal(re);
-            return RUNTIME_ERROR;
+            return FATAL_ERROR;
         }
 
-        return SUCCESS;
+        return logger.hasErrors() ?
+                FAILURE :
+                SUCCESS;
     }
 
     /**

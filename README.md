@@ -119,6 +119,30 @@ jextract -t org.jextract @includes.txt point.h
 
 It is easy to see how this mechanism allows developers to look into the set of symbols seen by `jextract` while parsing, and then process the generated include file, so as to prevent code generation for otherwise unused symbols.
 
+Users should exercise caution when filtering symbols, as it is relatively easy to filter out a declaration that is depended on by one or more declarations:
+
+```c
+// test.h
+struct A {
+   int x;
+}
+struct A aVar;
+```
+
+Here, we could run `jextract` and filter out `A`, like so:
+
+```
+jextract --include-var aVar test.h
+```
+
+However, doing so would lead to broken generated code, as the layout of the global variable `aVar` depends on the layout of the excluded struct `A`.
+
+In such cases, `jextract` will report the missing dependency and terminate without generating any bindings:
+
+```
+ERROR: aVar depends on A which has been excluded
+```
+
 #### Tracing support
 
 It is sometimes useful to inspect the parameters passed to a native call, especially when diagnosing application

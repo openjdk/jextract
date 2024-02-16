@@ -44,6 +44,7 @@ public class TestBadIncludes extends JextractToolRunner {
                 "--include-struct", "C",
                 "--include-function", "n",
                 outputH.toString());
+        result.checkFailure(FAILURE);
     }
 
     @Test(dataProvider = "cases")

@@ -67,11 +67,12 @@ public class JextractToolRunner {
 
     // (private) exit codes from jextract tool. Copied from JextractTool.
     protected static final int SUCCESS       = 0;
-    protected static final int OPTION_ERROR  = 1;
-    protected static final int INPUT_ERROR   = 2;
-    protected static final int CLANG_ERROR   = 3;
-    protected static final int RUNTIME_ERROR = 4;
-    protected static final int OUTPUT_ERROR  = 5;
+    protected static final int FAILURE       = 1;
+    protected static final int OPTION_ERROR  = 2;
+    protected static final int INPUT_ERROR   = 3;
+    protected static final int CLANG_ERROR   = 4;
+    protected static final int RUNTIME_ERROR = 5;
+    protected static final int OUTPUT_ERROR  = 6;
 
     private static String safeFileName(String filename) {
         int ext = filename.lastIndexOf('.');
