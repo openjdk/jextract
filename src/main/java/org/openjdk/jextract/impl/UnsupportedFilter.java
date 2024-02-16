@@ -53,10 +53,10 @@ import java.io.PrintWriter;
  */
 public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration> {
 
-    private final PrintWriter errStream;
+    private final Logger logger;
 
-    public UnsupportedFilter(PrintWriter errStream) {
-        this.errStream = errStream;
+    public UnsupportedFilter(Logger logger) {
+        this.logger = logger;
     }
 
     static Type firstUnsupportedType(Type type, boolean allowVoid) {
@@ -75,7 +75,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         //generate static wrapper for function
         Type unsupportedType = firstUnsupportedType(funcTree.type(), false);
         if (unsupportedType != null) {
-            warnSkip(funcTree.name(), STR."unsupported type usage: \{unsupportedType}");
+            warnSkip(funcTree.name(), unsupportedType(unsupportedType));
             Skip.with(funcTree);
             return null;
         }
@@ -111,7 +111,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         Type unsupportedType = firstUnsupportedType(varTree.type(), false);
         String name = fieldName(firstNamedParent, varTree);
         if (unsupportedType != null) {
-            warnSkip(name, STR."unsupported type usage: \{unsupportedType}");
+            warnSkip(name, unsupportedType(unsupportedType));
             Skip.with(varTree);
             return null;
         }
@@ -129,7 +129,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     public Void visitScoped(Scoped scoped, Declaration firstNamedParent) {
         Type unsupportedType = firstUnsupportedType(Type.declared(scoped), false);
         if (unsupportedType != null) {
-            warnSkip(scoped.name(), STR."unsupported type usage: \{unsupportedType}");
+            warnSkip(scoped.name(), unsupportedType(unsupportedType));
             Skip.with(scoped);
             return null;
         }
@@ -137,7 +137,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         if (scoped.kind() == Kind.BITFIELDS) {
             for (Declaration bitField : scoped.members()) {
                 if (!bitField.name().isEmpty()) {
-                    warnSkip(fieldName(firstNamedParent, bitField), "type is bitfield");
+                    warnSkip(fieldName(firstNamedParent, bitField), unsupportedBitfield());
                 }
             }
             Skip.with(scoped);
@@ -161,7 +161,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
         Type unsupportedType = firstUnsupportedType(typedefTree.type(),false);
         if (unsupportedType != null) {
-            warnSkip(typedefTree.name(), STR."unsupported type usage: \{unsupportedType}");
+            warnSkip(typedefTree.name(), unsupportedType(unsupportedType));
             Skip.with(typedefTree);
             return null;
         }
@@ -178,7 +178,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         Type unsupportedType = firstUnsupportedType(d.type(), false);
         String name = fieldName(firstNamedParent, d);
         if (unsupportedType != null) {
-            warnSkip(name, STR."unsupported type usage: \{unsupportedType}");
+            warnSkip(name, unsupportedType(unsupportedType));
             Skip.with(d);
             return null;
         }
@@ -194,12 +194,12 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     private boolean checkFunctionTypeSupported(Declaration decl, Type.Function func, String nameOfSkipped) {
         Type unsupportedType = firstUnsupportedType(func, false);
         if (unsupportedType != null) {
-            warnSkip(nameOfSkipped, STR."unsupported type usage: \{unsupportedType}");
+            warnSkip(nameOfSkipped, unsupportedType(unsupportedType));
             return false;
         }
         //generate functional interface
         if (func.varargs() && !func.argumentTypes().isEmpty()) {
-            warnSkip(nameOfSkipped, "varargs in callbacks is not supported: " + decl.name());
+            warnSkip(nameOfSkipped, unsupportedVariadicCallback(decl.name()));
             return false;
         }
         return true;
@@ -275,10 +275,18 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     };
 
     private void warnSkip(String treeName, String message) {
-        warn(STR."skipping \{treeName}: \{message}");
+        logger.warn("jextract.skip.unsupported", treeName, message);
     }
 
-    private void warn(String msg) {
-        errStream.println("WARNING: " + msg);
+    private String unsupportedType(Type type) {
+        return logger.format("unsupported.type", type);
+    }
+
+    private String unsupportedVariadicCallback(String name) {
+        return logger.format("unsupported.variadic.callback", name);
+    }
+
+    private String unsupportedBitfield() {
+        return logger.format("unsupported.bitfields");
     }
 }

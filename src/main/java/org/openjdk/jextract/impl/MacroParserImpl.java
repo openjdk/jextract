@@ -54,22 +54,24 @@ class MacroParserImpl implements AutoCloseable {
     private final ClangReparser reparser;
     private final TreeMaker treeMaker;
     final MacroTable macroTable;
+    final Logger logger;
 
-    private MacroParserImpl(ClangReparser reparser, TreeMaker treeMaker) {
+    private MacroParserImpl(ClangReparser reparser, TreeMaker treeMaker, Logger logger) {
         this.reparser = reparser;
         this.treeMaker = treeMaker;
         this.macroTable = new MacroTable();
+        this.logger = logger;
     }
 
-    static MacroParserImpl make(TreeMaker treeMaker, TranslationUnit tu, Collection<String> args) {
+    static MacroParserImpl make(TreeMaker treeMaker, Logger logger, TranslationUnit tu, Collection<String> args) {
         ClangReparser reparser;
         try {
-            reparser = new ClangReparser(tu, args);
+            reparser = new ClangReparser(tu, args, logger);
         } catch (IOException | Index.ParsingFailedException ex) {
             throw new RuntimeException(ex);
         }
 
-        return new MacroParserImpl(reparser, treeMaker);
+        return new MacroParserImpl(reparser, treeMaker, logger);
     }
 
     /**
@@ -110,11 +112,13 @@ class MacroParserImpl implements AutoCloseable {
         final Path macro;
         final Index macroIndex = LibClang.createIndex(true);
         final TranslationUnit macroUnit;
+        final Logger logger;
 
-        public ClangReparser(TranslationUnit tu, Collection<String> args) throws IOException, Index.ParsingFailedException {
+        public ClangReparser(TranslationUnit tu, Collection<String> args, Logger logger) throws IOException, Index.ParsingFailedException {
             Path precompiled = Files.createTempFile("jextract$", ".pch");
             precompiled.toFile().deleteOnExit();
             tu.save(precompiled);
+            this.logger = logger;
             this.macro = Files.createTempFile("jextract$", ".h");
             this.macro.toFile().deleteOnExit();
             String[] patchedArgs = Stream.concat(
@@ -133,7 +137,7 @@ class MacroParserImpl implements AutoCloseable {
 
         void processDiagnostics(Diagnostic diag) {
             if (JextractTool.DEBUG) {
-                System.err.println("Error while processing macro: " + diag.spelling());
+                logger.info("jextract.debug.macro.error", diag.spelling());
             }
         }
 

@@ -43,9 +43,11 @@ import java.util.Optional;
 
 public class Parser {
     private final TreeMaker treeMaker;
+    private final Logger logger;
 
-    public Parser() {
+    public Parser(Logger logger) {
         this.treeMaker = new TreeMaker();
+        this.logger = logger;
     }
 
     public Declaration.Scoped parse(Path path, Collection<String> args) {
@@ -57,7 +59,7 @@ public class Parser {
                     }
                 },
             true, args.toArray(new String[0])) ;
-            MacroParserImpl macroParser = MacroParserImpl.make(treeMaker, tu, args)) {
+            MacroParserImpl macroParser = MacroParserImpl.make(treeMaker, logger, tu, args)) {
 
             List<Declaration> decls = new ArrayList<>();
             Cursor tuCursor = tu.getCursor();
