@@ -79,8 +79,8 @@ public final class JextractTool {
 
     private final Logger logger;
 
-    private JextractTool(PrintWriter out, PrintWriter err) {
-        this.logger = new Logger(out, err);
+    private JextractTool(Logger logger) {
+        this.logger = logger;
     }
 
     private static Path generateTmpSource(List<Path> headers) {
@@ -103,15 +103,19 @@ public final class JextractTool {
      * @return a toplevel declaration.
      */
     public static Declaration.Scoped parse(List<Path> headers, String... parserOptions) {
+        return parseInternal(Logger.DEFAULT, headers, parserOptions);
+    }
+    private static Declaration.Scoped parseInternal(Logger logger, List<Path> headers, String... parserOptions) {
         Path source = headers.size() > 1? generateTmpSource(headers) : headers.iterator().next();
-        return new Parser().parse(source, Stream.of(parserOptions).collect(Collectors.toList()));
+        return new Parser(logger)
+                .parse(source, Stream.of(parserOptions).collect(Collectors.toList()));
     }
 
     public static List<JavaSourceFile> generate(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, List<Options.Library> libs,
-                                                boolean useSystemLoadLibrary, PrintWriter outStream, PrintWriter errStream) {
+                                                boolean useSystemLoadLibrary) {
         return generateInternal(decl, headerName, targetPkg, new IncludeHelper(),
-                libs, useSystemLoadLibrary, new Logger(outStream, errStream));
+                libs, useSystemLoadLibrary, Logger.DEFAULT);
     }
 
     private static List<JavaSourceFile> generateInternal(Declaration.Scoped decl, String headerName,
@@ -183,14 +187,7 @@ public final class JextractTool {
      * @param args command line options passed
      */
     public static void main(String[] args) {
-        if (args.length == 0) {
-            System.err.println("Expected a header file");
-            return;
-        }
-
-        JextractTool m = new JextractTool(
-                new PrintWriter(System.out, true),
-                new PrintWriter(System.err, true));
+        JextractTool m = new JextractTool(Logger.DEFAULT);
         System.exit(m.run(args));
     }
 
@@ -386,7 +383,7 @@ public final class JextractTool {
         }
 
         if (optionSet.nonOptionArguments().size() != 1) {
-            printOptionError("Expected 1 header file, not " + optionSet.nonOptionArguments().size());
+            printOptionError(logger.format("expected.one.header", optionSet.nonOptionArguments().size()));
             return OPTION_ERROR;
         }
 
@@ -484,7 +481,7 @@ public final class JextractTool {
 
         List<JavaSourceFile> files;
         try {
-            Declaration.Scoped toplevel = parse(List.of(header), options.clangArgs.toArray(new String[0]));
+            Declaration.Scoped toplevel = parseInternal(logger, List.of(header), options.clangArgs.toArray(new String[0]));
 
             if (JextractTool.DEBUG) {
                 System.out.println(toplevel);
@@ -541,7 +538,7 @@ public final class JextractTool {
 
         @Override
         public int run(PrintWriter out, PrintWriter err, String... args) {
-            JextractTool instance = new JextractTool(out, err);
+            JextractTool instance = new JextractTool(new Logger(out, err));
             return instance.run(args);
         }
     }

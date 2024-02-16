@@ -91,4 +91,8 @@ public class Logger {
     public String format(String key, Object... args) {
         return new MessageFormat(MESSAGES_BUNDLE.getString(key)).format(args);
     }
+
+    public static Logger DEFAULT = new Logger(
+            new PrintWriter(System.out, true),
+            new PrintWriter(System.err, true));
 }
