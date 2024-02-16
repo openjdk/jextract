@@ -56,35 +56,39 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         fib.emitDocComment(parentDecl);
         fib.classBegin();
         fib.emitDefaultConstructor();
-        fib.emitFunctionalInterface();
+        String fiName = fib.emitFunctionalInterface();
         fib.emitDescriptorDecl();
-        fib.emitFunctionalFactory();
+        fib.emitFunctionalFactory(fiName);
         fib.emitInvoke();
         fib.classEnd();
     }
 
-    private void emitFunctionalInterface() {
+    private String emitFunctionalInterface() {
+        // beware of mangling!
+        String fiName = className().toLowerCase().equals("function") ?
+                "Function$" : "Function";
         appendIndentedLines(STR."""
 
             /**
              * The function pointer signature, expressed as a functional interface
              */
-            public interface Function {
+            public interface \{fiName} {
                 \{methodType.returnType().getSimpleName()} apply(\{paramExprs()});
             }
             """);
+        return fiName;
     }
 
-    private void emitFunctionalFactory() {
+    private void emitFunctionalFactory(String fiName) {
         appendIndentedLines(STR."""
 
-            private static final MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.Function.class, "apply", $DESC);
+            private static final MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.\{fiName}.class, "apply", $DESC);
 
             /**
              * Allocates a new upcall stub, whose implementation is defined by {@code fi}.
              * The lifetime of the returned segment is managed by {@code arena}
              */
-            public static MemorySegment allocate(\{className()}.Function fi, Arena arena) {
+            public static MemorySegment allocate(\{className()}.\{fiName} fi, Arena arena) {
                 return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, arena);
             }
             """);
