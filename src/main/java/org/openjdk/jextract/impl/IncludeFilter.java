@@ -63,9 +63,10 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
         if (!includeHelper.isIncluded(funcTree)) {
             //skip
             Skip.with(funcTree);
+        } else {
+            warnMissingDep(funcTree, funcTree.type().returnType());
+            funcTree.type().argumentTypes().forEach(p -> warnMissingDep(funcTree, p));
         }
-        warnMissingDep(funcTree, funcTree.type().returnType());
-        funcTree.type().argumentTypes().forEach(p -> warnMissingDep(funcTree, p));
         return null;
     }
 
@@ -89,8 +90,9 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
         if (!includeHelper.isIncluded(tree)) {
             //skip
             Skip.with(tree);
+        } else {
+            warnMissingDep(tree, tree.type());
         }
-        warnMissingDep(tree, tree.type());
         return null;
     }
 
@@ -99,8 +101,13 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
         if (parent == null && !includeHelper.isIncluded(tree)) {
             //skip
             Skip.with(tree);
+        } else if (parent != null)  {
+            if (!Skip.isPresent(parent)) {
+                warnMissingDep(parent, tree.type());
+            }
+        } else {
+            warnMissingDep(tree, tree.type());
         }
-        warnMissingDep(parent != null ? parent : tree, tree.type());
         return null;
     }
 
