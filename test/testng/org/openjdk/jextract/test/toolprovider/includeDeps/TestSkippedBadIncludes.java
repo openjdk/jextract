@@ -37,7 +37,6 @@ public class TestSkippedBadIncludes extends JextractToolRunner {
         Path outputH = getInputFilePath("bad_includes.h");
         JextractResult result = run(output,
                 // some random includes so that we don't include everything
-                "--include-struct", "C",
                 "--include-function", "n",
                 outputH.toString());
         // if nothing that depends on struct A is included

@@ -59,7 +59,8 @@ public class TestBadIncludes extends JextractToolRunner {
             {"B",   "A" },
             {"m",   "A" },
             {"T",   "A" },
-            {"a",   "A" }
+            {"a",   "A" },
+            {"C",   "A" }
         };
     }
 }

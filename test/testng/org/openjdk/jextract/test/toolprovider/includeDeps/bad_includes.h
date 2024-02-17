@@ -26,3 +26,4 @@ struct B { struct A a; };
 void m(struct A a);
 typedef struct A T;
 struct A a;
+struct C { struct A arr[]; };

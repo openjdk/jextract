@@ -127,6 +127,8 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
         } else if (type instanceof Type.Delegated delegated &&
                         delegated.kind() == Delegated.Kind.TYPEDEF) {
             warnMissingDep(decl, delegated.type());
+        } else if (type instanceof Type.Array arrayType) {
+            warnMissingDep(decl, arrayType.elementType());
         }
     }
 }
