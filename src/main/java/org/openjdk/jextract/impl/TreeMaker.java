@@ -366,13 +366,14 @@ class TreeMaker {
     }
 
     public Declaration.Scoped createEnum(Cursor c) {
-        List<Declaration> decls = new ArrayList<>();
-        c.forEach(child -> decls.add(createTree(child)));
         if (c.isDefinition()) {
-            //just a declaration AND definition, we have a layout
-            decls.forEach(d -> {
-                // append declaration string
-                DeclarationString.with(d, enumConstantString(c.spelling(), (Declaration.Constant)d));
+            List<Declaration> decls = new ArrayList<>();
+            c.forEach(child -> {
+                Declaration enumConstantDecl = createTree(child);
+                if (enumConstantDecl != null) { // see CODETOOLS-7903673
+                    DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
+                    decls.add(enumConstantDecl);
+                }
             });
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
         } else {
