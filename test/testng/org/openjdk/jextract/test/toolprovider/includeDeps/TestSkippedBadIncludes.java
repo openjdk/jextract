@@ -29,38 +29,18 @@ import testlib.JextractToolRunner;
 
 import java.nio.file.Path;
 
-public class TestBadIncludes extends JextractToolRunner {
+public class TestSkippedBadIncludes extends JextractToolRunner {
 
-    JextractResult result;
-
-    @BeforeClass
-    public void before() {
+    @Test
+    public void run() {
         Path output = getOutputFilePath("TestBadIncludes-badIncludes.h");
         Path outputH = getInputFilePath("bad_includes.h");
-        result = run(output,
-                "--include-var", "a",
-                "--include-struct", "B",
-                "--include-function", "m",
-                "--include-typedef", "T",
-                "--include-struct", "C",
+        JextractResult result = run(output,
+                // some random includes so that we don't include everything
                 "--include-function", "n",
                 outputH.toString());
-        result.checkFailure(FAILURE);
-    }
-
-    @Test(dataProvider = "cases")
-    public void testBadIncludes(String badDeclName, String missingDepName) {
-        result.checkContainsOutput("ERROR: " + badDeclName + " depends on " + missingDepName);
-    }
-
-    @DataProvider
-    public static Object[][] cases() {
-        return new Object[][]{
-            {"B",   "A" },
-            {"m",   "A" },
-            {"T",   "A" },
-            {"a",   "A" },
-            {"C",   "A" }
-        };
+        // if nothing that depends on struct A is included
+        // there should be no errors
+        result.checkSuccess();
     }
 }

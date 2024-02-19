@@ -20,7 +20,7 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package org.openjdk.jextract.test.toolprovider.includeDeps;
+package org.openjdk.jextract.test.toolprovider.unsupported;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -29,38 +29,43 @@ import testlib.JextractToolRunner;
 
 import java.nio.file.Path;
 
-public class TestBadIncludes extends JextractToolRunner {
+public class TestSkipped extends JextractToolRunner {
 
     JextractResult result;
 
     @BeforeClass
     public void before() {
-        Path output = getOutputFilePath("TestBadIncludes-badIncludes.h");
-        Path outputH = getInputFilePath("bad_includes.h");
+        Path output = getOutputFilePath("TestUnsupportedTypes-unsupportedTypes.h");
+        Path outputH = getInputFilePath("unsupportedTypes.h");
         result = run(output,
-                "--include-var", "a",
-                "--include-struct", "B",
-                "--include-function", "m",
-                "--include-typedef", "T",
-                "--include-struct", "C",
-                "--include-function", "n",
+                // dummy include to turn on exclusions
+                "--include-function", "nonexistent",
                 outputH.toString());
-        result.checkFailure(FAILURE);
     }
 
     @Test(dataProvider = "cases")
-    public void testBadIncludes(String badDeclName, String missingDepName) {
-        result.checkContainsOutput("ERROR: " + badDeclName + " depends on " + missingDepName);
+    public void testUnsupportedTypes(String skippedName) {
+        result.checkDoesNotContainOutput("WARNING: Skipping " + skippedName);
     }
 
     @DataProvider
     public static Object[][] cases() {
         return new Object[][]{
-            {"B",   "A" },
-            {"m",   "A" },
-            {"T",   "A" },
-            {"a",   "A" },
-            {"C",   "A" }
+            {"returns_unsupported"              },
+            {"accepts_unsupported"              },
+            {"unsupported_t"                    },
+            {"unsupported_func_t"               },
+            {"returns_unsupported_func"         },
+            {"accepts_unsupported_func"         },
+            {"accepts_unsupported_func_varargs" },
+            {"GLOBAL_UNSUPPORTED"               },
+            {"GLOBAL_UNSUPPORTED_FUNC"          },
+            {"accepts_undefined"                },
+            {"returns_undefined"                },
+            {"accepts_undefined_func"           },
+            {"GLOBAL_UNDECLARED"                },
+            {"undefined_typedef"                },
+            {"INT_128_NUM"                      }
         };
     }
 }

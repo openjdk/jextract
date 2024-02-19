@@ -70,6 +70,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitFunction(Function funcTree, Declaration firstNamedParent) {
+        if(Skip.isPresent(funcTree)) return null;
+
         Utils.forEachNested(funcTree, s -> s.accept(this, firstNamedParent));
 
         //generate static wrapper for function
@@ -106,6 +108,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitVariable(Variable varTree, Declaration firstNamedParent) {
+        if(Skip.isPresent(varTree)) return null;
+
         Utils.forEachNested(varTree, s -> s.accept(this, varTree));
 
         Type unsupportedType = firstUnsupportedType(varTree.type(), false);
@@ -127,6 +131,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitScoped(Scoped scoped, Declaration firstNamedParent) {
+        if(Skip.isPresent(scoped)) return null;
+
         Type unsupportedType = firstUnsupportedType(Type.declared(scoped), false);
         if (unsupportedType != null) {
             warnSkip(scoped.name(), unsupportedType(unsupportedType));
@@ -154,6 +160,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitTypedef(Typedef typedefTree, Declaration firstNamedParent) {
+        if(Skip.isPresent(typedefTree)) return null;
+
         // propagate
         if (typedefTree.type() instanceof Declared declared) {
             visitScoped(declared.tree(), null);
@@ -175,6 +183,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
     @Override
     public Void visitConstant(Constant d, Declaration firstNamedParent) {
+        if(Skip.isPresent(d)) return null;
+
         Type unsupportedType = firstUnsupportedType(d.type(), false);
         String name = fieldName(firstNamedParent, d);
         if (unsupportedType != null) {

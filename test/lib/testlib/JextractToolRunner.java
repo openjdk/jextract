@@ -45,6 +45,7 @@ import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.JextractTool;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -130,6 +131,12 @@ public class JextractToolRunner {
         public JextractResult checkContainsOutput(String expected) {
             Objects.requireNonNull(expected);
             assertTrue(output.contains(expected), "Output does not contain string: " + expected);
+            return this;
+        }
+
+        public JextractResult checkDoesNotContainOutput(String expected) {
+            Objects.requireNonNull(expected);
+            assertFalse(output.contains(expected), "Output contains string: " + expected);
             return this;
         }
 
