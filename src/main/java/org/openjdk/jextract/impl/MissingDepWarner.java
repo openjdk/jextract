@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -32,11 +32,11 @@ import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 /*
  * This visitor marks declarations to be skipped, based on --include options specified.
  */
-public final class IncludeFilter implements Declaration.Visitor<Void, Declaration> {
-    private final IncludeHelper includeHelper;
+public final class MissingDepWarner implements Declaration.Visitor<Void, Declaration> {
+    private final Logger logger;
 
-    public IncludeFilter(IncludeHelper includeHelper) {
-        this.includeHelper = includeHelper;
+    public MissingDepWarner(Logger logger) {
+        this.logger = logger;
     }
 
     public Declaration.Scoped scan(Declaration.Scoped header) {
@@ -45,33 +45,17 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
     }
 
     @Override
-    public Void visitConstant(Declaration.Constant constant, Declaration parent) {
-        if (!includeHelper.isIncluded(constant)) {
-            //skip
-            Skip.with(constant);
-        }
-        return null;
-    }
-
-    @Override
     public Void visitFunction(Declaration.Function funcTree, Declaration parent) {
-        if (!includeHelper.isIncluded(funcTree)) {
-            //skip
-            Skip.with(funcTree);
-        }
+        if (Skip.isPresent(funcTree)) return null;
+
+        warnMissingDep(funcTree, funcTree.type().returnType());
+        funcTree.type().argumentTypes().forEach(p -> warnMissingDep(funcTree, p));
         return null;
     }
 
     @Override
     public Void visitScoped(Declaration.Scoped d, Declaration parent) {
-        boolean isStructKind = Utils.isStructOrUnion(d);
-        if (isStructKind) {
-            String name = d.name();
-            if (!name.isEmpty() && !includeHelper.isIncluded(d)) {
-                //skip
-                Skip.with(d);
-            }
-        }
+        if (Skip.isPresent(d)) return null;
 
         d.members().forEach(fieldTree -> fieldTree.accept(this, d));
         return null;
@@ -79,18 +63,20 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
 
     @Override
     public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
-        if (!includeHelper.isIncluded(tree)) {
-            //skip
-            Skip.with(tree);
-        }
+        if (Skip.isPresent(tree)) return null;
+
+        warnMissingDep(tree, tree.type());
         return null;
     }
 
     @Override
     public Void visitVariable(Declaration.Variable tree, Declaration parent) {
-        if (parent == null && !includeHelper.isIncluded(tree)) {
-            //skip
-            Skip.with(tree);
+        if (Skip.isPresent(tree)) return null;
+
+        if (parent != null && !Skip.isPresent(parent))  {
+            warnMissingDep(parent, tree.type());
+        } else {
+            warnMissingDep(tree, tree.type());
         }
         return null;
     }
@@ -98,5 +84,21 @@ public final class IncludeFilter implements Declaration.Visitor<Void, Declaratio
     @Override
     public Void visitDeclaration(Declaration decl, Declaration parent) {
         return null;
+    }
+
+    void warnMissingDep(Declaration decl, Type type) {
+        if (type instanceof Type.Declared declared) {
+            // we only have to check for missing structs because (a) pointers to missing structs can still lead
+            // to valid code and (b) missing typedefs to existing structs are resolved correctly, as typedefs are never
+            // referred to by name in the generated code (because of libclang limitations).
+            if (Skip.isPresent(declared.tree())) {
+                logger.err("jextract.bad.include", decl.name(), declared.tree().name());
+            }
+        } else if (type instanceof Delegated delegated &&
+                        delegated.kind() == Delegated.Kind.TYPEDEF) {
+            warnMissingDep(decl, delegated.type());
+        } else if (type instanceof Type.Array arrayType) {
+            warnMissingDep(decl, arrayType.elementType());
+        }
     }
 }

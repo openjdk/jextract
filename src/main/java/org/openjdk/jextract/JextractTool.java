@@ -32,6 +32,7 @@ import org.openjdk.jextract.impl.DuplicateFilter;
 import org.openjdk.jextract.impl.IncludeFilter;
 import org.openjdk.jextract.impl.IncludeHelper;
 import org.openjdk.jextract.impl.Logger;
+import org.openjdk.jextract.impl.MissingDepWarner;
 import org.openjdk.jextract.impl.NameMangler;
 import org.openjdk.jextract.impl.Options.Library;
 import org.openjdk.jextract.impl.OutputFactory;
@@ -121,10 +122,13 @@ public final class JextractTool {
                                                          List<Options.Library> libs, boolean useSystemLoadLibrary,
                                                          Logger logger) {
         var transformedDecl = Stream.of(decl)
-                .map(new IncludeFilter(includeHelper, logger)::scan)
+                // process phases that add Skips first
+                .map(new IncludeFilter(includeHelper)::scan)
                 .map(new DuplicateFilter()::scan)
-                .map(new NameMangler(headerName)::scan)
                 .map(new UnsupportedFilter(logger)::scan)
+                // then do the rest
+                .map(new MissingDepWarner(logger)::scan)
+                .map(new NameMangler(headerName)::scan)
                 .findFirst().get();
         return logger.hasErrors() ?
                 List.of() :
