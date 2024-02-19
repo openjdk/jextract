@@ -32,7 +32,7 @@ import org.openjdk.jextract.impl.DuplicateFilter;
 import org.openjdk.jextract.impl.IncludeFilter;
 import org.openjdk.jextract.impl.IncludeHelper;
 import org.openjdk.jextract.impl.Logger;
-import org.openjdk.jextract.impl.MissingDepWarner;
+import org.openjdk.jextract.impl.MissingDepChecker;
 import org.openjdk.jextract.impl.NameMangler;
 import org.openjdk.jextract.impl.Options.Library;
 import org.openjdk.jextract.impl.OutputFactory;
@@ -127,7 +127,7 @@ public final class JextractTool {
                 .map(new DuplicateFilter()::scan)
                 .map(new UnsupportedFilter(logger)::scan)
                 // then do the rest
-                .map(new MissingDepWarner(logger)::scan)
+                .map(new MissingDepChecker(logger)::scan)
                 .map(new NameMangler(headerName)::scan)
                 .findFirst().get();
         return logger.hasErrors() ?

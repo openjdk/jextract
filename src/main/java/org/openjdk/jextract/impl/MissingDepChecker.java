@@ -32,10 +32,10 @@ import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 /*
  * This visitor marks declarations to be skipped, based on --include options specified.
  */
-public final class MissingDepWarner implements Declaration.Visitor<Void, Declaration> {
+public final class MissingDepChecker implements Declaration.Visitor<Void, Declaration> {
     private final Logger logger;
 
-    public MissingDepWarner(Logger logger) {
+    public MissingDepChecker(Logger logger) {
         this.logger = logger;
     }
 
@@ -48,8 +48,8 @@ public final class MissingDepWarner implements Declaration.Visitor<Void, Declara
     public Void visitFunction(Declaration.Function funcTree, Declaration parent) {
         if (Skip.isPresent(funcTree)) return null;
 
-        warnMissingDep(funcTree, funcTree.type().returnType());
-        funcTree.type().argumentTypes().forEach(p -> warnMissingDep(funcTree, p));
+        checkMissingDep(funcTree, funcTree.type().returnType());
+        funcTree.type().argumentTypes().forEach(p -> checkMissingDep(funcTree, p));
         return null;
     }
 
@@ -65,7 +65,7 @@ public final class MissingDepWarner implements Declaration.Visitor<Void, Declara
     public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
         if (Skip.isPresent(tree)) return null;
 
-        warnMissingDep(tree, tree.type());
+        checkMissingDep(tree, tree.type());
         return null;
     }
 
@@ -74,9 +74,9 @@ public final class MissingDepWarner implements Declaration.Visitor<Void, Declara
         if (Skip.isPresent(tree)) return null;
 
         if (parent != null && !Skip.isPresent(parent))  {
-            warnMissingDep(parent, tree.type());
+            checkMissingDep(parent, tree.type());
         } else {
-            warnMissingDep(tree, tree.type());
+            checkMissingDep(tree, tree.type());
         }
         return null;
     }
@@ -86,7 +86,7 @@ public final class MissingDepWarner implements Declaration.Visitor<Void, Declara
         return null;
     }
 
-    void warnMissingDep(Declaration decl, Type type) {
+    void checkMissingDep(Declaration decl, Type type) {
         if (type instanceof Type.Declared declared) {
             // we only have to check for missing structs because (a) pointers to missing structs can still lead
             // to valid code and (b) missing typedefs to existing structs are resolved correctly, as typedefs are never
@@ -96,9 +96,9 @@ public final class MissingDepWarner implements Declaration.Visitor<Void, Declara
             }
         } else if (type instanceof Delegated delegated &&
                         delegated.kind() == Delegated.Kind.TYPEDEF) {
-            warnMissingDep(decl, delegated.type());
+            checkMissingDep(decl, delegated.type());
         } else if (type instanceof Type.Array arrayType) {
-            warnMissingDep(decl, arrayType.elementType());
+            checkMissingDep(decl, arrayType.elementType());
         }
     }
 }
