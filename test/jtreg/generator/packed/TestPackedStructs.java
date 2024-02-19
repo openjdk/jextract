@@ -49,6 +49,10 @@ public class TestPackedStructs {
         checkLayout(S6.layout());
         checkLayout(S7.layout());
         checkLayout(S8.layout());
+        checkLayout(S9.layout());
+        checkLayout(S10.layout());
+        checkLayout(S11.layout());
+        checkLayout(S12.layout());
     }
 
     private void checkLayout(MemoryLayout layout) {

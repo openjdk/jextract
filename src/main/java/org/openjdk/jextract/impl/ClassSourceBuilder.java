@@ -32,6 +32,7 @@ import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.Type.Primitive;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
@@ -191,10 +192,10 @@ abstract class ClassSourceBuilder {
         return switch (type) {
             case Primitive p -> primitiveLayoutString(p, align);
             case Declared d when Utils.isEnum(d) -> layoutString(((Constant)d.tree().members().get(0)).type(), align);
-            case Declared d when Utils.isStructOrUnion(d) -> STR."\{JavaName.getFullNameOrThrow(d.tree())}.layout()";
-            case Delegated d when d.kind() == Delegated.Kind.POINTER -> STR."\{runtimeHelperName()}.C_POINTER";
+            case Declared d when Utils.isStructOrUnion(d) -> alignIfNeeded(STR."\{JavaName.getFullNameOrThrow(d.tree())}.layout()", ClangAlignOf.getOrThrow(d.tree()) / 8, align);
+            case Delegated d when d.kind() == Delegated.Kind.POINTER -> alignIfNeeded(STR."\{runtimeHelperName()}.C_POINTER", 8, align);
             case Delegated d -> layoutString(d.type(), align);
-            case Function _ -> STR."\{runtimeHelperName()}.C_POINTER";
+            case Function _ -> alignIfNeeded(STR."\{runtimeHelperName()}.C_POINTER", 8, align);
             case Array a -> STR."MemoryLayout.sequenceLayout(\{a.elementCount().orElse(0L)}, \{layoutString(a.elementType(), align)})";
             default -> throw new UnsupportedOperationException();
         };
@@ -253,7 +254,7 @@ abstract class ClassSourceBuilder {
 
     private String alignIfNeeded(String layoutPrefix, long align, long expectedAlign) {
         return align > expectedAlign ?
-                STR."\{layoutPrefix}.withByteAlignment(\{expectedAlign})" :
+                STR."\{runtimeHelperName()}.align(\{layoutPrefix}, \{expectedAlign})" :
                 layoutPrefix;
     }
 
