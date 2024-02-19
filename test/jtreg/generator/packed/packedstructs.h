@@ -68,3 +68,31 @@ struct S8 {
    struct S7 first[1];
    struct S7 second[1];
 };
+
+struct NonPacked {
+  long long aField;
+};
+
+#pragma pack(1)
+struct S9 {
+  char first;
+  struct NonPacked second;
+};
+
+#pragma pack(1)
+struct S10 {
+   char first;
+   long long second[2];
+};
+
+#pragma pack(1)
+struct S11 {
+   char first;
+   void *second;
+};
+
+#pragma pack(1)
+struct S12 {
+   char first;
+   void (*second)(int);
+};
