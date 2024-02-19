@@ -370,7 +370,7 @@ class TreeMaker {
             List<Declaration> decls = new ArrayList<>();
             c.forEach(child -> {
                 Declaration enumConstantDecl = createTree(child);
-                if (enumConstantDecl != null) {
+                if (enumConstantDecl != null) { // see CODETOOLS-7903673
                     DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
                     decls.add(enumConstantDecl);
                 }
