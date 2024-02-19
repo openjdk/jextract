@@ -83,9 +83,7 @@ $(JEXTRACT_IMAGE_DIR): $(BUILD_MODULES_DIR)
 	    --output "$(JEXTRACT_IMAGE_DIR)" \
 	    --module-path "$(BUILD_MODULES_DIR)" \
 	    --add-modules org.openjdk.jextract \
-	    --add-modules jdk.compiler \
-	    --add-options \"--enable-native-access=org.openjdk.jextract\" \
-	    --add-options \"--enable-preview\" \
+	    --add-options '\"--enable-native-access=org.openjdk.jextract\" \"--enable-preview\"' \
 	    --launcher jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool
 
 $(JEXTRACT_IMAGE_TEST_JDK_DIR): $(JEXTRACT_IMAGE_DIR)
