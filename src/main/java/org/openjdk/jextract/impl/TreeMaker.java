@@ -290,12 +290,14 @@ class TreeMaker {
                         // process struct recursively
                         pendingFields.add(recordDeclaration(parent, fc).tree());
                     } else {
-                        Declaration fieldDecl = createTree(fc);
-                        ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
-                                0 : fc.type().size() * 8);
-                        ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
-                        ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
-                        pendingFields.add(fieldDecl);
+                        if (fc.kind() == CursorKind.FieldDecl) {
+                            Declaration fieldDecl = createTree(fc);
+                            ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
+                                    0 : fc.type().size() * 8);
+                            ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                            ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
+                            pendingFields.add(fieldDecl);
+                        }
                     }
                 }
             } else {
@@ -369,10 +371,12 @@ class TreeMaker {
         if (c.isDefinition()) {
             List<Declaration> decls = new ArrayList<>();
             c.forEach(child -> {
-                Declaration enumConstantDecl = createTree(child);
-                if (enumConstantDecl != null) { // see CODETOOLS-7903673
-                    DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
-                    decls.add(enumConstantDecl);
+                if (child.kind() == CursorKind.EnumConstantDecl) {
+                    Declaration enumConstantDecl = createTree(child);
+                    if (enumConstantDecl != null) {
+                        DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
+                        decls.add(enumConstantDecl);
+                    }
                 }
             });
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
@@ -471,7 +475,10 @@ class TreeMaker {
                 if (m.kind() == CursorKind.ParmDecl && !ignoreNestedParams) {
                     collectNestedTypes(m, nestedTypes, ignoreNestedParams);
                 } else {
-                    nestedTypes.add(createTree(m));
+                    Declaration decl = createTree(m);
+                    if (decl != null) {
+                        nestedTypes.add(decl);
+                    }
                 }
             }
         });
