@@ -369,8 +369,8 @@ class TreeMaker {
         if (c.isDefinition()) {
             List<Declaration> decls = new ArrayList<>();
             c.forEach(child -> {
-                Declaration enumConstantDecl = createTree(child);
-                if (enumConstantDecl != null) { // see CODETOOLS-7903673
+                if (child.kind() == CursorKind.EnumConstantDecl) {
+                    Declaration enumConstantDecl = createTree(child);
                     DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
                     decls.add(enumConstantDecl);
                 }
