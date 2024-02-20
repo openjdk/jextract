@@ -289,15 +289,13 @@ class TreeMaker {
                     if (fc.isAnonymousStruct()) {
                         // process struct recursively
                         pendingFields.add(recordDeclaration(parent, fc).tree());
-                    } else {
-                        if (fc.kind() == CursorKind.FieldDecl) {
-                            Declaration fieldDecl = createTree(fc);
-                            ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
+                    } else if (fc.kind() == CursorKind.FieldDecl) {
+                        Declaration fieldDecl = createTree(fc);
+                        ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                     0 : fc.type().size() * 8);
-                            ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
-                            ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
-                            pendingFields.add(fieldDecl);
-                        }
+                        ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
+                        ClangAlignOf.with(fieldDecl, fc.type().align() * 8);
+                        pendingFields.add(fieldDecl);
                     }
                 }
             } else {
