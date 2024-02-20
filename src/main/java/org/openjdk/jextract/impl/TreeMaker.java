@@ -371,10 +371,8 @@ class TreeMaker {
             c.forEach(child -> {
                 if (child.kind() == CursorKind.EnumConstantDecl) {
                     Declaration enumConstantDecl = createTree(child);
-                    if (enumConstantDecl != null) {
-                        DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
-                        decls.add(enumConstantDecl);
-                    }
+                    DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
+                    decls.add(enumConstantDecl);
                 }
             });
             return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));

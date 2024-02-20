@@ -25,7 +25,7 @@ package org.openjdk.jextract.test.api.attributes;
 import org.testng.annotations.Test;
 import testlib.JextractApiTestBase;
 
-public class Test7903674 extends JextractApiTestBase {
+public class TestNestedAttributes extends JextractApiTestBase {
     @Test
     public void testEnum() {
         parse("enum_with_attribute.h");
