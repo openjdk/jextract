@@ -289,7 +289,7 @@ class TreeMaker {
                     if (fc.isAnonymousStruct()) {
                         // process struct recursively
                         pendingFields.add(recordDeclaration(parent, fc).tree());
-                    } else if (fc.kind() == CursorKind.FieldDecl) {
+                    } else {
                         Declaration fieldDecl = createTree(fc);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                     0 : fc.type().size() * 8);
@@ -474,9 +474,7 @@ class TreeMaker {
                     collectNestedTypes(m, nestedTypes, ignoreNestedParams);
                 } else {
                     Declaration decl = createTree(m);
-                    if (decl != null) {
-                        nestedTypes.add(decl);
-                    }
+                    nestedTypes.add(decl);
                 }
             }
         });
