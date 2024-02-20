@@ -27,7 +27,7 @@ double distance(struct Point2d);
 We can run `jextract`, as follows:
 
 ```
-jextract -t org.jextract point.h
+jextract -l distance -t org.jextract point.h
 ```
 
 We can then use the generated code as follows:
@@ -43,11 +43,13 @@ class TestPoint {
            MemorySegment point = Point2d.allocate(arena);
            Point2d.x(point, 3d);
            Point2d.y(point, 4d);
-           distance(point);
+           System.out.println("Distance to origin = " + distance(point));
         }
     }
 }
 ```
+
+(Note that, to run the above example, a native library called  `(lib)distance.(so|dylib|dll)` that exports the `distance` function needs to be available on the OS's standard library search path. `LD_LIBRARY_PATH` on Linux, `DYLD_LIBRARY_PATH` on Mac, or `PATH` on Windows)
 
 As we can see, the `jextract` tool generated a `Point2d` class, modelling the C struct, and a `point_h` class which contains static native function wrappers, such as `distance`. If we look inside the generated code for `distance` we can find the following (for clarity, some details have been omitted):
 
@@ -181,7 +183,7 @@ glutSolidTeapot(0.5)
 
 ### Building
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (version >= 9 is required). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/434), so a suitable [jdk 22 distribution](https://jdk.java.net/22/) is also required.
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (version 13.0.0 is recommended). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/454), so a suitable [jdk 22 distribution](https://jdk.java.net/22/) is also required.
 
 > <details><summary><strong>Building older jextract versions</strong></summary>
 >
@@ -195,13 +197,12 @@ glutSolidTeapot(0.5)
 
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
 
-(**Note**: Run the Gradle build with a Java version appropriate for the Gradle version. For example, Gradle 7.5.1
-supports JDK 21. Please checkout the [Gradle compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html#java) for the appropate JDK version needed for builds)
+We currently use gradle version 7.3.3 which is fetched automatically by the gradle wrapper. This version of gradle requires Java 17 on the `PATH`/`JAVA_HOME` to run. Note that the JDK we use to build (the toolchain JDK) is passed in separately as a property.
 
 
 
 ```sh
-$ sh ./gradlew -Pjdk21_home=<jdk21_home_dir> -Pllvm_home=<libclang_dir> clean verify
+$ sh ./gradlew -Pjdk22_home=<jdk22_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
 
@@ -231,7 +232,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk21_home=<jdk21_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+$ sh ./gradlew -Pjdk22_home=<jdk22_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
 
 Note: running `jtreg` task requires `cmake` to be available on the `PATH`.
