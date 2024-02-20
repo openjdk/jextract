@@ -49,7 +49,7 @@ class TestPoint {
 }
 ```
 
-(Note that running the above assumes a native library called  `(lib)distance.(so|dylib|dll)` that defines the `distance` function is available on the OS's standard library search path. `LD_LIBRARY_PATH` on Linux, `DYLD_LIBRARY_PATH` on Mac, or `PATH` on Windows)
+(Note that, to run the above example, a native library called  `(lib)distance.(so|dylib|dll)` that exports the `distance` function needs to be available on the OS's standard library search path. `LD_LIBRARY_PATH` on Linux, `DYLD_LIBRARY_PATH` on Mac, or `PATH` on Windows)
 
 As we can see, the `jextract` tool generated a `Point2d` class, modelling the C struct, and a `point_h` class which contains static native function wrappers, such as `distance`. If we look inside the generated code for `distance` we can find the following (for clarity, some details have been omitted):
 
