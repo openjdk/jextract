@@ -48,16 +48,20 @@ public final class MissingDepChecker implements Declaration.Visitor<Void, Declar
     public Void visitFunction(Declaration.Function funcTree, Declaration parent) {
         if (Skip.isPresent(funcTree)) return null;
 
-        checkMissingDep(funcTree, funcTree.type().returnType());
-        funcTree.type().argumentTypes().forEach(p -> checkMissingDep(funcTree, p));
+        Declaration posDecl = posDecl(funcTree, parent);
+        funcTree.parameters().forEach(p -> p.accept(this, posDecl));
+
+        Utils.forEachNested(funcTree, s -> s.accept(this, posDecl));
+
+        checkMissingDep(posDecl, funcTree.type());
         return null;
     }
 
     @Override
     public Void visitScoped(Declaration.Scoped d, Declaration parent) {
         if (Skip.isPresent(d)) return null;
-
-        d.members().forEach(fieldTree -> fieldTree.accept(this, d));
+        Declaration posDecl = posDecl(d, parent);
+        d.members().forEach(fieldTree -> fieldTree.accept(this, posDecl));
         return null;
     }
 
@@ -65,7 +69,14 @@ public final class MissingDepChecker implements Declaration.Visitor<Void, Declar
     public Void visitTypedef(Declaration.Typedef tree, Declaration parent) {
         if (Skip.isPresent(tree)) return null;
 
-        checkMissingDep(tree, tree.type());
+        Declaration posDecl = posDecl(tree, parent);
+        Utils.forEachNested(tree, s -> s.accept(this, posDecl));
+
+        checkMissingDep(posDecl, tree.type());
+        Type.Function func = Utils.getAsFunctionPointer(tree.type());
+        if (func != null) {
+            checkMissingDep(posDecl, func);
+        }
         return null;
     }
 
@@ -73,10 +84,13 @@ public final class MissingDepChecker implements Declaration.Visitor<Void, Declar
     public Void visitVariable(Declaration.Variable tree, Declaration parent) {
         if (Skip.isPresent(tree)) return null;
 
-        if (parent != null && !Skip.isPresent(parent))  {
-            checkMissingDep(parent, tree.type());
-        } else {
-            checkMissingDep(tree, tree.type());
+        Declaration posDecl = posDecl(tree, parent);
+        Utils.forEachNested(tree, s -> s.accept(this, posDecl));
+
+        checkMissingDep(posDecl, tree.type());
+        Type.Function func = Utils.getAsFunctionPointer(tree.type());
+        if (func != null) {
+            checkMissingDep(posDecl, func);
         }
         return null;
     }
@@ -84,6 +98,15 @@ public final class MissingDepChecker implements Declaration.Visitor<Void, Declar
     @Override
     public Void visitDeclaration(Declaration decl, Declaration parent) {
         return null;
+    }
+
+    Declaration posDecl(Declaration decl, Declaration parent) {
+        return parent != null ? parent : decl;
+    }
+
+    void checkMissingDep(Declaration decl, Type.Function function) {
+        checkMissingDep(decl, function.returnType());
+        function.argumentTypes().forEach(p -> checkMissingDep(decl, p));
     }
 
     void checkMissingDep(Declaration decl, Type type) {
