@@ -86,6 +86,7 @@ public class TestUtils {
         try {
             System.err.println("javadoc sources @ " + sourcePath.toAbsolutePath());
             List<String> commands = new ArrayList<>();
+            commands.add("-Xdoclint:all,-missing");
             commands.addAll(files);
             int result = JAVADOC_TOOL.run(pw, pw, commands.toArray(new String[0]));
             if (result != 0) {
