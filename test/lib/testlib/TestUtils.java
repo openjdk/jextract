@@ -38,6 +38,8 @@ public class TestUtils {
 
     private static final ToolProvider JAVAC_TOOL = ToolProvider.findFirst("javac")
         .orElseThrow(() ->  new RuntimeException("javac tool not found"));
+    private static final ToolProvider JAVADOC_TOOL = ToolProvider.findFirst("javadoc")
+        .orElseThrow(() ->  new RuntimeException("javadoc tool not found"));
 
     public static Loader classLoader(Path... paths) {
         try {
@@ -77,6 +79,18 @@ public class TestUtils {
             if (result != 0) {
                 System.err.println(writer);
                 throw new RuntimeException("javac returns non-zero value");
+            }
+        } catch (Throwable t) {
+            throw new AssertionError(t);
+        }
+        try {
+            System.err.println("javadoc sources @ " + sourcePath.toAbsolutePath());
+            List<String> commands = new ArrayList<>();
+            commands.addAll(files);
+            int result = JAVADOC_TOOL.run(pw, pw, commands.toArray(new String[0]));
+            if (result != 0) {
+                System.err.println(writer);
+                throw new RuntimeException("javadoc returns non-zero value");
             }
         } catch (Throwable t) {
             throw new AssertionError(t);
