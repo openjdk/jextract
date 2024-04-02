@@ -31,6 +31,7 @@ import static org.testng.Assert.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.nested.anon nestedInsideAnon.h
  * @build TestNestedInsideAnon
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedInsideAnon

@@ -31,6 +31,7 @@ import static org.testng.Assert.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_struct.h
  * @build TestStruct
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestStruct

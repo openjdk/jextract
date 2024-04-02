@@ -34,6 +34,7 @@ import test.jextract.nestedtypes.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.nestedtypes nested_types.h
  * @build TestNestedTypes
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedTypes

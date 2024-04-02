@@ -31,6 +31,7 @@ import static org.testng.Assert.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.out.typedef out_of_order_typedef.h
  * @build TestOutOfOrderTypedef
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestOutOfOrderTypedef

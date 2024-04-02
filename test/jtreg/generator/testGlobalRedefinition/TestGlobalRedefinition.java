@@ -32,6 +32,7 @@ import static test.jextract.redef.redef_h.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.redef redef.h
  * @build TestGlobalRedefinition
  * @run testng/othervm -Dforeign.restricted=permit TestGlobalRedefinition

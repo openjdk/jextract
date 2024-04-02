@@ -32,6 +32,7 @@ import test.jextract.test8254983.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @bug 8254983
  * @summary jextract fails to hande layout paths nested structs/union
  * @run main/othervm JtregJextract -t test.jextract.test8254983 test8254983.h

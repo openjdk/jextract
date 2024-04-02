@@ -28,6 +28,7 @@ import static test.jextract.test8253390.test8253390_h.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @bug 8253390
  * @summary jextract should quote string literals
  * @run main/othervm JtregJextract -t test.jextract.test8253390 test8253390.h

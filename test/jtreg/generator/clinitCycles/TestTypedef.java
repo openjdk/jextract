@@ -31,6 +31,7 @@ import java.lang.foreign.ValueLayout;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.clinit -Djextract.decls.per.header=1 clinit_typedef.h
  * @build TestTypedef
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestTypedef
