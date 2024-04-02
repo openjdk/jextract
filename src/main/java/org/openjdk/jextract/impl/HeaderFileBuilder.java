@@ -156,9 +156,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 private static class \{holderClass} {
                     public static final FunctionDescriptor DESC = \{functionDescriptorString(1, decl.type())};
 
-                    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                                \{runtimeHelperName()}.findOrThrow("\{nativeName}"),
-                                DESC);
+                    public static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{nativeName}");
+
+                    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
                 }
                 """);
             appendBlankLine();
@@ -175,6 +175,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     return \{holderClass}.HANDLE;
                 }
                 """);
+            appendBlankLine();
+            emitDocComment(decl, "Address for:");
+            appendLines(STR."""
+                public static MemorySegment \{javaName}$address() {
+                    return \{holderClass}.ADDR;
+                }
+                """);
+            appendBlankLine();
             emitDocComment(decl);
             appendLines(STR."""
             public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
@@ -223,6 +231,13 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 """);
             decrAlign();
             appendLines(STR."""
+
+                    /**
+                     * {@return the address}
+                     */
+                    public static MemorySegment address() {
+                        return ADDR;
+                    }
 
                     /**
                      * {@return the specialized method handle}
