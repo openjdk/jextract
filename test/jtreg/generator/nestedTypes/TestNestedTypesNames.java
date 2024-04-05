@@ -33,6 +33,7 @@ import static org.testng.Assert.assertTrue;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.nestedtypes.names nested_types_names.h
  * @build TestNestedTypesNames
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedTypesNames

@@ -33,6 +33,7 @@ import test.jextract.test8244938.*;
  * @bug 8244938
  * @summary Crash in foreign ABI CallArranger class when a test native function returns a nested struct
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -l Test8244938 --use-system-load-library -t test.jextract.test8244938 test8244938.h
  * @build Test8244938
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8244938

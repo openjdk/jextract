@@ -36,8 +36,8 @@ import static test.jextract.printf.printf_h.*;
 
 /*
  * @test
- *
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.printf -l Printf --use-system-load-library printf.h
  * @build TestPrintf
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPrintf

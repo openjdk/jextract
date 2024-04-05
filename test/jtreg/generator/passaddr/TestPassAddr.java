@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
+/* Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,26 +21,21 @@
  */
 
 import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
-import test.jextract.test8281764.*;
+import static test.jextract.passaddr.passaddr_h.*;
 
 /*
  * @test
- * @bug 8281764
- * @summary jextract does not generate parameter names for function pointer typedefs
  * @library /lib
  * @build testlib.TestUtils
- * @run main/othervm JtregJextract -l Test8281764 --use-system-load-library -t test.jextract.test8281764 test8281764.h
- * @build Test8281764
- * @run testng/othervm --enable-native-access=ALL-UNNAMED Test8281764
+ * @run main/othervm JtregJextract -l passaddr --use-system-load-library -t test.jextract.passaddr passaddr.h
+ * @build TestPassAddr
+ * @run testng/othervm --enable-native-access=ALL-UNNAMED TestPassAddr
  */
-public class Test8281764 {
+public class TestPassAddr {
+
     @Test
-    public void testFunctionalInterfaceParameterNames() throws NoSuchMethodException {
-        var apply = func.Function.class.getMethod("apply", int.class);
-        assertEquals(apply.getParameters()[0].getName(), "foo");
-        apply = fptr.Function.class.getMethod("apply", int.class, int.class);
-        assertEquals(apply.getParameters()[0].getName(), "x");
-        assertEquals(apply.getParameters()[1].getName(), "y");
+    public void testPackedStructs() {
+        a(b$address());
+        a_variadic(b_variadic.address());
     }
 }

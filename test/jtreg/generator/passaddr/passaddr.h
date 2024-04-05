@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,24 +21,16 @@
  * questions.
  */
 
-import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
-import static test.jextract.test8253390.test8253390_h.*;
+#ifdef _WIN64
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
 
-/*
- * @test
- * @library /lib
- * @build testlib.TestUtils
- * @bug 8253390
- * @summary jextract should quote string literals
- * @run main/othervm JtregJextract -t test.jextract.test8253390 test8253390.h
- * @build LibTest8253390Test
- * @run testng/othervm --enable-native-access=ALL-UNNAMED LibTest8253390Test
- */
-public class LibTest8253390Test {
-    @Test
-    public void testSquare() {
-        assertEquals(GREETING().getString(0), "hello\nworld");
-        assertEquals(GREETING2().getString(0), "hello\tworld");
-    }
-}
+typedef void (*cb_t)(void);
+EXPORT void b(void);
+EXPORT void a(cb_t cb);
+
+typedef void (*cb_var_t)(int x, ...);
+EXPORT void b_variadic(int x, ...);
+EXPORT void a_variadic(cb_var_t cb);

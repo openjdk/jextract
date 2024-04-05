@@ -35,6 +35,7 @@ import test.jextract.reinterpret.*;
  * @bug 8253102 7903626
  * @summary jextract should emit reinterpret utility method on struct classes
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -l Reinterpret --use-system-load-library -t test.jextract.reinterpret reinterpret.h
  * @build TestReinterpret
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestReinterpret

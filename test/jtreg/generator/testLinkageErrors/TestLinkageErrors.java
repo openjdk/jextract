@@ -32,6 +32,7 @@ import static test.jextract.testLinkageErrors.testLinkageErrors_h.*;
  * @bug 8259473
  * @summary jextract generated code should throw exception for unfound native symbols from calls, variable access, set immediately
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.testLinkageErrors testLinkageErrors.h
  * @build TestLinkageErrors
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestLinkageErrors

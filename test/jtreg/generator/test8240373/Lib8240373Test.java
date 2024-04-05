@@ -30,6 +30,7 @@ import static test.jextract.test8240373.test8240373_h.*;
  * @bug 8240373
  * @summary Jextract assigns type "Void" to enum macros
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.test8240373 test8240373.h
  * @build Lib8240373Test
  * @run testng/othervm --enable-native-access=ALL-UNNAMED Lib8240373Test

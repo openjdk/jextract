@@ -32,6 +32,7 @@ import java.lang.foreign.GroupLayout;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.nested.typedef nestedStructTypedef.h
  * @build TestNestedStructTypedef
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedStructTypedef

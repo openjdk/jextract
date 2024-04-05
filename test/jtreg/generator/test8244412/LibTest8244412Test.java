@@ -35,6 +35,7 @@ import static test.jextract.test8244412.test8244412_h.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @bug 8244412
  * @summary jextract should generate static utils class for primitive typedefs
  * @run main/othervm JtregJextract -t test.jextract.test8244412 test8244412.h

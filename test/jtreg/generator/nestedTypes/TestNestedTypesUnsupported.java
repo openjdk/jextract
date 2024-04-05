@@ -34,6 +34,7 @@ import static org.testng.Assert.assertTrue;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.nestedtypes.unsupported nested_types_unsupported.h
  * @build TestNestedTypesUnsupported
  * @run testng/othervm --enable-native-access=ALL-UNNAMED TestNestedTypesUnsupported

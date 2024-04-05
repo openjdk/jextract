@@ -28,6 +28,7 @@ import static test.jextract.test8249757.test8249757_h.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @bug 8249757
  * @summary jextract should expose a way to load library from a given absolute path
  * @run main/othervm JtregJextract -l Test8249757 --use-system-load-library -t test.jextract.test8249757 test8249757.h

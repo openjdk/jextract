@@ -36,6 +36,7 @@ import test.jextract.struct.*;
 /*
  * @test
  * @library /lib
+ * @build testlib.TestUtils
  * @run main/othervm JtregJextract -l Struct --use-system-load-library -t test.jextract.struct struct.h
  * @build LibStructTest
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibStructTest
