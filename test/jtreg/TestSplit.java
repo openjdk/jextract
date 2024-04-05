@@ -31,7 +31,7 @@ import static org.testng.Assert.*;
 /*
  * @test
  * @library /lib
- * @build testlib.TestUtils
+ * @build testlib.JextractToolRunner testlib.TestUtils
  * @run testng/othervm -Djextract.decls.per.header=1 TestSplit
  */
 public class TestSplit extends JextractToolRunner {
