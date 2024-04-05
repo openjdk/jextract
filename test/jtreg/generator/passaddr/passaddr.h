@@ -31,6 +31,6 @@ typedef void (*cb_t)(void);
 EXPORT void b(void);
 EXPORT void a(cb_t cb);
 
-typedef void (*cb_var_t)(void);
+typedef void (*cb_var_t)(int x, ...);
 EXPORT void b_variadic(int x, ...);
 EXPORT void a_variadic(cb_var_t cb);
