@@ -104,6 +104,7 @@ public final class JextractTool {
     public static Declaration.Scoped parse(List<Path> headers, String... parserOptions) {
         return parseInternal(Logger.DEFAULT, headers, parserOptions);
     }
+
     private static Declaration.Scoped parseInternal(Logger logger, List<Path> headers, String... parserOptions) {
         Path source = headers.size() > 1? generateTmpSource(headers) : headers.iterator().next();
         return new Parser(logger)
