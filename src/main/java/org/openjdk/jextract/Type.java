@@ -67,14 +67,16 @@ public interface Type {
      * @param o the object to be compared for equality with this Type
      * @return {@code true} if the specified object is equal to this Type
      */
-    boolean equals(Object o);
+    @Override
+	boolean equals(Object o);
 
     /**
      * Returns the hash code value for this Type.
      *
      * @return the hash code value for this Type.
      */
-    int hashCode();
+    @Override
+	int hashCode();
 
     /**
      * A primitive type.

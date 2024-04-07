@@ -49,11 +49,13 @@ public abstract class DeclarationImpl implements Declaration {
         this.pos = pos;
     }
 
-    public String toString() {
+    @Override
+	public String toString() {
         return new PrettyPrinter().print(this);
     }
 
-    public String name() {
+    @Override
+	public String name() {
         return name;
     }
 
