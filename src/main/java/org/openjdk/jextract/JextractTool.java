@@ -104,6 +104,7 @@ public final class JextractTool {
     public static Declaration.Scoped parse(List<Path> headers, String... parserOptions) {
         return parseInternal(Logger.DEFAULT, headers, parserOptions);
     }
+
     private static Declaration.Scoped parseInternal(Logger logger, List<Path> headers, String... parserOptions) {
         Path source = headers.size() > 1? generateTmpSource(headers) : headers.iterator().next();
         return new Parser(logger)
@@ -317,7 +318,7 @@ public final class JextractTool {
                        if (argValue.charAt(0) == '-') {
                            throw new OptionException(spec.help());
                        }
-                       values = options.getOrDefault(spec.name(), new ArrayList<String>());
+                       values = options.getOrDefault(spec.name(), new ArrayList<>());
                        values.add(argValue);
                    } else {
                        // no argument value associated with this option.

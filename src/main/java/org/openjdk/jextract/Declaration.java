@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -71,6 +71,7 @@ public interface Declaration {
      * @param o the object to be compared for equality with this Declaration
      * @return {@code true} if the specified object is equal to this Declaration
      */
+    @Override
     boolean equals(Object o);
 
     /**
@@ -78,6 +79,7 @@ public interface Declaration {
      *
      * @return the hash code value for this Declaration.
      */
+    @Override
     int hashCode();
 
     /**
