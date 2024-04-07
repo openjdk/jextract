@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -23,6 +23,7 @@
  *  questions.
  *
  */
+
 package org.openjdk.jextract.clang;
 
 import java.lang.foreign.Arena;
@@ -51,14 +52,14 @@ public class LibClang {
 
     static {
         if (!CRASH_RECOVERY) {
-            //this is an hack - needed because clang_toggleCrashRecovery only takes effect _after_ the
+            //this is a hack - needed because clang_toggleCrashRecovery only takes effect _after_ the
             //first call to createIndex.
             try {
                 Linker linker = Linker.nativeLinker();
                 String putenv = IS_WINDOWS ? "_putenv" : "putenv";
                 MethodHandle PUT_ENV = linker.downcallHandle(linker.defaultLookup().find(putenv).get(),
                                 FunctionDescriptor.of(C_INT, C_POINTER));
-                int res = (int) PUT_ENV.invokeExact((MemorySegment)disableCrashRecovery);
+                int res = (int) PUT_ENV.invokeExact(disableCrashRecovery);
             } catch (Throwable ex) {
                 throw new ExceptionInInitializerError(ex);
             }

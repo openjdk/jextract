@@ -317,7 +317,7 @@ public final class JextractTool {
                        if (argValue.charAt(0) == '-') {
                            throw new OptionException(spec.help());
                        }
-                       values = options.getOrDefault(spec.name(), new ArrayList<String>());
+                       values = options.getOrDefault(spec.name(), new ArrayList<>());
                        values.add(argValue);
                    } else {
                        // no argument value associated with this option.
