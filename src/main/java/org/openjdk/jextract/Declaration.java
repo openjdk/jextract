@@ -72,7 +72,7 @@ public interface Declaration {
      * @return {@code true} if the specified object is equal to this Declaration
      */
     @Override
-	boolean equals(Object o);
+    boolean equals(Object o);
 
     /**
      * Returns the hash code value for this Declaration.
@@ -80,7 +80,7 @@ public interface Declaration {
      * @return the hash code value for this Declaration.
      */
     @Override
-	int hashCode();
+    int hashCode();
 
     /**
      * {@return the attributes associated with this declaration}

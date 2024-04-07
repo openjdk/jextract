@@ -68,7 +68,7 @@ public interface Type {
      * @return {@code true} if the specified object is equal to this Type
      */
     @Override
-	boolean equals(Object o);
+    boolean equals(Object o);
 
     /**
      * Returns the hash code value for this Type.
@@ -76,7 +76,7 @@ public interface Type {
      * @return the hash code value for this Type.
      */
     @Override
-	int hashCode();
+    int hashCode();
 
     /**
      * A primitive type.

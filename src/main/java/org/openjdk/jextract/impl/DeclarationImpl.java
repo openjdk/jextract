@@ -50,12 +50,12 @@ public abstract class DeclarationImpl implements Declaration {
     }
 
     @Override
-	public String toString() {
+    public String toString() {
         return new PrettyPrinter().print(this);
     }
 
     @Override
-	public String name() {
+    public String name() {
         return name;
     }
 
