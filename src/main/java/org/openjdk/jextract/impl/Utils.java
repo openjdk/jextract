@@ -237,7 +237,7 @@ class Utils {
             case Double -> double.class;
             case LongDouble -> {
                 if (TypeImpl.IS_WINDOWS) {
-                    yield double.class;
+                    yield (Class<?>) double.class;
                 } else {
                     throw new UnsupportedOperationException(p.toString());
                 }
