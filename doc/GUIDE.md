@@ -1,10 +1,10 @@
 # Jextract Guide
 
 The jextract tool parses header (.h) files of native libraries, and generates Java code,
-called 'bindings', which  uses the FFM API under the hood, that can be used by a client to
-access the native library.
+called 'bindings', which  use the Foreign Function and Memory API (FFM API) under the hood,
+that can be used by a client to access the native library.
 
-Interacting with native (C) code through the Foreign Function and Memory API (FFM API) works
+Interacting with native (C) code through the FFM API works
 by loading a native library (e.g. a `.so`/`.dll`/`.dylib` file), which is essentially an
 archive of native functions and global variables. The user then has to look up the functions
 they want to call using a `SymbolLookup`, and finally 'link' the functions by using the
@@ -19,11 +19,12 @@ The samples under [`samples`](samples) direcotry are also a good source of examp
 
 ## Running Jextract
 
-A native library typically has an `include` directory which contains all the header files that define the interface
-of the library, with one 'main' header file. Let's say we have a library called `mylib` stored at `/path/to/mylib`
-that has a directory `/path/to/mylib/include` with all the header files. And let's say that we have a shell open
-in the root directory of the Java project we're working on, which has an `src` source directory corresponding to the 
-root package. A typical way to run jextract would be like this:
+A native library typically has an `include` directory which contains all the header files
+that define the interface of the library, with one 'main' header file. Let's say we have a
+library called `mylib` stored at `/path/to/mylib` that has a directory `/path/to/mylib/include`
+with all the header files. And let's say that we have a shell open in the root directory
+of the Java project we're working on, which has an `src` source directory corresponding to
+the root package. A typical way to run jextract would be like this:
 
 ```sh
 $ jextract \
@@ -36,15 +37,18 @@ $ jextract \
 
 In this command:
 
-- `/path/to/mylib/include/mylib.h` is the main header file of the native library we want to generate bindings for.
-- `--include-dir /path/to/mylib/include` specifies a header file search directory, which is used to find header
-  files included through `#include` in the main header file.
-- `--output src` specifies the root directory for the output. This matches to root package of the project's source
-  directory
-- `--target-package org.jextract.mylib` specifies the target package to which the generated classes and interfaces
-  will belong. (note that jextract will automatically create the directories representing the package structure
-  under the `src` directory specified through `--output`)
-- `--library mylib` tells jextract that the generated bindings depend on the `mylib` library.
+- `/path/to/mylib/include/mylib.h` is the main header file of the native library we want
+  to generate bindings for.
+- `--include-dir /path/to/mylib/include` specifies a header file search directory, which
+   is used to find header files included through `#include` in the main header file.
+- `--output src` specifies the root directory for the output. This matches to root package
+  of the project's source directory.
+- `--target-package org.jextract.mylib` specifies the target package to which the generated
+  classes and interfaces will belong. (note that jextract will automatically create the
+  directories representing the package structure under the `src` directory specified
+  through `--output`)
+- `--library mylib` tells jextract that the generated bindings should load the library
+  called `mylib`. (The section on [library loading](#library-loading) discusses how is done)
 
 Besides these options, it is also possible to filter the output of jextract using one of the `--include-XXX` options
 that jextract has. See the section on [filtering](#filtering) for a more detailed overview. See also the full
@@ -58,7 +62,7 @@ the workflow that jextract itself uses for talking to the libclang library).
 ### Library Loading
 
 When using the `--library <libspec>` option, the generated code internally uses [`SymbolLookup::libraryLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#libraryLookup(java.nio.file.Path,java.lang.foreign.Arena))
-to load libraries specified by `<libspec>`, after mapping the name of the library to a platform dependent name using [`System::mapLibraryName`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)).
+to load libraries specified by `<libspec>`, after potentially mapping the name of the library to a platform dependent name using [`System::mapLibraryName`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)).
 This means for instance that on Linux, when specifying `--library mylib` the bindings will try to load `libmylib.so` using the OS-specific
 library loading mechanism on Linux, which is [`dlopen`](https://man7.org/linux/man-pages/man3/dlopen.3.html).
 This way of loading libraries also relies on OS-specific search mechanisms to find the library file.
@@ -68,51 +72,65 @@ Though, for the latter the overall library search mechanism is entirely differen
 When using the HotSpot JVM, the `-Xlog:library` option can als be use to log where the JVM is trying to load a library from,
 which can be useful to debug a failure to load a library.
 
-It is important to understand how libraries are loaded on the platform that is being used, as the library search mechanisms differ between them.
-Alternatively, JNI's library loading and search mechanism can be used as well. When the `--use-system-load-library` option is specified
-to jextract, the generated bindings will try to load libraries specified using `--library` through [`System::loadLibrary`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#loadLibrary(java.lang.String)).
-The library search path for `System::loadLibrary` is specified through the [`java.library.path`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#java.library.path)
-system property instead of the OS-specific library search mechanism. Though, please note that if the loaded library
-has any dependencies, those will again be loaded through the OS-specific library loading mechanism.
+The `<libspec>` argument of the `--library` option can either be a library name, such as,
+`mylib` which will, be mapped to a platform specific name using [`System::mapLibraryName`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)), or a path to a library file (either relative or
+absolute) if `<libspec>` is prefixed with the `:` character, such as `mylib.dll`.
 
-In both cases, the library is unloaded when the class loader that loads the binding classes is garbage collected.
+It is important to understand how libraries are loaded on the platform that is being used,
+as the library search mechanisms differ between them. Alternatively, JNI's library loading
+and search mechanism can be used as well. When the `--use-system-load-library` option is
+specified to jextract, the generated bindings will try to load libraries specified using
+`--library` through [`System::loadLibrary`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#loadLibrary(java.lang.String)).
+The library search path for `System::loadLibrary` is specified through the [`java.library.path`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#java.library.path)
+system property instead of the OS-specific environment variable. Though, please note
+that if the loaded library has any dependencies, those dependencies will again be loaded
+through the OS-specific library loading mechanism (this is outside of the JVM's control).
+
+In both cases, the library is unloaded when the class loader that loads the binding
+classes is garbage collected.
 
 ## Using The Code Generated By Jextract
 
-In the following section we'll go over examples of declarations that might be found in a C header file, show
-the code that jextract generates for these delcarations, and then show how to use the generated Java code.
+In the following section we'll go over examples of declarations that might be found in a C
+header file, show the code that jextract generates for these declarations, and show
+some examples of how to use the generated Java code.
 
-Most of the code that jextract generates will be in in single source file. By default the name of that class
-is derived from the name of the main header file that is passed to jextract. For example, if the header file
-is named `mylib.h`, then the derived class name will be `mylib_h`. The class name can be set explicitly using
-the `--header-class-name` option as well.
+Most of the code that jextract generates will be available through a single class. By default
+the name of that class is derived from the name of the main header file that is passed to
+jextract. For example, if the header file is named `mylib.h`, then the derived class name
+will be `mylib_h`. The class name can be set explicitly using the `--header-class-name`
+option as well.
 
-Besides the main header class file that is generated, jextract also generates several separate files for certain
-declarations in the C header file. Namely, structs, unions, function pointer types, and typedefs of struct or union
-types result in additional files being generated. We will look at those in more detail in the next section.
+Besides the main header class that is generated, jextract also generates several
+separate files for certain declarations in the C header file. Namely, structs, unions,
+function pointer types, and typedefs of struct or union types result in additional files
+being generated. We will look at those in more detail in this section.
 
-Most of the methods that jextract generates are `static`, and is designed to be imported using `import static`.
-Typically, to access the code that jextract generates for a header file called `mylib.h`, only the following two
-wildcard imports are needed:
+Most of the methods that jextract generates are `static`, and are designed to be imported
+using `import static`. Typically, to access the code that jextract generates for a header
+file called `mylib.h`, only the following two wildcard imports are needed:
 
 ```java
 import static org.mypackage.mylib_h.*;
 import org.mypackage.*;
 ```
 
-Where `org.mypackage` is the package into which put the generates source files (using `--target-package`/`-t`).
+Where `org.mypackage` is the package into which jextract put the generates source files
+(using `--target-package`/`-t`).
 
-The former import statement will import all the static functions and fields from the class that jextract generates
-for the main header file of the library. This includes methods to access functions, global variables, macros, enums,
-primitive typedefs, and layouts for builtin C types.
+The former import statement will import all the static functions and fields from the class
+that jextract generates for the main header file of the library. This includes methods to
+access functions, global variables, macros, enums, primitive typedefs, and layouts for
+builtin C types.
 
-The latter import statement imports all the other classes the jextract generates, which includes: classes representing
-structs or unions, function types, and struct or union typedefs.
+The latter import statement imports all the other classes the jextract generates, which
+includes: classes representing structs or unions, function types, and struct or union
+typedefs.
 
-#### Builtin Type Layouts
+### Builtin Type Layouts
 
-For every jextract run, regardless of the contents of the library header files, jextract will generate a set of
-memory layouts for the common builtin C types:
+For every jextract run, regardless of the contents of the library header files, jextract
+will generate a set of memory layouts for the common builtin C types:
 
 ```java
 public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
@@ -129,16 +147,19 @@ public static final ValueLayout.OfInt C_LONG = ValueLayout.JAVA_INT;
 public static final ValueLayout.OfDouble C_LONG_DOUBLE = ValueLayout.JAVA_DOUBLE;
 ```
 
-The above layout constants represent the layouts for the C builtin types: `bool`, `char,` `short,` `int`, `long long`,
-`float`, `double` `long`, and `long double`. Additionally, there is a `C_POINTER` layout which represents the 
-layout for any C pointer type (such as `T*`). Note that these layouts are platform dependent, depending on the 
-platform that jextract runs on. For instance, since these constants were generated on Windows,
-the `long` type has the same layout as the Java `int` type, indicating a 32-bit value, and the `long double` type
-has the same layout as the Java `double` type. (note that the latter is only available on Windows as well).
+The above layout constants represent the layouts for the C builtin types: `bool`, `char,`
+`short,` `int`, `long long`, `float`, `double` `long`, and `long double`. Additionally,
+there is a `C_POINTER` layout which represents the layout for any C pointer type (such as
+`T*`). Note that these layouts are platform dependent, depending on the platform that
+jextract runs on. For instance, since these constants were generated on Windows, the
+`long` type has the same layout as the Java `int` type, indicating a 32-bit value, and the
+`long double` type has the same layout as the Java `double` type. (note that the latter is
+only available on Windows).
 
-#### Functions
+### Functions
 
-Let's say we have a main library header file called `mylib.h` that contains the following function declaration:
+Let's say we have a main library header file `mylib.h` that contains the following
+function declaration:
 
 ```c
 // mylib.h
@@ -146,7 +167,8 @@ Let's say we have a main library header file called `mylib.h` that contains the 
 void foo(int x);
 ```
 
-Jextract will generate the following set of methods for this function, in the:
+Jextract will generate the following set of methods for this function, in the main header
+class it generates:
 
 ```java
 // mylib_h.java
@@ -158,18 +180,19 @@ public static FunctionDescriptor foo$descriptor() { ... } // 3
 public static MethodHandle foo$handle() { ... } // 4
 ```
 
-First and foremost, there is a static wrapper method that is generated that can be used to call
-the C function (1). Besides that, there are also several getters that return additional meta-data
-for the method: the function's address (2), the function descriptor (3), and the method handle
-returned by the FFM linker (3), which is used to implement the static wrapper method (1).
+First and foremost, there is a static wrapper method that is generated that can be used to
+call the C function (1). Besides that, there are also several accessors that return
+additional meta-data for the method: the function's address (2), the function descriptor
+(3), and the method handle returned by the FFM linker (4), which is used to implement the
+static wrapper method (1).
 
-The parameter types and return type of this method depends on the carrier types
-of the layouts that make up the function descriptor of a function, which is itself derived
+The parameter types and return type of this method depend on the carrier types of the
+layouts that make up the function descriptor of the function, which is itself derived
 from the parsed header files.
 
-#### Global Variables
+### Global Variables
 
-For a global variable declaration in the header file like this:
+For a global variable declaration in a header file like this:
 
 ```c
 // mylib.h
@@ -189,17 +212,18 @@ public static int bar() { ... } // 3
 public static void bar(int varValue) { ... } // 3
 ```
 
-`bar$layout` is the FFM memory layout of the global variable (1), and `bar$segment` is the address of
-the global variable (2).
+`bar$layout` is the FFM memory layout of the global variable (1), and `bar$segment` is the
+address of the global variable (2).
 
-Besides that, jextract also generates a getter and a setter method to get and set the value of
-the global variable (3). Once again, the parameter and return type of the getter and setter depend
-on the carrier type of the layout of the global variable, which is itself derived from the header
-files.
+Besides that, jextract also generates a getter and a setter method to get and set the value
+of the global variable (3). Once again, the parameter and return type of the getter and
+setter depend on the carrier type of the layout of the global variable, which is itself
+derived from the header files.
 
-#### Constants (Macros & Enums)
+### Constants (Macros & Enums)
 
-Both macros and enums are translated similarly. If we have a header file containing these declarations:
+Both macros and enums are translated similarly. If we have a header file containing these
+declarations:
 
 ```c
 // mylib.h
@@ -208,8 +232,8 @@ Both macros and enums are translated similarly. If we have a header file contain
 enum MY_ENUM { A, B, C };
 ```
 
-Jextract will generate a set of simple getter method to access the constant values of the macro and the
-enum constants:
+Jextract will generate a set of simple getter methods to access the constant values of the
+macro and the enum constants:
 
 ```java
 // mylib_h.java
@@ -221,13 +245,19 @@ public static int B() { ... }
 public static int C() { ... }
 ```
 
-Note that the enum constants are exposed as top-level methods, rather than being nested inside a class called `MY_ENUM`,
-or through the use of a Java `enum`. This translation strategy mimics C's behavior of enum constants being accessible as
-a top-level declaration as well.
+Note that the enum constants are exposed as top-level methods, rather than being nested
+inside a class called `MY_ENUM`, or through the use of a Java `enum`. This translation
+strategy mimics C's behavior of enum constants being accessible as a top-level declaration
+as well.
 
-#### Struct & Unions
+Not all types of macros are supported though. Only macros that have a primitive numerical
+value, a string, or a pointer type are supported. Most notably, function-like macros are
+not supported by jextract.
 
-Things get a little more complicated for structs and unions. For a struct delcaration like this:
+### Structs & Unions
+
+Things get a little more complicated for structs and unions. For a struct delcaration like
+this:
 
 ```c
 // mylib.h
@@ -244,43 +274,46 @@ Jextract generates a separate class which roughly looks like the following:
 // Point.java
 
 public class Point {
-    public static final GroupLayout layout() { ... }
+    public static final GroupLayout layout() { ... } // 3
 
-    public static final OfInt x$layout() { ... }
-    public static final long x$offset() { ... }
+    public static final OfInt x$layout() { ... } // 2
+    public static final long x$offset() { ... } // 2
 
-    public static int x(MemorySegment struct) { ... }
-    public static void x(MemorySegment struct, int fieldValue) { ... }
+    public static int x(MemorySegment struct) { ... } // 1
+    public static void x(MemorySegment struct, int fieldValue) { ... } // 1
 
-    public static final OfInt y$layout() { ... }
-    public static final long y$offset() { ... }
+    public static final OfInt y$layout() { ... } // 2
+    public static final long y$offset() { ... } // 2
 
-    public static int y(MemorySegment struct) { ... }
-    public static void y(MemorySegment struct, int fieldValue) { ... }
+    public static int y(MemorySegment struct) { ... } // 1
+    public static void y(MemorySegment struct, int fieldValue) { ... } // 1
 
-    public static MemorySegment asSlice(MemorySegment array, long index) { ... }
+    public static MemorySegment asSlice(MemorySegment array, long index) { ... } // 5
 
-    public static long sizeof() { ... }
+    public static long sizeof() { ... } // 3
 
-    public static MemorySegment allocate(SegmentAllocator allocator) { ... }
+    public static MemorySegment allocate(SegmentAllocator allocator) { ... } // 4
     public static MemorySegment allocateArray(long elementCount,
-            SegmentAllocator allocator) { ... }
+            SegmentAllocator allocator) { ... } // 4
 
     public static MemorySegment reinterpret(MemorySegment addr, Arena arena,
-            Consumer<MemorySegment> cleanup) { ... }
+            Consumer<MemorySegment> cleanup) { ... } // 6
     public static MemorySegment reinterpret(MemorySegment addr, long elementCount,
-            Arena arena, Consumer<MemorySegment> cleanup) { ... }
+            Arena arena, Consumer<MemorySegment> cleanup) { ... } // 6
 }
 ```
 
-There's a getter and setter for each field of the struct, which takes a pointer to a struct
+There's a getter and setter for each field of the struct (1), which takes a pointer to a struct
 (a `MemorySegment`) to get/set the field from/to. Besides that, there are also meta-data
-accessors for each field (`xxx$layout()` and `xxx$offset()`). Then, there are general methods
-for interacting with a single struct, or an array of structs. Finally, there are also the
-meta-data accessors `sizeof` and `layout`, which can be used to get the size and layout of the struct.
+accessors for each field (`xxx$layout()` and `xxx$offset()`) (2). Then, there are
+meta-data accessors `sizeof` and `layout`, which can be used to get the size and layout
+of the struct (3), `allocate*` methods for allocating single structs or arrays of structs
+(4), an `asSlice` method which can be used to access elements of an array of structs (5),
+and finally there are two `reinterpret` methods which can be used to sanitize raw addresses
+returned by native code, or read from native memory (6).
 
-This example shows how to allocate a struct using the `allocate` method, and then sets both
-the `x` and `y` field to `10` and `5` respectively:
+The following example shows how to allocate a struct using the `allocate` method, and then
+sets both the `x` and `y` field to `10` and `5` respectively:
 
 ```java
 // Main.java
@@ -293,7 +326,7 @@ try (Arena arena = Arena.ofConfined()) {
 }
 ```
 
-For working with arrays of structs, we use the `allocateArray` method which accepts an
+For working with arrays of structs, we can use the `allocateArray` method which accepts an
 additional element count, indicating the length of the array:
 
 ```java
@@ -313,15 +346,15 @@ try (Arena arena = Arena.ofConfined()) {
 }
 ```
 
-In the above example, the `asSlice` method is used to 'slice' out of section of
-the array, which corresponds to a single `Point` struct instance. This method
+In the above example, the `asSlice` method is used to 'slice' out a section of
+the array, which corresponds to a single `Point` struct element. This method
 can be used to access individual elements of the `points` array, when given
 an index.
 
 Finally, the `reinterpret` method can be used to 'sanitize' a pointer that is
 returned from native code. Let's say we have a C function that creates an instance
 of a `Point`, and returns a pointer to it, as well as a function that deletes a
-created point:
+point, given a pointer:
 
 ```c
 struct Point* new_point(void);
@@ -345,16 +378,17 @@ try (Arena arena = Arena.ofConfined()) {
 } // 'delete_point` called here
 ```
 
-The returned `point` segment has exactly the size of one `Point` (for arrays of struct, use
-the `reinterpret` overload that takes an element count as well). The lifetime we associate
-with the segment is the lifetime denoted by `arena`, and when the arena is closed, we want
-to call `delete_point`, which we do by passing a method reference to `delete_point` as a 
-cleanup action when calling `reinterpret`.
+The `point` segment returned by `reinterpret` has exactly the size of one `Point` (for
+arrays of struct, use the `reinterpret` overload that takes an element count as well). The
+lifetime we associate with the segment is the lifetime denoted by `arena`, and when the
+arena is closed, we want to call `delete_point`, which we can do by passing a method
+reference to `delete_point` as a cleanup action when calling `reinterpret`.
 
-#### Function Pointers
+### Function Pointers
 
 If jextract finds a function pointer type in the header files it parses, it will generate
-a separate class for each of these. For instance, for a function pointer `typedef` like this:
+a separate class for each of these. For instance, for a function pointer `typedef` like
+this:
 
 ```c
 // mylib.h
@@ -362,7 +396,7 @@ a separate class for each of these. For instance, for a function pointer `typede
 typedef int (*callback_t)(int x, int y);
 ```
 
-Jextract generates the following class in `callback_t.java`:
+Jextract generates the following class in a `callback_t.java` file:
 
 ```java
 // callback_t.java
@@ -382,7 +416,7 @@ We again have a meta-data accessor for the function descriptor (`descriptor()`).
 an `allocate` method that can be used to allocate a new instance of this function pointer,
 who's implementation is implemented by the `fi` functional interface instance. And finally,
 there's an `invoke` method which can be used to invoke an instance of `callback_t` that
-we get back from a C function call.
+we received from native code.
 
 For instance, let's say we have a function that accepts an instance of the `callback_t`
 function pointer type:
@@ -395,7 +429,7 @@ int call_me_back(callback_t callback) {
 }
 ```
 
-We can call this function as follows:
+We can call this function from Java as follows:
 
 ```java
 // Main.java
@@ -407,14 +441,15 @@ try (Arena arena = Arena.ofConfined()) {
 } // 'cb' freed here
 ```
 
-Here we use the lambda `(a, b) -> a * b` as the implemention of the `callback_t` instance
-we create using the call to `allocate`. This method returns an upcall stub as returned by
-the `java.lang.foreign.Linker::upcallStub` method. The `arena` argument denotes the lifetime
-of the upcall stub, meaning that the upcall stub will be freed when the arena is closed (after
-which the callback instance can no longer be called).
+Here we use the lambda `(a, b) -> a * b` as the implementation of the `callback_t` instance
+we create using the call to `allocate`. This method returns an upcall stub like the ones
+returned by the `java.lang.foreign.Linker::upcallStub` method. The `arena` argument denotes
+the lifetime of the upcall stub, meaning that the upcall stub will be freed when the arena
+is closed (after which the callback instance should no longer be called).
 
-Alternatively, we can invoke an instance of `callback_t` that we get back from a call to a C
-function. Let's say we have a couple of functions like this:
+Additionally, we can using the `callback_t::invoke` method invoke an instance of
+`callback_t` that we get back from a call to a C function. Let's say we have a couple of
+functions like this:
 
 ```c
 // mylib.c
@@ -428,9 +463,10 @@ callback_t get_callback(void) {
 }
 ```
 
-The `get_callback` function returns an instance of `callback_t`, which is a function pointer pointing
-to the native `mult` function. We can call the returned `callback_t` instance using the `invoke` method
-in the `callback_t` class that jextract generates for us:
+The `get_callback` function returns an instance of `callback_t`, which is a function pointer
+pointing to the native `mult` function. We can call `callback_t` instance that `get_callback()`
+return in Java using the `invoke` method in the `callback_t` class that jextract generates
+for us:
 
 ```java
 // Main.java
@@ -440,23 +476,26 @@ int result = callback_t.invoke(cb, 1, 2);
 System.out.println(result); // prints: 2
 ```
 
-Here the `callback_t` instance we want to invoke is passed as the first argument to `invoke`, and then
-the `1` and `2` represent the arguments passed to the call to the `callback_t` instance.
+Here the `callback_t` instance we want to invoke is passed as the first argument to
+`invoke`, and then the `1` and `2` represent the arguments passed when calling the
+`callback_t` instance.
 
-Jextract generates function pointer classes like the `callback_t` classs for function pointers found in
-function parameter or return types, typedefs, or the types of variables (such as struct fields or global variables).
+Jextract generates function pointer classes like the `callback_t` class for function
+pointers found in function parameter or return types, typedefs, or the types of variables
+(such as struct fields or global variables).
 
-#### Variadic Functions
+### Variadic Functions
 
-Jextract handles variadic functions differently from regular functions. Variadic functions in C act almost like
-a template, where the calling convention changes based on the number and types of arguments passed to the function.
-Because of this, the FFM linker needs to know exactly which argument types are goign to be passed to a variadic
-function when the function is linked. This is described in great detail in the [javadoc of the `java.lang.foreign.Linker`
-class](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#variadic-funcs).
+Jextract handles variadic functions differently from regular functions. Variadic functions
+in C more or less like a template, where the calling convention changes based on the number
+and types of arguments passed to the function. Because of this, the FFM linker needs to
+know exactly which argument types are going to be passed to a variadic function when the
+function is linked. This is described in greater detail in the [javadoc of the
+`java.lang.foreign.Linker` class](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#variadic-funcs).
 
-To make calling variadic functions easier, jextract introduces the concept of an 'invoker'. An invoker represents
-a particular 'instantiation' of a variadic function for a particular set of variadic parameter types. When the header
-files contain a variadic function like this:
+To make calling variadic functions easier, jextract introduces the concept of an 'invoker'.
+An invoker represents a particular 'instantiation' of a variadic function for a particular
+set of variadic parameter types. When the header files contain a variadic function like this:
 
 ```c
 // mylib.h
@@ -464,7 +503,7 @@ files contain a variadic function like this:
 void foo_variadic(int x, ...);
 ```
 
-Jextract generates not a regular method, but a _class_, which represents the invoker:
+Jextract doesn't generates a regular method, but a _class_, which represents the invoker:
 
 ```java
 // mylib.h
@@ -480,12 +519,14 @@ public static class foo_variadic {
 }
 ```
 
-This class has a meta-data accessor for the function address, and a `makeInvoker` factory method which can be
-used to create an instance on the invoker class. The `MemoryLayout...` arguments passed to `makeInvoker` represent
-the memory layouts of the variadic arguments that are to be passed to the function. The `makeInvoker` factory
-essentially instantiates the variadic function (like you would a template) for a particular set of parameter types.
+This class has a `static` meta-data accessor for the function address, and a `makeInvoker`
+factory method which can be used to create an instance on the invoker class. The `MemoryLayout...`
+arguments passed to `makeInvoker` represent the memory layouts of the variadic parameters
+that are to be passed to the function. The `makeInvoker` factory essentially instantiates
+the variadic function (like you would a template) for a particular set of parameter types.
 
-We can then use the instance methods `apply` or `handle` if we want to invoke the function:
+We can then use the instance methods `apply` or `handle` if we want to invoke the function,
+as follows:
 
 ```java
 // Main.java
@@ -495,19 +536,20 @@ invoker.apply(3, 1, 2, 3);
 invoker.handle().invokeExact(3, 1, 2, 3);
 ```
 
-Here we instiate `foo_variadic` for 3 parameter types of the C type `int`. These paremeter types essentially replace
-the `...` elipsis in the C function type.
+Here we instantiate `foo_variadic` for 3 parameter types of the C type `int`. These parameter
+types essentially replace the `...` ellipsis in the C function type.
 
-We can call the instatiated invoker either by calling `apply`, which will box the arguments into an `Object[]`, or
-through the method handle returned by `handle()` which avoids the overhead of boxing.
+We can call the instantiated invoker either by calling `apply`, which will box the arguments
+into an `Object[]`, or through the method handle returned by `handle()` which avoids the
+overhead of boxing.
 
-#### Typedefs
+### Typedefs
 
-As mentioned before: typedefs are either tranlated as a `static final` memory layout field in the main header class
-that jextract generates, or as a separate class, depending on whether the typedef is for a primitve or struct/union
-type respectively.
+As mentioned before: typedefs are either translated as a `static final` memory layout fields
+in the main header class that jextract generates, or as a separate class, depending on
+whether the typedef is for a primitive type or a struct/union type respectively.
 
-Take for example the following `typedef` delcarations:
+Take for example the following `typedef` declarations:
 
 ```c
 // mylib.h
@@ -521,8 +563,8 @@ struct Point {
 typedef struct Point MyPoint;
 ```
 
-`MyInt` is a `typedef` of the primitve type `int`, so it is translated by jextract as a `static final` layout field
-in the main header class:
+`MyInt` is a `typedef` of the primitive type `int`, so it is translated by jextract as a
+`static final` layout field in the main header class:
 
 ```java
 // mylib_h.java
@@ -530,8 +572,8 @@ in the main header class:
 public static final OfInt MyInt = mylib_h.C_INT;
 ```
 
-The `MyPoint` `typedef` on the other hand is a typedef for a struct, so it is translated as a separate class which
-extends the class that is generated for the `Point` struct:
+The `MyPoint` `typedef` on the other hand is a typedef for a struct, so it is translated
+as a separate class which extends the class that is generated for the `Point` struct:
 
 ```java
 // MyPoint.java
@@ -539,13 +581,14 @@ extends the class that is generated for the `Point` struct:
 public class MyPoint extends Point { }
 ```
 
-Through static inheritance, all the methods in the `Point` class are then available through the `MyPoint` class as
-well.
+Through static inheritance, all the methods in the `Point` class are available through the
+`MyPoint` class as well.
 
-#### Nested Types
+### Nested Types
 
-C allows variable declarations to have an inline anonymous type. Jextract handles in particular cases where a struct's
-field has an inline type specially. For instance, if we have a struct such as this:
+C allows variable declarations to have an inline anonymous type. Jextract handles in
+particular cases where a struct's field has an inline type specially. For instance, if we
+have a struct such as this:
 
 ```c
 // mylib.h
@@ -559,8 +602,8 @@ struct Foo {
 };
 ```
 
-Jextract generates a _nested_ struct and function pointer class for the `bar` and `cb` fields, _inside of_ the class it
-generates for the `Foo` struct itself:
+Jextract generates a _nested_ struct and function pointer class for the `bar` and `cb`
+fields, _inside of_ the class it generates for the `Foo` struct itself:
 
 ```java
 // mylib_h.java
@@ -584,11 +627,12 @@ public class Foo {
 }
 ```
 
-In both cases, the name of the nested class is the name of the field in the C code.
+In both cases, the name of the nested class is the name of the field of the struct.
 
-Both fields also have the usual getter and setter, but not that the getter for the struct field returns a _reference_
-to the memory inside the `Foo` struct that corresponds to the `bar` fields. This means that writes to the returned
-memory segment will be visible in the enclosing struct instance as well:
+Both fields also have the usual getter and setter, but note that the getter for the struct
+field returns a _reference_ to the memory inside the `Foo` struct that corresponds to the
+`bar` field. This means that writes to the returned memory segment will be visible in the
+enclosing struct instance as well:
 
 ```java
 // Main.java
@@ -605,24 +649,24 @@ try (Arena arena = Arena.ofConfined()) {
 }
 ```
 
-In the above snippet, note that the load of the `baz` field value on the last line will 'see' the update to the `bar` field
-of the `foo` instance on the line before.
+In the above snippet, note that the load of the `baz` field value on the last line will
+'see' the update to the `bar` field of the `foo` instance on the line before.
 
-## Advanced
+## Filtering
 
-### Filtering
+Some libraries are incredibly large (such as a platform SDK), and we might not be
+interested in letting jextract generate code for the entire library. In cases like that,
+we can use jextract's `--include-XXX` command line options to only generate classes for
+the elements we specify.
 
-Some libraries are incredibly large (such as a platform SDK), and we might not be interested in letting jextract
-generate code for the entire library. In cases like that, we can use jextract's `--include-XXX` command line options
-to only generate classes for the elements we specify.
-
-To allow for symbol filtering, `jextract` can generate a *dump* of all the symbols encountered in an header file;
-this dump can be manipulated, and then used as an argument file (using the `@argfile` syntax also available in other
-JDK tools) to e.g. generate bindings only for a *subset* of symbols seen by `jextract`. For instance, if we run
+To allow for symbol filtering, `jextract` can generate a _dump_ of all the symbols
+encountered in an header file; this dump can be manipulated, and then used as an argument
+file (using the `@argfile` syntax also available in other JDK tools) to e.g. generate
+bindings only for a _subset_ of symbols seen by `jextract`. For instance, if we run
 `jextract` with as follows:
 
-```
-jextract --dump-includes includes.txt mylib.h
+```sh
+$ jextract --dump-includes includes.txt mylib.h
 ```
 
 We obtain the following file (`includes.txt`):
@@ -637,8 +681,9 @@ We obtain the following file (`includes.txt`):
 ...
 ```
 
-The inlude options in this file can then be edited down to a set of symbols that is desired, for instance using
-other command line tools such as `grep` or `Select-String`, and passed back to jextract:
+The include options in this file can then be edited down to a set of symbols that is
+desired, for instance using other command line tools such as `grep` or `Select-String`,
+and passed back to jextract:
 
 ```sh
 $ jextract --dump-includes includes.txt mylib.h
@@ -646,8 +691,8 @@ $ grep Foo includes.txt > includes_filtered.txt
 $ jextract @includes_filtered.txt mylib.h
 ```
 
-Users should exercise caution when filtering symbols, as it is relatively easy to filter out a declaration that is
-depended on by one or more declarations:
+Users should exercise caution when filtering symbols, as it is relatively easy to filter
+out a declaration that is depended on by one or more declarations:
 
 ```c
 // test.h
@@ -659,29 +704,32 @@ struct A aVar;
 
 Here, we could run `jextract` and filter out `A`, like so:
 
-```
-jextract --include-var aVar test.h
+```sh
+$ jextract --include-var aVar test.h
 ```
 
-However, doing so would lead to broken generated code, as the layout of the global variable `aVar` depends on the
-layout of the excluded struct `A`.
+However, doing so would lead to broken generated code, as the layout of the global variable
+`aVar` depends on the layout of the excluded struct `A`.
 
-In such cases, `jextract` will report the missing dependency and terminate without generating any bindings:
+In such cases, `jextract` will report the missing dependency and terminate without
+generating any bindings:
 
-```
+```txt
 ERROR: aVar depends on A which has been excluded
 ```
 
-### Tracing
+## Tracing
 
-It is sometimes useful to inspect the parameters passed to a native call, especially when diagnosing application
-bugs and/or crashes. The code generated by the `jextract` tool supports *tracing* of native calls, that is, parameters
-passed to native calls can be printed on the standard output.
+It is sometimes useful to inspect the parameters passed to a native call, especially when
+diagnosing application bugs and/or crashes. The code generated by the `jextract` tool
+supports _tracing_ of native calls, that is, parameters passed to native calls can be
+printed on the standard output.
 
-To enable the tracing support, just pass the `-Djextract.trace.downcalls=true` flag to the launcher used to start the application.
-Below we show an excerpt of the output when running the [OpenGL example](samples/opengl) with tracing support enabled:
+To enable the tracing support, just pass the `-Djextract.trace.downcalls=true` flag to the
+launcher used to start the application. Below we show an excerpt of the output when
+running the [OpenGL example](samples/opengl) with tracing support enabled:
 
-```
+```txt
 glutInit(MemorySegment{ address: 0x7fa6b03d6400, byteSize: 4 }, MemorySegment{ address: 0x7fa6b03d6400, byteSize: 4 })
 glutInitDisplayMode(18)
 glutInitWindowSize(900, 900)
@@ -723,7 +771,8 @@ A complete list of all the supported command line options is given below:
 | `--include-[function,constant,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings. When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 | `--version`                                                  | print version information and exit      
 
-#### Additional clang options
+### Additional clang options
 
-Users can also specify additional clang compiler options, by creating a file named compile_flags.txt in the current folder,
-as described [here](https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
+Users can also specify additional clang compiler options, by creating a file named
+`compile_flags.txt` in the current folder, as described
+[here](https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
