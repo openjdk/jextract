@@ -48,6 +48,11 @@ import java.util.stream.IntStream;
  */
 class HeaderFileBuilder extends ClassSourceBuilder {
 
+    private final static String ASMLABEL = "AsmLabelAttr";
+
+    private static final boolean isMacOSX =
+            System.getProperty("os.name", "unknown").contains("OS X");
+
     private final Set<String> holderClassNames = new HashSet<>();
 
     HeaderFileBuilder(SourceFileBuilder builder, String className, String superName, String runtimeHelperName) {
@@ -83,7 +88,22 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 stream().
                 map(JavaName::getOrThrow).
                 toList();
-        emitFunctionWrapper(JavaName.getOrThrow(funcTree), nativeName, needsAllocator, isVarargs, parameterNames, funcTree);
+
+
+        emitFunctionWrapper(JavaName.getOrThrow(funcTree), nativeName,
+                needsAllocator, isVarargs, parameterNames, funcTree);
+    }
+
+    private String lookupName(Declaration decl) {
+        var attrs = decl.getAttribute(Declaration.ClangAttributes.class);
+        if (attrs.isPresent() && attrs.get().attributes().containsKey(ASMLABEL)) {
+            String asmLabel = attrs.get().attributes().get(ASMLABEL).get(0);
+            return isMacOSX ?
+                    asmLabel.substring(1) : // skip leading "_"
+                    asmLabel;
+        } else {
+            return decl.name();
+        }
     }
 
     public void addConstant(Declaration.Constant constantTree) {
@@ -156,7 +176,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 private static class \{holderClass} {
                     public static final FunctionDescriptor DESC = \{functionDescriptorString(1, decl.type())};
 
-                    public static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{nativeName}");
+                    public static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{lookupName(decl)}");
 
                     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
                 }
@@ -205,7 +225,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendLines(STR."""
                 public static class \{invokerClassName} {
                     private static final FunctionDescriptor BASE_DESC = \{functionDescriptorString(2, decl.type())};
-                    private static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{nativeName}");
+                    private static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{lookupName(decl)}");
 
                     private final MethodHandle handle;
                     private final FunctionDescriptor descriptor;
@@ -487,7 +507,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendIndentedLines(STR."""
                 private static class \{mangledName} {
                     public static final \{layoutType} LAYOUT = \{layoutString(varType)};
-                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{var.name()}").reinterpret(LAYOUT.byteSize());
+                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{lookupName(var)}").reinterpret(LAYOUT.byteSize());
                     \{accessHandle}
                     public static final long[] DIMS = { \{dimsString} };
                 }
@@ -496,7 +516,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendIndentedLines(STR."""
                 private static class \{mangledName} {
                     public static final \{layoutType} LAYOUT = \{layoutString(varType)};
-                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{var.name()}").reinterpret(LAYOUT.byteSize());
+                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{lookupName(var)}").reinterpret(LAYOUT.byteSize());
                 }
                 """);
         }
