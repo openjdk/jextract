@@ -818,5 +818,5 @@ describes how to do this for various different langauges:
 
 | Language  | Method of access                                             |
 | :---------| ------------------------------------------------------------ |
-| C++       | C++ allows declaring C methods using `extern "C"`, and many C++ libraries have a C interface to go with them. Jextract can parse such a C interface, which can then be accessed through the generated code. |
-| Rust      | The Rust ecosystem has a tool called `cbindgen` which can be used to generate a C interface for a Rust library. Such a generated C interface can then be parsed by jextract, and accessed through the FFM API. |
+| C++       | C++ allows declaring C methods using `extern "C"`, and many C++ libraries have a C interface to go with them. Jextract can consume such a C interface, which can then be used to access the library in question. |
+| Rust      | The Rust ecosystem has a tool called `cbindgen` which can be used to generate a C interface for a Rust library. Such a generated C interface can then be consumed by jextract, and be used to access the library in question. |
