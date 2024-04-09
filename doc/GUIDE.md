@@ -4,7 +4,7 @@ The jextract tool parses header (.h) files of native libraries, and generates Ja
 called 'bindings', which  use the Foreign Function and Memory API (FFM API) under the hood,
 that can be used by a client to access the native library.
 
-Interacting with native (C) code through the FFM API works
+Interacting with native C code through the FFM API works
 by loading a native library (e.g. a `.so`/`.dll`/`.dylib` file), which is essentially an
 archive of native functions and global variables. The user then has to look up the functions
 they want to call using a `SymbolLookup`, and finally 'link' the functions by using the
@@ -16,6 +16,9 @@ using a native library they are interested in.
 
 This guide shows how to run the jextract tool, and how to use the Java code that it generates.
 The samples under [`samples`](samples) direcotry are also a good source of examples.
+
+Note that at this time, jextract only supports C header files. If you have a library written
+in another language, see the section on [other languages](#other-languages).
 
 ## Running Jextract
 
@@ -754,6 +757,35 @@ glRotatef(0.0, 0.0, 1.0, 0.0)
 glutSolidTeapot(0.5)
 ```
 
+## Preprocessor Definitions
+
+C header files are processed by a pre-processor by a compiler before they are inspected
+further. It is possible for a header file to contain so-called 'compiler switches', which
+can be used to conditionally generate code based on the value of a macro, for instance:
+
+```c
+#ifdef MY_MACRO
+int x = 42;
+#else
+int x = 0;
+#endif
+```
+
+The value of these macros also affects the behavior of jextract. Therefore, jextract
+supports setting macro values on the command line using the `-D` or
+`--define-macro <macro>=<value>` option. For instance, we can use `-D MY_MACRO` to set
+the value of `MY_MACRO` in the above snippet to `1`, and trigger the first 'branch' of the
+compiler switch, thereby defining `int x = 42`.
+
+Please note that other header files included by jextract may also define macro values using
+the `#define` pre-processor directive. Therefore it is often important in which order
+header files are processed by a compiler, and as such, the feeding the wrong header file
+to jextract may result in weird errors due to missing macro definitions. A well-known
+example of this are Windows SDK headers. Almost always, the main `Windows.h` header file
+should be passed to jextract for things to work correctly. Please consult the
+documentation of the library that you're trying to use to find out which header file should
+be included/passed to jextract.
+
 ## Command Line Option Reference
 
 A complete list of all the supported command line options is given below:
@@ -776,3 +808,15 @@ A complete list of all the supported command line options is given below:
 Users can also specify additional clang compiler options, by creating a file named
 `compile_flags.txt` in the current folder, as described
 [here](https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
+
+## Other Languages
+
+As noted in the introduction, jextract currently only supports C header files, but many
+other languages also support C interop, and jextract/FFM can still be used to talk to
+libraries written in those language through an intermediate C layer. The table below
+describes how to do this for various different langauges:
+
+| Language  | Method of access                                             |
+| :---------| ------------------------------------------------------------ |
+| C++       | C++ allows declaring C methods using `extern "C"`, and many C++ libraries have a C interface to go with them. Jextract can parse such a C interface, which can then be accessed through the generated code. |
+| Rust      | The Rust ecosystem has a tool called `cbindgen` which can be used to generate a C interface for a Rust library. Such a generated C interface can then be parsed by jextract, and accessed through the FFM API. |
