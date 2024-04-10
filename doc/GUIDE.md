@@ -67,15 +67,18 @@ native library in order to parse C sources).
 ### Library Loading
 
 When using the `--library <libspec>` option, the generated code internally uses [`SymbolLookup::libraryLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#libraryLookup(java.nio.file.Path,java.lang.foreign.Arena))
-to load libraries specified by `<libspec>`, after potentially mapping the name of the library to a platform dependent name using [`System::mapLibraryName`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)).
-This means for instance that on Linux, when specifying `--library mylib` the bindings will try to load `libmylib.so` using the OS-specific
-library loading mechanism on Linux, which is [`dlopen`](https://man7.org/linux/man-pages/man3/dlopen.3.html).
-This way of loading libraries also relies on OS-specific search mechanisms to find the library file.
-On Linux the search path can be amended using the `LD_LIBRARY_PATH` environment variable (see the documentation of `dlopen`).
-On Mac the relevant environment variable is `DYLD_LIBRARY_PATH`, and on Windows the variable is `PATH`.
-Though, for the latter the overall library search mechanism is entirely different (described [here](https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order)).
-When using the HotSpot JVM, the `-Xlog:library` option can als be use to log where the JVM is trying to load a library from,
-which can be useful to debug a failure to load a library.
+to load libraries specified by `<libspec>`. If `<libspec>` denotes a library name, the
+name is then mapped to a platform dependent name using [`System::mapLibraryName`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)).
+This means for instance that on Linux, when specifying `--library mylib` the bindings will
+try to load `libmylib.so` using the OS-specific library loading mechanism on Linux, which
+is [`dlopen`](https://man7.org/linux/man-pages/man3/dlopen.3.html). This way of loading
+libraries also relies on OS-specific search mechanisms to find the library file. On Linux
+the search path can be amended using the `LD_LIBRARY_PATH` environment variable (see the
+documentation of `dlopen`). On Mac the relevant environment variable is `DYLD_LIBRARY_PATH`,
+and on Windows the variable is `PATH`. Though, for the latter the overall library search
+mechanism is entirely different (described [here](https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order)).
+When using the HotSpot JVM, the `-Xlog:library` option can als be use to log where the JVM
+is trying to load a library from, which can be useful to debug a failure to load a library.
 
 The `<libspec>` argument of the `--library` option can either be a library name, such as,
 `mylib` which will, be mapped to a platform specific name using [`System::mapLibraryName`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)), or a path to a library file (either relative or
