@@ -404,7 +404,7 @@ reference to `delete_point` as a cleanup action when calling `reinterpret`.
 
 ### Function Pointers
 
-Jextract will generate a separate class for each function pointer type found in the header
+Jextract generates a separate class for each function pointer type found in the header
 files it parses. For instance, for a function pointer `typedef` like this:
 
 ```c
