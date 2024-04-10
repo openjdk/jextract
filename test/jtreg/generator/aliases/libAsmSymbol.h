@@ -22,14 +22,10 @@
  */
 
 #ifdef _WIN64
-  #ifdef IMPL
-    #define EXPORT __declspec(dllexport)
-  #else
-    #define EXPORT __declspec(dllimport)
-  #endif // IMPL
+#define EXPORT __declspec(dllexport)
 #else
 #define EXPORT
-#endif //_WIN64
+#endif
 
 #if __APPLE__
 #define ALIAS(sym) __asm("_" #sym)
