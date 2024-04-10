@@ -69,7 +69,7 @@ to load libraries specified by `<libspec>`, after potentially mapping the name o
 This means for instance that on Linux, when specifying `--library mylib` the bindings will try to load `libmylib.so` using the OS-specific
 library loading mechanism on Linux, which is [`dlopen`](https://man7.org/linux/man-pages/man3/dlopen.3.html).
 This way of loading libraries also relies on OS-specific search mechanisms to find the library file.
-On Linux the search path can be ammended using the `LD_LIBRARY_PATH` environment variable (see the documentation of `dlopen`).
+On Linux the search path can be amended using the `LD_LIBRARY_PATH` environment variable (see the documentation of `dlopen`).
 On Mac the relevant environment variable is `DYLD_LIBRARY_PATH`, and on Windows the variable is `PATH`.
 Though, for the latter the overall library search mechanism is entirely different (described [here](https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order)).
 When using the HotSpot JVM, the `-Xlog:library` option can als be use to log where the JVM is trying to load a library from,
@@ -417,7 +417,7 @@ public class callback_t {
 
 We again have a meta-data accessor for the function descriptor (`descriptor()`). There's
 an `allocate` method that can be used to allocate a new instance of this function pointer,
-who's implementation is implemented by the `fi` functional interface instance. And finally,
+whose implementation is defined by the `fi` functional interface instance. And finally,
 there's an `invoke` method which can be used to invoke an instance of `callback_t` that
 we received from native code.
 
@@ -445,7 +445,7 @@ try (Arena arena = Arena.ofConfined()) {
 ```
 
 Here we use the lambda `(a, b) -> a * b` as the implementation of the `callback_t` instance
-we create using the call to `allocate`. This method returns an upcall stub like the ones
+we create using `allocate`. This method returns an upcall stub like the ones
 returned by the `java.lang.foreign.Linker::upcallStub` method. The `arena` argument denotes
 the lifetime of the upcall stub, meaning that the upcall stub will be freed when the arena
 is closed (after which the callback instance should no longer be called).
@@ -490,7 +490,7 @@ pointers found in function parameter or return types, typedefs, or the types of 
 ### Variadic Functions
 
 Jextract handles variadic functions differently from regular functions. Variadic functions
-in C more or less like a template, where the calling convention changes based on the number
+in C behave more or less like a template, where the calling convention changes based on the number
 and types of arguments passed to the function. Because of this, the FFM linker needs to
 know exactly which argument types are going to be passed to a variadic function when the
 function is linked. This is described in greater detail in the [javadoc of the
