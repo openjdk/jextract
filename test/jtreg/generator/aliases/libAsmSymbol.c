@@ -24,12 +24,12 @@
 
 #include "libAsmSymbol.h"
 
-EXPORT int fooA = 1;
-EXPORT int funcA (int x, int y) {
+int fooA = 1;
+int funcA (int x, int y) {
     return x + y;
 }
 
-EXPORT int fooB = 2;
-EXPORT int funcB (int x, int y) {
+int fooB = 2;
+int funcB (int x, int y) {
     return x * y;
 }

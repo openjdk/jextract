@@ -21,11 +21,7 @@
  * questions.
  */
 
-#ifdef _WIN64
-#define EXPORT __declspec(dllexport)
-#else
-#define EXPORT
-#endif
+#ifndef _WIN64
 
 #if __APPLE__
 #define ALIAS(sym) __asm("_" #sym)
@@ -35,12 +31,14 @@
 
 #ifdef ADD
 
-EXPORT extern int foo ALIAS(fooA);
-EXPORT int func (int x, int y) ALIAS(funcA);
+extern int foo ALIAS(fooA);
+int func (int x, int y) ALIAS(funcA);
 
 #else
 
-EXPORT extern int foo ALIAS(fooB);
-EXPORT int func (int x, int y) ALIAS(funcB);
+extern int foo ALIAS(fooB);
+int func (int x, int y) ALIAS(funcB);
 
 #endif // ADD
+
+#endif // _WIN64
