@@ -1,18 +1,18 @@
 # Jextract Guide
 
 The jextract tool parses header (.h) files of native libraries, and generates Java code,
-called 'bindings', which  use the Foreign Function and Memory API (FFM API) under the hood,
-that can be used by a client to access the native library.
+called _bindings_, which use the [Foreign Function and Memory API](https://openjdk.org/jeps/442)
+(FFM API) under the hood, that can be used by a client to access the native library.
 
 Interacting with native C code through the FFM API works
 by loading a native library (e.g. a `.so`/`.dll`/`.dylib` file), which is essentially an
 archive of native functions and global variables. The user then has to look up the functions
-they want to call using a `SymbolLookup`, and finally 'link' the functions by using the
+they want to call using a `SymbolLookup`, and finally _link_ the functions by using the
 `Linker::downcallHandle` method. Additionally, a client may need to create function pointer for
 Java functions using `Linker::upcallStub`, access global variables through the addresses
 returned by a lookup, and construct `MemoryLayout` instances for the structs they want to access.
-Jextract aims to automate many of these steps, so that a client can instead immediately start
-using a native library they are interested in.
+The jextract tool aims to automate many of these steps, so that a client can instead
+immediately start using the native libraries they are interested in.
 
 This guide shows how to run the jextract tool, and how to use the Java code that it generates.
 The samples under [`samples`](samples) direcotry are also a good source of examples.
@@ -23,11 +23,12 @@ in another language, see the section on [other languages](#other-languages).
 ## Running Jextract
 
 A native library typically has an `include` directory which contains all the header files
-that define the interface of the library, with one 'main' header file. Let's say we have a
+that define the interface of the library, with one _main_ header file. Let's say we have a
 library called `mylib` stored at `/path/to/mylib` that has a directory `/path/to/mylib/include`
-with all the header files. And let's say that we have a shell open in the root directory
-of the Java project we're working on, which has an `src` source directory corresponding to
-the root package. A typical way to run jextract would be like this:
+where the header files of that library are stored. And let's say that we have a shell open
+in the root directory of the Java project we're working on, which has an `src` source
+directory corresponding to,the root package. A typical way to run jextract would be like
+this:
 
 ```sh
 $ jextract \
@@ -60,7 +61,8 @@ list of command line options [here](#command-line-option-reference).
 Jextract assumes that the version of a native library that a project uses is relatively stable.
 Therefore, jextract is intended to be run once, and then for the generated sources to be added to the project.
 Jextract only needs to be run again when the native library, or jextract itself are updated. (This is also
-the workflow that jextract itself uses for talking to the libclang library).
+the workflow that jextract itself follows: jextract depends on the [libclang](https://clang.llvm.org/docs/LibClang.html)
+native library in order to parse C sources).
 
 ### Library Loading
 
@@ -133,9 +135,12 @@ typedefs.
 ### Builtin Type Layouts
 
 For every jextract run, regardless of the contents of the library header files, jextract
-will generate a set of memory layouts for the common builtin C types:
+will generate a set of memory layouts for the common builtin C types in the main header
+class it generates:
 
 ```java
+// mylib_h.java
+
 public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
 public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
 public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;
@@ -144,8 +149,8 @@ public static final ValueLayout.OfLong C_LONG_LONG = ValueLayout.JAVA_LONG;
 public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT;
 public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
 public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
-        .withTargetLayout(
-		MemoryLayout.sequenceLayout(Long.MAX_VALUE, ValueLayout.JAVA_BYTE));
+        .withTargetLayout(
+                MemoryLayout.sequenceLayout(Long.MAX_VALUE, ValueLayout.JAVA_BYTE));
 public static final ValueLayout.OfInt C_LONG = ValueLayout.JAVA_INT;
 public static final ValueLayout.OfDouble C_LONG_DOUBLE = ValueLayout.JAVA_DOUBLE;
 ```
@@ -250,12 +255,16 @@ public static int C() { ... }
 
 Note that the enum constants are exposed as top-level methods, rather than being nested
 inside a class called `MY_ENUM`, or through the use of a Java `enum`. This translation
-strategy mimics C's behavior of enum constants being accessible as a top-level declaration
-as well.
+strategy mimics C's behavior of enum constants being accessible as a top-level declaration,
+and also makes it easier to do bitwise operations like `A | B`, which are not possible
+with Java `enum`s.
 
 Not all types of macros are supported though. Only macros that have a primitive numerical
 value, a string, or a pointer type are supported. Most notably, function-like macros are
-not supported by jextract.
+not supported by jextract. For function-like macros, alternatives include re-writing the
+code inside the macro in Java, using the FFM API, or writing a small C library which wraps
+the function-like macro in a proper exported C function, that can then be linked against
+through the FFM API.
 
 ### Structs & Unions
 
@@ -306,14 +315,17 @@ public class Point {
 }
 ```
 
-There's a getter and setter for each field of the struct (1), which takes a pointer to a struct
-(a `MemorySegment`) to get/set the field from/to. Besides that, there are also meta-data
-accessors for each field (`xxx$layout()` and `xxx$offset()`) (2). Then, there are
-meta-data accessors `sizeof` and `layout`, which can be used to get the size and layout
-of the struct (3), `allocate*` methods for allocating single structs or arrays of structs
-(4), an `asSlice` method which can be used to access elements of an array of structs (5),
-and finally there are two `reinterpret` methods which can be used to sanitize raw addresses
-returned by native code, or read from native memory (6).
+There are:
+
+1. a getter and setter for each field of the struct, which takes a pointer to a struct
+  (a `MemorySegment`) to get/set the field from/to.
+2. meta-data accessors for each field (`xxx$layout()` and `xxx$offset()`).
+3. meta-data accessors `sizeof` and `layout`, which can be used to get the size and layout
+  of the struct.
+4. `allocate*` methods for allocating a single struct or arrays of structs.
+5. an `asSlice` method which can be used to access elements of an array of structs.
+6. two `reinterpret` methods which can be used to sanitize raw addresses
+  returned by native code, or read from native memory.
 
 The following example shows how to allocate a struct using the `allocate` method, and then
 sets both the `x` and `y` field to `10` and `5` respectively:
@@ -349,12 +361,12 @@ try (Arena arena = Arena.ofConfined()) {
 }
 ```
 
-In the above example, the `asSlice` method is used to 'slice' out a section of
+In the above example, the `asSlice` method is used to _slice_ out a section of
 the array, which corresponds to a single `Point` struct element. This method
 can be used to access individual elements of the `points` array, when given
 an index.
 
-Finally, the `reinterpret` method can be used to 'sanitize' a pointer that is
+Finally, the `reinterpret` method can be used to _sanitize_ a pointer that is
 returned from native code. Let's say we have a C function that creates an instance
 of a `Point`, and returns a pointer to it, as well as a function that deletes a
 point, given a pointer:
@@ -389,9 +401,8 @@ reference to `delete_point` as a cleanup action when calling `reinterpret`.
 
 ### Function Pointers
 
-If jextract finds a function pointer type in the header files it parses, it will generate
-a separate class for each of these. For instance, for a function pointer `typedef` like
-this:
+Jextract will generate a separate class for each function pointer type found in the header
+files it parses. For instance, for a function pointer `typedef` like this:
 
 ```c
 // mylib.h
@@ -446,9 +457,10 @@ try (Arena arena = Arena.ofConfined()) {
 
 Here we use the lambda `(a, b) -> a * b` as the implementation of the `callback_t` instance
 we create using `allocate`. This method returns an upcall stub like the ones
-returned by the `java.lang.foreign.Linker::upcallStub` method. The `arena` argument denotes
-the lifetime of the upcall stub, meaning that the upcall stub will be freed when the arena
-is closed (after which the callback instance should no longer be called).
+returned by the [`java.lang.foreign.Linker::upcallStub`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#upcallStub(java.lang.invoke.MethodHandle,java.lang.foreign.FunctionDescriptor,java.lang.foreign.Arena,java.lang.foreign.Linker.Option...))
+method. The `arena` argument denotes the lifetime of the upcall stub, meaning that the
+upcall stub will be freed when the arena is closed (after which the callback instance
+can no longer be called).
 
 Additionally, we can using the `callback_t::invoke` method invoke an instance of
 `callback_t` that we get back from a call to a C function. Let's say we have a couple of
@@ -485,7 +497,17 @@ Here the `callback_t` instance we want to invoke is passed as the first argument
 
 Jextract generates function pointer classes like the `callback_t` class for function
 pointers found in function parameter or return types, typedefs, or the types of variables
-(such as struct fields or global variables).
+(such as struct fields or global variables):
+
+```c
+void func(void (*cb)(void)); // function parameter
+void (*func(void))(void); // function return type
+typedef void (*cb)(void); // typedef
+void (*cb)(void); // global variable
+struct Foo {
+  void (*cb)(void); // struct field
+};
+```
 
 ### Variadic Functions
 
@@ -496,8 +518,8 @@ know exactly which argument types are going to be passed to a variadic function 
 function is linked. This is described in greater detail in the [javadoc of the
 `java.lang.foreign.Linker` class](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#variadic-funcs).
 
-To make calling variadic functions easier, jextract introduces the concept of an 'invoker'.
-An invoker represents a particular 'instantiation' of a variadic function for a particular
+To make calling variadic functions easier, jextract introduces the concept of an _invoker_.
+An invoker represents a particular _instantiation_ of a variadic function for a particular
 set of variadic parameter types. When the header files contain a variadic function like this:
 
 ```c
@@ -653,20 +675,20 @@ try (Arena arena = Arena.ofConfined()) {
 ```
 
 In the above snippet, note that the load of the `baz` field value on the last line will
-'see' the update to the `bar` field of the `foo` instance on the line before.
+_see_ the update to the `bar` field of the `foo` instance on the line before.
 
 ## Filtering
 
-Some libraries are incredibly large (such as a platform SDK), and we might not be
+Some libraries are incredibly large (such as `Windows.h`), and we might not be
 interested in letting jextract generate code for the entire library. In cases like that,
 we can use jextract's `--include-XXX` command line options to only generate classes for
 the elements we specify.
 
-To allow for symbol filtering, `jextract` can generate a _dump_ of all the symbols
+To allow for symbol filtering, jextract can generate a _dump_ of all the symbols
 encountered in an header file; this dump can be manipulated, and then used as an argument
 file (using the `@argfile` syntax also available in other JDK tools) to e.g. generate
-bindings only for a _subset_ of symbols seen by `jextract`. For instance, if we run
-`jextract` with as follows:
+bindings only for a _subset_ of symbols seen by jextract. For instance, if we run
+jextract with as follows:
 
 ```sh
 $ jextract --dump-includes includes.txt mylib.h
@@ -705,7 +727,7 @@ struct A {
 struct A aVar;
 ```
 
-Here, we could run `jextract` and filter out `A`, like so:
+Here, we could run jextract and filter out `A`, like so:
 
 ```sh
 $ jextract --include-var aVar test.h
@@ -714,7 +736,7 @@ $ jextract --include-var aVar test.h
 However, doing so would lead to broken generated code, as the layout of the global variable
 `aVar` depends on the layout of the excluded struct `A`.
 
-In such cases, `jextract` will report the missing dependency and terminate without
+In such cases, jextract will report the missing dependency and terminate without
 generating any bindings:
 
 ```txt
@@ -724,7 +746,7 @@ ERROR: aVar depends on A which has been excluded
 ## Tracing
 
 It is sometimes useful to inspect the parameters passed to a native call, especially when
-diagnosing application bugs and/or crashes. The code generated by the `jextract` tool
+diagnosing application bugs and/or crashes. The code generated by the jextract tool
 supports _tracing_ of native calls, that is, parameters passed to native calls can be
 printed on the standard output.
 
@@ -774,13 +796,13 @@ int x = 0;
 The value of these macros also affects the behavior of jextract. Therefore, jextract
 supports setting macro values on the command line using the `-D` or
 `--define-macro <macro>=<value>` option. For instance, we can use `-D MY_MACRO` to set
-the value of `MY_MACRO` in the above snippet to `1`, and trigger the first 'branch' of the
+the value of `MY_MACRO` in the above snippet to `1`, and trigger the first _branch_ of the
 compiler switch, thereby defining `int x = 42`.
 
 Please note that other header files included by jextract may also define macro values using
-the `#define` pre-processor directive. Therefore it is often important in which order
-header files are processed by a compiler, and as such, the feeding the wrong header file
-to jextract may result in weird errors due to missing macro definitions. A well-known
+the `#define` pre-processor directive. It is therefore important to notice the order in
+which header files are processed by a compiler, as feeding header files to jextract in the
+wrong order may result in weird errors due to missing macro definitions. A well-known
 example of this are Windows SDK headers. Almost always, the main `Windows.h` header file
 should be passed to jextract for things to work correctly. Please consult the
 documentation of the library that you're trying to use to find out which header file should
@@ -797,15 +819,16 @@ A complete list of all the supported command line options is given below:
 | `-t, --target-package <package>`                             | target package name for the generated classes. If this option is not specified, then unnamed package is used.  |
 | `-I, --include-dir <dir>`                                    | append directory to the include search paths. Include search paths are searched in order. For example, if `-I foo -I bar` is specified, header files will be searched in "foo" first, then (if nothing is found) in "bar".|
 | `-l, --library <name \| path>`                               | specify a shared library that should be loaded by the generated header class. If <libspec> starts with `:`, then what follows is interpreted as a library path. Otherwise, `<libspec>` denotes a library name. Examples: <br>`-l GL`<br>`-l :libGL.so.1`<br>`-l :/usr/lib/libGL.so.1`|
-| `--use-system-load-library`                                  | libraries specified using `-l` are loaded in the loader symbol lookup (using either `System::loadLibrary`, or `System::load`). Useful if the libraries must be loaded from one of the paths in `java.library.path`.| 
+| `--use-system-load-library`                                  | libraries specified using `-l` are loaded in the loader symbol lookup (using either `System::loadLibrary`, or `System::load`). Useful if the libraries must be loaded from one of the paths in `java.library.path`.|
 | `--output <path>`                                            | specify where to place generated files                       |
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
 | `--include-[function,constant,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings. When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
-| `--version`                                                  | print version information and exit      
+| `--version`                                                  | print version information and exit |
 
 ### Additional clang options
 
-Users can also specify additional clang compiler options, by creating a file named
+Jextract uses an embedded clang compiler (through libclang) to parse header files. Users
+can also specify additional clang compiler options, by creating a file named
 `compile_flags.txt` in the current folder, as described
 [here](https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
 
