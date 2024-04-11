@@ -12,32 +12,7 @@ env:
   CLANG_LLVM_BASE_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/"
 
 jobs:
-  build-jtreg:
-    runs-on: ubuntu-20.04
-    steps:
-    - name: 'Check out JTReg'
-      uses: actions/checkout@v4.1.1
-      with:
-        repository: 'openjdk/jtreg'
-        ref: 'jtreg-7.3.1+1'
-        fetch-depth: 1
-        path: ./deps/jtreg
-
-    - name: 'Build JTReg'
-      shell: bash
-      working-directory: ./deps/jtreg
-      run: |
-        bash ./make/build.sh --jdk ${JAVA_HOME_11_X64}
-        ls build/images/jtreg
-
-    - name: 'Upload JTReg bundle'
-      uses: actions/upload-artifact@v4
-      with:
-        name: jtreg
-        path: ./deps/jtreg/build/images/jtreg
-        retention-days: 1
-
-  get-llvm:
+  build-and-test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -47,74 +22,18 @@ jobs:
             TARGET: clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04
             ARCHIVE_EXT: "tar.xz"
             LIB_DIR: "lib"
+            DEPS_ROOT: /tmp/deps
+            TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain
           - os: macos-latest
             TARGET: clang+llvm-13.0.0-x86_64-apple-darwin
             ARCHIVE_EXT: "tar.xz"
             LIB_DIR: "lib"
+            DEPS_ROOT: /tmp/deps
+            TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain/jdk-22.jdk/Contents/Home
           - os: windows-latest
             TARGET: LLVM-13.0.0-win64
             ARCHIVE_EXT: "exe"
             LIB_DIR: "bin"
-
-    steps:
-    - name: 'Check cache for LLVM'
-      id: get-cached-llvm
-      uses: actions/cache@v4
-      with:
-        path: llvm/image
-        key: llvm-${{ env.CLANG_LLVM_VERSION }}-${{ matrix.os }}
-
-    - name: 'Download and extract LLVM (Non Windows)'
-      if: ${{ matrix.os != 'windows-latest' && steps.get-cached-llvm.outputs.cache-hit != 'true' }}
-      shell: sh
-      run: |
-        mkdir -p llvm/unpacked
-        wget -O LLVM.tar.gz ${{ env.CLANG_LLVM_BASE_URL }}${{ matrix.TARGET }}.${{ matrix.ARCHIVE_EXT }}
-        tar --strip-components=1 -xvf LLVM.tar.gz -C llvm/unpacked
-        ls -lah llvm/unpacked
-
-    - name: 'Download and extract LLVM (Windows)'
-      if: ${{ matrix.os == 'windows-latest' && steps.get-cached-llvm.outputs.cache-hit != 'true' }}
-      shell: pwsh
-      run: |
-        New-Item -ItemType Directory llvm/unpacked
-        Invoke-WebRequest -OutFile LLVM.exe -Uri ${{ env.CLANG_LLVM_BASE_URL }}${{ matrix.TARGET }}.${{ matrix.ARCHIVE_EXT }}
-        7z x LLVM.exe -ollvm/unpacked
-        ls llvm/unpacked
-
-    - name: 'Repackage needed LLVM bits'
-      if: ${{ steps.get-cached-llvm.outputs.cache-hit != 'true' }}
-      shell: bash
-      run: |
-        mkdir -p llvm/image/${{ matrix.LIB_DIR }}/
-        cp -a llvm/unpacked/${{ matrix.LIB_DIR }}/libclang.* llvm/image/${{ matrix.LIB_DIR }}/
-        mkdir -p llvm/image/include/clang-c
-        cp -a llvm/unpacked/include/clang-c/. llvm/image/include/clang-c/
-        mkdir -p llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
-        cp -a llvm/unpacked/lib/clang/$CLANG_LLVM_VERSION/include/. llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
-        ls llvm/image
-
-    - name: 'Upload LLVM bundle'
-      uses: actions/upload-artifact@v4
-      with:
-        name: llvm-${{ matrix.os }}
-        path: llvm/image
-        retention-days: 1
-
-  build-and-test:
-    needs: [build-jtreg, get-llvm]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-20.04, windows-latest]
-        include:
-          - os: ubuntu-20.04
-            DEPS_ROOT: /tmp/deps
-            TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain
-          - os: macos-latest
-            DEPS_ROOT: /tmp/deps
-            TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain/jdk-22.jdk/Contents/Home
-          - os: windows-latest
             DEPS_ROOT: C:/tmp/deps
             TOOLCHAIN_JAVA_HOME: C:/tmp/deps/jdk-toolchain/jdk-22
 
@@ -167,24 +86,30 @@ jobs:
         java --version
         echo JAVA_HOME=$JAVA_HOME
 
-    - name: 'Fetch LLVM'
-      uses: actions/download-artifact@v4
+    - name: 'Get libclang'
+      id: get-libclang
+      uses: ./.github/actions/get-libclang
       with:
-        name: llvm-${{ matrix.os }}
-        path: ${{ matrix.DEPS_ROOT }}/clang_llvm
+        platform: ${{ matrix.os }}
+        base-url: ${{ env.CLANG_LLVM_BASE_URL }}
+        target: ${{ matrix.TARGET }}
+        archive-ext: ${{ matrix.ARCHIVE_EXT }}
+        lib-dir: ${{ matrix.LIB_DIR }}
+        path: ${{ matrix.DEPS_ROOT }}/deps/libclang
 
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/clang_llvm clean verify        
+        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ steps.get-libclang.outputs.path }} clean verify        
 
-    - name: 'Fetch pre-built JTReg'
-      uses: actions/download-artifact@v4
+    - name: 'Get JTReg'
+      id: get-jtreg
+      uses: ./.github/actions/get-jtreg
       with:
-        name: jtreg
-        path: ${{ matrix.DEPS_ROOT }}/jtreg
+        version: 7.3.1+1
+        path: ./deps/jtreg
 
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/clang_llvm -Pjtreg_home=${{ matrix.DEPS_ROOT }}/jtreg jtreg
+        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ steps.get-libclang.outputs.path }} -Pjtreg_home=${{ steps.get-jtreg.outputs.path }} jtreg

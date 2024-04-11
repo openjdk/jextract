@@ -1,0 +1,92 @@
+#
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+#
+# This code is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 only, as
+# published by the Free Software Foundation.  Oracle designates this
+# particular file as subject to the "Classpath" exception as provided
+# by Oracle in the LICENSE file that accompanied this code.
+#
+# This code is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# version 2 for more details (a copy is included in the LICENSE file that
+# accompanied this code).
+#
+# You should have received a copy of the GNU General Public License version
+# 2 along with this work; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+# or visit www.oracle.com if you need additional information or have any
+# questions.
+#
+
+name: 'Get libclang'
+description: 'Download and repackage LLVM for libclang'
+inputs:
+  platform:
+    description: 'Platform'
+    required: true
+  base-url:
+    description: 'Base download url'
+    required: true
+  target:
+    description: 'Target package to download'
+    required: true
+  archive-ext:
+    description: 'Archive extension'
+    required: true
+  lib-dir:
+    description: 'Library directory'
+    required: true
+  path:
+    description: 'Directory where to put libclang related files'
+    required: true
+outputs:
+  path:
+    description: 'Path to the installed libclang'
+    value: ${{ steps.path-name.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: 'Check cache for LLVM'
+      id: get-cached-llvm
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.path }}/image
+        key: llvm-${{ env.CLANG_LLVM_VERSION }}-${{ inputs.platform }}
+
+    - name: 'Download and extract LLVM'
+      if: ${{ steps.get-cached-llvm.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        mkdir -p ${{ inputs.path }}/unpacked
+        curl -L ${{ inputs.base-url }}${{ inputs.target }}.${{ inputs.archive-ext }} -o ${{ inputs.path }}/LLVM.${{ inputs.archive-ext }} 
+        if [ "${{ inputs.archive-ext }}" = "exe" ]; then
+          7z x ${{ inputs.path }}/LLVM.${{ inputs.archive-ext }} -o${{ inputs.path }}/unpacked
+        else
+          tar --strip-components=1 -xvf ${{ inputs.path }}/LLVM.${{ inputs.archive-ext }} -C ${{ inputs.path }}/unpacked
+        fi
+        ls -lah ${{ inputs.path }}/unpacked
+
+    - name: 'Repackage needed LLVM bits'
+      if: ${{ steps.get-cached-llvm.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        mkdir -p ${{ inputs.path }}/image/${{ inputs.lib-dir }}/
+        cp -a ${{ inputs.path }}/unpacked/${{ inputs.lib-dir }}/libclang.* ${{ inputs.path }}/image/${{ inputs.lib-dir }}/
+        mkdir -p ${{ inputs.path }}/image/include/clang-c
+        cp -a ${{ inputs.path }}/unpacked/include/clang-c/. ${{ inputs.path }}/image/include/clang-c/
+        mkdir -p ${{ inputs.path }}/image/lib/clang/$CLANG_LLVM_VERSION/include/
+        cp -a ${{ inputs.path }}/unpacked/lib/clang/$CLANG_LLVM_VERSION/include/. ${{ inputs.path }}/image/lib/clang/$CLANG_LLVM_VERSION/include/
+        ls ${{ inputs.path }}/image
+
+    - name: 'Export path to where libclang is installed'
+      id: path-name
+      run: |
+        # Export the path
+        echo 'path=${{ inputs.path }}/image' >> $GITHUB_OUTPUT
+      shell: bash
