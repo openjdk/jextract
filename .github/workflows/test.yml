@@ -25,6 +25,7 @@ jobs:
         key: jtreg-${{ env.JTREG_VERSION }}
 
     - name: 'Check out JTReg'
+      if: ${{ steps.get-cached-jtreg.outputs.cache-hit != 'true' }}
       uses: actions/checkout@v4.1.1
       with:
         repository: 'openjdk/jtreg'
@@ -32,6 +33,7 @@ jobs:
         fetch-depth: 1
 
     - name: 'Build JTReg'
+      if: ${{ steps.get-cached-jtreg.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         bash ./make/build.sh --jdk ${JAVA_HOME_11_X64}
@@ -137,8 +139,8 @@ jobs:
       if: ${{ steps.get-cached-llvm.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
-        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm
-        curl -L ${{ env.CLANG_LLVM_BASE_URL }}${{ matrix.TARGET }}.${{ matrix.ARCHIVE_EXT }} -o ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} 
+        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/unpacked
+        curl -L ${{ env.CLANG_LLVM_BASE_URL }}${{ matrix.TARGET }}.${{ matrix.ARCHIVE_EXT }} -o ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }}
         if [ "${{ matrix.ARCHIVE_EXT }}" = "exe" ]; then
           7z x ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} -o${{ matrix.DEPS_ROOT }}/llvm/unpacked
         else
