@@ -21,7 +21,7 @@ jobs:
       id: get-cached-jtreg
       uses: actions/cache@v4
       with:
-        path: build/images/jtreg
+        path: ./deps/jtreg/build/images/jtreg
         key: jtreg-${{ env.JTREG_VERSION }}
 
     - name: 'Check out JTReg'
@@ -31,20 +31,15 @@ jobs:
         repository: 'openjdk/jtreg'
         ref: 'jtreg-${{ env.JTREG_VERSION }}'
         fetch-depth: 1
+        path: ./deps/jtreg
 
     - name: 'Build JTReg'
       if: ${{ steps.get-cached-jtreg.outputs.cache-hit != 'true' }}
       shell: bash
+      working-directory: ./deps/jtreg
       run: |
         bash ./make/build.sh --jdk ${JAVA_HOME_11_X64}
         ls build/images/jtreg
-
-    - name: 'Upload JTReg bundle'
-      uses: actions/upload-artifact@v4
-      with:
-        name: jtreg
-        path: build/images/jtreg
-        retention-days: 1
 
   build-and-test:
     runs-on: ${{ matrix.os }}
@@ -165,13 +160,15 @@ jobs:
       run: |
         sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image clean verify        
 
-    - name: 'Fetch pre-built JTReg'
-      uses: actions/download-artifact@v4
+    - name: 'Get cached JTReg'
+      uses: actions/cache@v4
       with:
-        name: jtreg
-        path: ${{ matrix.DEPS_ROOT }}/jtreg
+        path: ./deps/jtreg/build/images/jtreg
+        enableCrossOsArchive: true
+        fail-on-cache-miss: true
+        key: jtreg-${{ env.JTREG_VERSION }}
 
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image -Pjtreg_home=${{ matrix.DEPS_ROOT }}/jtreg jtreg
+        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
