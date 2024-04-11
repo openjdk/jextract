@@ -54,16 +54,19 @@ jobs:
           - os: ubuntu-20.04
             TARGET: clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04
             ARCHIVE_EXT: "tar.xz"
+            LIB_DIR: lib
             DEPS_ROOT: /tmp/deps
             TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain
           - os: macos-latest
             TARGET: clang+llvm-13.0.0-x86_64-apple-darwin
             ARCHIVE_EXT: "tar.xz"
+            LIB_DIR: lib
             DEPS_ROOT: /tmp/deps
             TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain/jdk-22.jdk/Contents/Home
           - os: windows-latest
             TARGET: LLVM-13.0.0-win64
             ARCHIVE_EXT: "exe"
+            LIB_DIR: bin
             DEPS_ROOT: C:/tmp/deps
             TOOLCHAIN_JAVA_HOME: C:/tmp/deps/jdk-toolchain/jdk-22
 
@@ -76,7 +79,6 @@ jobs:
     - name: 'Prepare'
       shell: sh
       run: |
-        mkdir -p ./deps/jtreg
         mkdir -p ${{ matrix.DEPS_ROOT }}
 
     - name: 'Check cache for toolchain JDK'
@@ -128,7 +130,7 @@ jobs:
       id: get-cached-llvm
       uses: actions/cache@v4
       with:
-        path: ${{ matrix.DEPS_ROOT }}/llvm
+        path: ${{ matrix.DEPS_ROOT }}/llvm/image
         key: llvm-${{ env.CLANG_LLVM_VERSION }}-${{ matrix.os }}
 
     - name: 'Download and extract LLVM'
@@ -138,16 +140,28 @@ jobs:
         mkdir -p ${{ matrix.DEPS_ROOT }}/llvm
         curl -L ${{ env.CLANG_LLVM_BASE_URL }}${{ matrix.TARGET }}.${{ matrix.ARCHIVE_EXT }} -o ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} 
         if [ "${{ matrix.ARCHIVE_EXT }}" = "exe" ]; then
-          7z x ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} -o${{ matrix.DEPS_ROOT }}/llvm
+          7z x ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} -o${{ matrix.DEPS_ROOT }}/llvm/unpacked
         else
-          tar --strip-components=1 -xvf ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} -C ${{ matrix.DEPS_ROOT }}/llvm
+          tar --strip-components=1 -xvf ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} -C ${{ matrix.DEPS_ROOT }}/llvm/unpacked
         fi
-        ls -lah ${{ matrix.DEPS_ROOT }}/llvm
+        ls -lah ${{ matrix.DEPS_ROOT }}/llvm/unpacked
+
+    - name: 'Trim down LLVM package for cache'
+      if: ${{ steps.get-cached-llvm.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/${{ matrix.LIB_DIR }}/
+        cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/${{ matrix.LIB_DIR }}/libclang.* ${{ matrix.DEPS_ROOT }}/llvm/image/${{ matrix.LIB_DIR }}/
+        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/include/clang-c
+        cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/include/clang-c/. ${{ matrix.DEPS_ROOT }}/llvm/image/include/clang-c/
+        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
+        cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/lib/clang/$CLANG_LLVM_VERSION/include/. ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
+        ls ${{ matrix.DEPS_ROOT }}/llvm/image
 
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm clean verify        
+        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image clean verify        
 
     - name: 'Fetch pre-built JTReg'
       uses: actions/download-artifact@v4
@@ -158,4 +172,4 @@ jobs:
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm -Pjtreg_home=${{ matrix.DEPS_ROOT }}/jtreg jtreg
+        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image -Pjtreg_home=${{ matrix.DEPS_ROOT }}/jtreg jtreg
