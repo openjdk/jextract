@@ -148,7 +148,7 @@ jobs:
         fi
         ls -lah ${{ matrix.DEPS_ROOT }}/llvm/unpacked
 
-    - name: 'Trim down LLVM package for cache'
+    - name: 'Create trimmed-down libclang image (for faster caching)'
       if: ${{ steps.get-cached-llvm.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
@@ -158,7 +158,7 @@ jobs:
         cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/include/clang-c/. ${{ matrix.DEPS_ROOT }}/llvm/image/include/clang-c/
         mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
         cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/lib/clang/$CLANG_LLVM_VERSION/include/. ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
-        ls ${{ matrix.DEPS_ROOT }}/llvm/image
+        ls -lah ${{ matrix.DEPS_ROOT }}/llvm/image
 
     - name: 'Build Jextract'
       shell: sh
