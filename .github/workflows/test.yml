@@ -11,16 +11,24 @@ env:
   TOOLCHAIN_VERSION: 22
   CLANG_LLVM_VERSION: 13.0.0
   CLANG_LLVM_BASE_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/"
+  JTREG_VERSION: 7.3.1+1
 
 jobs:
   build-jtreg:
     runs-on: ubuntu-latest
     steps:
+    - name: 'Check cache for JTReg'
+      id: get-cached-jtreg
+      uses: actions/cache@v4
+      with:
+        path: build/images/jtreg
+        key: jtreg-${{ env.JTREG_VERSION }}
+
     - name: 'Check out JTReg'
       uses: actions/checkout@v4.1.1
       with:
         repository: 'openjdk/jtreg'
-        ref: 'jtreg-7.3.1+1'
+        ref: 'jtreg-${{ env.JTREG_VERSION }}'
         fetch-depth: 1
 
     - name: 'Build JTReg'
