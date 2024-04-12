@@ -8,23 +8,64 @@ on:
   workflow_dispatch:
 
 env:
-  CLANG_LLVM_BASE_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64"
-  ARCHIVE_EXT: "tar.xz"
+  TOOLCHAIN_VERSION: 22
+  CLANG_LLVM_VERSION: 13.0.0
+  CLANG_LLVM_BASE_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/"
+  JTREG_VERSION: 7.3.1+1
 
 jobs:
+  build-jtreg:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Check cache for JTReg'
+      id: get-cached-jtreg
+      uses: actions/cache@v4
+      with:
+        path: ./deps/jtreg/build/images/jtreg
+        key: jtreg-${{ env.JTREG_VERSION }}
+
+    - name: 'Check out JTReg'
+      if: ${{ steps.get-cached-jtreg.outputs.cache-hit != 'true' }}
+      uses: actions/checkout@v4.1.1
+      with:
+        repository: 'openjdk/jtreg'
+        ref: 'jtreg-${{ env.JTREG_VERSION }}'
+        fetch-depth: 1
+        path: ./deps/jtreg
+
+    - name: 'Build JTReg'
+      if: ${{ steps.get-cached-jtreg.outputs.cache-hit != 'true' }}
+      shell: bash
+      working-directory: ./deps/jtreg
+      run: |
+        bash ./make/build.sh --jdk ${JAVA_HOME_11_X64}
+        ls build/images/jtreg
 
   build-and-test:
     runs-on: ${{ matrix.os }}
+    needs: [build-jtreg]
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-20.04]
+        os: [macos-latest, ubuntu-20.04, windows-latest]
         include:
           - os: ubuntu-20.04
-            TARGET: linux-gnu-ubuntu-20.04
+            TARGET: clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04
+            ARCHIVE_EXT: "tar.xz"
+            LIB_DIR: lib
+            DEPS_ROOT: /tmp/deps
             TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain
           - os: macos-latest
-            TARGET: apple-darwin
+            TARGET: clang+llvm-13.0.0-x86_64-apple-darwin
+            ARCHIVE_EXT: "tar.xz"
+            LIB_DIR: lib
+            DEPS_ROOT: /tmp/deps
             TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain/jdk-22.jdk/Contents/Home
+          - os: windows-latest
+            TARGET: LLVM-13.0.0-win64
+            ARCHIVE_EXT: "exe"
+            LIB_DIR: bin
+            DEPS_ROOT: C:/tmp/deps
+            TOOLCHAIN_JAVA_HOME: C:/tmp/deps/jdk-toolchain/jdk-22
 
     steps:
     - name: 'Check out repository'
@@ -35,31 +76,44 @@ jobs:
     - name: 'Prepare'
       shell: sh
       run: |
-        mkdir -p deps/jtreg
-        mkdir -p /tmp/deps
+        mkdir -p ${{ matrix.DEPS_ROOT }}
+
+    - name: 'Check cache for toolchain JDK'
+      id: get-cached-toolchain
+      uses: actions/cache@v4
+      with:
+        path: ${{ matrix.DEPS_ROOT }}/jdk-toolchain
+        key: jdk-toolchain-${{ env.TOOLCHAIN_VERSION }}-${{ matrix.os }}
 
     - name: 'Download toolchain JDK'
-      id: download_toolchain_jdk
-      uses: oracle-actions/setup-java@v1.3.2
+      id: download-toolchain-jdk
+      uses: oracle-actions/setup-java@v1.3.4
+      if: ${{ steps.get-cached-toolchain.outputs.cache-hit != 'true' }}
       with:
         website: jdk.java.net
-        release: 22
+        release: ${{ env.TOOLCHAIN_VERSION }}
         install: false
         
-    - name: 'Extract Toolchain JDK'
+    - name: 'Extract Toolchain JDK (Non Windows)'
+      if: ${{ matrix.os != 'windows-latest' && steps.get-cached-toolchain.outputs.cache-hit != 'true' }}
       shell: sh
       run: |
-        mkdir -p /tmp/deps/jdk-toolchain
-        tar --strip-components=1 -xvf ${{ steps.download_toolchain_jdk.outputs.archive }} -C /tmp/deps/jdk-toolchain
-        ls -lah /tmp/deps/jdk-toolchain
+        mkdir -p ${{ matrix.DEPS_ROOT }}/jdk-toolchain
+        tar --strip-components=1 -xvf ${{ steps.download-toolchain-jdk.outputs.archive }} -C ${{ matrix.DEPS_ROOT }}/jdk-toolchain
+        ls -lah ${{ matrix.DEPS_ROOT }}/jdk-toolchain
+        ${{ matrix.TOOLCHAIN_JAVA_HOME }}/bin/java --version
 
-    - name: 'Check toolchain Java version'
-      shell: sh
+    - name: 'Extract Toolchain JDK (Windows)'
+      if: ${{ matrix.os == 'windows-latest' && steps.get-cached-toolchain.outputs.cache-hit != 'true' }}
+      shell: pwsh
       run: |
+        New-Item -ItemType Directory ${{ matrix.DEPS_ROOT }}/jdk-toolchain
+        7z x ${{ steps.download-toolchain-jdk.outputs.archive }} -o${{ matrix.DEPS_ROOT }}/jdk-toolchain/
+        ls ${{ matrix.DEPS_ROOT }}/jdk-toolchain/jdk-22
         ${{ matrix.TOOLCHAIN_JAVA_HOME }}/bin/java --version
 
     - name: 'Setup Java 17'
-      uses: oracle-actions/setup-java@v1.3.2
+      uses: oracle-actions/setup-java@v1.3.4
       with:
         release: 17
 
@@ -69,35 +123,52 @@ jobs:
         java --version
         echo JAVA_HOME=$JAVA_HOME
 
-    - name: 'Setup LLVM'
-      shell: sh
+    - name: 'Check cache for LLVM'
+      id: get-cached-llvm
+      uses: actions/cache@v4
+      with:
+        path: ${{ matrix.DEPS_ROOT }}/llvm/image
+        key: llvm-${{ env.CLANG_LLVM_VERSION }}-${{ matrix.os }}
+
+    - name: 'Download and extract LLVM'
+      if: ${{ steps.get-cached-llvm.outputs.cache-hit != 'true' }}
+      shell: bash
       run: |
-        mkdir -p /tmp/deps/clang_llvm
-        wget -O /tmp/deps/LLVM.tar.gz ${{ env.CLANG_LLVM_BASE_URL }}-${{ matrix.TARGET }}.${{ env.ARCHIVE_EXT }}
-        tar --strip-components=1 -xvf /tmp/deps/LLVM.tar.gz -C /tmp/deps/clang_llvm
-        ls -lah /tmp/deps/clang_llvm
+        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/unpacked
+        curl -L ${{ env.CLANG_LLVM_BASE_URL }}${{ matrix.TARGET }}.${{ matrix.ARCHIVE_EXT }} -o ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }}
+        if [ "${{ matrix.ARCHIVE_EXT }}" = "exe" ]; then
+          7z x ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} -o${{ matrix.DEPS_ROOT }}/llvm/unpacked
+        else
+          tar --strip-components=1 -xvf ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} -C ${{ matrix.DEPS_ROOT }}/llvm/unpacked
+        fi
+        ls -lah ${{ matrix.DEPS_ROOT }}/llvm/unpacked
+
+    - name: 'Create trimmed-down libclang image (for faster caching)'
+      if: ${{ steps.get-cached-llvm.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/${{ matrix.LIB_DIR }}/
+        cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/${{ matrix.LIB_DIR }}/libclang.* ${{ matrix.DEPS_ROOT }}/llvm/image/${{ matrix.LIB_DIR }}/
+        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/include/clang-c
+        cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/include/clang-c/. ${{ matrix.DEPS_ROOT }}/llvm/image/include/clang-c/
+        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
+        cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/lib/clang/$CLANG_LLVM_VERSION/include/. ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
+        ls -lah ${{ matrix.DEPS_ROOT }}/llvm/image
 
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=/tmp/deps/clang_llvm clean verify        
+        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image clean verify        
 
-    - name: 'Check out JTReg'
-      uses: actions/checkout@v4.1.1
+    - name: 'Get cached JTReg'
+      uses: actions/cache@v4
       with:
-        repository: 'openjdk/jtreg'
-        ref: 'jtreg-7.3.1+1'
-        fetch-depth: 1
-        path: deps/jtreg
-
-    - name: 'Build JTReg'
-      shell: bash
-      working-directory: ./deps/jtreg
-      run: |
-        bash ./make/build.sh --jdk ${JAVA_HOME_11_X64}
-        ls build/images/jtreg
+        path: ./deps/jtreg/build/images/jtreg
+        enableCrossOsArchive: true
+        fail-on-cache-miss: true
+        key: jtreg-${{ env.JTREG_VERSION }}
 
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=/tmp/deps/clang_llvm -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
+        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
