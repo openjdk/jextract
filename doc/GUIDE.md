@@ -54,6 +54,19 @@ In this command:
 - `--library mylib` tells jextract that the generated bindings should load the library
   called `mylib`. (The section on [library loading](#library-loading) discusses how is done)
 
+Note that specifying the wrong header file to jextract may result in errors during parsing.
+Please consult the documentation of the library in question about which header file
+should be included. This is also the header files that should be passed to jextract. If
+a library has multiple main header files, they can be passed to jextract by creating a new
+header file which `#include`s these header files, and then this new header file can be
+passed to jextract.
+
+The library name specified to `--library` will be mapped to a platform specific library
+file name, and should be findable through the OS's library search mechanism, typically by
+specifying the library's containing directory on `LD_LIBRARY_PATH` (Linux),
+`DYLD_LIBRARY_PATH` (Mac), or `PATH` (Windows). See the section on
+[library loading](#library-loading) for more information.
+
 Besides these options, it is also possible to filter the output of jextract using one of the `--include-XXX` options
 that jextract has. See the section on [filtering](#filtering) for a more detailed overview. See also the full
 list of command line options [here](#command-line-option-reference).
@@ -75,75 +88,6 @@ Therefore, jextract is intended to be run once, and then for the generated sourc
 Jextract only needs to be run again when the native library, or jextract itself are updated.
 (This is also the workflow that jextract itself follows: jextract depends on the
 [libclang](https://clang.llvm.org/docs/LibClang.html) native library in order to parse C sources).
-
-### Preprocessor Definitions
-
-C header files are processed by a pre-processor by a compiler before they are inspected
-further. It is possible for a header file to contain so-called 'compiler switches', which
-can be used to conditionally generate code based on the value of a macro, for instance:
-
-```c
-#ifdef MY_MACRO
-int x = 42;
-#else
-int x = 0;
-#endif
-```
-
-The value of these macros also affects the behavior of jextract. Therefore, jextract
-supports setting macro values on the command line using the `-D` or
-`--define-macro <macro>=<value>` option. For instance, we can use `-D MY_MACRO` to set
-the value of `MY_MACRO` in the above snippet to `1`, and trigger the first _branch_ of the
-compiler switch, thereby defining `int x = 42`.
-
-Please note that other header files included by jextract may also define macro values using
-the `#define` pre-processor directive. It is therefore important to notice the order in
-which header files are processed by a compiler, as feeding header files to jextract in the
-wrong order may result in weird errors due to missing macro definitions. A well-known
-example of this are Windows SDK headers. Almost always, the main `Windows.h` header file
-should be passed to jextract for things to work correctly. Please consult the
-documentation of the library that you're trying to use to find out which header file should
-be included/passed to jextract.
-
-### Library Loading
-
-When using the `--library <libspec>` option, the generated code internally uses [`SymbolLookup::libraryLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#libraryLookup(java.nio.file.Path,java.lang.foreign.Arena))
-to load libraries specified by `<libspec>`. If `<libspec>` denotes a library name, the
-name is then mapped to a platform dependent name using [`System::mapLibraryName`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)).
-This means, for instance, that on Linux, when specifying `--library mylib`, the bindings will
-try to load `libmylib.so` using the OS-specific library loading mechanism on Linux, which
-is [`dlopen`](https://man7.org/linux/man-pages/man3/dlopen.3.html). This way of loading
-libraries also relies on OS-specific search mechanisms to find the library file. On Linux
-the search path can be amended using the `LD_LIBRARY_PATH` environment variable (see the
-documentation of `dlopen`). On Mac the relevant environment variable is `DYLD_LIBRARY_PATH`,
-and on Windows the variable is `PATH`. Though, for the latter the overall library search
-mechanism is entirely different (described [here](https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order)).
-When using the HotSpot JVM, the `-Xlog:library` option can also be used to log where the JVM
-is trying to load a library from, which can be useful to debug a failure to load a library.
-
-The `<libspec>` argument of the `--library` option can either be a library name, or a path
-to a library file (either relative or absolute) if `<libspec>` is prefixed with the `:`
-character, such as `:mylib.dll`.
-
-It is important to understand how libraries are loaded on the platform that is being used,
-as the library search mechanisms differ between them. Alternatively, JNI's library loading
-and search mechanism can be used as well. When the `--use-system-load-library` option is
-specified to jextract, the generated bindings will try to load libraries specified using
-`--library` through [`System::loadLibrary`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#loadLibrary(java.lang.String)).
-The library search path for `System::loadLibrary` is specified through the [`java.library.path`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#java.library.path)
-system property instead of the OS-specific environment variable. Though, please note
-that if the loaded library has any dependencies, those dependencies will again be loaded
-through the OS-specific library loading mechanism (this is outside of the JVM's control).
-
-When no `--library` option is specified, the generated bindings will try to load function
-from libraries loaded through `System::loadLibrary` and `System::load`, using
-[`SymbolLookup::loaderLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#loaderLookup()),
-with [`Linker::defaultLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#defaultLookup())
-as a fallback. When `--library` is specified when generating the bindings, these 2 lookup
-modes will be used as a fallback.
-
-In both cases, the library is unloaded when the class loader that loads the binding
-classes is garbage collected.
 
 ## Using The Code Generated By Jextract
 
@@ -730,7 +674,78 @@ try (Arena arena = Arena.ofConfined()) {
 In the above snippet, note that the load of the `baz` field value on the last line will
 _see_ the update to the `bar` field of the `foo` instance on the line before.
 
-## Filtering
+## Advanced
+
+### Preprocessor Definitions
+
+C header files are processed by a pre-processor by a compiler before they are inspected
+further. It is possible for a header file to contain so-called 'compiler switches', which
+can be used to conditionally generate code based on the value of a macro, for instance:
+
+```c
+#ifdef MY_MACRO
+int x = 42;
+#else
+int x = 0;
+#endif
+```
+
+The value of these macros also affects the behavior of jextract. Therefore, jextract
+supports setting macro values on the command line using the `-D` or
+`--define-macro <macro>=<value>` option. For instance, we can use `-D MY_MACRO` to set
+the value of `MY_MACRO` in the above snippet to `1`, and trigger the first _branch_ of the
+compiler switch, thereby defining `int x = 42`.
+
+Please note that other header files included by jextract may also define macro values using
+the `#define` pre-processor directive. It is therefore important to notice the order in
+which header files are processed by a compiler, as feeding header files to jextract in the
+wrong order may result in weird errors due to missing macro definitions. A well-known
+example of this are Windows SDK headers. Almost always, the main `Windows.h` header file
+should be passed to jextract for things to work correctly. Please consult the
+documentation of the library that you're trying to use to find out which header file should
+be included/passed to jextract.
+
+### Library Loading
+
+When using the `--library <libspec>` option, the generated code internally uses [`SymbolLookup::libraryLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#libraryLookup(java.nio.file.Path,java.lang.foreign.Arena))
+to load libraries specified by `<libspec>`. If `<libspec>` denotes a library name, the
+name is then mapped to a platform dependent name using [`System::mapLibraryName`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)).
+This means, for instance, that on Linux, when specifying `--library mylib`, the bindings will
+try to load `libmylib.so` using the OS-specific library loading mechanism on Linux, which
+is [`dlopen`](https://man7.org/linux/man-pages/man3/dlopen.3.html). This way of loading
+libraries also relies on OS-specific search mechanisms to find the library file. On Linux
+the search path can be amended using the `LD_LIBRARY_PATH` environment variable (see the
+documentation of `dlopen`). On Mac the relevant environment variable is `DYLD_LIBRARY_PATH`,
+and on Windows the variable is `PATH`. Though, for the latter the overall library search
+mechanism is entirely different (described [here](https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order)).
+When using the HotSpot JVM, the `-Xlog:library` option can also be used to log where the JVM
+is trying to load a library from, which can be useful to debug a failure to load a library.
+
+The `<libspec>` argument of the `--library` option can either be a library name, or a path
+to a library file (either relative or absolute) if `<libspec>` is prefixed with the `:`
+character, such as `:mylib.dll`.
+
+It is important to understand how libraries are loaded on the platform that is being used,
+as the library search mechanisms differ between them. Alternatively, JNI's library loading
+and search mechanism can be used as well. When the `--use-system-load-library` option is
+specified to jextract, the generated bindings will try to load libraries specified using
+`--library` through [`System::loadLibrary`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#loadLibrary(java.lang.String)).
+The library search path for `System::loadLibrary` is specified through the [`java.library.path`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#java.library.path)
+system property instead of the OS-specific environment variable. Though, please note
+that if the loaded library has any dependencies, those dependencies will again be loaded
+through the OS-specific library loading mechanism (this is outside of the JVM's control).
+
+When no `--library` option is specified, the generated bindings will try to load function
+from libraries loaded through `System::loadLibrary` and `System::load`, using
+[`SymbolLookup::loaderLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#loaderLookup()),
+with [`Linker::defaultLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#defaultLookup())
+as a fallback. When `--library` is specified when generating the bindings, these 2 lookup
+modes will be used as a fallback.
+
+In both cases, the library is unloaded when the class loader that loads the binding
+classes is garbage collected.
+
+### Filtering
 
 Some libraries are incredibly large (such as `Windows.h`), and we might not be
 interested in letting jextract generate code for the entire library. In cases like that,
@@ -796,7 +811,7 @@ generating any bindings:
 ERROR: aVar depends on A which has been excluded
 ```
 
-## Tracing
+### Tracing
 
 It is sometimes useful to inspect the parameters passed to a native call, especially when
 diagnosing application bugs and/or crashes. The code generated by the jextract tool
@@ -833,7 +848,7 @@ glRotatef(0.0, 0.0, 1.0, 0.0)
 glutSolidTeapot(0.5)
 ```
 
-## Command Line Option Reference
+### Command Line Option Reference
 
 A complete list of all the supported command line options is given below:
 
@@ -850,14 +865,14 @@ A complete list of all the supported command line options is given below:
 | `--include-[function,constant,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings. When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 | `--version`                                                  | print version information and exit |
 
-### Additional clang options
+#### Additional clang options
 
 Jextract uses an embedded clang compiler (through libclang) to parse header files. Users
 can also specify additional clang compiler options, by creating a file named
 `compile_flags.txt` in the current folder, as described
 [here](https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
 
-## Unsupported Features
+### Unsupported Features
 
 - Certain C types bigger than 64 bits (e.g. `long double` on Linux).
 - Function-like macros (as mentioned in the [section on constants](#constants-macros--enums))
@@ -880,7 +895,7 @@ can also specify additional clang compiler options, by creating a file named
   WARNING: Skipping Foo (type Declared(Foo) is not supported)
   ```
 
-## Other Languages
+### Other Languages
 
 As noted in the introduction, jextract currently only supports C header files, but many
 other languages also support C interop, and jextract/FFM can still be used to talk to
