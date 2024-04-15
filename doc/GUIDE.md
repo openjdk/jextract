@@ -674,6 +674,31 @@ try (Arena arena = Arena.ofConfined()) {
 In the above snippet, note that the load of the `baz` field value on the last line will
 _see_ the update to the `bar` field of the `foo` instance on the line before.
 
+### Unsupported Features
+
+Finally, there are some features that jextract does not support, listed below:
+
+- Certain C types bigger than 64 bits (e.g. `long double` on Linux).
+- Function-like macros (as mentioned in the [section on constants](#constants-macros--enums))
+- Bit fields. You will see a warning about bit fields being skipped, such as:
+  
+  ```txt
+  WARNING: Skipping Foo.x (bitfields are not supported)
+  ```
+
+- Opaque types. When a struct or union type is declared but not defined, like:
+
+  ```c
+  struct Foo;
+  ```
+
+  Jextract is not able to generate the regular `Foo` class. You will see a warning about
+  these structs being skipped, such as:
+
+  ```txt
+  WARNING: Skipping Foo (type Declared(Foo) is not supported)
+  ```
+
 ## Advanced
 
 ### Preprocessor Definitions
@@ -871,29 +896,6 @@ Jextract uses an embedded clang compiler (through libclang) to parse header file
 can also specify additional clang compiler options, by creating a file named
 `compile_flags.txt` in the current folder, as described
 [here](https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
-
-### Unsupported Features
-
-- Certain C types bigger than 64 bits (e.g. `long double` on Linux).
-- Function-like macros (as mentioned in the [section on constants](#constants-macros--enums))
-- Bit fields. You will see a warning about bit fields being skipped, such as:
-  
-  ```txt
-  WARNING: Skipping Foo.x (bitfields are not supported)
-  ```
-
-- Opaque types. When a struct or union type is declared but not defined, like:
-
-  ```c
-  struct Foo;
-  ```
-
-  Jextract is not able to generate the regular `Foo` class. You will see a warning about
-  these structs being skipped, such as:
-
-  ```txt
-  WARNING: Skipping Foo (type Declared(Foo) is not supported)
-  ```
 
 ### Other Languages
 
