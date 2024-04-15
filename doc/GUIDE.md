@@ -304,7 +304,7 @@ through the FFM API.
 
 Note that for macros, jextract only generates an accessor when it sees a macro definition,
 like the one in the example, in the header files it parses. When a macro is only defined
-using `-D` on the command line, not accessor will be generated.
+using `-D` on the command line, no accessor will be generated.
 
 ### Structs & Unions
 
