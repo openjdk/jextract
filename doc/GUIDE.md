@@ -260,7 +260,7 @@ the function-like macro in a proper exported C function that can then be linked 
 through the FFM API.
 
 Note that for macros, jextract only generates an accessor when it sees a macro definition,
-like the one in the example, in the header files it parses. When a macro is only defined
+like the one in the example, in the header files it parses. When a macro is defined
 using `-D` on the command line, no accessor will be generated.
 
 ### Structs & Unions
