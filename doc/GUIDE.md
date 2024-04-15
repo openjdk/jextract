@@ -483,7 +483,8 @@ int call_me_back(callback_t callback) {
 }
 ```
 
-We can call this function from Java as follows:
+We can call this function from Java as follows (assuming this function is also exported
+through the header files passed to jextract):
 
 ```java
 // Main.java
