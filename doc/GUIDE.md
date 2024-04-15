@@ -228,9 +228,13 @@ public static FunctionDescriptor foo$descriptor() { ... } // 3
 public static MethodHandle foo$handle() { ... } // 4
 ```
 
-First and foremost, there is a static wrapper method that is generated that can be used to
-call the C function (1). Besides that, there are also several accessors that return
-additional meta-data for the method:
+First and foremost, there is:
+
+1. a static wrapper method that is generated that can be used to
+call the C function.
+
+Besides that, there are also several accessors that return additional meta-data for the
+method:
 
 2. the function's address, represented as a
   [`MemorySegment`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/MemorySegment.html)
