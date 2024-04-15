@@ -135,6 +135,13 @@ system property instead of the OS-specific environment variable. Though, please 
 that if the loaded library has any dependencies, those dependencies will again be loaded
 through the OS-specific library loading mechanism (this is outside of the JVM's control).
 
+When no `--library` option is specified, the generated bindings will try to load function
+from libraries loaded through `System::loadLibrary` and `System::load`, using
+[`SymbolLookup::loaderLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#loaderLookup()),
+with [`Linker::defaultLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#defaultLookup())
+as a fallback. When `--library` is specified when generating the bindings, these 2 lookup
+modes will be used as a fallback.
+
 In both cases, the library is unloaded when the class loader that loads the binding
 classes is garbage collected.
 
@@ -223,11 +230,12 @@ public static MethodHandle foo$handle() { ... } // 4
 
 First and foremost, there is a static wrapper method that is generated that can be used to
 call the C function (1). Besides that, there are also several accessors that return
-additional meta-data for the method: the function's address, represented as a
-[`MemorySegment`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/MemorySegment.html) (2),
-the [function descriptor](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/FunctionDescriptor.html) (3),
-and the [method handle](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/invoke/MethodHandle.html)
-returned by the FFM linker (4), which is used to implement the static wrapper method (1).
+additional meta-data for the method:
+2. the function's address, represented as a
+  [`MemorySegment`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/MemorySegment.html)
+3. the [function descriptor](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/FunctionDescriptor.html)
+4. the [method handle](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/invoke/MethodHandle.html)
+  returned by the FFM linker, which is used to implement the static wrapper method (1).
 
 The parameter types and return type of this method depend on the
 [carrier types](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/FunctionDescriptor.html#toMethodType())
@@ -846,8 +854,7 @@ can also specify additional clang compiler options, by creating a file named
 
 ## Unsupported Features
 
-There are several elements for which jextract can not generate bindings:
-
+- Certain C types bigger than 64 bits (e.g. `long double` on Linux).
 - Function-like macros (as mentioned in the [section on constants](#constants-macros--enums))
 - Bit fields. You will see a warning about bit fields being skipped, such as:
   
