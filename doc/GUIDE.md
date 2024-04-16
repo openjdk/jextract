@@ -640,7 +640,7 @@ Jextract generates:
   type is [`SequenceLayout`].
 2. a `$dimensions` meta-data accessor, which returns the _dimensions_ of the array type.
   This method returns a `long[]` where each element represents the length of a dimension
-  of the array type. For instance, in the example `FOO_ARRAY` has a two dimension, whose
+  of the array type. For instance, in the example `FOO_ARRAY` has two dimensions, whose
   lengths are `3` and `5`, so the `FOO_ARRAY$dimensions` method will return a `long[]`
   with two elements whose values are `3` and `5` in that order.
 3. a getter and setter pair for the array variable. Note that the getter replaces the usual
