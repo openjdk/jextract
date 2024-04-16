@@ -6,13 +6,14 @@ called _bindings_, which use the [Foreign Function and Memory API](https://openj
 
 Interacting with native C code through the FFM API works
 by loading a native library (e.g., a `.so`/`.dll`/`.dylib` file), which is essentially an
-archive of native functions and global variables. The user then has to look up the functions
-they want to call using a `SymbolLookup`, and finally _link_ the functions by using the
-`Linker::downcallHandle` method. Additionally, a client may need to create function pointers for
-Java functions using `Linker::upcallStub`, access global variables through the addresses
-returned by a lookup, and construct `MemoryLayout` instances for the structs they want to access.
-The jextract tool aims to automate many of these steps, so that a client can instead
-immediately start using the native libraries they are interested in.
+archive of native functions and global variables. The user then has to look up the
+functions they want to call using a [`SymbolLookup`], and finally _link_ the functions by
+using the [`Linker::downcallHandle`] method. Additionally, a client may need to create
+function pointers for Java functions using [`Linker::upcallStub`], access global variables
+through the addresses returned by a lookup, and construct [`MemoryLayout`] instances for
+the structs they want to access. The jextract tool aims to automate many of these steps,
+so that a client can instead immediately start using the native libraries they are
+interested in.
 
 This guide shows how to run the jextract tool, and how to use the Java code that it generates.
 The samples under the [`samples`](samples) direcotry are also a good source of examples.
@@ -181,16 +182,14 @@ call the C function.
 Besides that, there are also several accessors that return additional meta-data for the
 method:
 
-2. the function's address, represented as a
-  [`MemorySegment`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/MemorySegment.html)
-3. the [function descriptor](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/FunctionDescriptor.html)
-4. the [method handle](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/invoke/MethodHandle.html)
-  returned by the FFM linker, which is used to implement the static wrapper method (1).
+2. the function's address, represented as a [`MemorySegment`]
+3. the [`FunctionDescriptor`]
+4. the [`MethodHandle`] returned by the FFM linker, which is used to implement the static
+  wrapper method (1).
 
-The parameter types and return type of this method depend on the
-[carrier types](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/FunctionDescriptor.html#toMethodType())
-of the layouts that make up the function descriptor of the function, which is itself derived
-from the parsed header files.
+The parameter types and return type of this method depend on the [carrier types] of the
+layouts that make up the function descriptor of the function, which is itself derived from
+the parsed header files.
 
 ### Global Variables
 
@@ -459,10 +458,9 @@ try (Arena arena = Arena.ofConfined()) {
 
 Here we use the lambda `(a, b) -> a * b` as the implementation of the `callback_t` instance
 we create using `allocate`. This method returns an upcall stub like the ones
-returned by the [`java.lang.foreign.Linker::upcallStub`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#upcallStub(java.lang.invoke.MethodHandle,java.lang.foreign.FunctionDescriptor,java.lang.foreign.Arena,java.lang.foreign.Linker.Option...))
-method. The `arena` argument denotes the lifetime of the upcall stub, meaning that the
-upcall stub will be freed when the arena is closed (after which the callback instance
-can no longer be called).
+returned by the [`Linker::upcallStub`] method. The `arena` argument denotes the lifetime
+of the upcall stub, meaning that the upcall stub will be freed when the arena is closed
+(after which the callback instance can no longer be called).
 
 Additionally, we can use the `callback_t::invoke` method invoke an instance of
 `callback_t` that we get back from a call to a C function. Let's say we have a couple of
@@ -518,7 +516,7 @@ in C behave more or less like a template, where the calling convention changes b
 and types of arguments passed to the function. Because of this, the FFM linker needs to
 know exactly which argument types are going to be passed to a variadic function when the
 function is linked. This is described in greater detail in the [javadoc of the
-`java.lang.foreign.Linker` class](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#variadic-funcs).
+`java.lang.foreign.Linker` class][`Linker`].
 
 To make calling variadic functions easier, jextract introduces the concept of an _invoker_.
 An invoker represents a particular _instantiation_ of a variadic function for a particular
@@ -736,9 +734,9 @@ be included/passed to jextract.
 
 ### Library Loading
 
-When using the `--library <libspec>` option, the generated code internally uses [`SymbolLookup::libraryLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#libraryLookup(java.nio.file.Path,java.lang.foreign.Arena))
+When using the `--library <libspec>` option, the generated code internally uses [`SymbolLookup::libraryLookup`]
 to load libraries specified by `<libspec>`. If `<libspec>` denotes a library name, the
-name is then mapped to a platform dependent name using [`System::mapLibraryName`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)).
+name is then mapped to a platform dependent name using [`System::mapLibraryName`].
 This means, for instance, that on Linux, when specifying `--library mylib`, the bindings will
 try to load `libmylib.so` using the OS-specific library loading mechanism on Linux, which
 is [`dlopen`](https://man7.org/linux/man-pages/man3/dlopen.3.html). This way of loading
@@ -758,18 +756,17 @@ It is important to understand how libraries are loaded on the platform that is b
 as the library search mechanisms differ between them. Alternatively, JNI's library loading
 and search mechanism can be used as well. When the `--use-system-load-library` option is
 specified to jextract, the generated bindings will try to load libraries specified using
-`--library` through [`System::loadLibrary`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#loadLibrary(java.lang.String)).
-The library search path for `System::loadLibrary` is specified through the [`java.library.path`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#java.library.path)
-system property instead of the OS-specific environment variable. Though, please note
-that if the loaded library has any dependencies, those dependencies will again be loaded
-through the OS-specific library loading mechanism (this is outside of the JVM's control).
+`--library` through [`System::loadLibrary`]. The library search path for
+`System::loadLibrary` is specified through the [`java.library.path`] system property
+instead of the OS-specific environment variable. Though, please note that if the loaded
+library has any dependencies, those dependencies will again be loaded through the
+OS-specific library loading mechanism (this is outside of the JVM's control).
 
 When no `--library` option is specified, the generated bindings will try to load function
 from libraries loaded through `System::loadLibrary` and `System::load`, using
-[`SymbolLookup::loaderLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#loaderLookup()),
-with [`Linker::defaultLookup`](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#defaultLookup())
-as a fallback. When `--library` is specified when generating the bindings, these 2 lookup
-modes will be used as a fallback.
+[`SymbolLookup::loaderLookup`], with [`Linker::defaultLookup`] as a fallback. When
+`--library` is specified when generating the bindings, these 2 lookup modes will be used
+as a fallback.
 
 In both cases, the library is unloaded when the class loader that loads the binding
 classes is garbage collected.
@@ -912,3 +909,19 @@ describes how to do this for various different langauges:
 | :---------| ------------------------------------------------------------ |
 | C++       | C++ allows declaring C methods using `extern "C"`, and many C++ libraries have a C interface to go with them. Jextract can consume such a C interface, which can then be used to access the library in question. |
 | Rust      | The Rust ecosystem has a tool called `cbindgen` which can be used to generate a C interface for a Rust library. Such a generated C interface can then be consumed by jextract, and be used to access the library in question. |
+
+[`SymbolLookup`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html
+[`SymbolLookup::libraryLookup`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#libraryLookup(java.nio.file.Path,java.lang.foreign.Arena)
+[`SymbolLookup::loaderLookup`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SymbolLookup.html#loaderLookup()
+[`Linker`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#variadic-funcs
+[`Linker::downcallHandle`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#downcallHandle(java.lang.foreign.MemorySegment,java.lang.foreign.FunctionDescriptor,java.lang.foreign.Linker.Option...)
+[`Linker::upcallStub`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#upcallStub(java.lang.invoke.MethodHandle,java.lang.foreign.FunctionDescriptor,java.lang.foreign.Arena,java.lang.foreign.Linker.Option...)
+[`Linker::defaultLookup`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#defaultLookup()
+[`MemoryLayout`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/MemoryLayout.html
+[`MemorySegment`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/MemorySegment.html
+[`FunctionDescriptor`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/FunctionDescriptor.html
+[`MethodHandle`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/invoke/MethodHandle.html
+[carrier types]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/FunctionDescriptor.html#toMethodType()
+[`System::mapLibraryName`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#mapLibraryName(java.lang.String)
+[`System::loadLibrary`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#loadLibrary(java.lang.String)
+[`java.library.path`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/System.html#java.library.path
