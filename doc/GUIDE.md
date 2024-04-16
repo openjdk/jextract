@@ -18,8 +18,8 @@ interested in.
 This guide shows how to run the jextract tool, and how to use the Java code that it generates.
 The samples under the [`samples`](samples) direcotry are also a good source of examples.
 
-Note that at this time, jextract only supports C header files. If you have a library written
-in another language, see the section on [other languages](#other-languages).
+Note that at this time, jextract (and FFM) only supports C header files. If you have a
+library written in another language, see the section on [other languages](#other-languages).
 
 ## Running Jextract
 
@@ -233,8 +233,8 @@ declarations:
 enum MY_ENUM { A, B, C };
 ```
 
-Jextract will generate a set of simple getter methods to access the constant values of the
-macro and the enum constants:
+Jextract will generate simple getter methods to access the constant values of the macro
+and the enum constants:
 
 ```java
 // mylib_h.java
@@ -254,14 +254,12 @@ with Java `enum`s.
 
 Not all types of macros are supported though. Only macros that have a primitive numerical
 value, a string, or a pointer type are supported. Most notably, function-like macros are
-not supported by jextract. For function-like macros, alternatives include re-writing the
-code inside the macro in Java, using the FFM API, or writing a small C library which wraps
-the function-like macro in a proper exported C function that can then be linked against
-through the FFM API.
+not supported by jextract. (See the section on [unsupported features](#unsupported-features))
 
 Note that for macros, jextract only generates an accessor when it sees a macro definition,
 like the one in the example, in the header files it parses. When a macro is defined
-using `-D` on the command line, no accessor will be generated.
+using `-D` on the command line, no accessor will be generated. (See the section on
+[pre-processor definitions](#preprocessor-definitions))
 
 ### Structs & Unions
 
@@ -373,10 +371,9 @@ struct Point* new_point(void);
 void delete_point(struct Point* ptr);
 ```
 
-The pointer that is returned by the corresponding method that jextract generates
-for this function does not have the correct bounds or lifetime associated with it.
-These things are not possible to figure out automatically (for instance, a pointer
-could point at a single `Point` struct, or an array of multiple `Point` structs).
+The pointer that is returned by `new_point` does not have the correct bounds or lifetime
+associated with it. These properties can not be inferred: for instance, a pointer could
+point at a single `Point` struct, or an array of multiple `Point` structs.
 
 The `reinterpret` method can be used to associate the correct bounds and lifetime:
 
@@ -420,17 +417,19 @@ public class callback_t {
         int apply(int x, int y);
     }
 
-    public static FunctionDescriptor descriptor() { ... }
-    public static MemorySegment allocate(callback_t.Function fi, Arena arena) { ... }
-    public static int invoke(MemorySegment funcPtr,int x, int y) { ... }
+    public static FunctionDescriptor descriptor() { ... } // 1
+    public static MemorySegment allocate(callback_t.Function fi, Arena arena) { ... } // 2
+    public static int invoke(MemorySegment funcPtr,int x, int y) { ... } // 3
 }
 ```
 
-We again have a meta-data accessor for the function descriptor (`descriptor()`). There's
-an `allocate` method that can be used to allocate a new instance of this function pointer,
-whose implementation is defined by the `fi` functional interface instance. And finally,
-there's an `invoke` method which can be used to invoke an instance of `callback_t` that
-we received from native code.
+In the generated class we have:
+
+1. a meta-data accessor for the function descriptor (`descriptor()`).
+2. an `allocate` method that can be used to allocate a new instance of this function
+  pointer, whose implementation is defined by the `fi` functional interface instance.
+3. an `invoke` method which can be used to invoke an instance of `callback_t` that
+  we received from native code.
 
 For instance, let's say we have a C function that accepts an instance of the `callback_t`
 function pointer type:
@@ -681,7 +680,11 @@ _see_ the update to the `bar` field of the `foo` instance on the line before.
 Finally, there are some features that jextract does not support, listed below:
 
 - Certain C types bigger than 64 bits (e.g. `long double` on Linux).
-- Function-like macros (as mentioned in the [section on constants](#constants-macros--enums))
+
+- Function-like macros. Alternatives include re-writing the code inside the macro in Java,
+  using the FFM API, or writing a small C library which wraps the function-like macro in a
+  proper exported C function that can then be linked against through the FFM API.
+
 - Bit fields. You will see a warning about bit fields being skipped, such as:
   
   ```txt
@@ -701,13 +704,22 @@ Finally, there are some features that jextract does not support, listed below:
   WARNING: Skipping Foo (type Declared(Foo) is not supported)
   ```
 
+- Linker options. It is currently not possible to tell jextract to use linker options to
+  link a particular function. Code will have to be edited manually to add them. (for instance,
+  if the function sets `errno`, the `Linker.Option.captureCallState` option has to be added
+  manually).
+
+- It is not possible to specify the byte order of a struct field on the command line.
+  Attributes that control the byte order, such as GCC's `scalar_storage_order` are currently
+  ignored. Again, manual editing of the generated code is required to work around this.
+
 ## Advanced
 
 ### Preprocessor Definitions
 
-C header files are processed by a pre-processor by a compiler before they are inspected
-further. It is possible for a header file to contain so-called 'compiler switches', which
-can be used to conditionally generate code based on the value of a macro, for instance:
+C header files are processed by a pre-processor before they are inspected further. It is
+possible for a header file to contain so-called 'compiler switches', which can be used to
+conditionally generate code based on the value of a macro, for instance:
 
 ```c
 #ifdef MY_MACRO
