@@ -16,7 +16,7 @@ so that a client can instead immediately start using the native libraries they a
 interested in.
 
 This guide shows how to run the jextract tool, and how to use the Java code that it generates.
-The samples under the [`samples`](samples) direcotry are also a good source of examples.
+The samples under the [`samples`](../samples) direcotry are also a good source of examples.
 
 Note that at this time, jextract (and FFM) only supports C header files. If you have a
 library written in another language, see the section on [other languages](#other-languages).
