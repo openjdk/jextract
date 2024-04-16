@@ -608,6 +608,66 @@ public class MyPoint extends Point { }
 Through static inheritance, all the methods in the `Point` class are available through the
 `MyPoint` class as well.
 
+### Array Types
+
+Jextract treats variables (global variables or struct/union fields) with an array type
+specially. For instance, if we have a header file with the following declaration:
+
+```c
+// mylib.h
+
+int FOO_ARRAY[3][5];
+```
+
+Jextract generates a few extra methods that are useful for working with arrays:
+
+```java
+// mylib_h.java
+
+public static SequenceLayout FOO_ARRAY$layout() { ... } // 1
+public static long[] FOO_ARRAY$dimensions() { ... } // 2
+
+public static MemorySegment FOO_ARRAY() { ... } // 3
+public static void FOO_ARRAY(MemorySegment varValue) { ... } // 3
+
+public static int FOO_ARRAY(long index0, long index1) { ... } // 4
+public static void FOO_ARRAY(long index0, long index1, int varValue) { ... } // 4
+```
+
+Jextract generates:
+
+1. a layout accessor, just like we have for a regular variable, but note that the return
+  type is [`SequenceLayout`].
+2. a `$dimensions` meta-deta accessor, which returns the _dimensions_ of the array type.
+  This method returns a `long[]` where each element represents the length of a dimension
+  of the array type. For instance, in the example `FOO_ARRAY` has a two dimension, whose
+  lengths are `3` and `5`, so the `FOO_ARRAY$dimensions` method will return a `long[]`
+  with two elements whose values are `3` and `5` in that order.
+3. a getter and setter pair for the array variable. Note that the getter replaces the usual
+  `XYZ$segment` method that jextract generates for global variables, as the results of the
+  two methods would be identical.
+4. a pair of _indexed_ getter and setter methods. These methods can be used to get or set
+  a single element of the array. Each leading `long` parameter represents an index of one
+  of the dimensions of the array.
+
+For struct and union fields, the generate methods are comparable, with an additional
+leading `MemorySegment` parameter for the getters and setters, representing the struct or
+union instance.
+
+Using the generated methods, we can access the elements of `FOO_ARRAY` as follows:
+
+```java
+// Main.java
+
+for (long i = 0; i < FOO_ARRAY$dimensions()[0]; i++) {
+    for (long j = 0; j < FOO_ARRAY$dimensions()[1]; j++) {
+        // print out element at FOO_ARRAY[i][j]
+        int e = FOO_ARRAY(i, j);
+        System.out.println("FOO_ARRAY[" + i + "][" + j + "] = " + e);
+    }
+}
+```
+
 ### Nested Types
 
 C allows variable declarations to have an inline anonymous type. For instance, if we
@@ -930,6 +990,7 @@ describes how to do this for various different langauges:
 [`Linker::upcallStub`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#upcallStub(java.lang.invoke.MethodHandle,java.lang.foreign.FunctionDescriptor,java.lang.foreign.Arena,java.lang.foreign.Linker.Option...)
 [`Linker::defaultLookup`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/Linker.html#defaultLookup()
 [`MemoryLayout`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/MemoryLayout.html
+[`SequenceLayout`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/SequenceLayout.html
 [`MemorySegment`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/MemorySegment.html
 [`FunctionDescriptor`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/foreign/FunctionDescriptor.html
 [`MethodHandle`]: https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/invoke/MethodHandle.html
