@@ -624,31 +624,31 @@ Jextract generates a few extra methods that are useful for working with arrays:
 ```java
 // mylib_h.java
 
-public static SequenceLayout FOO_ARRAY$layout() { ... } // 1
-public static long[] FOO_ARRAY$dimensions() { ... } // 2
+public static MemorySegment FOO_ARRAY() { ... } // 1
+public static void FOO_ARRAY(MemorySegment varValue) { ... } // 1
 
-public static MemorySegment FOO_ARRAY() { ... } // 3
-public static void FOO_ARRAY(MemorySegment varValue) { ... } // 3
+public static int FOO_ARRAY(long index0, long index1) { ... } // 2
+public static void FOO_ARRAY(long index0, long index1, int varValue) { ... } // 2
 
-public static int FOO_ARRAY(long index0, long index1) { ... } // 4
-public static void FOO_ARRAY(long index0, long index1, int varValue) { ... } // 4
+public static SequenceLayout FOO_ARRAY$layout() { ... } // 3
+public static long[] FOO_ARRAY$dimensions() { ... } // 4
 ```
 
 Jextract generates:
 
-1. a layout accessor, just like we have for a regular variable, but note that the return
-  type is [`SequenceLayout`].
-2. a `$dimensions` meta-data accessor, which returns the _dimensions_ of the array type.
-  This method returns a `long[]` where each element represents the length of a dimension
-  of the array type. For instance, in the example `FOO_ARRAY` has two dimensions, whose
-  lengths are `3` and `5`, so the `FOO_ARRAY$dimensions` method will return a `long[]`
-  with two elements whose values are `3` and `5` in that order.
-3. a getter and setter pair for the array variable. Note that the getter replaces the usual
+1. a getter and setter pair for the array variable. Note that the getter replaces the usual
   `XYZ$segment` method that jextract generates for global variables, as the results of the
   two methods would be identical.
-4. a pair of _indexed_ getter and setter methods. These methods can be used to get or set
+2. a pair of _indexed_ getter and setter methods. These methods can be used to get or set
   a single element of the array. Each leading `long` parameter represents an index of one
   of the dimensions of the array.
+3. a layout accessor, just like we have for a regular variable, but note that the return
+  type is [`SequenceLayout`].
+4. a `$dimensions` meta-data accessor, which returns the _dimensions_ of the array type.
+  This method returns a `long[]` where each element represents the length of a dimension
+  of the array type. For instance, in the example `FOO_ARRAY` has two dimensions - `3` and
+  `5` respectively - so the `FOO_ARRAY$dimensions` method will return a `long[]`
+  with two elements whose values are `3` and `5` in that order.
 
 For struct and union fields, the generate methods are comparable, with an additional
 leading `MemorySegment` parameter for the getters and setters, representing the struct or
