@@ -67,7 +67,7 @@ specifying the library's containing directory on `LD_LIBRARY_PATH` (Linux),
 `DYLD_LIBRARY_PATH` (Mac), or `PATH` (Windows). See the section on
 [library loading](#library-loading) for more information.
 
-Besides these options, it is also possible to filter the output of jextract using one of the `--include-XXX` options
+Besides these options, it is also possible to filter the output of jextract using one of the `--include-XYZ` options
 that jextract has. See the section on [filtering](#filtering) for a more detailed overview. See also the full
 list of command line options [here](#command-line-option-reference).
 
