@@ -52,11 +52,12 @@ In this command:
   directories representing the package structure under the `src` directory specified
   through `--output`)
 - `--library mylib` tells jextract that the generated bindings should load the library
-  called `mylib`. (The section on [library loading](#library-loading) discusses how is done)
+  called `mylib`. (The section on [library loading](#library-loading) discusses how this
+  is done)
 
 Note that specifying the wrong header file to jextract may result in errors during parsing.
 Please consult the documentation of the library in question about which header file
-should be included. This is also the header files that should be passed to jextract. If
+should be included. This is also the header file that should be passed to jextract. If
 a library has multiple main header files, they can be passed to jextract by creating a new
 header file which `#include`s these header files, and then this new header file can be
 passed to jextract.
@@ -265,7 +266,7 @@ using `-D` on the command line, no accessor will be generated.
 
 ### Structs & Unions
 
-Things get a little more complicated for structs and unions. For a struct delcaration like
+Things get a little more complicated for structs and unions. For a struct declaration like
 this:
 
 ```c
@@ -395,6 +396,9 @@ arrays of struct, use the `reinterpret` overload that takes an element count as 
 lifetime we associate with the segment is the lifetime denoted by `arena`, and when the
 arena is closed, we want to call `delete_point`, which we can do by passing a method
 reference to `delete_point` as a cleanup action when calling `reinterpret`.
+
+The class that jextract generates for unions is identical to the class generated for
+structs.
 
 ### Function Pointers
 
@@ -893,7 +897,7 @@ A complete list of all the supported command line options is given below:
 #### Additional clang options
 
 Jextract uses an embedded clang compiler (through libclang) to parse header files. Users
-can also specify additional clang compiler options, by creating a file named
+can also specify additional clang compiler options by creating a file named
 `compile_flags.txt` in the current folder, as described
 [here](https://clang.llvm.org/docs/JSONCompilationDatabase.html#alternatives).
 
