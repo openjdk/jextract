@@ -99,7 +99,7 @@ contain platform-dependent code that can cause the generated code to misbehave w
 on another platform.
 
 However, it is also possible for a C library to be written in such a way that it is not
-platform dependent: a so-called 'portable' library. Sharing the bindings generated for a
+platform dependent: a so-called _portable_ library. Sharing the bindings generated for a
 portable library across different platforms should work without issues. It is typically
 advisable to generate different sets of bindings, once on each platform on which the
 bindings are intended to be used, and then comparing the generated code to make sure that
