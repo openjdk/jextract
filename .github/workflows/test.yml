@@ -53,19 +53,16 @@ jobs:
             ARCHIVE_EXT: "tar.xz"
             LIB_DIR: lib
             DEPS_ROOT: /tmp/deps
-            TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain
           - os: macos-latest
             TARGET: clang+llvm-13.0.0-x86_64-apple-darwin
             ARCHIVE_EXT: "tar.xz"
             LIB_DIR: lib
             DEPS_ROOT: /tmp/deps
-            TOOLCHAIN_JAVA_HOME: /tmp/deps/jdk-toolchain/jdk-22.jdk/Contents/Home
           - os: windows-latest
             TARGET: LLVM-13.0.0-win64
             ARCHIVE_EXT: "exe"
             LIB_DIR: bin
             DEPS_ROOT: C:/tmp/deps
-            TOOLCHAIN_JAVA_HOME: C:/tmp/deps/jdk-toolchain/jdk-22
 
     steps:
     - name: 'Check out repository'
@@ -98,19 +95,27 @@ jobs:
       if: ${{ matrix.os != 'windows-latest' && steps.get-cached-toolchain.outputs.cache-hit != 'true' }}
       shell: sh
       run: |
-        mkdir -p ${{ matrix.DEPS_ROOT }}/jdk-toolchain
-        tar --strip-components=1 -xvf ${{ steps.download-toolchain-jdk.outputs.archive }} -C ${{ matrix.DEPS_ROOT }}/jdk-toolchain
+        mkdir -p ${{ matrix.DEPS_ROOT }}/jdk-toolchain/unpacked
+        tar --strip-components=1 -xvf ${{ steps.download-toolchain-jdk.outputs.archive }} -C ${{ matrix.DEPS_ROOT }}/jdk-toolchain/unpacked
+        ls -lah ${{ matrix.DEPS_ROOT }}/jdk-toolchain/unpacked
+        jdk_root="$(dirname $(find ${{ matrix.DEPS_ROOT }}/jdk-toolchain/unpacked -name bin -type d))"
+        echo "jdk_root = $jdk_root"
+        mv "$jdk_root"/* ${{ matrix.DEPS_ROOT }}/jdk-toolchain/
         ls -lah ${{ matrix.DEPS_ROOT }}/jdk-toolchain
-        ${{ matrix.TOOLCHAIN_JAVA_HOME }}/bin/java --version
+        ${{ matrix.DEPS_ROOT }}/jdk-toolchain/bin/java --version
 
     - name: 'Extract Toolchain JDK (Windows)'
       if: ${{ matrix.os == 'windows-latest' && steps.get-cached-toolchain.outputs.cache-hit != 'true' }}
       shell: pwsh
       run: |
-        New-Item -ItemType Directory ${{ matrix.DEPS_ROOT }}/jdk-toolchain
-        7z x ${{ steps.download-toolchain-jdk.outputs.archive }} -o${{ matrix.DEPS_ROOT }}/jdk-toolchain/
-        ls ${{ matrix.DEPS_ROOT }}/jdk-toolchain/jdk-22
-        ${{ matrix.TOOLCHAIN_JAVA_HOME }}/bin/java --version
+        New-Item -ItemType Directory ${{ matrix.DEPS_ROOT }}/jdk-toolchain/unpacked
+        7z x ${{ steps.download-toolchain-jdk.outputs.archive }} -o${{ matrix.DEPS_ROOT }}/jdk-toolchain/unpacked
+        ls ${{ matrix.DEPS_ROOT }}/jdk-toolchain/unpacked
+        $jdk_root = Get-ChildItem -Path ${{ matrix.DEPS_ROOT }}/jdk-toolchain/unpacked/*/bin -Recurse | Select-Object -First 1 | %{ $_.Parent.Parent.FullName }
+        Write-Host "jdk_root = $jdk_root"
+        Move-Item -Path "$jdk_root/*" -Destination ${{ matrix.DEPS_ROOT }}/jdk-toolchain/
+        ls ${{ matrix.DEPS_ROOT }}/jdk-toolchain/
+        ${{ matrix.DEPS_ROOT }}/jdk-toolchain/bin/java --version
 
     - name: 'Setup Java 17'
       uses: oracle-actions/setup-java@v1.3.4
@@ -158,7 +163,7 @@ jobs:
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image clean verify        
+        sh ./gradlew -Pjdk22_home=${{ matrix.DEPS_ROOT }}/jdk-toolchain -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image clean verify        
 
     - name: 'Get cached JTReg'
       uses: actions/cache@v4
@@ -171,4 +176,4 @@ jobs:
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.TOOLCHAIN_JAVA_HOME }} -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
+        sh ./gradlew -Pjdk22_home=${{ matrix.DEPS_ROOT }}/jdk-toolchain -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
