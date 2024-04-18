@@ -116,10 +116,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     private static List<String> finalizeParameterNames(List<String> parameterNames, boolean needsAllocator, boolean isVarArg) {
         List<String> result = new ArrayList<>();
 
-        if (needsAllocator) {
-            result.add("allocator");
-        }
-
         int i = 0;
         for (; i < parameterNames.size(); i++) {
             String name = parameterNames.get(i);
@@ -131,6 +127,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
         if (isVarArg) {
             result.add("x" + i);
+        }
+
+        if (needsAllocator) {
+            String allocatorName = "allocator";
+            while (result.contains(allocatorName)) {
+                allocatorName = "_" + allocatorName;
+            }
+            result.add(0, allocatorName);
         }
 
         return result;
