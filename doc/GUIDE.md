@@ -99,12 +99,14 @@ contain platform-dependent code that can cause the generated code to misbehave w
 on another platform.
 
 However, it is also possible for a C library to be written in such a way that it is not
-platform dependent: a so-called _portable_ library. Sharing the bindings generated for a
-portable library across different platforms should work without issues. It is typically
-advisable to generate different sets of bindings, one on each platform on which the
-bindings are intended to be used, and then comparing the generated code to make sure that
-there are no differences between platforms, before sharing a single set of bindings
-between different platforms.
+platform dependent: a so-called _portable_ library. These libraries, for instance, use
+data types that have the same format on all supported platforms (such as `long long`
+instead of `long`, or an explicitly-sized integer type such as `int64_t`). Sharing the
+bindings generated for a portable library across different platforms should work without
+issues. It is typically advisable to generate different sets of bindings, one on each
+platform on which the bindings are intended to be used, and then comparing the generated
+code to make sure that there are no differences between platforms, before sharing a single
+set of bindings between different platforms.
 
 Jextract assumes that the version of a native library that a project uses is relatively stable.
 Therefore, jextract is intended to be run once, and then for the generated sources to be added to the project.
