@@ -148,7 +148,7 @@ assemble.dependsOn(createJextractImage)
 task verify(type: Exec) {
     dependsOn createJextractImage
 
-    executable = "${jextract_app_dir}/bin/jextract${os_script_extension}"
+    executable = "${jextract_app_dir}/jextract${os_script_extension}"
     args = [ "test.h", "--output", "$buildDir/integration_test" ]
 }
 
