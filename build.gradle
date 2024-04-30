@@ -134,11 +134,13 @@ task createJextractImage(type: Exec) {
         // Add launcher scripts
         Path unixOut = Path.of("${jextract_app_dir}/jextract");
         Files.copy(Path.of("$projectDir/src/main/jextract"), unixOut);
-        Set<PosixFilePermission> perms = Files.getPosixFilePermissions(unixOut);
-        perms.add(PosixFilePermission.OWNER_EXECUTE);
-        perms.add(PosixFilePermission.GROUP_EXECUTE);
-        perms.add(PosixFilePermission.OTHERS_EXECUTE);
-        Files.setPosixFilePermissions(unixOut, perms);
+        if (unixOut.getFileSystem().supportedFileAttributeViews().contains("posix")) {
+            Set<PosixFilePermission> perms = Files.getPosixFilePermissions(unixOut);
+            perms.add(PosixFilePermission.OWNER_EXECUTE);
+            perms.add(PosixFilePermission.GROUP_EXECUTE);
+            perms.add(PosixFilePermission.OTHERS_EXECUTE);
+            Files.setPosixFilePermissions(unixOut, perms);
+        }
 
         Files.copy(Path.of("$projectDir/src/main/jextract.bat"), Path.of("${jextract_app_dir}/jextract.bat"))
     }
