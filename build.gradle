@@ -1,6 +1,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 
 plugins {
     id "java"
@@ -123,12 +124,26 @@ task createJextractImage(type: Exec) {
     args = [
          "--module-path=$jmods_dir",
          "--add-modules=org.openjdk.jextract",
-         "--output=${jextract_app_dir}",
-         "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
+         "--output=${jextract_app_dir}/runtime",
          "--strip-debug", "--no-man-pages", "--no-header-files",
          "--add-options",
          "${quote_jlink_opts}"
     ]
+
+    doLast {
+        // Add launcher scripts
+        Path unixOut = Path.of("${jextract_app_dir}/jextract");
+        Files.copy(Path.of("$projectDir/src/main/jextract"), unixOut);
+        if (unixOut.getFileSystem().supportedFileAttributeViews().contains("posix")) {
+            Set<PosixFilePermission> perms = Files.getPosixFilePermissions(unixOut);
+            perms.add(PosixFilePermission.OWNER_EXECUTE);
+            perms.add(PosixFilePermission.GROUP_EXECUTE);
+            perms.add(PosixFilePermission.OTHERS_EXECUTE);
+            Files.setPosixFilePermissions(unixOut, perms);
+        }
+
+        Files.copy(Path.of("$projectDir/src/main/jextract.bat"), Path.of("${jextract_app_dir}/jextract.bat"))
+    }
 }
 
 // build the jextract image when the build or assemble task is run
@@ -138,7 +153,7 @@ assemble.dependsOn(createJextractImage)
 task verify(type: Exec) {
     dependsOn createJextractImage
 
-    executable = "${jextract_app_dir}/bin/jextract${os_script_extension}"
+    executable = "${jextract_app_dir}/jextract${os_script_extension}"
     args = [ "test.h", "--output", "$buildDir/integration_test" ]
 }
 

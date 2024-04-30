@@ -80,11 +80,12 @@ $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
 $(JEXTRACT_IMAGE_DIR): $(BUILD_MODULES_DIR)
         # jlink the modules to create a custom runtime image for jextract
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jlink \
-	    --output "$(JEXTRACT_IMAGE_DIR)" \
+	    --output "$(JEXTRACT_IMAGE_DIR)/runtime" \
 	    --module-path "$(BUILD_MODULES_DIR)" \
 	    --add-modules org.openjdk.jextract \
-	    --add-options "\"--enable-native-access=org.openjdk.jextract\" \"--enable-preview\"" \
-	    --launcher jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool
+	    --add-options "\"--enable-native-access=org.openjdk.jextract\" \"--enable-preview\""
+	$(CP) src/main/jextract "$(JEXTRACT_IMAGE_DIR)"
+	$(CP) src/main/jextract.bat "$(JEXTRACT_IMAGE_DIR)"
 
 $(JEXTRACT_IMAGE_TEST_JDK_DIR): $(JEXTRACT_IMAGE_DIR)
         # jlink the modules to create a custom runtime image for jextract testing
