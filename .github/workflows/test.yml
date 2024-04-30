@@ -46,14 +46,14 @@ jobs:
     needs: [build-jtreg]
     strategy:
       matrix:
-        os: [macos-14, ubuntu-20.04, windows-latest]
+        os: [ubuntu-20.04, windows-latest]
         include:
           - os: ubuntu-20.04
             TARGET: clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04
             ARCHIVE_EXT: "tar.xz"
             LIB_DIR: lib
             DEPS_ROOT: /tmp/deps
-          - os: macos-14
+          - os: macos-latest
             TARGET: clang+llvm-13.0.0-x86_64-apple-darwin
             ARCHIVE_EXT: "tar.xz"
             LIB_DIR: lib
