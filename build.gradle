@@ -1,6 +1,11 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Path
+
+import static java.nio.charset.StandardCharsets.UTF_8
+import static java.nio.file.StandardOpenOption.*;
 
 plugins {
     id "java"
@@ -123,12 +128,17 @@ task createJextractImage(type: Exec) {
     args = [
          "--module-path=$jmods_dir",
          "--add-modules=org.openjdk.jextract",
-         "--output=${jextract_app_dir}",
-         "--launcher=jextract=org.openjdk.jextract/org.openjdk.jextract.JextractTool",
+         "--output=${jextract_app_dir}/runtime",
          "--strip-debug", "--no-man-pages", "--no-header-files",
          "--add-options",
          "${quote_jlink_opts}"
     ]
+
+    doLast {
+        // Add launcher scripts
+        Files.copy(Path.of("$projectDir/src/main/jextract"), Path.of("${jextract_app_dir}/jextract"))
+        Files.copy(Path.of("$projectDir/src/main/jextract.bat"), Path.of("${jextract_app_dir}/jextract.bat"))
+    }
 }
 
 // build the jextract image when the build or assemble task is run
