@@ -1,11 +1,6 @@
 import org.apache.tools.ant.taskdefs.condition.Os
-
-import java.nio.charset.StandardCharsets
 import java.nio.file.Files;
-import java.nio.file.Path
-
-import static java.nio.charset.StandardCharsets.UTF_8
-import static java.nio.file.StandardOpenOption.*;
+import java.nio.file.Path;
 
 plugins {
     id "java"
