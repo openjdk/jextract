@@ -1,6 +1,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 
 plugins {
     id "java"
@@ -131,7 +132,14 @@ task createJextractImage(type: Exec) {
 
     doLast {
         // Add launcher scripts
-        Files.copy(Path.of("$projectDir/src/main/jextract"), Path.of("${jextract_app_dir}/jextract"))
+        Path unixOut = Path.of("${jextract_app_dir}/jextract");
+        Files.copy(Path.of("$projectDir/src/main/jextract"), unixOut);
+        Set<PosixFilePermission> perms = Files.getPosixFilePermissions(unixOut);
+        perms.add(PosixFilePermission.OWNER_EXECUTE);
+        perms.add(PosixFilePermission.GROUP_EXECUTE);
+        perms.add(PosixFilePermission.OTHERS_EXECUTE);
+        Files.setPosixFilePermissions(unixOut, perms);
+
         Files.copy(Path.of("$projectDir/src/main/jextract.bat"), Path.of("${jextract_app_dir}/jextract.bat"))
     }
 }
