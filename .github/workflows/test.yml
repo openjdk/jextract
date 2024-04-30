@@ -53,11 +53,6 @@ jobs:
             ARCHIVE_EXT: "tar.xz"
             LIB_DIR: lib
             DEPS_ROOT: /tmp/deps
-          - os: macos-latest
-            TARGET: clang+llvm-13.0.0-x86_64-apple-darwin
-            ARCHIVE_EXT: "tar.xz"
-            LIB_DIR: lib
-            DEPS_ROOT: /tmp/deps
           - os: windows-latest
             TARGET: LLVM-13.0.0-win64
             ARCHIVE_EXT: "exe"
