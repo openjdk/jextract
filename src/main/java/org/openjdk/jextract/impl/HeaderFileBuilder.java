@@ -166,95 +166,102 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
         String retType = declType.returnType().getSimpleName();
         boolean isVoid = declType.returnType().equals(void.class);
-        String returnNoCast = isVoid ? "" : STR."return ";
-        String returnWithCast = isVoid ? "" : STR."\{returnNoCast}(\{retType})";
+        String returnNoCast = isVoid ? "" : "return ";
+        String returnWithCast = isVoid ? "" : String.format("%s(%s)", returnNoCast, retType);
         String paramList = String.join(", ", finalParamNames);
         String traceArgList = paramList.isEmpty() ?
-                STR."\"\{nativeName}\"" :
-                STR."\"\{nativeName}\", \{paramList}";
+                String.format("\"%s\"", nativeName) :
+                String.format("\"%s\", %s", nativeName, paramList);
         incrAlign();
         if (!isVarArg) {
             String holderClass = newHolderClassName(javaName);
-            appendLines(STR."""
+            appendLines(String.format("""
 
-                private static class \{holderClass} {
-                    public static final FunctionDescriptor DESC = \{functionDescriptorString(1, decl.type())};
+                private static class %s {
+                    public static final FunctionDescriptor DESC = %s;
 
-                    public static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{lookupName(decl)}");
+                    public static final MemorySegment ADDR = %s.findOrThrow("%s");
 
                     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
                 }
-                """);
+                """,
+                holderClass, functionDescriptorString(1, decl.type()), runtimeHelperName(), lookupName(decl)));
             appendBlankLine();
             emitDocComment(decl, "Function descriptor for:");
-            appendLines(STR."""
-                public static FunctionDescriptor \{javaName}$descriptor() {
-                    return \{holderClass}.DESC;
+            appendLines(String.format("""
+                public static FunctionDescriptor %s$descriptor() {
+                    return %s.DESC;
                 }
-                """);
+                """, javaName, holderClass));
             appendBlankLine();
             emitDocComment(decl, "Downcall method handle for:");
-            appendLines(STR."""
-                public static MethodHandle \{javaName}$handle() {
-                    return \{holderClass}.HANDLE;
+            appendLines(String.format("""
+                public static MethodHandle %s$handle() {
+                    return %s.HANDLE;
                 }
-                """);
+                """,
+                javaName, holderClass));
             appendBlankLine();
             emitDocComment(decl, "Address for:");
-            appendLines(STR."""
-                public static MemorySegment \{javaName}$address() {
-                    return \{holderClass}.ADDR;
+            appendLines(String.format("""
+                public static MemorySegment %s$address() {
+                    return %s.ADDR;
                 }
-                """);
+                """,
+                javaName, holderClass));
             appendBlankLine();
             emitDocComment(decl);
-            appendLines(STR."""
-            public static \{retType} \{javaName}(\{paramExprs(declType, finalParamNames, isVarArg)}) {
-                var mh$ = \{holderClass}.HANDLE;
+            appendLines(String.format("""
+            public static %s %s(%s) {
+                var mh$ = %s.HANDLE;
                 try {
                     if (TRACE_DOWNCALLS) {
-                        traceDowncall(\{traceArgList});
+                        traceDowncall(%s);
                     }
-                    \{returnWithCast}mh$.invokeExact(\{paramList});
+                    %s mh$.invokeExact(%s);
                 } catch (Throwable ex$) {
                    throw new AssertionError("should not reach here", ex$);
                 }
             }
-            """);
+            """,
+            retType, javaName, paramExprs(declType, finalParamNames, isVarArg),
+            holderClass, traceArgList, returnWithCast, paramList));
         } else {
             String invokerClassName = newHolderClassName(javaName);
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
             appendBlankLine();
             emitDocComment(decl, "Variadic invoker class for:");
-            appendLines(STR."""
-                public static class \{invokerClassName} {
-                    private static final FunctionDescriptor BASE_DESC = \{functionDescriptorString(2, decl.type())};
-                    private static final MemorySegment ADDR = \{runtimeHelperName()}.findOrThrow("\{lookupName(decl)}");
+            appendLines(String.format("""
+                public static class %s {
+                    private static final FunctionDescriptor BASE_DESC = %s;
+                    private static final MemorySegment ADDR = %s.findOrThrow("%s");
 
                     private final MethodHandle handle;
                     private final FunctionDescriptor descriptor;
                     private final MethodHandle spreader;
 
-                    private \{invokerClassName}(MethodHandle handle, FunctionDescriptor descriptor, MethodHandle spreader) {
+                    private %s(MethodHandle handle, FunctionDescriptor descriptor, MethodHandle spreader) {
                         this.handle = handle;
                         this.descriptor = descriptor;
                         this.spreader = spreader;
                     }
-                """);
+                """,
+                invokerClassName, functionDescriptorString(2, decl.type()), runtimeHelperName(), lookupName(decl), invokerClassName));
             incrAlign();
             appendBlankLine();
             emitDocComment(decl, "Variadic invoker factory for:");
-            appendLines(STR."""
-                public static \{invokerClassName} makeInvoker(MemoryLayout... layouts) {
+            appendLines(String.format("""
+                public static %s makeInvoker(MemoryLayout... layouts) {
                     FunctionDescriptor desc$ = BASE_DESC.appendArgumentLayouts(layouts);
                     Linker.Option fva$ = Linker.Option.firstVariadicArg(BASE_DESC.argumentLayouts().size());
                     var mh$ = Linker.nativeLinker().downcallHandle(ADDR, desc$, fva$);
                     var spreader$ = mh$.asSpreader(Object[].class, layouts.length);
-                    return new \{invokerClassName}(mh$, desc$, spreader$);
+                    return new %s(mh$, desc$, spreader$);
                 }
-                """);
+                """,
+                invokerClassName, invokerClassName));
             decrAlign();
-            appendLines(STR."""
+            appendLines(String.format("""
 
                     /**
                      * {@return the address}
@@ -277,12 +284,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                         return descriptor;
                     }
 
-                    public \{retType} apply(\{paramExprs}) {
+                    public %s apply(%s) {
                         try {
                             if (TRACE_DOWNCALLS) {
-                                traceDowncall(\{traceArgList});
+                                traceDowncall(%s);
                             }
-                            \{returnWithCast}spreader.invokeExact(\{paramList});
+                            %s spreader.invokeExact(%s);
                         } catch(IllegalArgumentException | ClassCastException ex$)  {
                             throw ex$; // rethrow IAE from passing wrong number/type of args
                         } catch (Throwable ex$) {
@@ -290,7 +297,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                         }
                     }
                 }
-                """);
+                """,
+                retType, paramExprs, traceArgList, returnWithCast, paramList));
         }
         decrAlign();
     }
@@ -308,25 +316,25 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         // if legacy library loading is selected, load libraries (if any) into current loader
         if (useSystemLoadLibrary) {
             appendBlankLine();
-            appendIndentedLines("""
+            appendIndentedLines(String.format("""
 
-                static {
-                """);
+            static {
+            """));
             incrAlign();
             for (Options.Library lib : libraries) {
                 String method = lib.specKind() == Options.Library.SpecKind.PATH ? "load" : "loadLibrary";
-                appendIndentedLines(STR."System.\{method}(\"\{lib.toQuotedName()}\");");
+                appendIndentedLines(String.format("System.%s(\"%s\");", method, lib.toQuotedName()));
             }
             decrAlign();
             appendIndentedLines("""
-                }
-                """);
+            }
+            """);
         } else {
             // otherwise, add a library lookup per library (if any)
             libraries.stream() // add library lookups (if any)
                     .map(l -> l.specKind() == Options.Library.SpecKind.PATH ?
-                            STR."SymbolLookup.libraryLookup(\"\{l.toQuotedName()}\", LIBRARY_ARENA)" :
-                            STR."SymbolLookup.libraryLookup(System.mapLibraryName(\"\{l.toQuotedName()}\"), LIBRARY_ARENA)")
+                            String.format("SymbolLookup.libraryLookup(\"%s\", LIBRARY_ARENA)", l.toQuotedName()) :
+                            String.format("SymbolLookup.libraryLookup(System.mapLibraryName(\"%s\"), LIBRARY_ARENA)", l.toQuotedName()))
                     .collect(Collectors.toCollection(() -> lookups));
         }
 
@@ -337,14 +345,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         List<String> lookupCalls = new ArrayList<>();
         boolean isFirst = true;
         for (String lookup : lookups) {
-            lookupCalls.add(isFirst ? lookup : STR.".or(\{lookup})");
+            lookupCalls.add(isFirst ? lookup : String.format(".or(%s)", lookup));
             isFirst = false;
         }
 
         // chain all the calls together into a combined symbol lookup
         appendBlankLine();
         appendIndentedLines(lookupCalls.stream()
-                .collect(Collectors.joining(STR."\n\{indentString(2)}", "static final SymbolLookup SYMBOL_LOOKUP = ", ";")));
+                .collect(Collectors.joining(String.format("\n%s", indentString(2)), "static final SymbolLookup SYMBOL_LOOKUP = ", ";")));
     }
 
     void emitRuntimeHelperMethods() {
@@ -395,11 +403,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         incrAlign();
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
-        appendLines(STR."""
-            public static \{type.getSimpleName()} \{javaName}() {
-                return \{holderClass}.SEGMENT.get(\{holderClass}.LAYOUT, 0L);
+        appendLines(String.format("""
+            public static %s %s() {
+                return %s.SEGMENT.get(%s.LAYOUT, 0L);
             }
-            """);
+            """, type.getSimpleName(), javaName, holderClass, holderClass));
+
         decrAlign();
     }
 
@@ -409,11 +418,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         incrAlign();
         emitDocComment(decl, docHeader);
         Class<?> type = Utils.carrierFor(decl.type());
-        appendLines(STR."""
-            public static void \{javaName}(\{type.getSimpleName()} varValue) {
-                \{holderClass}.SEGMENT.set(\{holderClass}.LAYOUT, 0L, varValue);
+        appendLines(String.format("""
+            public static void %s(%s varValue) {
+                %s.SEGMENT.set(%s.LAYOUT, 0L, varValue);
             }
-            """);
+            """, javaName, type.getSimpleName(), holderClass, holderClass));
+
         decrAlign();
     }
 
@@ -422,11 +432,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         appendBlankLine();
         incrAlign();
         emitDocComment(varTree, docHeader);
-        appendLines(STR."""
-            public static MemorySegment \{javaName}() {
-                return \{holderClass}.SEGMENT;
+        appendLines(String.format("""
+            public static MemorySegment %s() {
+                return %s.SEGMENT;
             }
-            """);
+            """, javaName, holderClass));
+
         decrAlign();
     }
 
@@ -435,11 +446,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         appendBlankLine();
         incrAlign();
         emitDocComment(varTree, docHeader);
-        appendLines(STR."""
-            public static void \{javaName}(MemorySegment varValue) {
-                MemorySegment.copy(varValue, 0L, \{holderClass}.SEGMENT, 0L, \{holderClass}.LAYOUT.byteSize());
+        appendLines(String.format("""
+            public static void %s(MemorySegment varValue) {
+                MemorySegment.copy(varValue, 0L, %s.SEGMENT, 0L, %s.LAYOUT.byteSize());
             }
-            """);
+            """, javaName, holderClass, holderClass));
         decrAlign();
     }
 
@@ -451,21 +462,21 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         incrAlign();
         emitDocComment(varTree, docHeader);
         if (Utils.isStructOrUnion(elemType)) {
-            appendLines(STR."""
-                public static MemorySegment \{javaName}(\{indexList.decl()}) {
+            appendLines(String.format("""
+                public static MemorySegment %s(%s) {
                     try {
-                        return (MemorySegment)\{holderClass}.HANDLE.invokeExact(\{holderClass}.SEGMENT, 0L, \{indexList.use()});
+                        return (MemorySegment)%s.HANDLE.invokeExact(%s.SEGMENT, 0L, %s);
                     } catch (Throwable ex$) {
                         throw new AssertionError("should not reach here", ex$);
                     }
                 }
-                """);
+                """, javaName, indexList.decl(), holderClass, holderClass, indexList.use()));
         } else {
-            appendLines(STR."""
-                public static \{typeCls.getSimpleName()} \{javaName}(\{indexList.decl()}) {
-                    return (\{typeCls.getSimpleName()})\{holderClass}.HANDLE.get(\{holderClass}.SEGMENT, 0L, \{indexList.use()});
+            appendLines(String.format("""
+                public static %s %s(%s) {
+                    return (%s)%s.HANDLE.get(%s.SEGMENT, 0L, %s);
                 }
-                """);
+                """, typeCls.getSimpleName(), javaName, indexList.decl(), typeCls.getSimpleName(), holderClass, holderClass, indexList.use()));
         }
         decrAlign();
     }
@@ -478,24 +489,24 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         incrAlign();
         emitDocComment(varTree, docHeader);
         if (Utils.isStructOrUnion(elemType)) {
-            appendLines(STR."""
-                public static void \{javaName}(\{indexList.decl()}, MemorySegment varValue) {
-                    MemorySegment.copy(varValue, 0L, \{javaName}(\{indexList.use()}), 0L, \{layoutString(elemType)}.byteSize());
-                }
-                """);
+            appendLines(String.format("""
+        public static void %s(%s, MemorySegment varValue) {
+            MemorySegment.copy(varValue, 0L, %s(%s), 0L, %s.byteSize());
+        }
+        """, javaName, indexList.decl(), javaName, indexList.use(), layoutString(elemType)));
         } else {
-            appendLines(STR."""
-                public static void \{javaName}(\{indexList.decl()}, \{typeCls.getSimpleName()} varValue) {
-                    \{holderClass}.HANDLE.set(\{holderClass}.SEGMENT, 0L, \{indexList.use()}, varValue);
-                }
-                """);
+            appendLines(String.format("""
+        public static void %s(%s, %s varValue) {
+            %s.HANDLE.set(%s.SEGMENT, 0L, %s, varValue);
+        }
+        """, javaName, indexList.decl(), typeCls.getSimpleName(), holderClass, holderClass, indexList.use()));
         }
         decrAlign();
     }
 
     private String emitVarHolderClass(Declaration.Variable var, String javaName) {
         Type varType = var.type();
-        String mangledName = newHolderClassName(STR."\{javaName}$constants");
+        String mangledName = newHolderClassName(String.format("%s$constants", javaName));
         String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
         if (varType instanceof Type.Array) {
             List<Long> dimensions = Utils.dimensions(varType);
@@ -504,51 +515,51 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     .collect(Collectors.joining(", "));
             Type elemType = Utils.typeOrElemType(varType);
             String accessHandle = Utils.isStructOrUnion(elemType) ?
-                    STR."public static final MethodHandle HANDLE = LAYOUT.sliceHandle(\{path});" :
-                    STR."public static final VarHandle HANDLE = LAYOUT.varHandle(\{path});\n";
-            String dimsString = dimensions.stream().map(d -> d.toString())
+                    "public static final MethodHandle HANDLE = LAYOUT.sliceHandle(" + path + ");" :
+                    "public static final VarHandle HANDLE = LAYOUT.varHandle(" + path + ");\n";
+            String dimsString = dimensions.stream().map(Object::toString)
                     .collect(Collectors.joining(", "));
-            appendIndentedLines(STR."""
-                private static class \{mangledName} {
-                    public static final \{layoutType} LAYOUT = \{layoutString(varType)};
-                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{lookupName(var)}").reinterpret(LAYOUT.byteSize());
-                    \{accessHandle}
-                    public static final long[] DIMS = { \{dimsString} };
-                }
-                """);
+            appendIndentedLines(String.format("""
+            private static class %s {
+                public static final %s LAYOUT = %s;
+                public static final MemorySegment SEGMENT = %s.findOrThrow("%s").reinterpret(LAYOUT.byteSize());
+                %s
+                public static final long[] DIMS = { %s };
+            }
+            """, mangledName, layoutType, layoutString(varType), runtimeHelperName(), lookupName(var), accessHandle, dimsString));
         } else {
-            appendIndentedLines(STR."""
-                private static class \{mangledName} {
-                    public static final \{layoutType} LAYOUT = \{layoutString(varType)};
-                    public static final MemorySegment SEGMENT = \{runtimeHelperName()}.findOrThrow("\{lookupName(var)}").reinterpret(LAYOUT.byteSize());
-                }
-                """);
+            appendIndentedLines(String.format("""
+            private static class %s {
+                public static final %s LAYOUT = %s;
+                public static final MemorySegment SEGMENT = %s.findOrThrow("%s").reinterpret(LAYOUT.byteSize());
+            }
+            """, mangledName, layoutType, layoutString(varType), runtimeHelperName(), lookupName(var)));
         }
         incrAlign();
         appendBlankLine();
         emitDocComment(var, "Layout for variable:");
-        appendLines(STR."""
-                public static \{layoutType} \{javaName}$layout() {
-                    return \{mangledName}.LAYOUT;
-                }
-                """);
+        appendLines(String.format("""
+        public static %s %s$layout() {
+            return %s.LAYOUT;
+        }
+        """, layoutType, javaName, mangledName));
         if (!Utils.isStructOrUnion(varType) && !Utils.isArray(varType)) {
             appendBlankLine();
             emitDocComment(var, "Segment for variable:");
-            appendLines(STR."""
-                    public static MemorySegment \{javaName}$segment() {
-                        return \{mangledName}.SEGMENT;
-                    }
-                    """);
+            appendLines(String.format("""
+            public static MemorySegment %s$segment() {
+                return %s.SEGMENT;
+            }
+            """, javaName, mangledName));
         }
         if (varType instanceof Type.Array) {
             appendBlankLine();
             emitDocComment(var, "Dimensions for array variable:");
-            appendLines(STR."""
-                public static long[] \{javaName}$dimensions() {
-                    return \{mangledName}.DIMS;
-                }
-                """);
+            appendLines(String.format("""
+            public static long[] %s$dimensions() {
+                return %s.DIMS;
+            }
+            """, javaName, mangledName));
         }
         decrAlign();
         return mangledName;
@@ -558,32 +569,45 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         incrAlign();
         if (value instanceof String) {
             emitDocComment(declaration);
-            appendLines(STR."""
-                public static \{javaType.getSimpleName()} \{constantName}() {
-                    class Holder {
-                        static final \{javaType.getSimpleName()} \{constantName}
-                            = \{runtimeHelperName()}.LIBRARY_ARENA.allocateFrom("\{Utils.quote(Objects.toString(value))}");
-                    }
-                    return Holder.\{constantName};
-                }
-                """);
+            appendLines(String.format("""
+        public static %s %s() {
+            class Holder {
+                static final %s %s
+                    = %s.LIBRARY_ARENA.allocateFrom("%s");
+            }
+            return Holder.%s;
+        }
+        """,
+                    javaType.getSimpleName(),
+                    constantName,
+                    javaType.getSimpleName(),
+                    constantName,
+                    runtimeHelperName(),
+                    Utils.quote(Objects.toString(value)),
+                    constantName));
         } else {
-            appendLines(STR."""
-                private static final \{javaType.getSimpleName()} \{constantName} = \{constantValue(javaType, value)};
-                """);
+            appendLines(String.format("""
+        private static final %s %s = %s;
+        """,
+                    javaType.getSimpleName(),
+                    constantName,
+                    constantValue(javaType, value)));
             emitDocComment(declaration);
-            appendLines(STR."""
-                public static \{javaType.getSimpleName()} \{constantName}() {
-                    return \{constantName};
-                }
-                """);
+            appendLines(String.format("""
+        public static %s %s() {
+            return %s;
+        }
+        """,
+                    javaType.getSimpleName(),
+                    constantName,
+                    constantName));
         }
         decrAlign();
     }
 
     private String constantValue(Class<?> type, Object value) {
         if (type == MemorySegment.class) {
-            return STR."MemorySegment.ofAddress(\{((Number)value).longValue()}L)";
+            return String.format("MemorySegment.ofAddress(%dL)", ((Number)value).longValue());
         } else {
             StringBuilder buf = new StringBuilder();
             if (type == float.class) {
@@ -616,7 +640,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 buf.append("(" + type.getName() + ")");
                 buf.append(n.longValue() + "L");
             } else {
-                throw new IllegalArgumentException(STR."Unhandled type: \{type}, or value: \{value}");
+                throw new IllegalArgumentException(String.format("Unhandled type: %s, or value: %s", type, value));
             }
             return buf.toString();
         }
@@ -625,9 +649,10 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     private void emitPrimitiveTypedefLayout(String javaName, Type type, Declaration declaration) {
         incrAlign();
         emitDocComment(declaration);
-        appendLines(STR."""
-        public static final \{Utils.layoutCarrierFor(type).getSimpleName()} \{javaName} = \{layoutString(type)};
-        """);
+        appendLines(String.format("""
+        public static final %s %s = %s;
+        """,
+         Utils.layoutCarrierFor(type).getSimpleName(), javaName, layoutString(type)));
         decrAlign();
     }
 

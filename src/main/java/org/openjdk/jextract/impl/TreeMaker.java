@@ -232,12 +232,12 @@ class TreeMaker {
         String valueString = value.toString();
         if (value instanceof String) {
             // quote string literal
-            valueString = STR."\"\{valueString}\"";
+            valueString = String.format("\"%s\"", valueString);
         } else if (Utils.isPointer(type)) {
             // add pointer cast to make it look different from a numeric constant
-            valueString = STR."(void*) \{valueString}";
+            valueString = String.format("(void*) %s", valueString);
         }
-        DeclarationString.with(macro, STR."#define \{name} \{valueString}");
+        DeclarationString.with(macro, String.format("#define %s %s", name, valueString));
         return macro;
     }
 
@@ -530,6 +530,6 @@ class TreeMaker {
         if (enumName.isEmpty()) {
             enumName = "<anonymous>";
         }
-        return STR."enum \{enumName}.\{enumConstant.name()} = \{enumConstant.value()}";
+        return String.format("enum %s.%s = %s", enumName, enumConstant.name(), enumConstant.value());
     }
 }
