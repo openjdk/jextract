@@ -570,14 +570,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         if (value instanceof String) {
             emitDocComment(declaration);
             appendLines(String.format("""
-        public static %s %s() {
-            class Holder {
-                static final %s %s
-                    = %s.LIBRARY_ARENA.allocateFrom("%s");
-            }
-            return Holder.%s;
-        }
-        """,
+                public static %s %s() {
+                    class Holder {
+                        static final %s %s
+                            = %s.LIBRARY_ARENA.allocateFrom("%s");
+                    }
+                    return Holder.%s;
+                }
+                """,
                     javaType.getSimpleName(),
                     constantName,
                     javaType.getSimpleName(),
@@ -587,20 +587,20 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     constantName));
         } else {
             appendLines(String.format("""
-        private static final %s %s = %s;
-        """,
-                    javaType.getSimpleName(),
-                    constantName,
-                    constantValue(javaType, value)));
-            emitDocComment(declaration);
+                private static final %s %s = %s;
+                """,
+                javaType.getSimpleName(),
+                constantName,
+                constantValue(javaType, value)));
+                 emitDocComment(declaration);
             appendLines(String.format("""
-        public static %s %s() {
-            return %s;
-        }
-        """,
-                    javaType.getSimpleName(),
-                    constantName,
-                    constantName));
+                public static %s %s() {
+                    return %s;
+                }
+                """,
+                javaType.getSimpleName(),
+                constantName,
+                constantName));
         }
         decrAlign();
     }
