@@ -43,6 +43,8 @@ def jmods_dir = "$buildDir/jmods"
 def jextract_jmod_file = "$jmods_dir/org.openjdk.jextract.jmod"
 def jextract_jmod_inputs = "$buildDir/jmod_inputs"
 def jextract_app_dir = "$buildDir/jextract"
+def jextract_runtime_dir = "$jextract_app_dir/runtime"
+def jextract_bin_dir = "$jextract_app_dir/bin"
 def clang_include_dir = "${llvm_home}/lib/clang/${clang_version}/include"
 checkPath(clang_include_dir)
 def os_lib_dir = Os.isFamily(Os.FAMILY_WINDOWS)? "bin" : "lib"
@@ -118,13 +120,14 @@ task createJextractImage(type: Exec) {
 
     doFirst {
         delete(jextract_app_dir)
+        project.mkdir "${jextract_bin_dir}"
     }
 
     executable = "${jdk22_home}/bin/jlink"
     args = [
          "--module-path=$jmods_dir",
          "--add-modules=org.openjdk.jextract",
-         "--output=${jextract_app_dir}/runtime",
+         "--output=${jextract_runtime_dir}",
          "--strip-debug", "--no-man-pages", "--no-header-files",
          "--add-options",
          "${quote_jlink_opts}"
@@ -132,7 +135,7 @@ task createJextractImage(type: Exec) {
 
     doLast {
         // Add launcher scripts
-        Path unixOut = Path.of("${jextract_app_dir}/jextract");
+        Path unixOut = Path.of("${jextract_bin_dir}/jextract");
         Files.copy(Path.of("$projectDir/src/main/jextract"), unixOut);
         if (unixOut.getFileSystem().supportedFileAttributeViews().contains("posix")) {
             Set<PosixFilePermission> perms = Files.getPosixFilePermissions(unixOut);
@@ -142,7 +145,7 @@ task createJextractImage(type: Exec) {
             Files.setPosixFilePermissions(unixOut, perms);
         }
 
-        Files.copy(Path.of("$projectDir/src/main/jextract.bat"), Path.of("${jextract_app_dir}/jextract.bat"))
+        Files.copy(Path.of("$projectDir/src/main/jextract.bat"), Path.of("${jextract_bin_dir}/jextract.bat"))
     }
 }
 
@@ -153,7 +156,7 @@ assemble.dependsOn(createJextractImage)
 task verify(type: Exec) {
     dependsOn createJextractImage
 
-    executable = "${jextract_app_dir}/jextract${os_script_extension}"
+    executable = "${jextract_bin_dir}/jextract${os_script_extension}"
     args = [ "test.h", "--output", "$buildDir/integration_test" ]
 }
 
