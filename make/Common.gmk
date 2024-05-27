@@ -108,6 +108,7 @@ AWK := awk
 EXPR := expr
 CP := cp
 CD := cd
+CHMOD := chmod
 TAR := tar
 PRINTF := printf
 
