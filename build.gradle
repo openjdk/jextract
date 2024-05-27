@@ -73,7 +73,7 @@ task copyLibClang(type: Sync) {
 
     // make sure we only pick up the "real" shared library file from LLVM installation
     // (e.g. exclude symlinks on Linux)
-    def clang_path_include = Os.isFamily(Os.FAMILY_UNIX) ?
+    def clang_path_include = (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) ?
             "libclang.so.${clang_version}" : "*clang*"
 
     from("${libclang_dir}") {
