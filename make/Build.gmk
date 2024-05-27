@@ -58,15 +58,22 @@ $(BUILD_CLASSES_DIR):
 	$(CP) -r src/main/java/META-INF $(BUILD_CLASSES_DIR)
 	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 
+ifeq ($(PLATFORM_OS), linux)
+  LIBCLANG_COPY_PATH := "libclang.so.$(LIBCLANG_VERSION)"
+else
+  LIBCLANG_COPY_PATH := "*clang.*"
+endif
+
 $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
 	$(MKDIR) -p $(BUILD_MODULES_DIR)
 	$(MKDIR) -p $(JEXTRACT_JMOD_LIBS_DIR)
 	$(MKDIR) -p $(JEXTRACT_JMOD_CONF_DIR)
 
 	# Copy libclang library and header files
-	$(CP) "$(LIBCLANG_LIB_DIR)/"*clang.* "$(JEXTRACT_JMOD_LIBS_DIR)"
+	$(CP) "$(LIBCLANG_LIB_DIR)/$(LIBCLANG_COPY_PATH)" "$(JEXTRACT_JMOD_LIBS_DIR)"
 	$(MKDIR) -p "$(JEXTRACT_JMOD_CONF_DIR)/jextract"
 	$(CP) "$(LIBCLANG_INCLUDE_DIR)/"*.h "$(JEXTRACT_JMOD_CONF_DIR)/jextract/"
+	$(MV) "$(JEXTRACT_JMOD_LIBS_DIR)/libclang.so.$(LIBCLANG_VERSION)" "$(JEXTRACT_JMOD_LIBS_DIR)/libclang.so"
 
 	# create jextract jmod file
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jmod \
