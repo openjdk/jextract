@@ -73,7 +73,8 @@ $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
 	$(CP) "$(LIBCLANG_LIB_DIR)/$(LIBCLANG_COPY_PATH)" "$(JEXTRACT_JMOD_LIBS_DIR)"
 	$(MKDIR) -p "$(JEXTRACT_JMOD_CONF_DIR)/jextract"
 	$(CP) "$(LIBCLANG_INCLUDE_DIR)/"*.h "$(JEXTRACT_JMOD_CONF_DIR)/jextract/"
-	$(MV) "$(JEXTRACT_JMOD_LIBS_DIR)/libclang.so.$(LIBCLANG_VERSION)" "$(JEXTRACT_JMOD_LIBS_DIR)/libclang.so"
+	[ -f $(JEXTRACT_JMOD_LIBS_DIR)/libclang.so.$(LIBCLANG_VERSION) ] && \
+	  $(MV) "$(JEXTRACT_JMOD_LIBS_DIR)/libclang.so.$(LIBCLANG_VERSION)" "$(JEXTRACT_JMOD_LIBS_DIR)/libclang.so"
 
 	# create jextract jmod file
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jmod \
