@@ -107,6 +107,7 @@ MKDIR := mkdir
 AWK := awk
 EXPR := expr
 CP := cp
+MV := mv
 CD := cd
 TAR := tar
 PRINTF := printf

@@ -71,11 +71,18 @@ jar {
 task copyLibClang(type: Sync) {
     into("$buildDir/jmod_inputs")
 
+    // make sure we only pick up the "real" shared library file from LLVM installation
+    // (e.g. exclude symlinks on Linux)
+    def clang_path_include = (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) ?
+            "libclang.so.${clang_version}" : "*clang*"
+
     from("${libclang_dir}") {
-        include("*clang.*")
+        include(clang_path_include)
         include("libLLVM.*")
         exclude("clang.exe")
         into("libs")
+        // make sure we drop shared library version name (Linux only)
+        rename("libclang.so.${clang_version}", "libclang.so")
     }
 
     from("$clang_include_dir") {
