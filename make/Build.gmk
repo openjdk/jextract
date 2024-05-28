@@ -92,8 +92,10 @@ $(JEXTRACT_IMAGE_DIR): $(BUILD_MODULES_DIR)
 	    --module-path "$(BUILD_MODULES_DIR)" \
 	    --add-modules org.openjdk.jextract \
 	    --add-options "\"--enable-native-access=org.openjdk.jextract\" \"--enable-preview\""
-	$(CP) src/main/jextract "$(JEXTRACT_IMAGE_DIR)"
-	$(CP) src/main/jextract.bat "$(JEXTRACT_IMAGE_DIR)"
+	$(MKDIR) $(JEXTRACT_IMAGE_DIR)/bin
+	$(CP) src/main/jextract "$(JEXTRACT_IMAGE_DIR)/bin"
+	$(CP) src/main/jextract.bat "$(JEXTRACT_IMAGE_DIR)/bin"
+	$(CHMOD) +x "$(JEXTRACT_IMAGE_DIR)/bin/jextract"
 
 $(JEXTRACT_IMAGE_TEST_JDK_DIR): $(JEXTRACT_IMAGE_DIR)
         # jlink the modules to create a custom runtime image for jextract testing

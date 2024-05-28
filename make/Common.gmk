@@ -109,6 +109,7 @@ EXPR := expr
 CP := cp
 MV := mv
 CD := cd
+CHMOD := chmod
 TAR := tar
 PRINTF := printf
 
