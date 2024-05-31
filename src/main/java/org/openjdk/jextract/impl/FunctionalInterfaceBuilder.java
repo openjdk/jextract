@@ -67,33 +67,33 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         // beware of mangling!
         String fiName = className().toLowerCase().equals("function") ?
                 "Function$" : "Function";
-        appendIndentedLines(String.format("""
+        appendIndentedLines("""
 
             /**
              * The function pointer signature, expressed as a functional interface
              */
-            public interface %s {
-                %s apply(%s);
+            public interface %1$s {
+                %2$s apply(%3$s);
             }
             """,
-            fiName, methodType.returnType().getSimpleName(), paramExprs()));
+            fiName, methodType.returnType().getSimpleName(), paramExprs());
         return fiName;
     }
 
     private void emitFunctionalFactory(String fiName) {
-        appendIndentedLines(String.format("""
+        appendIndentedLines("""
 
-            private static final MethodHandle UP$MH = %s.upcallHandle(%s.%s.class, "apply", $DESC);
+            private static final MethodHandle UP$MH = %1$s.upcallHandle(%2$s.%3$s.class, "apply", $DESC);
 
             /**
              * Allocates a new upcall stub, whose implementation is defined by {@code fi}.
              * The lifetime of the returned segment is managed by {@code arena}
              */
-            public static MemorySegment allocate(%s.%s fi, Arena arena) {
+            public static MemorySegment allocate(%2$s.%3$s fi, Arena arena) {
                 return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, arena);
             }
             """,
-            runtimeHelperName(), className(), fiName, className(), fiName));
+            runtimeHelperName(), className(), fiName);
     }
 
     private void emitInvoke() {
@@ -101,15 +101,15 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         String allocParam = needsAllocator ? ", SegmentAllocator alloc" : "";
         String allocArg = needsAllocator ? ", alloc" : "";
         String paramStr = methodType.parameterCount() != 0 ? String.format(",%s", paramExprs()) : "";
-        appendIndentedLines(String.format("""
+        appendIndentedLines("""
         private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
             /**
              * Invoke the upcall stub {@code funcPtr}, with given parameters
              */
-            public static %s invoke(MemorySegment funcPtr%s%s) {
+            public static %1$s invoke(MemorySegment funcPtr%2$s%3$s) {
                 try {
-                    %s DOWN$MH.invokeExact(funcPtr%s%s);
+                    %4$s DOWN$MH.invokeExact(funcPtr%5$s%6$s);
                 } catch (Throwable ex$) {
                     throw new AssertionError("should not reach here", ex$);
                 }
@@ -120,7 +120,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             paramStr,
             retExpr(),
             allocArg,
-            otherArgExprs()));
+            otherArgExprs());
     }
 
     // private generation
@@ -163,7 +163,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitDescriptorDecl() {
-        appendIndentedLines(String.format("""
+        appendIndentedLines("""
 
             private static final FunctionDescriptor $DESC = %s;
 
@@ -173,7 +173,6 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             public static FunctionDescriptor descriptor() {
                 return $DESC;
             }
-            """,
-            functionDescriptorString(0, funcType)));
+            """, functionDescriptorString(0, funcType));
     }
 }

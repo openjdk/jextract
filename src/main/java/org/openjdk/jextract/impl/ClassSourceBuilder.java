@@ -107,7 +107,7 @@ abstract class ClassSourceBuilder {
         if (superName != null) {
             extendsExpr = " extends " + superName;
         }
-        appendLines(String.format("%s %s %s%s {", modifiers, kind.kindName, className, extendsExpr));
+        appendLines("%s %s %s%s {", modifiers, kind.kindName, className, extendsExpr);
     }
 
     final void classEnd() {
@@ -130,6 +130,9 @@ abstract class ClassSourceBuilder {
     void appendLines(String s) {
         sb.appendLines(s);
     }
+    void appendLines(String s, String... args) {
+        sb.appendLines(String.format(s, (Object []) args));
+    }
 
     void appendBlankLine() {
         appendLines("\n");
@@ -141,13 +144,17 @@ abstract class ClassSourceBuilder {
         sb.appendIndentedLines(s);
     }
 
+    void appendIndentedLines(String s, String... args) {
+        sb.appendIndentedLines(String.format(s, (Object []) args));
+    }
+
     final void emitDefaultConstructor() {
-        appendIndentedLines(String.format("""
+        appendIndentedLines("""
 
             %s() {
                 // Should not be called directly
             }
-            """, className));
+            """, className);
     }
 
     final void emitDocComment(Declaration decl) {
@@ -155,14 +162,14 @@ abstract class ClassSourceBuilder {
     }
 
     final void emitDocComment(Declaration decl, String header) {
-        appendLines(String.format("""
+        appendLines("""
             /**
             %s
              * {@snippet lang=c :
             %s
              * }
              */
-            """, !header.isEmpty() ? String.format(" * %s\n", header) : "", declarationComment(decl)));
+            """, !header.isEmpty() ? String.format(" * %s\n", header) : "", declarationComment(decl));
     }
 
     public String mangleName(String javaName, Class<?> type) {
