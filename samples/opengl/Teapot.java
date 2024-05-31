@@ -78,8 +78,8 @@ public class Teapot {
             glutInitWindowSize(500, 500);
             glutCreateWindow(arena.allocateFrom("Hello Panama!"));
             var teapot = new Teapot(arena);
-            var displayStub = glutDisplayFunc$callback.allocate(teapot::display, arena);
-            var idleStub = glutIdleFunc$callback.allocate(teapot::onIdle, arena);
+            var displayStub = glutDisplayFunc$func.allocate(teapot::display, arena);
+            var idleStub = glutIdleFunc$func.allocate(teapot::onIdle, arena);
             glutDisplayFunc(displayStub);
             glutIdleFunc(idleStub);
             glutMainLoop();
