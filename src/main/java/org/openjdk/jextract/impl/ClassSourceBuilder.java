@@ -107,7 +107,7 @@ abstract class ClassSourceBuilder {
         if (superName != null) {
             extendsExpr = " extends " + superName;
         }
-        appendLines("%s %s %s%s {", modifiers, kind.kindName, className, extendsExpr);
+        appendLines("%1$s %2$s %3$s%4$s {", modifiers, kind.kindName, className, extendsExpr);
     }
 
     final void classEnd() {
@@ -260,7 +260,7 @@ abstract class ClassSourceBuilder {
     private String alignIfNeeded(String layout, String prefix, long align, long expectedAlign) {
         String layoutPrefix = String.format(layout, prefix);
         return align > expectedAlign ?
-                String.format("%s.align(%s, %d)", runtimeHelperName(), layoutPrefix, expectedAlign) :
+                String.format("%1$s.align(%2$s, %3$d)", runtimeHelperName(), layoutPrefix, expectedAlign) :
                 layoutPrefix;
     }
 

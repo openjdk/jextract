@@ -241,11 +241,11 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         Type elemType = Utils.typeOrElemType(varTree.type());
         if (Utils.isStructOrUnion(elemType)) {
             appendIndentedLines("""
-                private static final MethodHandle %s = %s.sliceHandle(%s);
+                private static final MethodHandle %1$s = %2$s.sliceHandle(%3$s);
                 """, arrayHandleName, fieldLayoutName, path);
         } else {
             appendIndentedLines("""
-                private static final VarHandle %s = %s.varHandle(%s);
+                private static final VarHandle %1$s = %2$s.varHandle(%3$s);
                 """, arrayHandleName, fieldLayoutName, path);
         }
         return arrayHandleName;
@@ -408,13 +408,13 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String layoutFieldName = String.format("%s$LAYOUT", javaName);
         String layoutType = Utils.layoutCarrierFor(field.type()).getSimpleName();
         appendIndentedLines("""
-            private static final %s %s = (%1$s)$LAYOUT.select(%s);
+            private static final %1$s %2$s = (%1$s)$LAYOUT.select(%3$s);
             """, layoutType, layoutFieldName, fieldElementPaths(field.name()));
         appendBlankLine();
         emitFieldDocComment(field, "Layout for field:");
         appendIndentedLines("""
-            public static final %s %s$layout() {
-                return %s;
+            public static final %1$s %2$s$layout() {
+                return %3$s;
             }
             """, layoutType, javaName, layoutFieldName);
         return layoutFieldName;
