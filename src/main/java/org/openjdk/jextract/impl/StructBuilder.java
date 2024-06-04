@@ -63,7 +63,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private String safeParameterName(String paramName) {
-        return isEnclosedBySameName(paramName) ? paramName + "$" : paramName;
+        return isEnclosedBySameName(paramName)? paramName + "$" : paramName;
     }
 
     private void pushNestedAnonDecl(Declaration anonDecl) {
