@@ -240,8 +240,8 @@ abstract class ClassSourceBuilder {
 
     private String primitiveLayoutString(Primitive primitiveType, long align) {
         return switch (primitiveType.kind()) {
-            case Bool -> String.format("%1$s.C_BOOL", runtimeHelperName());
-            case Char -> String.format("%1$s.C_CHAR", runtimeHelperName());
+            case Bool -> runtimeHelperName() + ".C_BOOL";
+            case Char -> runtimeHelperName() + ".C_CHAR";
             case Short -> alignIfNeeded("%1$s.C_SHORT", runtimeHelperName(), 2, align);
             case Int -> alignIfNeeded("%1$s.C_INT", runtimeHelperName(), 4, align);
             case Long -> alignIfNeeded("%1$s.C_LONG", runtimeHelperName(), TypeImpl.IS_WINDOWS ? 4 : 8, align);

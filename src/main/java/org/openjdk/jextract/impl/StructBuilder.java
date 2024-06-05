@@ -387,7 +387,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private String emitOffsetFieldDecl(Declaration.Variable field, String javaName) {
-        String offsetFieldName = String.format("%1$s$OFFSET", javaName);
+        String offsetFieldName = javaName + "$OFFSET";
         appendIndentedLines(String.format("""
             private static final long %1$s = %2$d;
             """,
@@ -403,7 +403,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private String emitLayoutFieldDecl(Declaration.Variable field, String javaName) {
-        String layoutFieldName = String.format("%1$s$LAYOUT", javaName);
+        String layoutFieldName = javaName + "$LAYOUT";
         String layoutType = Utils.layoutCarrierFor(field.type()).getSimpleName();
         appendIndentedLines("""
             private static final %1$s %2$s = (%1$s)$LAYOUT.select(%3$s);
@@ -419,7 +419,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private void emitDimensionsFieldDecl(Declaration.Variable field, String javaName) {
-        String dimsFieldName = String.format("%1$s$DIMS", javaName);
+        String dimsFieldName = javaName + "$DIMS";
         List<Long> dimensions = Utils.dimensions(field.type());
         String dimsString = dimensions.stream().map(Object::toString)
                 .collect(Collectors.joining(", "));
