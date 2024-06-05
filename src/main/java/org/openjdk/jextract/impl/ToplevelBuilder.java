@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -57,14 +57,14 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs, boolean useSystemLoadLibrary) {
-        HeaderFileBuilder first = new HeaderFileBuilder(sfb, STR."\{sfb.className()}#{SUFFIX}", null, sfb.className());
+        HeaderFileBuilder first = new HeaderFileBuilder(sfb, String.format("%1$s#{SUFFIX}",sfb.className()), null, sfb.className());
         first.appendBlankLine();
         first.classBegin();
         first.emitDefaultConstructor();
         first.emitRuntimeHelperMethods();
         first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
         // emit basic primitive types
-        first.appendIndentedLines(STR."""
+        first.appendIndentedLines("""
 
             public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
             public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
@@ -99,8 +99,8 @@ class ToplevelBuilder implements OutputFactory.Builder {
             for (SourceFileBuilder header : headerBuilders) {
                 String currentSuffix = suffix == 0 ?
                         "" : // main header class, drop the suffix
-                        STR."_\{suffix}";
-                String prevSuffix = STR."_\{suffix + 1}";
+                        String.format("_%1$d", suffix);
+                String prevSuffix = String.format("_%1$d", suffix + 1);
                 files.add(header.toFile(currentSuffix,
                         s -> s.replace("#{SUFFIX}", currentSuffix)
                               .replace("#{PREV_SUFFIX}", prevSuffix)));

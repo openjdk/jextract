@@ -67,53 +67,60 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         // beware of mangling!
         String fiName = className().toLowerCase().equals("function") ?
                 "Function$" : "Function";
-        appendIndentedLines(STR."""
+        appendIndentedLines("""
 
             /**
              * The function pointer signature, expressed as a functional interface
              */
-            public interface \{fiName} {
-                \{methodType.returnType().getSimpleName()} apply(\{paramExprs()});
+            public interface %1$s {
+                %2$s apply(%3$s);
             }
-            """);
+            """,
+            fiName, methodType.returnType().getSimpleName(), paramExprs());
         return fiName;
     }
 
     private void emitFunctionalFactory(String fiName) {
-        appendIndentedLines(STR."""
+        appendIndentedLines("""
 
-            private static final MethodHandle UP$MH = \{runtimeHelperName()}.upcallHandle(\{className()}.\{fiName}.class, "apply", $DESC);
+            private static final MethodHandle UP$MH = %1$s.upcallHandle(%2$s.%3$s.class, "apply", $DESC);
 
             /**
              * Allocates a new upcall stub, whose implementation is defined by {@code fi}.
              * The lifetime of the returned segment is managed by {@code arena}
              */
-            public static MemorySegment allocate(\{className()}.\{fiName} fi, Arena arena) {
+            public static MemorySegment allocate(%2$s.%3$s fi, Arena arena) {
                 return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, arena);
             }
-            """);
+            """, runtimeHelperName(), className(), fiName);
     }
 
     private void emitInvoke() {
         boolean needsAllocator = Utils.isStructOrUnion(funcType.returnType());
         String allocParam = needsAllocator ? ", SegmentAllocator alloc" : "";
         String allocArg = needsAllocator ? ", alloc" : "";
-        String paramStr = methodType.parameterCount() != 0 ? STR.",\{paramExprs()}" : "";
-        appendIndentedLines(STR."""
+        String paramStr = methodType.parameterCount() != 0 ? String.format(",%1$s", paramExprs()) : "";
+        appendIndentedLines("""
 
             private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
             /**
              * Invoke the upcall stub {@code funcPtr}, with given parameters
              */
-            public static \{methodType.returnType().getSimpleName()} invoke(MemorySegment funcPtr\{allocParam}\{paramStr}) {
+            public static %1$s invoke(MemorySegment funcPtr%2$s%3$s) {
                 try {
-                    \{retExpr()} DOWN$MH.invokeExact(funcPtr\{allocArg}\{otherArgExprs()});
+                    %4$s DOWN$MH.invokeExact(funcPtr%5$s%6$s);
                 } catch (Throwable ex$) {
                     throw new AssertionError("should not reach here", ex$);
                 }
             }
-            """);
+            """,
+            methodType.returnType().getSimpleName(),
+            allocParam,
+            paramStr,
+            retExpr(),
+            allocArg,
+            otherArgExprs());
     }
 
     // private generation
@@ -140,7 +147,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private String retExpr() {
         String retExpr = "";
         if (!methodType.returnType().equals(void.class)) {
-            retExpr = STR."return (\{methodType.returnType().getSimpleName()})";
+            retExpr = String.format("return (%1$s)", methodType.returnType().getSimpleName());
         }
         return retExpr;
     }
@@ -156,9 +163,9 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     }
 
     private void emitDescriptorDecl() {
-        appendIndentedLines(STR."""
+        appendIndentedLines("""
 
-            private static final FunctionDescriptor $DESC = \{functionDescriptorString(0, funcType)};
+            private static final FunctionDescriptor $DESC = %1$s;
 
             /**
              * The descriptor of this function pointer
@@ -166,6 +173,6 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             public static FunctionDescriptor descriptor() {
                 return $DESC;
             }
-            """);
+            """, functionDescriptorString(0, funcType));
     }
 }

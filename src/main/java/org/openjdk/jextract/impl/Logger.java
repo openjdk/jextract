@@ -51,12 +51,12 @@ public class Logger {
     }
 
     public void err(String key, Object... args) {
-        errWriter.println(STR."ERROR: \{format(key, args)}");
+        errWriter.println(String.format("ERROR: %1$s", format(key, args)));
         nErrors++;
     }
 
     public void warn(String key, Object... args) {
-        errWriter.println(STR."WARNING: \{format(key, args)}");
+        errWriter.println(String.format("WARNING: %1$s", format(key, args)));
         nWarnings++;
     }
 
@@ -70,7 +70,7 @@ public class Logger {
     }
 
     public void fatal(Throwable t, String msg, Object... args) {
-        errWriter.println(STR."FATAL: \{format(msg, args)}");
+        errWriter.println(String.format("FATAL: %1$s", format(msg, args)));
         if (JextractTool.DEBUG) {
             printStackTrace(t);
         }
