@@ -92,17 +92,17 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
             public static MemorySegment allocate(%2$s.%3$s fi, Arena arena) {
                 return Linker.nativeLinker().upcallStub(UP$MH.bindTo(fi), $DESC, arena);
             }
-            """,
-            runtimeHelperName(), className(), fiName);
+            """, runtimeHelperName(), className(), fiName);
     }
 
     private void emitInvoke() {
         boolean needsAllocator = Utils.isStructOrUnion(funcType.returnType());
         String allocParam = needsAllocator ? ", SegmentAllocator alloc" : "";
         String allocArg = needsAllocator ? ", alloc" : "";
-        String paramStr = methodType.parameterCount() != 0 ? String.format(",%s", paramExprs()) : "";
+        String paramStr = methodType.parameterCount() != 0 ? String.format(",%1$s", paramExprs()) : "";
         appendIndentedLines("""
-        private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
+        
+            private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
             /**
              * Invoke the upcall stub {@code funcPtr}, with given parameters
@@ -147,7 +147,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private String retExpr() {
         String retExpr = "";
         if (!methodType.returnType().equals(void.class)) {
-            retExpr = String.format("return (%s)", methodType.returnType().getSimpleName());
+            retExpr = String.format("return (%1$s)", methodType.returnType().getSimpleName());
         }
         return retExpr;
     }
@@ -165,7 +165,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private void emitDescriptorDecl() {
         appendIndentedLines("""
 
-            private static final FunctionDescriptor $DESC = %s;
+            private static final FunctionDescriptor $DESC = %1$s;
 
             /**
              * The descriptor of this function pointer

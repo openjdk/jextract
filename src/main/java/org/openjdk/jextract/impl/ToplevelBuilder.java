@@ -57,7 +57,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs, boolean useSystemLoadLibrary) {
-        HeaderFileBuilder first = new HeaderFileBuilder(sfb, String.format("%s#{SUFFIX}",sfb.className()), null, sfb.className());
+        HeaderFileBuilder first = new HeaderFileBuilder(sfb, String.format("%1$s#{SUFFIX}",sfb.className()), null, sfb.className());
         first.appendBlankLine();
         first.classBegin();
         first.emitDefaultConstructor();
@@ -99,11 +99,11 @@ class ToplevelBuilder implements OutputFactory.Builder {
             for (SourceFileBuilder header : headerBuilders) {
                 String currentSuffix = suffix == 0 ?
                         "" : // main header class, drop the suffix
-                        String.format("_%d", suffix);
-                String prevSuffix = String.format("_%d", suffix + 1);
+                        String.format("_%1$d", suffix);
+                String prevSuffix = String.format("_%1$d", suffix + 1);
                 files.add(header.toFile(currentSuffix,
                         s -> s.replace("#{SUFFIX}", currentSuffix)
-                               .replace("#{PREV_SUFFIX}", prevSuffix)));
+                              .replace("#{PREV_SUFFIX}", prevSuffix)));
                 suffix--;
             }
         }

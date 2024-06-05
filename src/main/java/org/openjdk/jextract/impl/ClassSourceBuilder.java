@@ -151,7 +151,7 @@ abstract class ClassSourceBuilder {
     final void emitDefaultConstructor() {
         appendIndentedLines("""
 
-            %s() {
+            %1$s() {
                 // Should not be called directly
             }
             """, className);
@@ -164,12 +164,12 @@ abstract class ClassSourceBuilder {
     final void emitDocComment(Declaration decl, String header) {
         appendLines("""
             /**
-            %s
+            %1$s
              * {@snippet lang=c :
-            %s
+            %2$s
              * }
              */
-            """, !header.isEmpty() ? String.format(" * %s\n", header) : "", declarationComment(decl));
+            """, !header.isEmpty() ? String.format(" * %1$s\n", header) : "", declarationComment(decl));
     }
 
     public String mangleName(String javaName, Class<?> type) {
@@ -197,11 +197,11 @@ abstract class ClassSourceBuilder {
         return switch (type) {
             case Primitive p -> primitiveLayoutString(p, align);
             case Declared d when Utils.isEnum(d) -> layoutString(((Constant)d.tree().members().get(0)).type(), align);
-            case Declared d when Utils.isStructOrUnion(d) -> alignIfNeeded("%s.layout()", JavaName.getFullNameOrThrow(d.tree()), ClangAlignOf.getOrThrow(d.tree()) / 8, align);
-            case Delegated d when d.kind() == Delegated.Kind.POINTER -> alignIfNeeded("%s.C_POINTER", runtimeHelperName(), 8, align);
+            case Declared d when Utils.isStructOrUnion(d) -> alignIfNeeded("%1$s.layout()", JavaName.getFullNameOrThrow(d.tree()), ClangAlignOf.getOrThrow(d.tree()) / 8, align);
+            case Delegated d when d.kind() == Delegated.Kind.POINTER -> alignIfNeeded("%1$s.C_POINTER", runtimeHelperName(), 8, align);
             case Delegated d -> layoutString(d.type(), align);
-            case Function _ -> alignIfNeeded("%s.C_POINTER", runtimeHelperName(), 8, align);
-            case Array a -> String.format("MemoryLayout.sequenceLayout(%d, %s)", a.elementCount().orElse(0L), layoutString(a.elementType(), align));
+            case Function _ -> alignIfNeeded("%1$s.C_POINTER", runtimeHelperName(), 8, align);
+            case Array a -> String.format("MemoryLayout.sequenceLayout(%1$d, %2$s)", a.elementCount().orElse(0L), layoutString(a.elementType(), align));
             default -> throw new UnsupportedOperationException();
         };
     }
@@ -213,7 +213,7 @@ abstract class ClassSourceBuilder {
         if (!type.returnType().equals(void.class)) {
             builder.append("FunctionDescriptor.of(");
             builder.append("\n");
-            builder.append(String.format("%s%s", indentString(textBoxIndent + 1), layoutString(functionType.returnType())));
+            builder.append(String.format("%1$s%2$s", indentString(textBoxIndent + 1), layoutString(functionType.returnType())));
             if (!noArgs) {
                 builder.append(",");
             }
@@ -225,7 +225,7 @@ abstract class ClassSourceBuilder {
             String delim = "";
             for (Type arg : functionType.argumentTypes()) {
                 builder.append(delim);
-                builder.append(String.format("%s%s", indentString(textBoxIndent + 1), layoutString(arg)));
+                builder.append(String.format("%1$s%2$s", indentString(textBoxIndent + 1), layoutString(arg)));
                 delim = ",\n";
             }
             builder.append("\n");
@@ -240,16 +240,16 @@ abstract class ClassSourceBuilder {
 
     private String primitiveLayoutString(Primitive primitiveType, long align) {
         return switch (primitiveType.kind()) {
-            case Bool -> String.format("%s.C_BOOL", runtimeHelperName());
-            case Char -> String.format("%s.C_CHAR", runtimeHelperName());
-            case Short -> alignIfNeeded("%s.C_SHORT", runtimeHelperName(), 2, align);
-            case Int -> alignIfNeeded("%s.C_INT", runtimeHelperName(), 4, align);
-            case Long -> alignIfNeeded("%s.C_LONG", runtimeHelperName(), TypeImpl.IS_WINDOWS ? 4 : 8, align);
-            case LongLong -> alignIfNeeded("%s.C_LONG_LONG", runtimeHelperName(), 8, align);
-            case Float -> alignIfNeeded("%s.C_FLOAT", runtimeHelperName(), 4, align);
-            case Double -> alignIfNeeded("%s.C_DOUBLE", runtimeHelperName(), 8, align);
+            case Bool -> String.format("%1$s.C_BOOL", runtimeHelperName());
+            case Char -> String.format("%1$s.C_CHAR", runtimeHelperName());
+            case Short -> alignIfNeeded("%1$s.C_SHORT", runtimeHelperName(), 2, align);
+            case Int -> alignIfNeeded("%1$s.C_INT", runtimeHelperName(), 4, align);
+            case Long -> alignIfNeeded("%1$s.C_LONG", runtimeHelperName(), TypeImpl.IS_WINDOWS ? 4 : 8, align);
+            case LongLong -> alignIfNeeded("%1$s.C_LONG_LONG", runtimeHelperName(), 8, align);
+            case Float -> alignIfNeeded("%1$s.C_FLOAT", runtimeHelperName(), 4, align);
+            case Double -> alignIfNeeded("%1$s.C_DOUBLE", runtimeHelperName(), 8, align);
             case LongDouble -> TypeImpl.IS_WINDOWS ?
-                    alignIfNeeded("%s.C_LONG_DOUBLE", runtimeHelperName(), 8, align) :
+                    alignIfNeeded("%1$s.C_LONG_DOUBLE", runtimeHelperName(), 8, align) :
                     paddingLayoutString(8, 0);
             case HalfFloat, Char16, WChar -> paddingLayoutString(2, 0); // unsupported
             case Float128, Int128 -> paddingLayoutString(16, 0); // unsupported
@@ -265,7 +265,7 @@ abstract class ClassSourceBuilder {
     }
 
     String paddingLayoutString(long size, int indent) {
-        return String.format("%sMemoryLayout.paddingLayout(%d)", indentString(indent), size);
+        return String.format("%1$sMemoryLayout.paddingLayout(%2$d)", indentString(indent), size);
     }
 
     // Return C source style signature for the given declaration.
