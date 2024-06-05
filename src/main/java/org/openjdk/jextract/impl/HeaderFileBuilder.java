@@ -216,7 +216,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     if (TRACE_DOWNCALLS) {
                         traceDowncall(%5$s);
                     }
-                    %6$s mh$.invokeExact(%7$s);
+                    %6$smh$.invokeExact(%7$s);
                 } catch (Throwable ex$) {
                    throw new AssertionError("should not reach here", ex$);
                 }
@@ -415,9 +415,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines("""
             public static void %1$s(%2$s varValue) {
-                %3$s.SEGMENT.set(%4$s.LAYOUT, 0L, varValue);
+                %3$s.SEGMENT.set(%3$s.LAYOUT, 0L, varValue);
             }
-            """, javaName, type.getSimpleName(), holderClass, holderClass);
+            """, javaName, type.getSimpleName(), holderClass);
         decrAlign();
     }
 
@@ -487,7 +487,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 public static void %1$s(%2$s, MemorySegment varValue) {
                     MemorySegment.copy(varValue, 0L, %1$s(%3$s), 0L, %4$s.byteSize());
                 }
-                 """, javaName, indexList.decl(), indexList.use(), layoutString(elemType));
+                """, javaName, indexList.decl(), indexList.use(), layoutString(elemType));
         } else {
             appendLines("""
                 public static void %1$s(%2$s, %3$s varValue) {

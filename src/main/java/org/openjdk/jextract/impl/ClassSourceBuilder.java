@@ -126,12 +126,16 @@ abstract class ClassSourceBuilder {
         sb.decrAlign();
     }
 
+    String format(String s, String... args) {
+        return String.format(s, (Object[]) args);
+    }
+
     // append multiple lines (indentation is added automatically)
     void appendLines(String s) {
         sb.appendLines(s);
     }
     void appendLines(String s, String... args) {
-        sb.appendLines(String.format(s, (Object []) args));
+        sb.appendLines(format(s, args));
     }
 
     void appendBlankLine() {
@@ -145,7 +149,7 @@ abstract class ClassSourceBuilder {
     }
 
     void appendIndentedLines(String s, String... args) {
-        sb.appendIndentedLines(String.format(s, (Object []) args));
+        sb.appendIndentedLines(format(s, args));
     }
 
     final void emitDefaultConstructor() {
