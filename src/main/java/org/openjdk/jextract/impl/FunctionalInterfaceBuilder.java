@@ -101,7 +101,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         String allocArg = needsAllocator ? ", alloc" : "";
         String paramStr = methodType.parameterCount() != 0 ? String.format(",%1$s", paramExprs()) : "";
         appendIndentedLines("""
-        
+
             private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
 
             /**

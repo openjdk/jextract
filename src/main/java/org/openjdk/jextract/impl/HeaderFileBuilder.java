@@ -458,12 +458,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendLines("""
                 public static MemorySegment %1$s(%2$s) {
                     try {
-                        return (MemorySegment)%3$s.HANDLE.invokeExact(%4$s.SEGMENT, 0L, %5$s);
+                        return (MemorySegment)%3$s.HANDLE.invokeExact(%3$s.SEGMENT, 0L, %4$s);
                     } catch (Throwable ex$) {
                         throw new AssertionError("should not reach here", ex$);
                     }
                 }
-                """, javaName, indexList.decl(), holderClass, holderClass, indexList.use());
+                """, javaName, indexList.decl(), holderClass, indexList.use());
         } else {
             appendLines("""
                 public static %1$s %2$s(%3$s) {

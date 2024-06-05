@@ -342,7 +342,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         appendIndentedLines("""
 
             /**
-             * Allocate an array of size {@code %1$s} using %2$s.
+             * Allocate an array of size {@code %1$s} using {@code %2$s}.
              * The returned segment has size {@code %1$s * layout().byteSize()}.
              */
             public static MemorySegment allocateArray(long %1$s, SegmentAllocator %2$s) {
