@@ -1,7 +1,7 @@
 # Jextract Guide
 
 The jextract tool parses header (.h) files of native libraries, and generates Java code,
-called _bindings_, which use the [Foreign Function and Memory API](https://openjdk.org/jeps/442)
+called _bindings_, which use the [Foreign Function and Memory API](https://openjdk.org/jeps/454)
 (FFM API) under the hood, that can be used by a client to access the native library.
 
 Interacting with native C code through the FFM API works
