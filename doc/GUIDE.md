@@ -989,7 +989,7 @@ A complete list of all the supported command line options is given below:
 Jextract accepts one or more header files. When multiple header files are specified,
 the `--header-class-name` option is mandatory. Header files can be specified in two different ways:
 
-   1. simple header file name like "foo.h" or header file path like "bar/foo.h"
+   1. Simple header file name like `foo.h` or header file path like `bar/foo.h`
 
    2. Special header file path or file name like "<stdio.h>", "<GLUT/glut.h>".
       With this syntax, the header full or relative path is not required. The usual C compiler
