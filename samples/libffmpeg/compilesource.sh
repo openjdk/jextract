@@ -7,6 +7,8 @@ jextract --output src -t libffmpeg \
   -l :${FFMPEG_HOME}/lib/libavutil.dylib \
   -l :${FFMPEG_HOME}/lib/libswscale.dylib \
   --header-class-name Libffmpeg \
-  libffmpeg.h
+  "<libavcodec/avcodec.h>" \
+  "<libavformat/avformat.h>" \
+  "<libswscale/swscale.h>"
 
 javac --source=22 -d . src/libffmpeg/*.java

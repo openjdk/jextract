@@ -62,8 +62,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
     @Test
     public void testNonExistentHeader() {
         runNoOuput(getInputFilePath("non_existent.h").toString())
-            .checkFailure(INPUT_ERROR)
-            .checkContainsOutput("cannot read header file");
+            .checkFailure(CLANG_ERROR)
+            .checkContainsOutput("file not found");
     }
 
     // error for header including non_existent.h file
@@ -77,8 +77,8 @@ public class JextractToolProviderTest extends JextractToolRunner {
     @Test
     public void testDirectoryAsHeader() {
         runNoOuput(getInputFilePath("directory.h").toString())
-            .checkFailure(INPUT_ERROR)
-            .checkContainsOutput("not a file");
+            .checkFailure(CLANG_ERROR)
+            .checkContainsOutput("file not found");
     }
 
     // error for header with parser errors
@@ -97,7 +97,7 @@ public class JextractToolProviderTest extends JextractToolRunner {
         try {
             Files.write(compileFlagsTxt, List.of("-xc++"));
             runNoOuput(getInputFilePath("unsupported_lang.h").toString())
-                .checkFailure(RUNTIME_ERROR)
+                .checkFailure(FATAL_ERROR)
                 .checkContainsOutput("Unsupported language: C++");
         } finally {
             Files.delete(compileFlagsTxt);
@@ -207,6 +207,50 @@ public class JextractToolProviderTest extends JextractToolRunner {
             assertNotNull(findMethod(cls, "included_func", int.class));
         } finally {
             TestUtils.deleteDir(includerOutput);
+        }
+    }
+
+    @Test
+    public void testSpecialHeaderSyntax() {
+        Path stdioOutput = getOutputFilePath("stdio");
+        runAndCompile(stdioOutput, "<stdio.h>");
+        try(TestUtils.Loader loader = TestUtils.classLoader(stdioOutput)) {
+            Class<?> cls = loader.loadClass("stdio_h");
+            Class<?> invokerCls = findNestedClass(cls, "printf");
+            assertNotNull(invokerCls);
+            // check a method for "MethodHandle handle()"
+            assertNotNull(findMethod(invokerCls, "handle"));
+            // check a method for "FunctionDescriptor descriptor()"
+            assertNotNull(findMethod(invokerCls, "descriptor"));
+            // check a method for "<invokerCls> invoker(MemoryLayout...)"
+            assertNotNull(findMethod(invokerCls, "makeInvoker", MemoryLayout[].class));
+        }
+    }
+
+    @Test
+    public void testMultipleHeadersWithoutHeaderClassName() {
+        runNoOuput("foo.h", "bar.h")
+            .checkFailure(OPTION_ERROR)
+            .checkContainsOutput("multiple headers specified without --header-class-name");
+    }
+
+    @Test
+    public void testMultipleHeaders() {
+        Path unixOutput = getOutputFilePath("unix");
+        runAndCompile(unixOutput, "--header-class-name", "Unix", "<stdio.h>", "<stdlib.h>");
+        try(TestUtils.Loader loader = TestUtils.classLoader(unixOutput)) {
+            Class<?> cls = loader.loadClass("Unix");
+            Class<?> invokerCls = findNestedClass(cls, "printf");
+            assertNotNull(invokerCls);
+            // check a method for "MethodHandle handle()"
+            assertNotNull(findMethod(invokerCls, "handle"));
+            // check a method for "FunctionDescriptor descriptor()"
+            assertNotNull(findMethod(invokerCls, "descriptor"));
+            // check a method for "<invokerCls> invoker(MemoryLayout...)"
+            assertNotNull(findMethod(invokerCls, "makeInvoker", MemoryLayout[].class));
+
+            // check qsort function
+            assertNotNull(findMethod(cls, "qsort", MemorySegment.class, long.class, long.class, MemorySegment.class));
         }
     }
 }
