@@ -37,6 +37,8 @@ import java.util.List;
 import static org.testng.Assert.assertNotNull;
 
 public class JextractToolProviderTest extends JextractToolRunner {
+    private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+
     @Test
     public void testHelp() {
         runNoOuput().checkFailure(OPTION_ERROR); // no options
@@ -212,18 +214,35 @@ public class JextractToolProviderTest extends JextractToolRunner {
 
     @Test
     public void testSpecialHeaderSyntax() {
-        Path stdioOutput = getOutputFilePath("stdio");
-        runAndCompile(stdioOutput, "<stdio.h>");
-        try(TestUtils.Loader loader = TestUtils.classLoader(stdioOutput)) {
-            Class<?> cls = loader.loadClass("stdio_h");
-            Class<?> invokerCls = findNestedClass(cls, "printf");
-            assertNotNull(invokerCls);
-            // check a method for "MethodHandle handle()"
-            assertNotNull(findMethod(invokerCls, "handle"));
-            // check a method for "FunctionDescriptor descriptor()"
-            assertNotNull(findMethod(invokerCls, "descriptor"));
-            // check a method for "<invokerCls> invoker(MemoryLayout...)"
-            assertNotNull(findMethod(invokerCls, "makeInvoker", MemoryLayout[].class));
+        Path helloOutput = getOutputFilePath("hello_special");
+        runAndCompile(helloOutput, "-I", getInputDir().toString(), "<hello.h>");
+        try(TestUtils.Loader loader = TestUtils.classLoader(helloOutput)) {
+            Class<?> cls = loader.loadClass("hello_h");
+            checkHeaderMembers(cls);
+        }
+    }
+
+
+    @Test
+    public void testSpecialStandardHeaderSyntax() {
+        // standard include header files cannot be found on Windows without setting
+        // the location of standard header explicitly!
+        if (IS_WINDOWS) {
+            System.err.println("skipping test that uses standard header");
+        } else {
+            Path stdioOutput = getOutputFilePath("stdio");
+            runAndCompile(stdioOutput, "<stdio.h>");
+            try(TestUtils.Loader loader = TestUtils.classLoader(stdioOutput)) {
+                Class<?> cls = loader.loadClass("stdio_h");
+                Class<?> invokerCls = findNestedClass(cls, "printf");
+                assertNotNull(invokerCls);
+                // check a method for "MethodHandle handle()"
+                assertNotNull(findMethod(invokerCls, "handle"));
+                // check a method for "FunctionDescriptor descriptor()"
+                assertNotNull(findMethod(invokerCls, "descriptor"));
+                // check a method for "<invokerCls> invoker(MemoryLayout...)"
+                assertNotNull(findMethod(invokerCls, "makeInvoker", MemoryLayout[].class));
+            }
         }
     }
 
@@ -236,21 +255,46 @@ public class JextractToolProviderTest extends JextractToolRunner {
 
     @Test
     public void testMultipleHeaders() {
-        Path unixOutput = getOutputFilePath("unix");
-        runAndCompile(unixOutput, "--header-class-name", "Unix", "<stdio.h>", "<stdlib.h>");
-        try(TestUtils.Loader loader = TestUtils.classLoader(unixOutput)) {
-            Class<?> cls = loader.loadClass("Unix");
-            Class<?> invokerCls = findNestedClass(cls, "printf");
-            assertNotNull(invokerCls);
-            // check a method for "MethodHandle handle()"
-            assertNotNull(findMethod(invokerCls, "handle"));
-            // check a method for "FunctionDescriptor descriptor()"
-            assertNotNull(findMethod(invokerCls, "descriptor"));
-            // check a method for "<invokerCls> invoker(MemoryLayout...)"
-            assertNotNull(findMethod(invokerCls, "makeInvoker", MemoryLayout[].class));
+        Path multiOutput = getOutputFilePath("multi");
+        runAndCompile(multiOutput,
+            "-I", getInputDir().toString(),
+            "--header-class-name", "Multi",
+            "hello.h", "typedefs.h");
+        try(TestUtils.Loader loader = TestUtils.classLoader(multiOutput)) {
+            Class<?> cls = loader.loadClass("Multi");
 
-            // check qsort function
-            assertNotNull(findMethod(cls, "qsort", MemorySegment.class, long.class, long.class, MemorySegment.class));
+            // check stuff from hello.h
+            checkHeaderMembers(cls);
+
+            // check stuff from typedefs.h
+            assertNotNull(findField(cls, "byte_t"));
+            assertNotNull(findField(cls, "mysize_t"));
+        }
+    }
+
+    @Test
+    public void testStandardMultipleHeaders() {
+        // standard include header files cannot be found on Windows without setting
+        // the location of standard header explicitly!
+        if (IS_WINDOWS) {
+            System.err.println("skipping test that uses standard headers");
+        } else {
+            Path unixOutput = getOutputFilePath("unix");
+            runAndCompile(unixOutput, "--header-class-name", "Unix", "<stdio.h>", "<stdlib.h>");
+            try(TestUtils.Loader loader = TestUtils.classLoader(unixOutput)) {
+                Class<?> cls = loader.loadClass("Unix");
+                Class<?> invokerCls = findNestedClass(cls, "printf");
+                assertNotNull(invokerCls);
+                // check a method for "MethodHandle handle()"
+                assertNotNull(findMethod(invokerCls, "handle"));
+                // check a method for "FunctionDescriptor descriptor()"
+                assertNotNull(findMethod(invokerCls, "descriptor"));
+                // check a method for "<invokerCls> invoker(MemoryLayout...)"
+                assertNotNull(findMethod(invokerCls, "makeInvoker", MemoryLayout[].class));
+
+                // check qsort function
+                assertNotNull(findMethod(cls, "qsort", MemorySegment.class, long.class, long.class, MemorySegment.class));
+            }
         }
     }
 }

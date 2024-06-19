@@ -96,6 +96,14 @@ public class JextractToolRunner {
                 Paths.get(System.getProperty("test.classes"), "test-output");
     }
 
+    protected Path getInputDir() {
+        return inputDir.toAbsolutePath();
+    }
+
+    protected Path getOutputDir() {
+        return outputDir.toAbsolutePath();
+    }
+
     protected Path getInputFilePath(String fileName) {
         return inputDir.resolve(fileName).toAbsolutePath();
     }
