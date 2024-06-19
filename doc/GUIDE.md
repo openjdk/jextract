@@ -994,7 +994,7 @@ the `--header-class-name` option is mandatory. Header files can be specified in 
    2. Special header file path or file name like "<stdio.h>", "<GLUT/glut.h>".
       With this syntax, the header full or relative path is not required. The usual C compiler
       include path search is used in this case. This simplifies the extraction of header files
-      from standard include paths and include paths specified by -I options.
+      from standard include paths and include paths specified by `-I` options.
 
       Note that '>' and '<' are special characters in OS Shells and therefore those
       need to be escaped appropriately. On Unix platforms, simple quoting like "<stdio.h>"
