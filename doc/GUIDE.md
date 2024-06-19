@@ -60,7 +60,7 @@ Note that specifying the wrong header file to jextract may result in errors duri
 Please consult the documentation of the library in question about which header file
 should be included. This is also the header file that should be passed to jextract.
 
-If a library has multiple main header files, they can be passed to jextract in the command line.
+If a library has multiple main header files, they can be passed to jextract on the command line.
 Also, there is special syntax to pass header files relative to C compiler include paths.
 The section on [command line option reference](#command-line-option-reference) discusses this.
 
