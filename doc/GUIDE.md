@@ -992,8 +992,8 @@ the `--header-class-name` option is mandatory. Header files can be specified in 
    1. Simple header file name like `foo.h` or header file path like `bar/foo.h`
 
    2. Special header file path or file name like `<stdio.h>`, `<GLUT/glut.h>`.
-      With this syntax, the header full or relative path is not required. The usual C compiler
-      include path search is used in this case. This simplifies the extraction of header files
+      With this syntax, the header path is considered to be relative to one of the paths
+      in the C compiler include path. This simplifies the extraction of header files
       from standard include paths and include paths specified by `-I` options.
 
       Note that '>' and '<' are special characters in OS Shells and therefore those
