@@ -6,11 +6,12 @@ param(
 jextract `
   --output src `
   -I "$freeglutPath\include" `
+  --use-system-load-library `
   "-l" opengl32 `
   "-l" glu32 `
   "-l" freeglut `
   "-t" "opengl" `
-  "$freeglutPath\include\GL\glut.h"
+  '<GL\glut.h>'
 
 # Too many sources for command line. Put them into separate file
 ls -r src/*.java | %{ $_.FullName } | Out-File sources.txt

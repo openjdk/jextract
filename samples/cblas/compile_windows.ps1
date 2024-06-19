@@ -8,6 +8,6 @@ jextract `
   -t blas `
   -I "$blasPath\include" `
   -l libcblas `
-  "$blasPath\include\cblas.h"
+  '<cblas.h>'
 
 javac -d classes (ls -r src/*.java)

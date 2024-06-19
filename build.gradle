@@ -153,6 +153,7 @@ task createJextractImage(type: Exec) {
         }
 
         Files.copy(Path.of("$projectDir/src/main/jextract.bat"), Path.of("${jextract_bin_dir}/jextract.bat"))
+        Files.copy(Path.of("$projectDir/src/main/jextract.ps1"), Path.of("${jextract_bin_dir}/jextract.ps1"))
     }
 }
 

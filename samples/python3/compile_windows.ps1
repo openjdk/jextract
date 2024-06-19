@@ -10,6 +10,6 @@ jextract `
   -I "$pythonPath\include" `
   "-l" $pythonLibName `
   "-t" "org.python" `
-  "$pythonPath\include\Python.h"
+  '<Python.h>'
 
 javac -d classes (ls -r src/*.java)

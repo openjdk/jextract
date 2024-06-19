@@ -7,7 +7,7 @@ jextract `
   -I "$curlpath\include" `
   -I "$curlpath\include\curl" `
   --dump-includes 'includes_all.conf' `
-  "$curlpath\include\curl\curl.h"
+  '<curl.h>'
   
 Select-String -Path 'includes_all.conf' -Pattern '(curl|sockaddr )' | %{ $_.Line } | Out-File -FilePath 'includes_filtered.conf' -Encoding ascii
 
@@ -16,8 +16,9 @@ jextract `
   -t org.jextract `
   -I "$curlpath\include" `
   -I "$curlpath\include\curl" `
-  -llibcurl `
+  -l libcurl `
+  --use-system-load-library `
   '@includes_filtered.conf' `
-  "$curlpath\include\curl\curl.h"
+  '<curl.h>'
 
 javac -d classes (ls -r src/*.java)
