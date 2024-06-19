@@ -987,7 +987,7 @@ A complete list of all the supported command line options is given below:
 | `--version`                                                  | print version information and exit |
 
 Jextract accepts one or more header files. When multiple header files are specified,
---header-class-name option is mandatory. Header files can be specified in two different ways.
+the `--header-class-name` option is mandatory. Header files can be specified in two different ways:
 
    1. simple header file name like "foo.h" or header file path like "bar/foo.h"
 
