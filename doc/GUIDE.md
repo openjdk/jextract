@@ -998,7 +998,7 @@ the `--header-class-name` option is mandatory. Header files can be specified in 
       in the C compiler include path. This simplifies the extraction of header files
       from standard include paths and include paths specified by `-I` options.
 
-      Note that '>' and '<' are special characters in OS Shells and therefore those
+      Note that `>` and `<` are special characters in OS Shells and therefore those
       need to be escaped appropriately. On Unix platforms, simple quoting like `"<stdio.h>"`
       is enough.
 
