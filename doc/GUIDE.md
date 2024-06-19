@@ -769,7 +769,7 @@ Finally, there are some features that jextract does not support, listed below:
   proper exported C function that can then be linked against through the FFM API.
 
 - Bit fields. You will see a warning about bit fields being skipped, such as:
-  
+
   ```txt
   WARNING: Skipping Foo.x (bitfields are not supported)
   ```
@@ -985,6 +985,21 @@ A complete list of all the supported command line options is given below:
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
 | `--include-[function,constant,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings. When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 | `--version`                                                  | print version information and exit |
+
+jextract accepts one or more header files. When multiple header files are specified,
+--header-class-name option is mandatory. Header files can be specified in two different ways.
+
+   1. simple header file name like "foo.h" or header file path like "bar/foo.h"
+
+   2. Special header file path or file name like "<stdio.h>", "<GLUT/glut.h>".
+      With this syntax, the header full or relative path is not required. The usual C compiler
+      include path search is used in this case. This simplifies the extraction of header files
+      from standard include paths and include paths specified by -I options.
+
+      Note that '>' and '<' are special characters in OS Shells and therefore those
+      need to be escaped appropriately. On Unix platforms, simple quoting like "<stdio.h>"
+      is enough.
+
 
 #### Additional clang options
 
