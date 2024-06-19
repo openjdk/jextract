@@ -11,5 +11,4 @@ $Env:path+="`;$mingwBinPath" # mingw runtime dlls
 java `
   -cp classes `
   --enable-native-access=ALL-UNNAMED `
-  -D"java.library.path=$blasPath\bin" `
   TestBlas.java `

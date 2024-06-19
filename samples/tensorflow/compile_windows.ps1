@@ -7,7 +7,8 @@ jextract `
   --output src `
   -t org.tensorflow `
   -I "$tensorflowPath\include" `
+  --use-system-load-library `
   -l tensorflow `
-  "$tensorflowPath\include\tensorflow\c\c_api.h"
+  '<tensorflow\c\c_api.h>'
 
 javac -d classes (ls -r src/*.java)

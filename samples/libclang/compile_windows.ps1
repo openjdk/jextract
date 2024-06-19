@@ -8,7 +8,8 @@ jextract `
   -t org.llvm.clang `
   -I "$clangPath\include" `
   -I "$clangPath\include\clang-c" `
+  --use-system-load-library `
   -l libclang `
-  "$clangPath\include\clang-c\Index.h"
+  '<Index.h>'
 
 javac -d classes (ls -r src/*.java)
