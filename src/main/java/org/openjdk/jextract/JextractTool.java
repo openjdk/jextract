@@ -82,8 +82,18 @@ public final class JextractTool {
         this.logger = logger;
     }
 
+    // is the given header name a special name such as "<foo.h>"?
     private static boolean isSpecialHeaderName(String str) {
         return str.startsWith("<") && str.endsWith(">");
+    }
+
+    // is the given header name a simple header file or path name?
+    private static boolean isSimpleHeaderName(String str) {
+        return ! isSpecialHeaderName(str);
+    }
+
+    private static boolean isSingleSimpleHeader(List<String> headers) {
+        return (headers.size() == 1) && isSimpleHeaderName(headers.getFirst());
     }
 
     private static Path generateTmpSource(List<String> headers) {
@@ -115,7 +125,9 @@ public final class JextractTool {
     }
 
     private static Declaration.Scoped parseInternal(Logger logger, List<String> headers, String... parserOptions) {
-        Path source = generateTmpSource(headers);
+        // do not generate a temporary header if we are processing a single header
+        // and that is a simple header file.
+        Path source = isSingleSimpleHeader(headers) ? Paths.get(headers.getFirst()) : generateTmpSource(headers);
         return new Parser(logger)
                 .parse(source, Stream.of(parserOptions).collect(Collectors.toList()));
     }
@@ -484,22 +496,30 @@ public final class JextractTool {
         Options options = builder.build();
         List<String> headers = optionSet.nonOptionArguments();
 
+        if (isSingleSimpleHeader(headers) &&
+                !Files.isRegularFile(Paths.get(headers.getFirst()))) {
+            logger.err("not.a.file", headers.getFirst());
+            return CLANG_ERROR;
+        }
+
         List<JavaSourceFile> files;
         try {
             String headerName;
             if (optionSet.has("--header-class-name")) {
                 headerName = optionSet.valueOf("--header-class-name");
             } else {
-                if (headers.size() > 1) {
+                boolean multiHeader = optionSet.nonOptionArguments().size() > 1;
+                if (multiHeader) {
                     // more than one header specified but no --header-class-name specified.
                     logger.err("class.name.missing.for.multiple.headers");
                     return OPTION_ERROR;
+                } else { // single header
+                    headerName = headers.getFirst();
+                    if (isSpecialHeaderName(headerName)) {
+                        headerName = headerName.substring(1, headerName.length() - 1);
+                    }
+                    headerName = Paths.get(headerName).getFileName().toString();
                 }
-                headerName = headers.get(0);
-                if (isSpecialHeaderName(headerName)) {
-                    headerName = headerName.substring(1, headerName.length() - 1);
-                }
-                headerName = Paths.get(headerName).getFileName().toString();
             }
             Declaration.Scoped toplevel = parseInternal(logger, headers, options.clangArgs.toArray(new String[0]));
 
