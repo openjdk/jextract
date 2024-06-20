@@ -1,4 +1,3 @@
-jextract --output src -t org.jextract -lcurl \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/curl/curl.h
+jextract --output src -t org.jextract -lcurl "<curl/curl.h>"
 
 javac --source=22 -d . src/org/jextract/*.java

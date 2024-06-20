@@ -4,6 +4,6 @@ jextract --output src -t libzstd \
   -I ${LIBZSTD_HOME}/include \
   -l :${LIBZSTD_HOME}/lib/libzstd.dylib \
   --header-class-name Libzstd \
-  ${LIBZSTD_HOME}/include/zstd.h
+  "<zstd.h>"
 
 javac --source=22 -d . src/libzstd/*.java

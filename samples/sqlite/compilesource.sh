@@ -1,5 +1,5 @@
 jextract --output src \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sqlite3.h \
-  -t org.sqlite -lsqlite3
+  -t org.sqlite -lsqlite3 \
+  "<sqlite3.h>"
 
 javac --source=22 -d . src/org/sqlite/*.java

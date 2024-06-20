@@ -43,7 +43,7 @@ public class JextractApiTestBase {
 
     public static  Declaration.Scoped parse(String headerFilename, String... parseOptions) {
         Path header = Paths.get(System.getProperty("test.file")).getParent().resolve(headerFilename);
-        return JextractTool.parse(List.of(header), parseOptions);
+        return JextractTool.parse(List.of(header.toString()), parseOptions);
     }
 
     public static void checkNames(List<Declaration> members, String... fields) {

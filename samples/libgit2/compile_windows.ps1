@@ -7,7 +7,8 @@ jextract `
   --output src `
   -t com.github `
   -I "$libgit2path\include" `
+  --use-system-load-library `
   -l git2 `
-  "$libgit2path\include\git2.h"
+  '<git2.h>'
 
 javac -d classes (ls -r src/*.java)

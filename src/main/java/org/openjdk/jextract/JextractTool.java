@@ -82,13 +82,22 @@ public final class JextractTool {
         this.logger = logger;
     }
 
-    private static Path generateTmpSource(List<Path> headers) {
-        assert headers.size() > 1;
+    private static boolean isSpecialHeaderName(String str) {
+        return str.startsWith("<") && str.endsWith(">");
+    }
+
+    private static Path generateTmpSource(List<String> headers) {
         try {
             Path tmpFile = Files.createTempFile("jextract", ".h");
             tmpFile.toFile().deleteOnExit();
             Files.write(tmpFile, headers.stream().
-                    map(src -> "#include \"" + src + "\"").
+                    map(src -> {
+                        if (isSpecialHeaderName(src)) {
+                            return "#include " + src + "\n";
+                        } else {
+                            return "#include \"" + src + "\"\n";
+                        }
+                    }).
                     collect(Collectors.toList()));
             return tmpFile;
         } catch (IOException ioExp) {
@@ -101,12 +110,12 @@ public final class JextractTool {
      * @param parserOptions options to be passed to the parser.
      * @return a toplevel declaration.
      */
-    public static Declaration.Scoped parse(List<Path> headers, String... parserOptions) {
+    public static Declaration.Scoped parse(List<String> headers, String... parserOptions) {
         return parseInternal(Logger.DEFAULT, headers, parserOptions);
     }
 
-    private static Declaration.Scoped parseInternal(Logger logger, List<Path> headers, String... parserOptions) {
-        Path source = headers.size() > 1? generateTmpSource(headers) : headers.iterator().next();
+    private static Declaration.Scoped parseInternal(Logger logger, List<String> headers, String... parserOptions) {
+        Path source = generateTmpSource(headers);
         return new Parser(logger)
                 .parse(source, Stream.of(parserOptions).collect(Collectors.toList()));
     }
@@ -385,11 +394,6 @@ public final class JextractTool {
             return printHelp(SUCCESS);
         }
 
-        if (optionSet.nonOptionArguments().size() != 1) {
-            printOptionError(logger.format("expected.one.header", optionSet.nonOptionArguments().size()));
-            return OPTION_ERROR;
-        }
-
         Options.Builder builder = Options.builder();
         // before processing command line options, check & process compile_flags.txt.
         Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
@@ -470,30 +474,38 @@ public final class JextractTool {
         String targetPackage = optionSet.has("-t") ? optionSet.valueOf("-t") : "";
         builder.setTargetPackage(targetPackage);
 
-        Options options = builder.build();
+        builder.addClangArg("-I" + System.getProperty("user.dir"));
 
-        Path header = Paths.get(optionSet.nonOptionArguments().get(0));
-        if (!Files.isReadable(header)) {
-            logger.err("cannot.read.header.file", header);
-            return INPUT_ERROR;
+        if (optionSet.nonOptionArguments().size() == 0) {
+            printOptionError(logger.format("expected.atleast.one.header"));
+            return OPTION_ERROR;
         }
-        if (!(Files.isRegularFile(header))) {
-            logger.err("not.a.file", header);
-            return INPUT_ERROR;
-        }
+
+        Options options = builder.build();
+        List<String> headers = optionSet.nonOptionArguments();
 
         List<JavaSourceFile> files;
         try {
-            Declaration.Scoped toplevel = parseInternal(logger, List.of(header), options.clangArgs.toArray(new String[0]));
+            String headerName;
+            if (optionSet.has("--header-class-name")) {
+                headerName = optionSet.valueOf("--header-class-name");
+            } else {
+                if (headers.size() > 1) {
+                    // more than one header specified but no --header-class-name specified.
+                    logger.err("class.name.missing.for.multiple.headers");
+                    return OPTION_ERROR;
+                }
+                headerName = headers.get(0);
+                if (isSpecialHeaderName(headerName)) {
+                    headerName = headerName.substring(1, headerName.length() - 1);
+                }
+                headerName = Paths.get(headerName).getFileName().toString();
+            }
+            Declaration.Scoped toplevel = parseInternal(logger, headers, options.clangArgs.toArray(new String[0]));
 
             if (JextractTool.DEBUG) {
                 System.out.println(toplevel);
             }
-
-            String headerName = optionSet.has("--header-class-name") ?
-                optionSet.valueOf("--header-class-name") :
-                header.getFileName().toString();
-
             files = generateInternal(
                 toplevel, headerName,
                 options.targetPackage, options.includeHelper, options.libraries, options.useSystemLoadLibrary, logger);
@@ -569,5 +581,4 @@ public final class JextractTool {
 
         return Optional.empty();
     }
-
 }

@@ -58,10 +58,12 @@ In this command:
 
 Note that specifying the wrong header file to jextract may result in errors during parsing.
 Please consult the documentation of the library in question about which header file
-should be included. This is also the header file that should be passed to jextract. If
-a library has multiple main header files, they can be passed to jextract by creating a new
-header file which `#include`s these header files, and then this new header file can be
-passed to jextract.
+should be included. This is also the header file that should be passed to jextract.
+
+If a library has multiple main header files, they can be passed to jextract on the command line.
+Also, there is special syntax to pass header files relative to C compiler include paths.
+The section on [command line option reference](#command-line-option-reference) discusses this.
+
 
 The library name specified to `--library` will be mapped to a platform specific library
 file name, and should be findable through the OS's library search mechanism, typically by
@@ -769,7 +771,7 @@ Finally, there are some features that jextract does not support, listed below:
   proper exported C function that can then be linked against through the FFM API.
 
 - Bit fields. You will see a warning about bit fields being skipped, such as:
-  
+
   ```txt
   WARNING: Skipping Foo.x (bitfields are not supported)
   ```
@@ -976,7 +978,7 @@ A complete list of all the supported command line options is given below:
 | Option                                                       | Meaning                                                      |
 | :----------------------------------------------------------- | ------------------------------------------------------------ |
 | `-D --define-macro <macro>=<value>`                          | define `<macro>` to `<value>` (or 1 if `<value>` omitted)          |
-| `--header-class-name <name>`                                 | name of the generated header class. If this option is not specified, then header class name is derived from the header file name. For example, class "foo_h" for header "foo.h". |
+| `--header-class-name <name>`                                 | name of the generated header class. If this option is not specified, then header class name is derived from the header file name. For example, class "foo_h" for header "foo.h". If multiple headers are specified, then this option is mandatory. |
 | `-t, --target-package <package>`                             | target package name for the generated classes. If this option is not specified, then unnamed package is used.  |
 | `-I, --include-dir <dir>`                                    | append directory to the include search paths. Include search paths are searched in order. For example, if `-I foo -I bar` is specified, header files will be searched in "foo" first, then (if nothing is found) in "bar".|
 | `-l, --library <name \| path>`                               | specify a shared library that should be loaded by the generated header class. If <libspec> starts with `:`, then what follows is interpreted as a library path. Otherwise, `<libspec>` denotes a library name. Examples: <br>`-l GL`<br>`-l :libGL.so.1`<br>`-l :/usr/lib/libGL.so.1`|
@@ -985,6 +987,21 @@ A complete list of all the supported command line options is given below:
 | `--dump-includes <String>`                                   | dump included symbols into specified file (see below)        |
 | `--include-[function,constant,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings. When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 | `--version`                                                  | print version information and exit |
+
+Jextract accepts one or more header files. When multiple header files are specified,
+the `--header-class-name` option is mandatory. Header files can be specified in two different ways:
+
+   1. Simple header file name like `foo.h` or header file path like `bar/foo.h`
+
+   2. Special header file path or file name like `<stdio.h>`, `<GLUT/glut.h>`.
+      With this syntax, the header path is considered to be relative to one of the paths
+      in the C compiler include path. This simplifies the extraction of header files
+      from standard include paths and include paths specified by `-I` options.
+
+      Note that `>` and `<` are special characters in OS Shells and therefore those
+      need to be escaped appropriately. On Unix platforms, simple quoting like `"<stdio.h>"`
+      is enough.
+
 
 #### Additional clang options
 

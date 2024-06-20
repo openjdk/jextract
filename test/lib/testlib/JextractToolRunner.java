@@ -72,7 +72,7 @@ public class JextractToolRunner {
     protected static final int OPTION_ERROR  = 2;
     protected static final int INPUT_ERROR   = 3;
     protected static final int CLANG_ERROR   = 4;
-    protected static final int RUNTIME_ERROR = 5;
+    protected static final int FATAL_ERROR = 5;
     protected static final int OUTPUT_ERROR  = 6;
 
     private static String safeFileName(String filename) {
@@ -94,6 +94,14 @@ public class JextractToolRunner {
                 Paths.get(System.getProperty("test.file")).getParent();
          outputDir = (output != null) ? output :
                 Paths.get(System.getProperty("test.classes"), "test-output");
+    }
+
+    protected Path getInputDir() {
+        return inputDir.toAbsolutePath();
+    }
+
+    protected Path getOutputDir() {
+        return outputDir.toAbsolutePath();
     }
 
     protected Path getInputFilePath(String fileName) {
