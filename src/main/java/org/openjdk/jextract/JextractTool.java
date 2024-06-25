@@ -86,23 +86,16 @@ public final class JextractTool {
         return str.startsWith("<") && str.endsWith(">");
     }
 
-    private static Path generateTmpSource(List<String> headers) {
-        try {
-            Path tmpFile = Files.createTempFile("jextract", ".h");
-            tmpFile.toFile().deleteOnExit();
-            Files.write(tmpFile, headers.stream().
-                    map(src -> {
-                        if (isSpecialHeaderName(src)) {
-                            return "#include " + src + "\n";
-                        } else {
-                            return "#include \"" + src + "\"\n";
-                        }
-                    }).
-                    collect(Collectors.toList()));
-            return tmpFile;
-        } catch (IOException ioExp) {
-            throw new UncheckedIOException(ioExp);
-        }
+    private static String generateTmpSource(List<String> headers) {
+        return headers.stream().
+               map(src -> {
+                    if (isSpecialHeaderName(src)) {
+                        return "#include " + src;
+                    } else {
+                        return "#include \"" + src + "\"";
+                    }
+               }).
+               collect(Collectors.joining("\n"));
     }
 
     /**
@@ -115,9 +108,9 @@ public final class JextractTool {
     }
 
     private static Declaration.Scoped parseInternal(Logger logger, List<String> headers, String... parserOptions) {
-        Path source = generateTmpSource(headers);
+        String source = generateTmpSource(headers);
         return new Parser(logger)
-                .parse(source, Stream.of(parserOptions).collect(Collectors.toList()));
+                .parse("jextract$tmp.h", source, Stream.of(parserOptions).collect(Collectors.toList()));
     }
 
     public static List<JavaSourceFile> generate(Declaration.Scoped decl, String headerName,

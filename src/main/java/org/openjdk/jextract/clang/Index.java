@@ -29,6 +29,7 @@ package org.openjdk.jextract.clang;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
+import org.openjdk.jextract.clang.libclang.CXUnsavedFile;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -98,6 +99,36 @@ public class Index extends ClangDisposable {
         }
     }
 
+    public TranslationUnit parseTU(String filename, String content, Consumer<Diagnostic> dh, int options, String... args)
+            throws ParsingFailedException {
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment filenameSeg = arena.allocateFrom(filename);
+            MemorySegment contentSeg = arena.allocateFrom(content);
+            MemorySegment cargs = args.length == 0 ? null : arena.allocate(C_POINTER, args.length);
+            for (int i = 0 ; i < args.length ; i++) {
+                cargs.set(C_POINTER, i * C_POINTER.byteSize(), arena.allocateFrom(args[i]));
+            }
+
+            MemorySegment unsavedFile = CXUnsavedFile.allocate(arena);
+            CXUnsavedFile.Filename(unsavedFile, filenameSeg);
+            CXUnsavedFile.Contents(unsavedFile, contentSeg);
+            CXUnsavedFile.Length(unsavedFile, content.length());
+ 
+            MemorySegment tu = Index_h.clang_createTranslationUnitFromSourceFile(
+                    ptr,
+                    filenameSeg,
+                    args.length,
+                    cargs == null ? MemorySegment.NULL : cargs,
+                    1,
+                    unsavedFile);
+            TranslationUnit rv = new TranslationUnit(tu);
+            // even if we failed to parse, we might still have diagnostics
+            rv.processDiagnostics(dh);
+
+            return rv;
+        }
+    }
+
     private int defaultOptions(boolean detailedPreprocessorRecord) {
         int rv = Index_h.CXTranslationUnit_ForSerialization();
         rv |= Index_h.CXTranslationUnit_SkipFunctionBodies();
@@ -108,13 +139,22 @@ public class Index extends ClangDisposable {
     }
 
     public TranslationUnit parse(String file, Consumer<Diagnostic> dh, boolean detailedPreprocessorRecord, String... args)
-    throws ParsingFailedException {
+            throws ParsingFailedException {
         return parseTU(file, dh, defaultOptions(detailedPreprocessorRecord), args);
     }
 
     public TranslationUnit parse(String file, boolean detailedPreprocessorRecord, String... args)
-    throws ParsingFailedException {
+            throws ParsingFailedException {
         return parse(file, dh -> {}, detailedPreprocessorRecord, args);
     }
 
+    public TranslationUnit parse(String filename, String content, Consumer<Diagnostic> dh,
+            boolean detailedPreprocessorRecord, String... args) throws ParsingFailedException {
+        return parseTU(filename, content, dh, defaultOptions(detailedPreprocessorRecord), args);
+    }
+
+    public TranslationUnit parse(String filename, String content, boolean detailedPreprocessorRecord, String... args)
+            throws ParsingFailedException {
+        return parse(filename, content, dh -> {}, detailedPreprocessorRecord, args);
+    }
 }

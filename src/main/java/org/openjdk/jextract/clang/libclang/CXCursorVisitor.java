@@ -38,6 +38,7 @@ import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
+
  * {@snippet lang=c :
  * typedef enum CXChildVisitResult {
  *     CXChildVisit_Break,
@@ -47,6 +48,10 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  * }
  */
 public class CXCursorVisitor {
+
+    CXCursorVisitor() {
+        // Should not be called directly
+    }
 
     /**
      * The function pointer signature, expressed as a functional interface

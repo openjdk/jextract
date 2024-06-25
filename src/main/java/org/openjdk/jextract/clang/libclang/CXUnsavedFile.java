@@ -38,6 +38,7 @@ import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
+
  * {@snippet lang=c :
  * struct CXUnsavedFile {
  *     const char *Filename;
@@ -69,6 +70,7 @@ public class CXUnsavedFile {
 
     /**
      * Layout for field:
+
      * {@snippet lang=c :
      * const char *Filename
      * }
@@ -81,6 +83,7 @@ public class CXUnsavedFile {
 
     /**
      * Offset for field:
+
      * {@snippet lang=c :
      * const char *Filename
      * }
@@ -91,6 +94,7 @@ public class CXUnsavedFile {
 
     /**
      * Getter for field:
+
      * {@snippet lang=c :
      * const char *Filename
      * }
@@ -101,6 +105,7 @@ public class CXUnsavedFile {
 
     /**
      * Setter for field:
+
      * {@snippet lang=c :
      * const char *Filename
      * }
@@ -113,6 +118,7 @@ public class CXUnsavedFile {
 
     /**
      * Layout for field:
+
      * {@snippet lang=c :
      * const char *Contents
      * }
@@ -125,6 +131,7 @@ public class CXUnsavedFile {
 
     /**
      * Offset for field:
+
      * {@snippet lang=c :
      * const char *Contents
      * }
@@ -135,6 +142,7 @@ public class CXUnsavedFile {
 
     /**
      * Getter for field:
+
      * {@snippet lang=c :
      * const char *Contents
      * }
@@ -145,6 +153,7 @@ public class CXUnsavedFile {
 
     /**
      * Setter for field:
+
      * {@snippet lang=c :
      * const char *Contents
      * }
@@ -157,6 +166,7 @@ public class CXUnsavedFile {
 
     /**
      * Layout for field:
+
      * {@snippet lang=c :
      * unsigned long Length
      * }
@@ -169,6 +179,7 @@ public class CXUnsavedFile {
 
     /**
      * Offset for field:
+
      * {@snippet lang=c :
      * unsigned long Length
      * }
@@ -179,6 +190,7 @@ public class CXUnsavedFile {
 
     /**
      * Getter for field:
+
      * {@snippet lang=c :
      * unsigned long Length
      * }
@@ -189,6 +201,7 @@ public class CXUnsavedFile {
 
     /**
      * Setter for field:
+
      * {@snippet lang=c :
      * unsigned long Length
      * }
@@ -204,14 +217,13 @@ public class CXUnsavedFile {
     public static MemorySegment asSlice(MemorySegment array, long index) {
         return array.asSlice(layout().byteSize() * index);
     }
-
     /**
      * The size (in bytes) of this struct
      */
     public static long sizeof() { return layout().byteSize(); }
 
     /**
-     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
+     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}}
      */
     public static MemorySegment allocate(SegmentAllocator allocator) {
         return allocator.allocate(layout());

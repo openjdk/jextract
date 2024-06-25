@@ -38,6 +38,7 @@ import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
+
  * {@snippet lang=c :
  * struct {
  *     const void *ptr_data[2];
@@ -69,6 +70,7 @@ public class CXSourceRange {
 
     /**
      * Layout for field:
+
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -81,6 +83,7 @@ public class CXSourceRange {
 
     /**
      * Offset for field:
+
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -91,6 +94,7 @@ public class CXSourceRange {
 
     /**
      * Getter for field:
+
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -101,6 +105,7 @@ public class CXSourceRange {
 
     /**
      * Setter for field:
+
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -113,6 +118,7 @@ public class CXSourceRange {
 
     /**
      * Dimensions for array field:
+
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -124,6 +130,7 @@ public class CXSourceRange {
 
     /**
      * Indexed getter for field:
+
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -134,6 +141,7 @@ public class CXSourceRange {
 
     /**
      * Indexed setter for field:
+
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -146,6 +154,7 @@ public class CXSourceRange {
 
     /**
      * Layout for field:
+
      * {@snippet lang=c :
      * unsigned int begin_int_data
      * }
@@ -158,6 +167,7 @@ public class CXSourceRange {
 
     /**
      * Offset for field:
+
      * {@snippet lang=c :
      * unsigned int begin_int_data
      * }
@@ -168,6 +178,7 @@ public class CXSourceRange {
 
     /**
      * Getter for field:
+
      * {@snippet lang=c :
      * unsigned int begin_int_data
      * }
@@ -178,6 +189,7 @@ public class CXSourceRange {
 
     /**
      * Setter for field:
+
      * {@snippet lang=c :
      * unsigned int begin_int_data
      * }
@@ -190,6 +202,7 @@ public class CXSourceRange {
 
     /**
      * Layout for field:
+
      * {@snippet lang=c :
      * unsigned int end_int_data
      * }
@@ -202,6 +215,7 @@ public class CXSourceRange {
 
     /**
      * Offset for field:
+
      * {@snippet lang=c :
      * unsigned int end_int_data
      * }
@@ -212,6 +226,7 @@ public class CXSourceRange {
 
     /**
      * Getter for field:
+
      * {@snippet lang=c :
      * unsigned int end_int_data
      * }
@@ -222,6 +237,7 @@ public class CXSourceRange {
 
     /**
      * Setter for field:
+
      * {@snippet lang=c :
      * unsigned int end_int_data
      * }
@@ -237,14 +253,13 @@ public class CXSourceRange {
     public static MemorySegment asSlice(MemorySegment array, long index) {
         return array.asSlice(layout().byteSize() * index);
     }
-
     /**
      * The size (in bytes) of this struct
      */
     public static long sizeof() { return layout().byteSize(); }
 
     /**
-     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
+     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}}
      */
     public static MemorySegment allocate(SegmentAllocator allocator) {
         return allocator.allocate(layout());

@@ -552,6 +552,7 @@
 --include-function clang_Type_getSizeOf
 --include-function clang_Type_getValueType
 --include-function clang_createIndex
+--include-function clang_createTranslationUnitFromSourceFile
 --include-function clang_defaultDiagnosticDisplayOptions
 --include-function clang_defaultReparseOptions
 --include-function clang_disposeDiagnostic
@@ -631,6 +632,7 @@
 --include-function clang_parseTranslationUnit
 --include-function clang_parseTranslationUnit2
 --include-function clang_reparseTranslationUnit
+--include-function clang_createTranslationUnitFromSourceFile
 --include-function clang_saveTranslationUnit
 --include-function clang_toggleCrashRecovery
 --include-function clang_tokenize
