@@ -31,7 +31,6 @@ import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
 import org.openjdk.jextract.clang.libclang.CXUnsavedFile;
 
-import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
@@ -60,10 +59,6 @@ public class Index extends ClangDisposable {
         private static final long serialVersionUID = -1L;
         private final String srcFile;
         private final ErrorCode code;
-
-        public ParsingFailedException(Path srcFile, ErrorCode code) {
-            this(srcFile.toAbsolutePath().toString(), code);
-        }
 
         public ParsingFailedException(String srcFile, ErrorCode code) {
             super("Failed to parse " + srcFile + ": " + code);
@@ -105,7 +100,7 @@ public class Index extends ClangDisposable {
             rv.processDiagnostics(dh);
 
             if (code != ErrorCode.Success) {
-                throw new ParsingFailedException(Path.of(file).toAbsolutePath(), code);
+                throw new ParsingFailedException(file, code);
             }
 
             return rv;
