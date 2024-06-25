@@ -1864,69 +1864,6 @@ public class Index_h {
            throw new AssertionError("should not reach here", ex$);
         }
     }
-
-    private static class clang_createTranslationUnitFromSourceFile {
-        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
-            Index_h.C_POINTER,
-            Index_h.C_POINTER,
-            Index_h.C_POINTER,
-            Index_h.C_INT,
-            Index_h.C_POINTER,
-            Index_h.C_INT,
-            Index_h.C_POINTER
-        );
-
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_createTranslationUnitFromSourceFile");
-
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
-    }
-
-    /**
-     * Function descriptor for:
-     * {@snippet lang=c :
-     * CXTranslationUnit clang_createTranslationUnitFromSourceFile(CXIndex CIdx, const char *source_filename, int num_clang_command_line_args, const char *const *clang_command_line_args, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files)
-     * }
-     */
-    public static FunctionDescriptor clang_createTranslationUnitFromSourceFile$descriptor() {
-        return clang_createTranslationUnitFromSourceFile.DESC;
-    }
-
-    /**
-     * Downcall method handle for:
-     * {@snippet lang=c :
-     * CXTranslationUnit clang_createTranslationUnitFromSourceFile(CXIndex CIdx, const char *source_filename, int num_clang_command_line_args, const char *const *clang_command_line_args, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files)
-     * }
-     */
-    public static MethodHandle clang_createTranslationUnitFromSourceFile$handle() {
-        return clang_createTranslationUnitFromSourceFile.HANDLE;
-    }
-
-    /**
-     * Address for:
-     * {@snippet lang=c :
-     * CXTranslationUnit clang_createTranslationUnitFromSourceFile(CXIndex CIdx, const char *source_filename, int num_clang_command_line_args, const char *const *clang_command_line_args, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files)
-     * }
-     */
-    public static MemorySegment clang_createTranslationUnitFromSourceFile$address() {
-        return clang_createTranslationUnitFromSourceFile.ADDR;
-    }
-
-    /**
-     * {@snippet lang=c :
-     * CXTranslationUnit clang_createTranslationUnitFromSourceFile(CXIndex CIdx, const char *source_filename, int num_clang_command_line_args, const char *const *clang_command_line_args, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files)
-     * }
-     */
-    public static MemorySegment clang_createTranslationUnitFromSourceFile(MemorySegment CIdx, MemorySegment source_filename, int num_clang_command_line_args, MemorySegment clang_command_line_args, int num_unsaved_files, MemorySegment unsaved_files) {
-        var mh$ = clang_createTranslationUnitFromSourceFile.HANDLE;
-        try {
-            if (TRACE_DOWNCALLS) {
-                traceDowncall("clang_createTranslationUnitFromSourceFile", CIdx, source_filename, num_clang_command_line_args, clang_command_line_args, num_unsaved_files, unsaved_files);
-            }
-            return (MemorySegment)mh$.invokeExact(CIdx, source_filename, num_clang_command_line_args, clang_command_line_args, num_unsaved_files, unsaved_files);
-        } catch (Throwable ex$) {
-           throw new AssertionError("should not reach here", ex$);
-        }
-    }
     private static final int CXTranslationUnit_None = (int)0L;
     /**
      * {@snippet lang=c :

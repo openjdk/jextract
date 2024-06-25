@@ -62,27 +62,43 @@ public class Index extends ClangDisposable {
         private final ErrorCode code;
 
         public ParsingFailedException(Path srcFile, ErrorCode code) {
-            super("Failed to parse " + srcFile.toAbsolutePath().toString() + ": " + code);
-            this.srcFile = srcFile.toAbsolutePath().toString();
+            this(srcFile.toAbsolutePath().toString(), code);
+        }
+
+        public ParsingFailedException(String srcFile, ErrorCode code) {
+            super("Failed to parse " + srcFile + ": " + code);
+            this.srcFile = srcFile;
             this.code = code;
         }
     }
 
-    public TranslationUnit parseTU(String file, Consumer<Diagnostic> dh, int options, String... args)
-            throws ParsingFailedException {
+    private TranslationUnit parseTUImpl(String file, String content,
+                Consumer<Diagnostic> dh, int options, String... args)
+                throws ParsingFailedException {
         try (Arena arena = Arena.ofConfined()) {
-            MemorySegment src = arena.allocateFrom(file);
+            MemorySegment fileSeg = arena.allocateFrom(file);
+            MemorySegment contentSeg = content == null ? null : arena.allocateFrom(content);
             MemorySegment cargs = args.length == 0 ? null : arena.allocate(C_POINTER, args.length);
             for (int i = 0 ; i < args.length ; i++) {
                 cargs.set(C_POINTER, i * C_POINTER.byteSize(), arena.allocateFrom(args[i]));
             }
+
+            MemorySegment unsavedFile = contentSeg == null ?
+                null : CXUnsavedFile.allocate(arena);
+            if (unsavedFile != null) {
+                CXUnsavedFile.Filename(unsavedFile, fileSeg);
+                CXUnsavedFile.Contents(unsavedFile, contentSeg);
+                CXUnsavedFile.Length(unsavedFile, content.length());
+            }
+
             MemorySegment outAddress = arena.allocate(C_POINTER);
             ErrorCode code = ErrorCode.valueOf(Index_h.clang_parseTranslationUnit2(
                     ptr,
-                    src,
+                    fileSeg,
                     cargs == null ? MemorySegment.NULL : cargs,
-                    args.length, MemorySegment.NULL,
-                    0,
+                    args.length,
+                    unsavedFile == null ? MemorySegment.NULL : unsavedFile,
+                    unsavedFile == null ? 0 : 1,
                     options,
                     outAddress));
 
@@ -99,34 +115,15 @@ public class Index extends ClangDisposable {
         }
     }
 
+
+    public TranslationUnit parseTU(String file, Consumer<Diagnostic> dh, int options, String... args)
+            throws ParsingFailedException {
+        return parseTUImpl(file, null, dh, options, args);
+    }
+
     public TranslationUnit parseTU(String filename, String content, Consumer<Diagnostic> dh, int options, String... args)
             throws ParsingFailedException {
-        try (Arena arena = Arena.ofConfined()) {
-            MemorySegment filenameSeg = arena.allocateFrom(filename);
-            MemorySegment contentSeg = arena.allocateFrom(content);
-            MemorySegment cargs = args.length == 0 ? null : arena.allocate(C_POINTER, args.length);
-            for (int i = 0 ; i < args.length ; i++) {
-                cargs.set(C_POINTER, i * C_POINTER.byteSize(), arena.allocateFrom(args[i]));
-            }
-
-            MemorySegment unsavedFile = CXUnsavedFile.allocate(arena);
-            CXUnsavedFile.Filename(unsavedFile, filenameSeg);
-            CXUnsavedFile.Contents(unsavedFile, contentSeg);
-            CXUnsavedFile.Length(unsavedFile, content.length());
-
-            MemorySegment tu = Index_h.clang_createTranslationUnitFromSourceFile(
-                    ptr,
-                    filenameSeg,
-                    args.length,
-                    cargs == null ? MemorySegment.NULL : cargs,
-                    1,
-                    unsavedFile);
-            TranslationUnit rv = new TranslationUnit(tu);
-            // even if we failed to parse, we might still have diagnostics
-            rv.processDiagnostics(dh);
-
-            return rv;
-        }
+        return parseTUImpl(filename, content, dh, options, args);
     }
 
     private int defaultOptions(boolean detailedPreprocessorRecord) {
