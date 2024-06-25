@@ -46,13 +46,13 @@ public class Index extends ClangDisposable {
         final String file;
         final String contents;
 
-        private UnsavedFile(Path path, String contents) {
-            this.file = path.toAbsolutePath().toString();
+        private UnsavedFile(String file, String contents) {
+            this.file = file;
             this.contents = contents;
         }
 
-        public static UnsavedFile of(Path path, String contents) {
-            return new UnsavedFile(path, contents);
+        public static UnsavedFile of(String file, String contents) {
+            return new UnsavedFile(file, contents);
         }
     }
 
