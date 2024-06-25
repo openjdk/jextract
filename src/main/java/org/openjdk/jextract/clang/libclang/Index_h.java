@@ -58,14 +58,6 @@ public class Index_h {
             .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
     }
 
-    static MemoryLayout[] inferVariadicLayouts(Object[] varargs) {
-        MemoryLayout[] result = new MemoryLayout[varargs.length];
-        for (int i = 0; i < varargs.length; i++) {
-            result[i] = variadicLayout(varargs[i].getClass());
-        }
-        return result;
-    }
-
     static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
         try {
             return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
@@ -74,31 +66,20 @@ public class Index_h {
         }
     }
 
-    static MethodHandle downcallHandleVariadic(String name, FunctionDescriptor baseDesc, MemoryLayout[] variadicLayouts) {
-        FunctionDescriptor variadicDesc = baseDesc.appendArgumentLayouts(variadicLayouts);
-        Linker.Option fva = Linker.Option.firstVariadicArg(baseDesc.argumentLayouts().size());
-        return SYMBOL_LOOKUP.find(name)
-                .map(addr -> Linker.nativeLinker().downcallHandle(addr, variadicDesc, fva)
-                        .asSpreader(Object[].class, variadicLayouts.length))
-                .orElse(null);
+    static MemoryLayout align(MemoryLayout layout, long align) {
+        return switch (layout) {
+            case PaddingLayout p -> p;
+            case ValueLayout v -> v.withByteAlignment(align);
+            case GroupLayout g -> {
+                MemoryLayout[] alignedMembers = g.memberLayouts().stream()
+                        .map(m -> align(m, align)).toArray(MemoryLayout[]::new);
+                yield g instanceof StructLayout ?
+                        MemoryLayout.structLayout(alignedMembers) : MemoryLayout.unionLayout(alignedMembers);
+            }
+            case SequenceLayout s -> MemoryLayout.sequenceLayout(s.elementCount(), align(s.elementLayout(), align));
+        };
     }
 
-    // Internals only below this point
-
-    private static MemoryLayout variadicLayout(Class<?> c) {
-        // apply default argument promotions per C spec
-        // note that all primitives are boxed, since they are passed through an Object[]
-        if (c == Boolean.class || c == Byte.class || c == Character.class || c == Short.class || c == Integer.class) {
-            return JAVA_INT;
-        } else if (c == Long.class) {
-            return JAVA_LONG;
-        } else if (c == Float.class || c == Double.class) {
-            return JAVA_DOUBLE;
-        } else if (MemorySegment.class.isAssignableFrom(c)) {
-            return ADDRESS;
-        }
-        throw new IllegalArgumentException("Invalid type for ABI: " + c.getTypeName());
-    }
 
     static {
         String libName = System.getProperty("os.name").startsWith("Windows") ? "libclang" : "clang";
@@ -164,15 +145,15 @@ public class Index_h {
         return CXError_ASTReadError;
     }
 
-    private static class clang_getCString$constants {
+    private static class clang_getCString {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_POINTER,
             CXString.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCString"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCString");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -182,7 +163,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCString$descriptor() {
-        return clang_getCString$constants.DESC;
+        return clang_getCString.DESC;
     }
 
     /**
@@ -192,15 +173,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCString$handle() {
-        return clang_getCString$constants.HANDLE;
+        return clang_getCString.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * const char *clang_getCString(CXString string)
+     * }
+     */
+    public static MemorySegment clang_getCString$address() {
+        return clang_getCString.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * const char *clang_getCString(CXString string)
      * }
      */
     public static MemorySegment clang_getCString(MemorySegment string) {
-        var mh$ = clang_getCString$constants.HANDLE;
+        var mh$ = clang_getCString.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCString", string);
@@ -211,14 +203,14 @@ public class Index_h {
         }
     }
 
-    private static class clang_disposeString$constants {
+    private static class clang_disposeString {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             CXString.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_disposeString"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeString");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -228,7 +220,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_disposeString$descriptor() {
-        return clang_disposeString$constants.DESC;
+        return clang_disposeString.DESC;
     }
 
     /**
@@ -238,15 +230,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_disposeString$handle() {
-        return clang_disposeString$constants.HANDLE;
+        return clang_disposeString.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_disposeString(CXString string)
+     * }
+     */
+    public static MemorySegment clang_disposeString$address() {
+        return clang_disposeString.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_disposeString(CXString string)
      * }
      */
     public static void clang_disposeString(MemorySegment string) {
-        var mh$ = clang_disposeString$constants.HANDLE;
+        var mh$ = clang_disposeString.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_disposeString", string);
@@ -359,16 +362,16 @@ public class Index_h {
         return CXCursor_ExceptionSpecificationKind_NoThrow;
     }
 
-    private static class clang_createIndex$constants {
+    private static class clang_createIndex {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_POINTER,
             Index_h.C_INT,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_createIndex"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_createIndex");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -378,7 +381,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_createIndex$descriptor() {
-        return clang_createIndex$constants.DESC;
+        return clang_createIndex.DESC;
     }
 
     /**
@@ -388,15 +391,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_createIndex$handle() {
-        return clang_createIndex$constants.HANDLE;
+        return clang_createIndex.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXIndex clang_createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics)
+     * }
+     */
+    public static MemorySegment clang_createIndex$address() {
+        return clang_createIndex.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXIndex clang_createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics)
      * }
      */
     public static MemorySegment clang_createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics) {
-        var mh$ = clang_createIndex$constants.HANDLE;
+        var mh$ = clang_createIndex.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_createIndex", excludeDeclarationsFromPCH, displayDiagnostics);
@@ -407,14 +421,14 @@ public class Index_h {
         }
     }
 
-    private static class clang_disposeIndex$constants {
+    private static class clang_disposeIndex {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_disposeIndex"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeIndex");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -424,7 +438,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_disposeIndex$descriptor() {
-        return clang_disposeIndex$constants.DESC;
+        return clang_disposeIndex.DESC;
     }
 
     /**
@@ -434,15 +448,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_disposeIndex$handle() {
-        return clang_disposeIndex$constants.HANDLE;
+        return clang_disposeIndex.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_disposeIndex(CXIndex index)
+     * }
+     */
+    public static MemorySegment clang_disposeIndex$address() {
+        return clang_disposeIndex.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_disposeIndex(CXIndex index)
      * }
      */
     public static void clang_disposeIndex(MemorySegment index) {
-        var mh$ = clang_disposeIndex$constants.HANDLE;
+        var mh$ = clang_disposeIndex.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_disposeIndex", index);
@@ -453,15 +478,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getFileName$constants {
+    private static class clang_getFileName {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getFileName"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getFileName");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -471,7 +496,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getFileName$descriptor() {
-        return clang_getFileName$constants.DESC;
+        return clang_getFileName.DESC;
     }
 
     /**
@@ -481,15 +506,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getFileName$handle() {
-        return clang_getFileName$constants.HANDLE;
+        return clang_getFileName.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getFileName(CXFile SFile)
+     * }
+     */
+    public static MemorySegment clang_getFileName$address() {
+        return clang_getFileName.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getFileName(CXFile SFile)
      * }
      */
     public static MemorySegment clang_getFileName(SegmentAllocator allocator, MemorySegment SFile) {
-        var mh$ = clang_getFileName$constants.HANDLE;
+        var mh$ = clang_getFileName.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getFileName", allocator, SFile);
@@ -500,13 +536,13 @@ public class Index_h {
         }
     }
 
-    private static class clang_getNullLocation$constants {
+    private static class clang_getNullLocation {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceLocation.layout()    );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getNullLocation"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNullLocation");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -516,7 +552,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getNullLocation$descriptor() {
-        return clang_getNullLocation$constants.DESC;
+        return clang_getNullLocation.DESC;
     }
 
     /**
@@ -526,15 +562,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getNullLocation$handle() {
-        return clang_getNullLocation$constants.HANDLE;
+        return clang_getNullLocation.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceLocation clang_getNullLocation()
+     * }
+     */
+    public static MemorySegment clang_getNullLocation$address() {
+        return clang_getNullLocation.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceLocation clang_getNullLocation()
      * }
      */
     public static MemorySegment clang_getNullLocation(SegmentAllocator allocator) {
-        var mh$ = clang_getNullLocation$constants.HANDLE;
+        var mh$ = clang_getNullLocation.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getNullLocation", allocator);
@@ -545,16 +592,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_equalLocations$constants {
+    private static class clang_equalLocations {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXSourceLocation.layout(),
             CXSourceLocation.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_equalLocations"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_equalLocations");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -564,7 +611,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_equalLocations$descriptor() {
-        return clang_equalLocations$constants.DESC;
+        return clang_equalLocations.DESC;
     }
 
     /**
@@ -574,15 +621,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_equalLocations$handle() {
-        return clang_equalLocations$constants.HANDLE;
+        return clang_equalLocations.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_equalLocations(CXSourceLocation loc1, CXSourceLocation loc2)
+     * }
+     */
+    public static MemorySegment clang_equalLocations$address() {
+        return clang_equalLocations.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_equalLocations(CXSourceLocation loc1, CXSourceLocation loc2)
      * }
      */
     public static int clang_equalLocations(MemorySegment loc1, MemorySegment loc2) {
-        var mh$ = clang_equalLocations$constants.HANDLE;
+        var mh$ = clang_equalLocations.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_equalLocations", loc1, loc2);
@@ -593,7 +651,7 @@ public class Index_h {
         }
     }
 
-    private static class clang_getLocation$constants {
+    private static class clang_getLocation {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceLocation.layout(),
             Index_h.C_POINTER,
@@ -602,9 +660,9 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getLocation"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getLocation");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -614,7 +672,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getLocation$descriptor() {
-        return clang_getLocation$constants.DESC;
+        return clang_getLocation.DESC;
     }
 
     /**
@@ -624,15 +682,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getLocation$handle() {
-        return clang_getLocation$constants.HANDLE;
+        return clang_getLocation.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceLocation clang_getLocation(CXTranslationUnit tu, CXFile file, unsigned int line, unsigned int column)
+     * }
+     */
+    public static MemorySegment clang_getLocation$address() {
+        return clang_getLocation.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocation(CXTranslationUnit tu, CXFile file, unsigned int line, unsigned int column)
      * }
      */
     public static MemorySegment clang_getLocation(SegmentAllocator allocator, MemorySegment tu, MemorySegment file, int line, int column) {
-        var mh$ = clang_getLocation$constants.HANDLE;
+        var mh$ = clang_getLocation.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getLocation", allocator, tu, file, line, column);
@@ -643,7 +712,7 @@ public class Index_h {
         }
     }
 
-    private static class clang_getLocationForOffset$constants {
+    private static class clang_getLocationForOffset {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceLocation.layout(),
             Index_h.C_POINTER,
@@ -651,9 +720,9 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getLocationForOffset"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getLocationForOffset");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -663,7 +732,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getLocationForOffset$descriptor() {
-        return clang_getLocationForOffset$constants.DESC;
+        return clang_getLocationForOffset.DESC;
     }
 
     /**
@@ -673,15 +742,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getLocationForOffset$handle() {
-        return clang_getLocationForOffset$constants.HANDLE;
+        return clang_getLocationForOffset.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceLocation clang_getLocationForOffset(CXTranslationUnit tu, CXFile file, unsigned int offset)
+     * }
+     */
+    public static MemorySegment clang_getLocationForOffset$address() {
+        return clang_getLocationForOffset.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocationForOffset(CXTranslationUnit tu, CXFile file, unsigned int offset)
      * }
      */
     public static MemorySegment clang_getLocationForOffset(SegmentAllocator allocator, MemorySegment tu, MemorySegment file, int offset) {
-        var mh$ = clang_getLocationForOffset$constants.HANDLE;
+        var mh$ = clang_getLocationForOffset.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getLocationForOffset", allocator, tu, file, offset);
@@ -692,15 +772,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Location_isInSystemHeader$constants {
+    private static class clang_Location_isInSystemHeader {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXSourceLocation.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Location_isInSystemHeader"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Location_isInSystemHeader");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -710,7 +790,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Location_isInSystemHeader$descriptor() {
-        return clang_Location_isInSystemHeader$constants.DESC;
+        return clang_Location_isInSystemHeader.DESC;
     }
 
     /**
@@ -720,15 +800,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Location_isInSystemHeader$handle() {
-        return clang_Location_isInSystemHeader$constants.HANDLE;
+        return clang_Location_isInSystemHeader.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_Location_isInSystemHeader(CXSourceLocation location)
+     * }
+     */
+    public static MemorySegment clang_Location_isInSystemHeader$address() {
+        return clang_Location_isInSystemHeader.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_Location_isInSystemHeader(CXSourceLocation location)
      * }
      */
     public static int clang_Location_isInSystemHeader(MemorySegment location) {
-        var mh$ = clang_Location_isInSystemHeader$constants.HANDLE;
+        var mh$ = clang_Location_isInSystemHeader.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Location_isInSystemHeader", location);
@@ -739,15 +830,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Location_isFromMainFile$constants {
+    private static class clang_Location_isFromMainFile {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXSourceLocation.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Location_isFromMainFile"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Location_isFromMainFile");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -757,7 +848,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Location_isFromMainFile$descriptor() {
-        return clang_Location_isFromMainFile$constants.DESC;
+        return clang_Location_isFromMainFile.DESC;
     }
 
     /**
@@ -767,15 +858,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Location_isFromMainFile$handle() {
-        return clang_Location_isFromMainFile$constants.HANDLE;
+        return clang_Location_isFromMainFile.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_Location_isFromMainFile(CXSourceLocation location)
+     * }
+     */
+    public static MemorySegment clang_Location_isFromMainFile$address() {
+        return clang_Location_isFromMainFile.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_Location_isFromMainFile(CXSourceLocation location)
      * }
      */
     public static int clang_Location_isFromMainFile(MemorySegment location) {
-        var mh$ = clang_Location_isFromMainFile$constants.HANDLE;
+        var mh$ = clang_Location_isFromMainFile.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Location_isFromMainFile", location);
@@ -786,15 +888,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Range_isNull$constants {
+    private static class clang_Range_isNull {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXSourceRange.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Range_isNull"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Range_isNull");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -804,7 +906,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Range_isNull$descriptor() {
-        return clang_Range_isNull$constants.DESC;
+        return clang_Range_isNull.DESC;
     }
 
     /**
@@ -814,15 +916,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Range_isNull$handle() {
-        return clang_Range_isNull$constants.HANDLE;
+        return clang_Range_isNull.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_Range_isNull(CXSourceRange range)
+     * }
+     */
+    public static MemorySegment clang_Range_isNull$address() {
+        return clang_Range_isNull.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_Range_isNull(CXSourceRange range)
      * }
      */
     public static int clang_Range_isNull(MemorySegment range) {
-        var mh$ = clang_Range_isNull$constants.HANDLE;
+        var mh$ = clang_Range_isNull.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Range_isNull", range);
@@ -833,7 +946,7 @@ public class Index_h {
         }
     }
 
-    private static class clang_getExpansionLocation$constants {
+    private static class clang_getExpansionLocation {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             CXSourceLocation.layout(),
             Index_h.C_POINTER,
@@ -842,9 +955,9 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getExpansionLocation"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getExpansionLocation");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -854,7 +967,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getExpansionLocation$descriptor() {
-        return clang_getExpansionLocation$constants.DESC;
+        return clang_getExpansionLocation.DESC;
     }
 
     /**
@@ -864,15 +977,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getExpansionLocation$handle() {
-        return clang_getExpansionLocation$constants.HANDLE;
+        return clang_getExpansionLocation.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_getExpansionLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
+     * }
+     */
+    public static MemorySegment clang_getExpansionLocation$address() {
+        return clang_getExpansionLocation.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_getExpansionLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
      */
     public static void clang_getExpansionLocation(MemorySegment location, MemorySegment file, MemorySegment line, MemorySegment column, MemorySegment offset) {
-        var mh$ = clang_getExpansionLocation$constants.HANDLE;
+        var mh$ = clang_getExpansionLocation.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getExpansionLocation", location, file, line, column, offset);
@@ -883,7 +1007,7 @@ public class Index_h {
         }
     }
 
-    private static class clang_getSpellingLocation$constants {
+    private static class clang_getSpellingLocation {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             CXSourceLocation.layout(),
             Index_h.C_POINTER,
@@ -892,9 +1016,9 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getSpellingLocation"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getSpellingLocation");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -904,7 +1028,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getSpellingLocation$descriptor() {
-        return clang_getSpellingLocation$constants.DESC;
+        return clang_getSpellingLocation.DESC;
     }
 
     /**
@@ -914,15 +1038,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getSpellingLocation$handle() {
-        return clang_getSpellingLocation$constants.HANDLE;
+        return clang_getSpellingLocation.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_getSpellingLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
+     * }
+     */
+    public static MemorySegment clang_getSpellingLocation$address() {
+        return clang_getSpellingLocation.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_getSpellingLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
      */
     public static void clang_getSpellingLocation(MemorySegment location, MemorySegment file, MemorySegment line, MemorySegment column, MemorySegment offset) {
-        var mh$ = clang_getSpellingLocation$constants.HANDLE;
+        var mh$ = clang_getSpellingLocation.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getSpellingLocation", location, file, line, column, offset);
@@ -933,7 +1068,7 @@ public class Index_h {
         }
     }
 
-    private static class clang_getFileLocation$constants {
+    private static class clang_getFileLocation {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             CXSourceLocation.layout(),
             Index_h.C_POINTER,
@@ -942,9 +1077,9 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getFileLocation"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getFileLocation");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -954,7 +1089,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getFileLocation$descriptor() {
-        return clang_getFileLocation$constants.DESC;
+        return clang_getFileLocation.DESC;
     }
 
     /**
@@ -964,15 +1099,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getFileLocation$handle() {
-        return clang_getFileLocation$constants.HANDLE;
+        return clang_getFileLocation.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_getFileLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
+     * }
+     */
+    public static MemorySegment clang_getFileLocation$address() {
+        return clang_getFileLocation.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_getFileLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
      */
     public static void clang_getFileLocation(MemorySegment location, MemorySegment file, MemorySegment line, MemorySegment column, MemorySegment offset) {
-        var mh$ = clang_getFileLocation$constants.HANDLE;
+        var mh$ = clang_getFileLocation.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getFileLocation", location, file, line, column, offset);
@@ -983,15 +1129,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getRangeStart$constants {
+    private static class clang_getRangeStart {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceLocation.layout(),
             CXSourceRange.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getRangeStart"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getRangeStart");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1001,7 +1147,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getRangeStart$descriptor() {
-        return clang_getRangeStart$constants.DESC;
+        return clang_getRangeStart.DESC;
     }
 
     /**
@@ -1011,15 +1157,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getRangeStart$handle() {
-        return clang_getRangeStart$constants.HANDLE;
+        return clang_getRangeStart.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceLocation clang_getRangeStart(CXSourceRange range)
+     * }
+     */
+    public static MemorySegment clang_getRangeStart$address() {
+        return clang_getRangeStart.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeStart(CXSourceRange range)
      * }
      */
     public static MemorySegment clang_getRangeStart(SegmentAllocator allocator, MemorySegment range) {
-        var mh$ = clang_getRangeStart$constants.HANDLE;
+        var mh$ = clang_getRangeStart.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getRangeStart", allocator, range);
@@ -1030,15 +1187,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getRangeEnd$constants {
+    private static class clang_getRangeEnd {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceLocation.layout(),
             CXSourceRange.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getRangeEnd"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getRangeEnd");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1048,7 +1205,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getRangeEnd$descriptor() {
-        return clang_getRangeEnd$constants.DESC;
+        return clang_getRangeEnd.DESC;
     }
 
     /**
@@ -1058,15 +1215,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getRangeEnd$handle() {
-        return clang_getRangeEnd$constants.HANDLE;
+        return clang_getRangeEnd.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceLocation clang_getRangeEnd(CXSourceRange range)
+     * }
+     */
+    public static MemorySegment clang_getRangeEnd$address() {
+        return clang_getRangeEnd.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeEnd(CXSourceRange range)
      * }
      */
     public static MemorySegment clang_getRangeEnd(SegmentAllocator allocator, MemorySegment range) {
-        var mh$ = clang_getRangeEnd$constants.HANDLE;
+        var mh$ = clang_getRangeEnd.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getRangeEnd", allocator, range);
@@ -1122,15 +1290,15 @@ public class Index_h {
         return CXDiagnostic_Fatal;
     }
 
-    private static class clang_getChildDiagnostics$constants {
+    private static class clang_getChildDiagnostics {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_POINTER,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getChildDiagnostics"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getChildDiagnostics");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1140,7 +1308,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getChildDiagnostics$descriptor() {
-        return clang_getChildDiagnostics$constants.DESC;
+        return clang_getChildDiagnostics.DESC;
     }
 
     /**
@@ -1150,15 +1318,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getChildDiagnostics$handle() {
-        return clang_getChildDiagnostics$constants.HANDLE;
+        return clang_getChildDiagnostics.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXDiagnosticSet clang_getChildDiagnostics(CXDiagnostic D)
+     * }
+     */
+    public static MemorySegment clang_getChildDiagnostics$address() {
+        return clang_getChildDiagnostics.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXDiagnosticSet clang_getChildDiagnostics(CXDiagnostic D)
      * }
      */
     public static MemorySegment clang_getChildDiagnostics(MemorySegment D) {
-        var mh$ = clang_getChildDiagnostics$constants.HANDLE;
+        var mh$ = clang_getChildDiagnostics.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getChildDiagnostics", D);
@@ -1169,15 +1348,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getNumDiagnostics$constants {
+    private static class clang_getNumDiagnostics {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getNumDiagnostics"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNumDiagnostics");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1187,7 +1366,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getNumDiagnostics$descriptor() {
-        return clang_getNumDiagnostics$constants.DESC;
+        return clang_getNumDiagnostics.DESC;
     }
 
     /**
@@ -1197,15 +1376,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getNumDiagnostics$handle() {
-        return clang_getNumDiagnostics$constants.HANDLE;
+        return clang_getNumDiagnostics.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_getNumDiagnostics(CXTranslationUnit Unit)
+     * }
+     */
+    public static MemorySegment clang_getNumDiagnostics$address() {
+        return clang_getNumDiagnostics.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_getNumDiagnostics(CXTranslationUnit Unit)
      * }
      */
     public static int clang_getNumDiagnostics(MemorySegment Unit) {
-        var mh$ = clang_getNumDiagnostics$constants.HANDLE;
+        var mh$ = clang_getNumDiagnostics.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getNumDiagnostics", Unit);
@@ -1216,16 +1406,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_getDiagnostic$constants {
+    private static class clang_getDiagnostic {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_POINTER,
             Index_h.C_POINTER,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getDiagnostic"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getDiagnostic");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1235,7 +1425,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getDiagnostic$descriptor() {
-        return clang_getDiagnostic$constants.DESC;
+        return clang_getDiagnostic.DESC;
     }
 
     /**
@@ -1245,15 +1435,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getDiagnostic$handle() {
-        return clang_getDiagnostic$constants.HANDLE;
+        return clang_getDiagnostic.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXDiagnostic clang_getDiagnostic(CXTranslationUnit Unit, unsigned int Index)
+     * }
+     */
+    public static MemorySegment clang_getDiagnostic$address() {
+        return clang_getDiagnostic.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXDiagnostic clang_getDiagnostic(CXTranslationUnit Unit, unsigned int Index)
      * }
      */
     public static MemorySegment clang_getDiagnostic(MemorySegment Unit, int Index) {
-        var mh$ = clang_getDiagnostic$constants.HANDLE;
+        var mh$ = clang_getDiagnostic.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getDiagnostic", Unit, Index);
@@ -1264,14 +1465,14 @@ public class Index_h {
         }
     }
 
-    private static class clang_disposeDiagnostic$constants {
+    private static class clang_disposeDiagnostic {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_disposeDiagnostic"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeDiagnostic");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1281,7 +1482,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_disposeDiagnostic$descriptor() {
-        return clang_disposeDiagnostic$constants.DESC;
+        return clang_disposeDiagnostic.DESC;
     }
 
     /**
@@ -1291,15 +1492,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_disposeDiagnostic$handle() {
-        return clang_disposeDiagnostic$constants.HANDLE;
+        return clang_disposeDiagnostic.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_disposeDiagnostic(CXDiagnostic Diagnostic)
+     * }
+     */
+    public static MemorySegment clang_disposeDiagnostic$address() {
+        return clang_disposeDiagnostic.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_disposeDiagnostic(CXDiagnostic Diagnostic)
      * }
      */
     public static void clang_disposeDiagnostic(MemorySegment Diagnostic) {
-        var mh$ = clang_disposeDiagnostic$constants.HANDLE;
+        var mh$ = clang_disposeDiagnostic.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_disposeDiagnostic", Diagnostic);
@@ -1364,16 +1576,16 @@ public class Index_h {
         return CXDiagnostic_DisplayCategoryName;
     }
 
-    private static class clang_formatDiagnostic$constants {
+    private static class clang_formatDiagnostic {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             Index_h.C_POINTER,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_formatDiagnostic"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_formatDiagnostic");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1383,7 +1595,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_formatDiagnostic$descriptor() {
-        return clang_formatDiagnostic$constants.DESC;
+        return clang_formatDiagnostic.DESC;
     }
 
     /**
@@ -1393,15 +1605,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_formatDiagnostic$handle() {
-        return clang_formatDiagnostic$constants.HANDLE;
+        return clang_formatDiagnostic.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_formatDiagnostic(CXDiagnostic Diagnostic, unsigned int Options)
+     * }
+     */
+    public static MemorySegment clang_formatDiagnostic$address() {
+        return clang_formatDiagnostic.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_formatDiagnostic(CXDiagnostic Diagnostic, unsigned int Options)
      * }
      */
     public static MemorySegment clang_formatDiagnostic(SegmentAllocator allocator, MemorySegment Diagnostic, int Options) {
-        var mh$ = clang_formatDiagnostic$constants.HANDLE;
+        var mh$ = clang_formatDiagnostic.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_formatDiagnostic", allocator, Diagnostic, Options);
@@ -1412,13 +1635,13 @@ public class Index_h {
         }
     }
 
-    private static class clang_defaultDiagnosticDisplayOptions$constants {
+    private static class clang_defaultDiagnosticDisplayOptions {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT    );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_defaultDiagnosticDisplayOptions"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_defaultDiagnosticDisplayOptions");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1428,7 +1651,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_defaultDiagnosticDisplayOptions$descriptor() {
-        return clang_defaultDiagnosticDisplayOptions$constants.DESC;
+        return clang_defaultDiagnosticDisplayOptions.DESC;
     }
 
     /**
@@ -1438,15 +1661,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_defaultDiagnosticDisplayOptions$handle() {
-        return clang_defaultDiagnosticDisplayOptions$constants.HANDLE;
+        return clang_defaultDiagnosticDisplayOptions.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_defaultDiagnosticDisplayOptions()
+     * }
+     */
+    public static MemorySegment clang_defaultDiagnosticDisplayOptions$address() {
+        return clang_defaultDiagnosticDisplayOptions.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_defaultDiagnosticDisplayOptions()
      * }
      */
     public static int clang_defaultDiagnosticDisplayOptions() {
-        var mh$ = clang_defaultDiagnosticDisplayOptions$constants.HANDLE;
+        var mh$ = clang_defaultDiagnosticDisplayOptions.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_defaultDiagnosticDisplayOptions");
@@ -1457,15 +1691,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getDiagnosticSeverity$constants {
+    private static class clang_getDiagnosticSeverity {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getDiagnosticSeverity"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getDiagnosticSeverity");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1475,7 +1709,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getDiagnosticSeverity$descriptor() {
-        return clang_getDiagnosticSeverity$constants.DESC;
+        return clang_getDiagnosticSeverity.DESC;
     }
 
     /**
@@ -1485,15 +1719,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getDiagnosticSeverity$handle() {
-        return clang_getDiagnosticSeverity$constants.HANDLE;
+        return clang_getDiagnosticSeverity.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * enum CXDiagnosticSeverity clang_getDiagnosticSeverity(CXDiagnostic)
+     * }
+     */
+    public static MemorySegment clang_getDiagnosticSeverity$address() {
+        return clang_getDiagnosticSeverity.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity clang_getDiagnosticSeverity(CXDiagnostic)
      * }
      */
     public static int clang_getDiagnosticSeverity(MemorySegment x0) {
-        var mh$ = clang_getDiagnosticSeverity$constants.HANDLE;
+        var mh$ = clang_getDiagnosticSeverity.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getDiagnosticSeverity", x0);
@@ -1504,15 +1749,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getDiagnosticLocation$constants {
+    private static class clang_getDiagnosticLocation {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceLocation.layout(),
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getDiagnosticLocation"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getDiagnosticLocation");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1522,7 +1767,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getDiagnosticLocation$descriptor() {
-        return clang_getDiagnosticLocation$constants.DESC;
+        return clang_getDiagnosticLocation.DESC;
     }
 
     /**
@@ -1532,15 +1777,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getDiagnosticLocation$handle() {
-        return clang_getDiagnosticLocation$constants.HANDLE;
+        return clang_getDiagnosticLocation.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceLocation clang_getDiagnosticLocation(CXDiagnostic)
+     * }
+     */
+    public static MemorySegment clang_getDiagnosticLocation$address() {
+        return clang_getDiagnosticLocation.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceLocation clang_getDiagnosticLocation(CXDiagnostic)
      * }
      */
     public static MemorySegment clang_getDiagnosticLocation(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getDiagnosticLocation$constants.HANDLE;
+        var mh$ = clang_getDiagnosticLocation.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getDiagnosticLocation", allocator, x0);
@@ -1551,15 +1807,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getDiagnosticSpelling$constants {
+    private static class clang_getDiagnosticSpelling {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getDiagnosticSpelling"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getDiagnosticSpelling");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1569,7 +1825,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getDiagnosticSpelling$descriptor() {
-        return clang_getDiagnosticSpelling$constants.DESC;
+        return clang_getDiagnosticSpelling.DESC;
     }
 
     /**
@@ -1579,15 +1835,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getDiagnosticSpelling$handle() {
-        return clang_getDiagnosticSpelling$constants.HANDLE;
+        return clang_getDiagnosticSpelling.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getDiagnosticSpelling(CXDiagnostic)
+     * }
+     */
+    public static MemorySegment clang_getDiagnosticSpelling$address() {
+        return clang_getDiagnosticSpelling.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getDiagnosticSpelling(CXDiagnostic)
      * }
      */
     public static MemorySegment clang_getDiagnosticSpelling(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getDiagnosticSpelling$constants.HANDLE;
+        var mh$ = clang_getDiagnosticSpelling.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getDiagnosticSpelling", allocator, x0);
@@ -1751,7 +2018,7 @@ public class Index_h {
         return CXTranslationUnit_RetainExcludedConditionalBlocks;
     }
 
-    private static class clang_parseTranslationUnit$constants {
+    private static class clang_parseTranslationUnit {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_POINTER,
             Index_h.C_POINTER,
@@ -1763,9 +2030,9 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_parseTranslationUnit"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_parseTranslationUnit");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1775,7 +2042,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_parseTranslationUnit$descriptor() {
-        return clang_parseTranslationUnit$constants.DESC;
+        return clang_parseTranslationUnit.DESC;
     }
 
     /**
@@ -1785,15 +2052,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_parseTranslationUnit$handle() {
-        return clang_parseTranslationUnit$constants.HANDLE;
+        return clang_parseTranslationUnit.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXTranslationUnit clang_parseTranslationUnit(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options)
+     * }
+     */
+    public static MemorySegment clang_parseTranslationUnit$address() {
+        return clang_parseTranslationUnit.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXTranslationUnit clang_parseTranslationUnit(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options)
      * }
      */
     public static MemorySegment clang_parseTranslationUnit(MemorySegment CIdx, MemorySegment source_filename, MemorySegment command_line_args, int num_command_line_args, MemorySegment unsaved_files, int num_unsaved_files, int options) {
-        var mh$ = clang_parseTranslationUnit$constants.HANDLE;
+        var mh$ = clang_parseTranslationUnit.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_parseTranslationUnit", CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
@@ -1804,7 +2082,7 @@ public class Index_h {
         }
     }
 
-    private static class clang_parseTranslationUnit2$constants {
+    private static class clang_parseTranslationUnit2 {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER,
@@ -1817,9 +2095,9 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_parseTranslationUnit2"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_parseTranslationUnit2");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1829,7 +2107,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_parseTranslationUnit2$descriptor() {
-        return clang_parseTranslationUnit2$constants.DESC;
+        return clang_parseTranslationUnit2.DESC;
     }
 
     /**
@@ -1839,15 +2117,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_parseTranslationUnit2$handle() {
-        return clang_parseTranslationUnit2$constants.HANDLE;
+        return clang_parseTranslationUnit2.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * enum CXErrorCode clang_parseTranslationUnit2(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options, CXTranslationUnit *out_TU)
+     * }
+     */
+    public static MemorySegment clang_parseTranslationUnit2$address() {
+        return clang_parseTranslationUnit2.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * enum CXErrorCode clang_parseTranslationUnit2(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options, CXTranslationUnit *out_TU)
      * }
      */
     public static int clang_parseTranslationUnit2(MemorySegment CIdx, MemorySegment source_filename, MemorySegment command_line_args, int num_command_line_args, MemorySegment unsaved_files, int num_unsaved_files, int options, MemorySegment out_TU) {
-        var mh$ = clang_parseTranslationUnit2$constants.HANDLE;
+        var mh$ = clang_parseTranslationUnit2.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_parseTranslationUnit2", CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options, out_TU);
@@ -1903,7 +2192,7 @@ public class Index_h {
         return CXSaveError_InvalidTU;
     }
 
-    private static class clang_saveTranslationUnit$constants {
+    private static class clang_saveTranslationUnit {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER,
@@ -1911,9 +2200,9 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_saveTranslationUnit"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_saveTranslationUnit");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1923,7 +2212,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_saveTranslationUnit$descriptor() {
-        return clang_saveTranslationUnit$constants.DESC;
+        return clang_saveTranslationUnit.DESC;
     }
 
     /**
@@ -1933,15 +2222,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_saveTranslationUnit$handle() {
-        return clang_saveTranslationUnit$constants.HANDLE;
+        return clang_saveTranslationUnit.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_saveTranslationUnit(CXTranslationUnit TU, const char *FileName, unsigned int options)
+     * }
+     */
+    public static MemorySegment clang_saveTranslationUnit$address() {
+        return clang_saveTranslationUnit.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_saveTranslationUnit(CXTranslationUnit TU, const char *FileName, unsigned int options)
      * }
      */
     public static int clang_saveTranslationUnit(MemorySegment TU, MemorySegment FileName, int options) {
-        var mh$ = clang_saveTranslationUnit$constants.HANDLE;
+        var mh$ = clang_saveTranslationUnit.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_saveTranslationUnit", TU, FileName, options);
@@ -1952,14 +2252,14 @@ public class Index_h {
         }
     }
 
-    private static class clang_disposeTranslationUnit$constants {
+    private static class clang_disposeTranslationUnit {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_disposeTranslationUnit"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeTranslationUnit");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -1969,7 +2269,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_disposeTranslationUnit$descriptor() {
-        return clang_disposeTranslationUnit$constants.DESC;
+        return clang_disposeTranslationUnit.DESC;
     }
 
     /**
@@ -1979,15 +2279,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_disposeTranslationUnit$handle() {
-        return clang_disposeTranslationUnit$constants.HANDLE;
+        return clang_disposeTranslationUnit.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_disposeTranslationUnit(CXTranslationUnit)
+     * }
+     */
+    public static MemorySegment clang_disposeTranslationUnit$address() {
+        return clang_disposeTranslationUnit.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_disposeTranslationUnit(CXTranslationUnit)
      * }
      */
     public static void clang_disposeTranslationUnit(MemorySegment x0) {
-        var mh$ = clang_disposeTranslationUnit$constants.HANDLE;
+        var mh$ = clang_disposeTranslationUnit.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_disposeTranslationUnit", x0);
@@ -2007,15 +2318,15 @@ public class Index_h {
         return CXReparse_None;
     }
 
-    private static class clang_defaultReparseOptions$constants {
+    private static class clang_defaultReparseOptions {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_defaultReparseOptions"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_defaultReparseOptions");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -2025,7 +2336,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_defaultReparseOptions$descriptor() {
-        return clang_defaultReparseOptions$constants.DESC;
+        return clang_defaultReparseOptions.DESC;
     }
 
     /**
@@ -2035,15 +2346,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_defaultReparseOptions$handle() {
-        return clang_defaultReparseOptions$constants.HANDLE;
+        return clang_defaultReparseOptions.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_defaultReparseOptions(CXTranslationUnit TU)
+     * }
+     */
+    public static MemorySegment clang_defaultReparseOptions$address() {
+        return clang_defaultReparseOptions.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_defaultReparseOptions(CXTranslationUnit TU)
      * }
      */
     public static int clang_defaultReparseOptions(MemorySegment TU) {
-        var mh$ = clang_defaultReparseOptions$constants.HANDLE;
+        var mh$ = clang_defaultReparseOptions.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_defaultReparseOptions", TU);
@@ -2054,7 +2376,7 @@ public class Index_h {
         }
     }
 
-    private static class clang_reparseTranslationUnit$constants {
+    private static class clang_reparseTranslationUnit {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER,
@@ -2063,9 +2385,9 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_reparseTranslationUnit"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_reparseTranslationUnit");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -2075,7 +2397,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_reparseTranslationUnit$descriptor() {
-        return clang_reparseTranslationUnit$constants.DESC;
+        return clang_reparseTranslationUnit.DESC;
     }
 
     /**
@@ -2085,15 +2407,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_reparseTranslationUnit$handle() {
-        return clang_reparseTranslationUnit$constants.HANDLE;
+        return clang_reparseTranslationUnit.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_reparseTranslationUnit(CXTranslationUnit TU, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files, unsigned int options)
+     * }
+     */
+    public static MemorySegment clang_reparseTranslationUnit$address() {
+        return clang_reparseTranslationUnit.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_reparseTranslationUnit(CXTranslationUnit TU, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files, unsigned int options)
      * }
      */
     public static int clang_reparseTranslationUnit(MemorySegment TU, int num_unsaved_files, MemorySegment unsaved_files, int options) {
-        var mh$ = clang_reparseTranslationUnit$constants.HANDLE;
+        var mh$ = clang_reparseTranslationUnit.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_reparseTranslationUnit", TU, num_unsaved_files, unsaved_files, options);
@@ -4435,13 +4768,13 @@ public class Index_h {
         return CXCursor_OverloadCandidate;
     }
 
-    private static class clang_getNullCursor$constants {
+    private static class clang_getNullCursor {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXCursor.layout()    );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getNullCursor"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNullCursor");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4451,7 +4784,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getNullCursor$descriptor() {
-        return clang_getNullCursor$constants.DESC;
+        return clang_getNullCursor.DESC;
     }
 
     /**
@@ -4461,15 +4794,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getNullCursor$handle() {
-        return clang_getNullCursor$constants.HANDLE;
+        return clang_getNullCursor.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXCursor clang_getNullCursor()
+     * }
+     */
+    public static MemorySegment clang_getNullCursor$address() {
+        return clang_getNullCursor.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXCursor clang_getNullCursor()
      * }
      */
     public static MemorySegment clang_getNullCursor(SegmentAllocator allocator) {
-        var mh$ = clang_getNullCursor$constants.HANDLE;
+        var mh$ = clang_getNullCursor.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getNullCursor", allocator);
@@ -4480,15 +4824,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getTranslationUnitCursor$constants {
+    private static class clang_getTranslationUnitCursor {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXCursor.layout(),
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTranslationUnitCursor"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTranslationUnitCursor");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4498,7 +4842,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTranslationUnitCursor$descriptor() {
-        return clang_getTranslationUnitCursor$constants.DESC;
+        return clang_getTranslationUnitCursor.DESC;
     }
 
     /**
@@ -4508,15 +4852,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTranslationUnitCursor$handle() {
-        return clang_getTranslationUnitCursor$constants.HANDLE;
+        return clang_getTranslationUnitCursor.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXCursor clang_getTranslationUnitCursor(CXTranslationUnit)
+     * }
+     */
+    public static MemorySegment clang_getTranslationUnitCursor$address() {
+        return clang_getTranslationUnitCursor.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXCursor clang_getTranslationUnitCursor(CXTranslationUnit)
      * }
      */
     public static MemorySegment clang_getTranslationUnitCursor(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getTranslationUnitCursor$constants.HANDLE;
+        var mh$ = clang_getTranslationUnitCursor.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTranslationUnitCursor", allocator, x0);
@@ -4527,16 +4882,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_equalCursors$constants {
+    private static class clang_equalCursors {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_equalCursors"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_equalCursors");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4546,7 +4901,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_equalCursors$descriptor() {
-        return clang_equalCursors$constants.DESC;
+        return clang_equalCursors.DESC;
     }
 
     /**
@@ -4556,15 +4911,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_equalCursors$handle() {
-        return clang_equalCursors$constants.HANDLE;
+        return clang_equalCursors.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_equalCursors(CXCursor, CXCursor)
+     * }
+     */
+    public static MemorySegment clang_equalCursors$address() {
+        return clang_equalCursors.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_equalCursors(CXCursor, CXCursor)
      * }
      */
     public static int clang_equalCursors(MemorySegment x0, MemorySegment x1) {
-        var mh$ = clang_equalCursors$constants.HANDLE;
+        var mh$ = clang_equalCursors.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_equalCursors", x0, x1);
@@ -4575,15 +4941,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_isNull$constants {
+    private static class clang_Cursor_isNull {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_isNull"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isNull");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4593,7 +4959,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_isNull$descriptor() {
-        return clang_Cursor_isNull$constants.DESC;
+        return clang_Cursor_isNull.DESC;
     }
 
     /**
@@ -4603,15 +4969,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_isNull$handle() {
-        return clang_Cursor_isNull$constants.HANDLE;
+        return clang_Cursor_isNull.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_Cursor_isNull(CXCursor cursor)
+     * }
+     */
+    public static MemorySegment clang_Cursor_isNull$address() {
+        return clang_Cursor_isNull.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_Cursor_isNull(CXCursor cursor)
      * }
      */
     public static int clang_Cursor_isNull(MemorySegment cursor) {
-        var mh$ = clang_Cursor_isNull$constants.HANDLE;
+        var mh$ = clang_Cursor_isNull.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_isNull", cursor);
@@ -4622,15 +4999,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorKind$constants {
+    private static class clang_getCursorKind {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorKind"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorKind");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4640,7 +5017,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorKind$descriptor() {
-        return clang_getCursorKind$constants.DESC;
+        return clang_getCursorKind.DESC;
     }
 
     /**
@@ -4650,15 +5027,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorKind$handle() {
-        return clang_getCursorKind$constants.HANDLE;
+        return clang_getCursorKind.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * enum CXCursorKind clang_getCursorKind(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorKind$address() {
+        return clang_getCursorKind.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * enum CXCursorKind clang_getCursorKind(CXCursor)
      * }
      */
     public static int clang_getCursorKind(MemorySegment x0) {
-        var mh$ = clang_getCursorKind$constants.HANDLE;
+        var mh$ = clang_getCursorKind.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorKind", x0);
@@ -4669,15 +5057,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_isDeclaration$constants {
+    private static class clang_isDeclaration {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_isDeclaration"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isDeclaration");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4687,7 +5075,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_isDeclaration$descriptor() {
-        return clang_isDeclaration$constants.DESC;
+        return clang_isDeclaration.DESC;
     }
 
     /**
@@ -4697,15 +5085,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_isDeclaration$handle() {
-        return clang_isDeclaration$constants.HANDLE;
+        return clang_isDeclaration.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_isDeclaration(enum CXCursorKind)
+     * }
+     */
+    public static MemorySegment clang_isDeclaration$address() {
+        return clang_isDeclaration.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_isDeclaration(enum CXCursorKind)
      * }
      */
     public static int clang_isDeclaration(int x0) {
-        var mh$ = clang_isDeclaration$constants.HANDLE;
+        var mh$ = clang_isDeclaration.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_isDeclaration", x0);
@@ -4716,15 +5115,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_isAttribute$constants {
+    private static class clang_isAttribute {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_isAttribute"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isAttribute");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4734,7 +5133,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_isAttribute$descriptor() {
-        return clang_isAttribute$constants.DESC;
+        return clang_isAttribute.DESC;
     }
 
     /**
@@ -4744,15 +5143,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_isAttribute$handle() {
-        return clang_isAttribute$constants.HANDLE;
+        return clang_isAttribute.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_isAttribute(enum CXCursorKind)
+     * }
+     */
+    public static MemorySegment clang_isAttribute$address() {
+        return clang_isAttribute.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_isAttribute(enum CXCursorKind)
      * }
      */
     public static int clang_isAttribute(int x0) {
-        var mh$ = clang_isAttribute$constants.HANDLE;
+        var mh$ = clang_isAttribute.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_isAttribute", x0);
@@ -4763,15 +5173,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_isInvalid$constants {
+    private static class clang_isInvalid {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_isInvalid"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isInvalid");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4781,7 +5191,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_isInvalid$descriptor() {
-        return clang_isInvalid$constants.DESC;
+        return clang_isInvalid.DESC;
     }
 
     /**
@@ -4791,15 +5201,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_isInvalid$handle() {
-        return clang_isInvalid$constants.HANDLE;
+        return clang_isInvalid.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_isInvalid(enum CXCursorKind)
+     * }
+     */
+    public static MemorySegment clang_isInvalid$address() {
+        return clang_isInvalid.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_isInvalid(enum CXCursorKind)
      * }
      */
     public static int clang_isInvalid(int x0) {
-        var mh$ = clang_isInvalid$constants.HANDLE;
+        var mh$ = clang_isInvalid.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_isInvalid", x0);
@@ -4810,15 +5231,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_isPreprocessing$constants {
+    private static class clang_isPreprocessing {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_isPreprocessing"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isPreprocessing");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4828,7 +5249,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_isPreprocessing$descriptor() {
-        return clang_isPreprocessing$constants.DESC;
+        return clang_isPreprocessing.DESC;
     }
 
     /**
@@ -4838,15 +5259,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_isPreprocessing$handle() {
-        return clang_isPreprocessing$constants.HANDLE;
+        return clang_isPreprocessing.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_isPreprocessing(enum CXCursorKind)
+     * }
+     */
+    public static MemorySegment clang_isPreprocessing$address() {
+        return clang_isPreprocessing.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_isPreprocessing(enum CXCursorKind)
      * }
      */
     public static int clang_isPreprocessing(int x0) {
-        var mh$ = clang_isPreprocessing$constants.HANDLE;
+        var mh$ = clang_isPreprocessing.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_isPreprocessing", x0);
@@ -4902,15 +5334,15 @@ public class Index_h {
         return CXLinkage_External;
     }
 
-    private static class clang_getCursorLinkage$constants {
+    private static class clang_getCursorLinkage {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorLinkage"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorLinkage");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -4920,7 +5352,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorLinkage$descriptor() {
-        return clang_getCursorLinkage$constants.DESC;
+        return clang_getCursorLinkage.DESC;
     }
 
     /**
@@ -4930,15 +5362,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorLinkage$handle() {
-        return clang_getCursorLinkage$constants.HANDLE;
+        return clang_getCursorLinkage.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * enum CXLinkageKind clang_getCursorLinkage(CXCursor cursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorLinkage$address() {
+        return clang_getCursorLinkage.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * enum CXLinkageKind clang_getCursorLinkage(CXCursor cursor)
      * }
      */
     public static int clang_getCursorLinkage(MemorySegment cursor) {
-        var mh$ = clang_getCursorLinkage$constants.HANDLE;
+        var mh$ = clang_getCursorLinkage.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorLinkage", cursor);
@@ -4985,15 +5428,15 @@ public class Index_h {
         return CXLanguage_CPlusPlus;
     }
 
-    private static class clang_getCursorLanguage$constants {
+    private static class clang_getCursorLanguage {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorLanguage"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorLanguage");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -5003,7 +5446,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorLanguage$descriptor() {
-        return clang_getCursorLanguage$constants.DESC;
+        return clang_getCursorLanguage.DESC;
     }
 
     /**
@@ -5013,15 +5456,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorLanguage$handle() {
-        return clang_getCursorLanguage$constants.HANDLE;
+        return clang_getCursorLanguage.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * enum CXLanguageKind clang_getCursorLanguage(CXCursor cursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorLanguage$address() {
+        return clang_getCursorLanguage.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * enum CXLanguageKind clang_getCursorLanguage(CXCursor cursor)
      * }
      */
     public static int clang_getCursorLanguage(MemorySegment cursor) {
-        var mh$ = clang_getCursorLanguage$constants.HANDLE;
+        var mh$ = clang_getCursorLanguage.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorLanguage", cursor);
@@ -5032,15 +5486,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_getTranslationUnit$constants {
+    private static class clang_Cursor_getTranslationUnit {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_POINTER,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_getTranslationUnit"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_getTranslationUnit");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -5050,7 +5504,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_getTranslationUnit$descriptor() {
-        return clang_Cursor_getTranslationUnit$constants.DESC;
+        return clang_Cursor_getTranslationUnit.DESC;
     }
 
     /**
@@ -5060,15 +5514,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_getTranslationUnit$handle() {
-        return clang_Cursor_getTranslationUnit$constants.HANDLE;
+        return clang_Cursor_getTranslationUnit.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXTranslationUnit clang_Cursor_getTranslationUnit(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_Cursor_getTranslationUnit$address() {
+        return clang_Cursor_getTranslationUnit.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXTranslationUnit clang_Cursor_getTranslationUnit(CXCursor)
      * }
      */
     public static MemorySegment clang_Cursor_getTranslationUnit(MemorySegment x0) {
-        var mh$ = clang_Cursor_getTranslationUnit$constants.HANDLE;
+        var mh$ = clang_Cursor_getTranslationUnit.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_getTranslationUnit", x0);
@@ -5079,15 +5544,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorLocation$constants {
+    private static class clang_getCursorLocation {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceLocation.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorLocation"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorLocation");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -5097,7 +5562,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorLocation$descriptor() {
-        return clang_getCursorLocation$constants.DESC;
+        return clang_getCursorLocation.DESC;
     }
 
     /**
@@ -5107,15 +5572,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorLocation$handle() {
-        return clang_getCursorLocation$constants.HANDLE;
+        return clang_getCursorLocation.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceLocation clang_getCursorLocation(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorLocation$address() {
+        return clang_getCursorLocation.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceLocation clang_getCursorLocation(CXCursor)
      * }
      */
     public static MemorySegment clang_getCursorLocation(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getCursorLocation$constants.HANDLE;
+        var mh$ = clang_getCursorLocation.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorLocation", allocator, x0);
@@ -5126,15 +5602,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorExtent$constants {
+    private static class clang_getCursorExtent {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceRange.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorExtent"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorExtent");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -5144,7 +5620,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorExtent$descriptor() {
-        return clang_getCursorExtent$constants.DESC;
+        return clang_getCursorExtent.DESC;
     }
 
     /**
@@ -5154,15 +5630,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorExtent$handle() {
-        return clang_getCursorExtent$constants.HANDLE;
+        return clang_getCursorExtent.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceRange clang_getCursorExtent(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorExtent$address() {
+        return clang_getCursorExtent.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceRange clang_getCursorExtent(CXCursor)
      * }
      */
     public static MemorySegment clang_getCursorExtent(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getCursorExtent$constants.HANDLE;
+        var mh$ = clang_getCursorExtent.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorExtent", allocator, x0);
@@ -6415,15 +6902,15 @@ public class Index_h {
         return CXCallingConv_Unexposed;
     }
 
-    private static class clang_getCursorType$constants {
+    private static class clang_getCursorType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6433,7 +6920,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorType$descriptor() {
-        return clang_getCursorType$constants.DESC;
+        return clang_getCursorType.DESC;
     }
 
     /**
@@ -6443,15 +6930,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorType$handle() {
-        return clang_getCursorType$constants.HANDLE;
+        return clang_getCursorType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getCursorType(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_getCursorType$address() {
+        return clang_getCursorType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_getCursorType(CXCursor C)
      * }
      */
     public static MemorySegment clang_getCursorType(SegmentAllocator allocator, MemorySegment C) {
-        var mh$ = clang_getCursorType$constants.HANDLE;
+        var mh$ = clang_getCursorType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorType", allocator, C);
@@ -6462,15 +6960,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getTypeSpelling$constants {
+    private static class clang_getTypeSpelling {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTypeSpelling"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypeSpelling");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6480,7 +6978,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTypeSpelling$descriptor() {
-        return clang_getTypeSpelling$constants.DESC;
+        return clang_getTypeSpelling.DESC;
     }
 
     /**
@@ -6490,15 +6988,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTypeSpelling$handle() {
-        return clang_getTypeSpelling$constants.HANDLE;
+        return clang_getTypeSpelling.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getTypeSpelling(CXType CT)
+     * }
+     */
+    public static MemorySegment clang_getTypeSpelling$address() {
+        return clang_getTypeSpelling.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getTypeSpelling(CXType CT)
      * }
      */
     public static MemorySegment clang_getTypeSpelling(SegmentAllocator allocator, MemorySegment CT) {
-        var mh$ = clang_getTypeSpelling$constants.HANDLE;
+        var mh$ = clang_getTypeSpelling.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTypeSpelling", allocator, CT);
@@ -6509,15 +7018,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getTypedefDeclUnderlyingType$constants {
+    private static class clang_getTypedefDeclUnderlyingType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTypedefDeclUnderlyingType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypedefDeclUnderlyingType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6527,7 +7036,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTypedefDeclUnderlyingType$descriptor() {
-        return clang_getTypedefDeclUnderlyingType$constants.DESC;
+        return clang_getTypedefDeclUnderlyingType.DESC;
     }
 
     /**
@@ -6537,15 +7046,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTypedefDeclUnderlyingType$handle() {
-        return clang_getTypedefDeclUnderlyingType$constants.HANDLE;
+        return clang_getTypedefDeclUnderlyingType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getTypedefDeclUnderlyingType(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_getTypedefDeclUnderlyingType$address() {
+        return clang_getTypedefDeclUnderlyingType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_getTypedefDeclUnderlyingType(CXCursor C)
      * }
      */
     public static MemorySegment clang_getTypedefDeclUnderlyingType(SegmentAllocator allocator, MemorySegment C) {
-        var mh$ = clang_getTypedefDeclUnderlyingType$constants.HANDLE;
+        var mh$ = clang_getTypedefDeclUnderlyingType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTypedefDeclUnderlyingType", allocator, C);
@@ -6556,15 +7076,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getEnumDeclIntegerType$constants {
+    private static class clang_getEnumDeclIntegerType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getEnumDeclIntegerType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getEnumDeclIntegerType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6574,7 +7094,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getEnumDeclIntegerType$descriptor() {
-        return clang_getEnumDeclIntegerType$constants.DESC;
+        return clang_getEnumDeclIntegerType.DESC;
     }
 
     /**
@@ -6584,15 +7104,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getEnumDeclIntegerType$handle() {
-        return clang_getEnumDeclIntegerType$constants.HANDLE;
+        return clang_getEnumDeclIntegerType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getEnumDeclIntegerType(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_getEnumDeclIntegerType$address() {
+        return clang_getEnumDeclIntegerType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_getEnumDeclIntegerType(CXCursor C)
      * }
      */
     public static MemorySegment clang_getEnumDeclIntegerType(SegmentAllocator allocator, MemorySegment C) {
-        var mh$ = clang_getEnumDeclIntegerType$constants.HANDLE;
+        var mh$ = clang_getEnumDeclIntegerType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getEnumDeclIntegerType", allocator, C);
@@ -6603,15 +7134,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getEnumConstantDeclValue$constants {
+    private static class clang_getEnumConstantDeclValue {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_LONG_LONG,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getEnumConstantDeclValue"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getEnumConstantDeclValue");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6621,7 +7152,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getEnumConstantDeclValue$descriptor() {
-        return clang_getEnumConstantDeclValue$constants.DESC;
+        return clang_getEnumConstantDeclValue.DESC;
     }
 
     /**
@@ -6631,15 +7162,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getEnumConstantDeclValue$handle() {
-        return clang_getEnumConstantDeclValue$constants.HANDLE;
+        return clang_getEnumConstantDeclValue.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * long long clang_getEnumConstantDeclValue(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_getEnumConstantDeclValue$address() {
+        return clang_getEnumConstantDeclValue.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * long long clang_getEnumConstantDeclValue(CXCursor C)
      * }
      */
     public static long clang_getEnumConstantDeclValue(MemorySegment C) {
-        var mh$ = clang_getEnumConstantDeclValue$constants.HANDLE;
+        var mh$ = clang_getEnumConstantDeclValue.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getEnumConstantDeclValue", C);
@@ -6650,15 +7192,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getEnumConstantDeclUnsignedValue$constants {
+    private static class clang_getEnumConstantDeclUnsignedValue {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_LONG_LONG,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getEnumConstantDeclUnsignedValue"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getEnumConstantDeclUnsignedValue");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6668,7 +7210,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getEnumConstantDeclUnsignedValue$descriptor() {
-        return clang_getEnumConstantDeclUnsignedValue$constants.DESC;
+        return clang_getEnumConstantDeclUnsignedValue.DESC;
     }
 
     /**
@@ -6678,15 +7220,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getEnumConstantDeclUnsignedValue$handle() {
-        return clang_getEnumConstantDeclUnsignedValue$constants.HANDLE;
+        return clang_getEnumConstantDeclUnsignedValue.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned long long clang_getEnumConstantDeclUnsignedValue(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_getEnumConstantDeclUnsignedValue$address() {
+        return clang_getEnumConstantDeclUnsignedValue.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned long long clang_getEnumConstantDeclUnsignedValue(CXCursor C)
      * }
      */
     public static long clang_getEnumConstantDeclUnsignedValue(MemorySegment C) {
-        var mh$ = clang_getEnumConstantDeclUnsignedValue$constants.HANDLE;
+        var mh$ = clang_getEnumConstantDeclUnsignedValue.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getEnumConstantDeclUnsignedValue", C);
@@ -6697,15 +7250,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getFieldDeclBitWidth$constants {
+    private static class clang_getFieldDeclBitWidth {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getFieldDeclBitWidth"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getFieldDeclBitWidth");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6715,7 +7268,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getFieldDeclBitWidth$descriptor() {
-        return clang_getFieldDeclBitWidth$constants.DESC;
+        return clang_getFieldDeclBitWidth.DESC;
     }
 
     /**
@@ -6725,15 +7278,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getFieldDeclBitWidth$handle() {
-        return clang_getFieldDeclBitWidth$constants.HANDLE;
+        return clang_getFieldDeclBitWidth.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_getFieldDeclBitWidth(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_getFieldDeclBitWidth$address() {
+        return clang_getFieldDeclBitWidth.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_getFieldDeclBitWidth(CXCursor C)
      * }
      */
     public static int clang_getFieldDeclBitWidth(MemorySegment C) {
-        var mh$ = clang_getFieldDeclBitWidth$constants.HANDLE;
+        var mh$ = clang_getFieldDeclBitWidth.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getFieldDeclBitWidth", C);
@@ -6744,15 +7308,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_getNumArguments$constants {
+    private static class clang_Cursor_getNumArguments {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_getNumArguments"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_getNumArguments");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6762,7 +7326,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_getNumArguments$descriptor() {
-        return clang_Cursor_getNumArguments$constants.DESC;
+        return clang_Cursor_getNumArguments.DESC;
     }
 
     /**
@@ -6772,15 +7336,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_getNumArguments$handle() {
-        return clang_Cursor_getNumArguments$constants.HANDLE;
+        return clang_Cursor_getNumArguments.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_Cursor_getNumArguments(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_getNumArguments$address() {
+        return clang_Cursor_getNumArguments.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_Cursor_getNumArguments(CXCursor C)
      * }
      */
     public static int clang_Cursor_getNumArguments(MemorySegment C) {
-        var mh$ = clang_Cursor_getNumArguments$constants.HANDLE;
+        var mh$ = clang_Cursor_getNumArguments.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_getNumArguments", C);
@@ -6791,16 +7366,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_getArgument$constants {
+    private static class clang_Cursor_getArgument {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXCursor.layout(),
             CXCursor.layout(),
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_getArgument"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_getArgument");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6810,7 +7385,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_getArgument$descriptor() {
-        return clang_Cursor_getArgument$constants.DESC;
+        return clang_Cursor_getArgument.DESC;
     }
 
     /**
@@ -6820,15 +7395,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_getArgument$handle() {
-        return clang_Cursor_getArgument$constants.HANDLE;
+        return clang_Cursor_getArgument.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXCursor clang_Cursor_getArgument(CXCursor C, unsigned int i)
+     * }
+     */
+    public static MemorySegment clang_Cursor_getArgument$address() {
+        return clang_Cursor_getArgument.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXCursor clang_Cursor_getArgument(CXCursor C, unsigned int i)
      * }
      */
     public static MemorySegment clang_Cursor_getArgument(SegmentAllocator allocator, MemorySegment C, int i) {
-        var mh$ = clang_Cursor_getArgument$constants.HANDLE;
+        var mh$ = clang_Cursor_getArgument.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_getArgument", allocator, C, i);
@@ -6839,16 +7425,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_equalTypes$constants {
+    private static class clang_equalTypes {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXType.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_equalTypes"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_equalTypes");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6858,7 +7444,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_equalTypes$descriptor() {
-        return clang_equalTypes$constants.DESC;
+        return clang_equalTypes.DESC;
     }
 
     /**
@@ -6868,15 +7454,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_equalTypes$handle() {
-        return clang_equalTypes$constants.HANDLE;
+        return clang_equalTypes.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_equalTypes(CXType A, CXType B)
+     * }
+     */
+    public static MemorySegment clang_equalTypes$address() {
+        return clang_equalTypes.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_equalTypes(CXType A, CXType B)
      * }
      */
     public static int clang_equalTypes(MemorySegment A, MemorySegment B) {
-        var mh$ = clang_equalTypes$constants.HANDLE;
+        var mh$ = clang_equalTypes.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_equalTypes", A, B);
@@ -6887,15 +7484,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCanonicalType$constants {
+    private static class clang_getCanonicalType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCanonicalType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCanonicalType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6905,7 +7502,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCanonicalType$descriptor() {
-        return clang_getCanonicalType$constants.DESC;
+        return clang_getCanonicalType.DESC;
     }
 
     /**
@@ -6915,15 +7512,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCanonicalType$handle() {
-        return clang_getCanonicalType$constants.HANDLE;
+        return clang_getCanonicalType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getCanonicalType(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getCanonicalType$address() {
+        return clang_getCanonicalType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_getCanonicalType(CXType T)
      * }
      */
     public static MemorySegment clang_getCanonicalType(SegmentAllocator allocator, MemorySegment T) {
-        var mh$ = clang_getCanonicalType$constants.HANDLE;
+        var mh$ = clang_getCanonicalType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCanonicalType", allocator, T);
@@ -6934,15 +7542,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_isConstQualifiedType$constants {
+    private static class clang_isConstQualifiedType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_isConstQualifiedType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isConstQualifiedType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6952,7 +7560,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_isConstQualifiedType$descriptor() {
-        return clang_isConstQualifiedType$constants.DESC;
+        return clang_isConstQualifiedType.DESC;
     }
 
     /**
@@ -6962,15 +7570,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_isConstQualifiedType$handle() {
-        return clang_isConstQualifiedType$constants.HANDLE;
+        return clang_isConstQualifiedType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_isConstQualifiedType(CXType T)
+     * }
+     */
+    public static MemorySegment clang_isConstQualifiedType$address() {
+        return clang_isConstQualifiedType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_isConstQualifiedType(CXType T)
      * }
      */
     public static int clang_isConstQualifiedType(MemorySegment T) {
-        var mh$ = clang_isConstQualifiedType$constants.HANDLE;
+        var mh$ = clang_isConstQualifiedType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_isConstQualifiedType", T);
@@ -6981,15 +7600,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_isMacroFunctionLike$constants {
+    private static class clang_Cursor_isMacroFunctionLike {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_isMacroFunctionLike"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isMacroFunctionLike");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -6999,7 +7618,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_isMacroFunctionLike$descriptor() {
-        return clang_Cursor_isMacroFunctionLike$constants.DESC;
+        return clang_Cursor_isMacroFunctionLike.DESC;
     }
 
     /**
@@ -7009,15 +7628,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_isMacroFunctionLike$handle() {
-        return clang_Cursor_isMacroFunctionLike$constants.HANDLE;
+        return clang_Cursor_isMacroFunctionLike.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_Cursor_isMacroFunctionLike(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_isMacroFunctionLike$address() {
+        return clang_Cursor_isMacroFunctionLike.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isMacroFunctionLike(CXCursor C)
      * }
      */
     public static int clang_Cursor_isMacroFunctionLike(MemorySegment C) {
-        var mh$ = clang_Cursor_isMacroFunctionLike$constants.HANDLE;
+        var mh$ = clang_Cursor_isMacroFunctionLike.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_isMacroFunctionLike", C);
@@ -7028,15 +7658,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_isFunctionInlined$constants {
+    private static class clang_Cursor_isFunctionInlined {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_isFunctionInlined"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isFunctionInlined");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7046,7 +7676,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_isFunctionInlined$descriptor() {
-        return clang_Cursor_isFunctionInlined$constants.DESC;
+        return clang_Cursor_isFunctionInlined.DESC;
     }
 
     /**
@@ -7056,15 +7686,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_isFunctionInlined$handle() {
-        return clang_Cursor_isFunctionInlined$constants.HANDLE;
+        return clang_Cursor_isFunctionInlined.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_Cursor_isFunctionInlined(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_isFunctionInlined$address() {
+        return clang_Cursor_isFunctionInlined.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isFunctionInlined(CXCursor C)
      * }
      */
     public static int clang_Cursor_isFunctionInlined(MemorySegment C) {
-        var mh$ = clang_Cursor_isFunctionInlined$constants.HANDLE;
+        var mh$ = clang_Cursor_isFunctionInlined.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_isFunctionInlined", C);
@@ -7075,15 +7716,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_isVolatileQualifiedType$constants {
+    private static class clang_isVolatileQualifiedType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_isVolatileQualifiedType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isVolatileQualifiedType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7093,7 +7734,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_isVolatileQualifiedType$descriptor() {
-        return clang_isVolatileQualifiedType$constants.DESC;
+        return clang_isVolatileQualifiedType.DESC;
     }
 
     /**
@@ -7103,15 +7744,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_isVolatileQualifiedType$handle() {
-        return clang_isVolatileQualifiedType$constants.HANDLE;
+        return clang_isVolatileQualifiedType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_isVolatileQualifiedType(CXType T)
+     * }
+     */
+    public static MemorySegment clang_isVolatileQualifiedType$address() {
+        return clang_isVolatileQualifiedType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_isVolatileQualifiedType(CXType T)
      * }
      */
     public static int clang_isVolatileQualifiedType(MemorySegment T) {
-        var mh$ = clang_isVolatileQualifiedType$constants.HANDLE;
+        var mh$ = clang_isVolatileQualifiedType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_isVolatileQualifiedType", T);
@@ -7122,15 +7774,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getTypedefName$constants {
+    private static class clang_getTypedefName {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTypedefName"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypedefName");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7140,7 +7792,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTypedefName$descriptor() {
-        return clang_getTypedefName$constants.DESC;
+        return clang_getTypedefName.DESC;
     }
 
     /**
@@ -7150,15 +7802,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTypedefName$handle() {
-        return clang_getTypedefName$constants.HANDLE;
+        return clang_getTypedefName.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getTypedefName(CXType CT)
+     * }
+     */
+    public static MemorySegment clang_getTypedefName$address() {
+        return clang_getTypedefName.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getTypedefName(CXType CT)
      * }
      */
     public static MemorySegment clang_getTypedefName(SegmentAllocator allocator, MemorySegment CT) {
-        var mh$ = clang_getTypedefName$constants.HANDLE;
+        var mh$ = clang_getTypedefName.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTypedefName", allocator, CT);
@@ -7169,15 +7832,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getPointeeType$constants {
+    private static class clang_getPointeeType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getPointeeType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getPointeeType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7187,7 +7850,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getPointeeType$descriptor() {
-        return clang_getPointeeType$constants.DESC;
+        return clang_getPointeeType.DESC;
     }
 
     /**
@@ -7197,15 +7860,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getPointeeType$handle() {
-        return clang_getPointeeType$constants.HANDLE;
+        return clang_getPointeeType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getPointeeType(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getPointeeType$address() {
+        return clang_getPointeeType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_getPointeeType(CXType T)
      * }
      */
     public static MemorySegment clang_getPointeeType(SegmentAllocator allocator, MemorySegment T) {
-        var mh$ = clang_getPointeeType$constants.HANDLE;
+        var mh$ = clang_getPointeeType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getPointeeType", allocator, T);
@@ -7216,15 +7890,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getTypeDeclaration$constants {
+    private static class clang_getTypeDeclaration {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXCursor.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTypeDeclaration"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypeDeclaration");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7234,7 +7908,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTypeDeclaration$descriptor() {
-        return clang_getTypeDeclaration$constants.DESC;
+        return clang_getTypeDeclaration.DESC;
     }
 
     /**
@@ -7244,15 +7918,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTypeDeclaration$handle() {
-        return clang_getTypeDeclaration$constants.HANDLE;
+        return clang_getTypeDeclaration.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXCursor clang_getTypeDeclaration(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getTypeDeclaration$address() {
+        return clang_getTypeDeclaration.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXCursor clang_getTypeDeclaration(CXType T)
      * }
      */
     public static MemorySegment clang_getTypeDeclaration(SegmentAllocator allocator, MemorySegment T) {
-        var mh$ = clang_getTypeDeclaration$constants.HANDLE;
+        var mh$ = clang_getTypeDeclaration.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTypeDeclaration", allocator, T);
@@ -7263,15 +7948,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getTypeKindSpelling$constants {
+    private static class clang_getTypeKindSpelling {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTypeKindSpelling"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypeKindSpelling");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7281,7 +7966,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTypeKindSpelling$descriptor() {
-        return clang_getTypeKindSpelling$constants.DESC;
+        return clang_getTypeKindSpelling.DESC;
     }
 
     /**
@@ -7291,15 +7976,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTypeKindSpelling$handle() {
-        return clang_getTypeKindSpelling$constants.HANDLE;
+        return clang_getTypeKindSpelling.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getTypeKindSpelling(enum CXTypeKind K)
+     * }
+     */
+    public static MemorySegment clang_getTypeKindSpelling$address() {
+        return clang_getTypeKindSpelling.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getTypeKindSpelling(enum CXTypeKind K)
      * }
      */
     public static MemorySegment clang_getTypeKindSpelling(SegmentAllocator allocator, int K) {
-        var mh$ = clang_getTypeKindSpelling$constants.HANDLE;
+        var mh$ = clang_getTypeKindSpelling.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTypeKindSpelling", allocator, K);
@@ -7310,15 +8006,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getFunctionTypeCallingConv$constants {
+    private static class clang_getFunctionTypeCallingConv {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getFunctionTypeCallingConv"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getFunctionTypeCallingConv");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7328,7 +8024,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getFunctionTypeCallingConv$descriptor() {
-        return clang_getFunctionTypeCallingConv$constants.DESC;
+        return clang_getFunctionTypeCallingConv.DESC;
     }
 
     /**
@@ -7338,15 +8034,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getFunctionTypeCallingConv$handle() {
-        return clang_getFunctionTypeCallingConv$constants.HANDLE;
+        return clang_getFunctionTypeCallingConv.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * enum CXCallingConv clang_getFunctionTypeCallingConv(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getFunctionTypeCallingConv$address() {
+        return clang_getFunctionTypeCallingConv.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * enum CXCallingConv clang_getFunctionTypeCallingConv(CXType T)
      * }
      */
     public static int clang_getFunctionTypeCallingConv(MemorySegment T) {
-        var mh$ = clang_getFunctionTypeCallingConv$constants.HANDLE;
+        var mh$ = clang_getFunctionTypeCallingConv.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getFunctionTypeCallingConv", T);
@@ -7357,15 +8064,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getResultType$constants {
+    private static class clang_getResultType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getResultType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getResultType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7375,7 +8082,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getResultType$descriptor() {
-        return clang_getResultType$constants.DESC;
+        return clang_getResultType.DESC;
     }
 
     /**
@@ -7385,15 +8092,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getResultType$handle() {
-        return clang_getResultType$constants.HANDLE;
+        return clang_getResultType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getResultType(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getResultType$address() {
+        return clang_getResultType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_getResultType(CXType T)
      * }
      */
     public static MemorySegment clang_getResultType(SegmentAllocator allocator, MemorySegment T) {
-        var mh$ = clang_getResultType$constants.HANDLE;
+        var mh$ = clang_getResultType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getResultType", allocator, T);
@@ -7404,15 +8122,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getNumArgTypes$constants {
+    private static class clang_getNumArgTypes {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getNumArgTypes"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNumArgTypes");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7422,7 +8140,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getNumArgTypes$descriptor() {
-        return clang_getNumArgTypes$constants.DESC;
+        return clang_getNumArgTypes.DESC;
     }
 
     /**
@@ -7432,15 +8150,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getNumArgTypes$handle() {
-        return clang_getNumArgTypes$constants.HANDLE;
+        return clang_getNumArgTypes.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_getNumArgTypes(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getNumArgTypes$address() {
+        return clang_getNumArgTypes.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_getNumArgTypes(CXType T)
      * }
      */
     public static int clang_getNumArgTypes(MemorySegment T) {
-        var mh$ = clang_getNumArgTypes$constants.HANDLE;
+        var mh$ = clang_getNumArgTypes.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getNumArgTypes", T);
@@ -7451,16 +8180,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_getArgType$constants {
+    private static class clang_getArgType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXType.layout(),
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getArgType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getArgType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7470,7 +8199,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getArgType$descriptor() {
-        return clang_getArgType$constants.DESC;
+        return clang_getArgType.DESC;
     }
 
     /**
@@ -7480,15 +8209,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getArgType$handle() {
-        return clang_getArgType$constants.HANDLE;
+        return clang_getArgType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getArgType(CXType T, unsigned int i)
+     * }
+     */
+    public static MemorySegment clang_getArgType$address() {
+        return clang_getArgType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_getArgType(CXType T, unsigned int i)
      * }
      */
     public static MemorySegment clang_getArgType(SegmentAllocator allocator, MemorySegment T, int i) {
-        var mh$ = clang_getArgType$constants.HANDLE;
+        var mh$ = clang_getArgType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getArgType", allocator, T, i);
@@ -7499,15 +8239,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_isFunctionTypeVariadic$constants {
+    private static class clang_isFunctionTypeVariadic {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_isFunctionTypeVariadic"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isFunctionTypeVariadic");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7517,7 +8257,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_isFunctionTypeVariadic$descriptor() {
-        return clang_isFunctionTypeVariadic$constants.DESC;
+        return clang_isFunctionTypeVariadic.DESC;
     }
 
     /**
@@ -7527,15 +8267,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_isFunctionTypeVariadic$handle() {
-        return clang_isFunctionTypeVariadic$constants.HANDLE;
+        return clang_isFunctionTypeVariadic.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_isFunctionTypeVariadic(CXType T)
+     * }
+     */
+    public static MemorySegment clang_isFunctionTypeVariadic$address() {
+        return clang_isFunctionTypeVariadic.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_isFunctionTypeVariadic(CXType T)
      * }
      */
     public static int clang_isFunctionTypeVariadic(MemorySegment T) {
-        var mh$ = clang_isFunctionTypeVariadic$constants.HANDLE;
+        var mh$ = clang_isFunctionTypeVariadic.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_isFunctionTypeVariadic", T);
@@ -7546,15 +8297,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorResultType$constants {
+    private static class clang_getCursorResultType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorResultType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorResultType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7564,7 +8315,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorResultType$descriptor() {
-        return clang_getCursorResultType$constants.DESC;
+        return clang_getCursorResultType.DESC;
     }
 
     /**
@@ -7574,15 +8325,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorResultType$handle() {
-        return clang_getCursorResultType$constants.HANDLE;
+        return clang_getCursorResultType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getCursorResultType(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_getCursorResultType$address() {
+        return clang_getCursorResultType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_getCursorResultType(CXCursor C)
      * }
      */
     public static MemorySegment clang_getCursorResultType(SegmentAllocator allocator, MemorySegment C) {
-        var mh$ = clang_getCursorResultType$constants.HANDLE;
+        var mh$ = clang_getCursorResultType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorResultType", allocator, C);
@@ -7593,15 +8355,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getElementType$constants {
+    private static class clang_getElementType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getElementType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getElementType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7611,7 +8373,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getElementType$descriptor() {
-        return clang_getElementType$constants.DESC;
+        return clang_getElementType.DESC;
     }
 
     /**
@@ -7621,7 +8383,17 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getElementType$handle() {
-        return clang_getElementType$constants.HANDLE;
+        return clang_getElementType.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getElementType(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getElementType$address() {
+        return clang_getElementType.ADDR;
     }
 
     /**
@@ -7630,7 +8402,7 @@ public class Index_h {
      * }
      */
     public static MemorySegment clang_getElementType(SegmentAllocator allocator, MemorySegment T) {
-        var mh$ = clang_getElementType$constants.HANDLE;
+        var mh$ = clang_getElementType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getElementType", allocator, T);
@@ -7641,15 +8413,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getNumElements$constants {
+    private static class clang_getNumElements {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_LONG_LONG,
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getNumElements"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNumElements");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7659,7 +8431,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getNumElements$descriptor() {
-        return clang_getNumElements$constants.DESC;
+        return clang_getNumElements.DESC;
     }
 
     /**
@@ -7669,15 +8441,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getNumElements$handle() {
-        return clang_getNumElements$constants.HANDLE;
+        return clang_getNumElements.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * long long clang_getNumElements(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getNumElements$address() {
+        return clang_getNumElements.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * long long clang_getNumElements(CXType T)
      * }
      */
     public static long clang_getNumElements(MemorySegment T) {
-        var mh$ = clang_getNumElements$constants.HANDLE;
+        var mh$ = clang_getNumElements.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getNumElements", T);
@@ -7688,15 +8471,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getArrayElementType$constants {
+    private static class clang_getArrayElementType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getArrayElementType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getArrayElementType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7706,7 +8489,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getArrayElementType$descriptor() {
-        return clang_getArrayElementType$constants.DESC;
+        return clang_getArrayElementType.DESC;
     }
 
     /**
@@ -7716,15 +8499,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getArrayElementType$handle() {
-        return clang_getArrayElementType$constants.HANDLE;
+        return clang_getArrayElementType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_getArrayElementType(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getArrayElementType$address() {
+        return clang_getArrayElementType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_getArrayElementType(CXType T)
      * }
      */
     public static MemorySegment clang_getArrayElementType(SegmentAllocator allocator, MemorySegment T) {
-        var mh$ = clang_getArrayElementType$constants.HANDLE;
+        var mh$ = clang_getArrayElementType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getArrayElementType", allocator, T);
@@ -7735,15 +8529,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getArraySize$constants {
+    private static class clang_getArraySize {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_LONG_LONG,
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getArraySize"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getArraySize");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7753,7 +8547,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getArraySize$descriptor() {
-        return clang_getArraySize$constants.DESC;
+        return clang_getArraySize.DESC;
     }
 
     /**
@@ -7763,15 +8557,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getArraySize$handle() {
-        return clang_getArraySize$constants.HANDLE;
+        return clang_getArraySize.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * long long clang_getArraySize(CXType T)
+     * }
+     */
+    public static MemorySegment clang_getArraySize$address() {
+        return clang_getArraySize.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * long long clang_getArraySize(CXType T)
      * }
      */
     public static long clang_getArraySize(MemorySegment T) {
-        var mh$ = clang_getArraySize$constants.HANDLE;
+        var mh$ = clang_getArraySize.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getArraySize", T);
@@ -7872,15 +8677,15 @@ public class Index_h {
         return CXTypeLayoutError_Undeduced;
     }
 
-    private static class clang_Type_getAlignOf$constants {
+    private static class clang_Type_getAlignOf {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_LONG_LONG,
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Type_getAlignOf"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Type_getAlignOf");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7890,7 +8695,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Type_getAlignOf$descriptor() {
-        return clang_Type_getAlignOf$constants.DESC;
+        return clang_Type_getAlignOf.DESC;
     }
 
     /**
@@ -7900,15 +8705,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Type_getAlignOf$handle() {
-        return clang_Type_getAlignOf$constants.HANDLE;
+        return clang_Type_getAlignOf.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * long long clang_Type_getAlignOf(CXType T)
+     * }
+     */
+    public static MemorySegment clang_Type_getAlignOf$address() {
+        return clang_Type_getAlignOf.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * long long clang_Type_getAlignOf(CXType T)
      * }
      */
     public static long clang_Type_getAlignOf(MemorySegment T) {
-        var mh$ = clang_Type_getAlignOf$constants.HANDLE;
+        var mh$ = clang_Type_getAlignOf.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Type_getAlignOf", T);
@@ -7919,15 +8735,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Type_getSizeOf$constants {
+    private static class clang_Type_getSizeOf {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_LONG_LONG,
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Type_getSizeOf"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Type_getSizeOf");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7937,7 +8753,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Type_getSizeOf$descriptor() {
-        return clang_Type_getSizeOf$constants.DESC;
+        return clang_Type_getSizeOf.DESC;
     }
 
     /**
@@ -7947,15 +8763,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Type_getSizeOf$handle() {
-        return clang_Type_getSizeOf$constants.HANDLE;
+        return clang_Type_getSizeOf.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * long long clang_Type_getSizeOf(CXType T)
+     * }
+     */
+    public static MemorySegment clang_Type_getSizeOf$address() {
+        return clang_Type_getSizeOf.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * long long clang_Type_getSizeOf(CXType T)
      * }
      */
     public static long clang_Type_getSizeOf(MemorySegment T) {
-        var mh$ = clang_Type_getSizeOf$constants.HANDLE;
+        var mh$ = clang_Type_getSizeOf.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Type_getSizeOf", T);
@@ -7966,16 +8793,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_Type_getOffsetOf$constants {
+    private static class clang_Type_getOffsetOf {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_LONG_LONG,
             CXType.layout(),
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Type_getOffsetOf"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Type_getOffsetOf");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -7985,7 +8812,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Type_getOffsetOf$descriptor() {
-        return clang_Type_getOffsetOf$constants.DESC;
+        return clang_Type_getOffsetOf.DESC;
     }
 
     /**
@@ -7995,15 +8822,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Type_getOffsetOf$handle() {
-        return clang_Type_getOffsetOf$constants.HANDLE;
+        return clang_Type_getOffsetOf.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * long long clang_Type_getOffsetOf(CXType T, const char *S)
+     * }
+     */
+    public static MemorySegment clang_Type_getOffsetOf$address() {
+        return clang_Type_getOffsetOf.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * long long clang_Type_getOffsetOf(CXType T, const char *S)
      * }
      */
     public static long clang_Type_getOffsetOf(MemorySegment T, MemorySegment S) {
-        var mh$ = clang_Type_getOffsetOf$constants.HANDLE;
+        var mh$ = clang_Type_getOffsetOf.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Type_getOffsetOf", T, S);
@@ -8014,15 +8852,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Type_getValueType$constants {
+    private static class clang_Type_getValueType {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXType.layout(),
             CXType.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Type_getValueType"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Type_getValueType");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8032,7 +8870,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Type_getValueType$descriptor() {
-        return clang_Type_getValueType$constants.DESC;
+        return clang_Type_getValueType.DESC;
     }
 
     /**
@@ -8042,15 +8880,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Type_getValueType$handle() {
-        return clang_Type_getValueType$constants.HANDLE;
+        return clang_Type_getValueType.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXType clang_Type_getValueType(CXType CT)
+     * }
+     */
+    public static MemorySegment clang_Type_getValueType$address() {
+        return clang_Type_getValueType.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXType clang_Type_getValueType(CXType CT)
      * }
      */
     public static MemorySegment clang_Type_getValueType(SegmentAllocator allocator, MemorySegment CT) {
-        var mh$ = clang_Type_getValueType$constants.HANDLE;
+        var mh$ = clang_Type_getValueType.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Type_getValueType", allocator, CT);
@@ -8061,15 +8910,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_isAnonymous$constants {
+    private static class clang_Cursor_isAnonymous {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_isAnonymous"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isAnonymous");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8079,7 +8928,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_isAnonymous$descriptor() {
-        return clang_Cursor_isAnonymous$constants.DESC;
+        return clang_Cursor_isAnonymous.DESC;
     }
 
     /**
@@ -8089,15 +8938,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_isAnonymous$handle() {
-        return clang_Cursor_isAnonymous$constants.HANDLE;
+        return clang_Cursor_isAnonymous.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_Cursor_isAnonymous(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_isAnonymous$address() {
+        return clang_Cursor_isAnonymous.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymous(CXCursor C)
      * }
      */
     public static int clang_Cursor_isAnonymous(MemorySegment C) {
-        var mh$ = clang_Cursor_isAnonymous$constants.HANDLE;
+        var mh$ = clang_Cursor_isAnonymous.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_isAnonymous", C);
@@ -8108,15 +8968,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_isAnonymousRecordDecl$constants {
+    private static class clang_Cursor_isAnonymousRecordDecl {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_isAnonymousRecordDecl"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isAnonymousRecordDecl");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8126,7 +8986,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_isAnonymousRecordDecl$descriptor() {
-        return clang_Cursor_isAnonymousRecordDecl$constants.DESC;
+        return clang_Cursor_isAnonymousRecordDecl.DESC;
     }
 
     /**
@@ -8136,15 +8996,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_isAnonymousRecordDecl$handle() {
-        return clang_Cursor_isAnonymousRecordDecl$constants.HANDLE;
+        return clang_Cursor_isAnonymousRecordDecl.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_Cursor_isAnonymousRecordDecl(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_isAnonymousRecordDecl$address() {
+        return clang_Cursor_isAnonymousRecordDecl.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymousRecordDecl(CXCursor C)
      * }
      */
     public static int clang_Cursor_isAnonymousRecordDecl(MemorySegment C) {
-        var mh$ = clang_Cursor_isAnonymousRecordDecl$constants.HANDLE;
+        var mh$ = clang_Cursor_isAnonymousRecordDecl.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_isAnonymousRecordDecl", C);
@@ -8155,15 +9026,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_isBitField$constants {
+    private static class clang_Cursor_isBitField {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_isBitField"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isBitField");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8173,7 +9044,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_isBitField$descriptor() {
-        return clang_Cursor_isBitField$constants.DESC;
+        return clang_Cursor_isBitField.DESC;
     }
 
     /**
@@ -8183,15 +9054,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_isBitField$handle() {
-        return clang_Cursor_isBitField$constants.HANDLE;
+        return clang_Cursor_isBitField.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_Cursor_isBitField(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_isBitField$address() {
+        return clang_Cursor_isBitField.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isBitField(CXCursor C)
      * }
      */
     public static int clang_Cursor_isBitField(MemorySegment C) {
-        var mh$ = clang_Cursor_isBitField$constants.HANDLE;
+        var mh$ = clang_Cursor_isBitField.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_isBitField", C);
@@ -8229,7 +9111,7 @@ public class Index_h {
         return CXChildVisit_Recurse;
     }
 
-    private static class clang_visitChildren$constants {
+    private static class clang_visitChildren {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout(),
@@ -8237,9 +9119,9 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_visitChildren"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_visitChildren");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8249,7 +9131,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_visitChildren$descriptor() {
-        return clang_visitChildren$constants.DESC;
+        return clang_visitChildren.DESC;
     }
 
     /**
@@ -8259,15 +9141,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_visitChildren$handle() {
-        return clang_visitChildren$constants.HANDLE;
+        return clang_visitChildren.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_visitChildren(CXCursor parent, CXCursorVisitor visitor, CXClientData client_data)
+     * }
+     */
+    public static MemorySegment clang_visitChildren$address() {
+        return clang_visitChildren.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_visitChildren(CXCursor parent, CXCursorVisitor visitor, CXClientData client_data)
      * }
      */
     public static int clang_visitChildren(MemorySegment parent, MemorySegment visitor, MemorySegment client_data) {
-        var mh$ = clang_visitChildren$constants.HANDLE;
+        var mh$ = clang_visitChildren.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_visitChildren", parent, visitor, client_data);
@@ -8278,15 +9171,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorUSR$constants {
+    private static class clang_getCursorUSR {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorUSR"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorUSR");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8296,7 +9189,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorUSR$descriptor() {
-        return clang_getCursorUSR$constants.DESC;
+        return clang_getCursorUSR.DESC;
     }
 
     /**
@@ -8306,15 +9199,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorUSR$handle() {
-        return clang_getCursorUSR$constants.HANDLE;
+        return clang_getCursorUSR.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getCursorUSR(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorUSR$address() {
+        return clang_getCursorUSR.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getCursorUSR(CXCursor)
      * }
      */
     public static MemorySegment clang_getCursorUSR(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getCursorUSR$constants.HANDLE;
+        var mh$ = clang_getCursorUSR.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorUSR", allocator, x0);
@@ -8325,15 +9229,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorSpelling$constants {
+    private static class clang_getCursorSpelling {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorSpelling"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorSpelling");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8343,7 +9247,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorSpelling$descriptor() {
-        return clang_getCursorSpelling$constants.DESC;
+        return clang_getCursorSpelling.DESC;
     }
 
     /**
@@ -8353,15 +9257,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorSpelling$handle() {
-        return clang_getCursorSpelling$constants.HANDLE;
+        return clang_getCursorSpelling.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getCursorSpelling(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorSpelling$address() {
+        return clang_getCursorSpelling.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getCursorSpelling(CXCursor)
      * }
      */
     public static MemorySegment clang_getCursorSpelling(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getCursorSpelling$constants.HANDLE;
+        var mh$ = clang_getCursorSpelling.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorSpelling", allocator, x0);
@@ -8615,16 +9530,16 @@ public class Index_h {
         return CXPrintingPolicy_LastProperty;
     }
 
-    private static class clang_PrintingPolicy_getProperty$constants {
+    private static class clang_PrintingPolicy_getProperty {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_PrintingPolicy_getProperty"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_PrintingPolicy_getProperty");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8634,7 +9549,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_PrintingPolicy_getProperty$descriptor() {
-        return clang_PrintingPolicy_getProperty$constants.DESC;
+        return clang_PrintingPolicy_getProperty.DESC;
     }
 
     /**
@@ -8644,15 +9559,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_PrintingPolicy_getProperty$handle() {
-        return clang_PrintingPolicy_getProperty$constants.HANDLE;
+        return clang_PrintingPolicy_getProperty.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_PrintingPolicy_getProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property)
+     * }
+     */
+    public static MemorySegment clang_PrintingPolicy_getProperty$address() {
+        return clang_PrintingPolicy_getProperty.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_PrintingPolicy_getProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property)
      * }
      */
     public static int clang_PrintingPolicy_getProperty(MemorySegment Policy, int Property) {
-        var mh$ = clang_PrintingPolicy_getProperty$constants.HANDLE;
+        var mh$ = clang_PrintingPolicy_getProperty.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_PrintingPolicy_getProperty", Policy, Property);
@@ -8663,16 +9589,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_PrintingPolicy_setProperty$constants {
+    private static class clang_PrintingPolicy_setProperty {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             Index_h.C_POINTER,
             Index_h.C_INT,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_PrintingPolicy_setProperty"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_PrintingPolicy_setProperty");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8682,7 +9608,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_PrintingPolicy_setProperty$descriptor() {
-        return clang_PrintingPolicy_setProperty$constants.DESC;
+        return clang_PrintingPolicy_setProperty.DESC;
     }
 
     /**
@@ -8692,15 +9618,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_PrintingPolicy_setProperty$handle() {
-        return clang_PrintingPolicy_setProperty$constants.HANDLE;
+        return clang_PrintingPolicy_setProperty.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_PrintingPolicy_setProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property, unsigned int Value)
+     * }
+     */
+    public static MemorySegment clang_PrintingPolicy_setProperty$address() {
+        return clang_PrintingPolicy_setProperty.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_PrintingPolicy_setProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property, unsigned int Value)
      * }
      */
     public static void clang_PrintingPolicy_setProperty(MemorySegment Policy, int Property, int Value) {
-        var mh$ = clang_PrintingPolicy_setProperty$constants.HANDLE;
+        var mh$ = clang_PrintingPolicy_setProperty.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_PrintingPolicy_setProperty", Policy, Property, Value);
@@ -8711,15 +9648,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorPrintingPolicy$constants {
+    private static class clang_getCursorPrintingPolicy {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_POINTER,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorPrintingPolicy"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorPrintingPolicy");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8729,7 +9666,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorPrintingPolicy$descriptor() {
-        return clang_getCursorPrintingPolicy$constants.DESC;
+        return clang_getCursorPrintingPolicy.DESC;
     }
 
     /**
@@ -8739,15 +9676,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorPrintingPolicy$handle() {
-        return clang_getCursorPrintingPolicy$constants.HANDLE;
+        return clang_getCursorPrintingPolicy.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXPrintingPolicy clang_getCursorPrintingPolicy(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorPrintingPolicy$address() {
+        return clang_getCursorPrintingPolicy.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXPrintingPolicy clang_getCursorPrintingPolicy(CXCursor)
      * }
      */
     public static MemorySegment clang_getCursorPrintingPolicy(MemorySegment x0) {
-        var mh$ = clang_getCursorPrintingPolicy$constants.HANDLE;
+        var mh$ = clang_getCursorPrintingPolicy.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorPrintingPolicy", x0);
@@ -8758,14 +9706,14 @@ public class Index_h {
         }
     }
 
-    private static class clang_PrintingPolicy_dispose$constants {
+    private static class clang_PrintingPolicy_dispose {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_PrintingPolicy_dispose"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_PrintingPolicy_dispose");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8775,7 +9723,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_PrintingPolicy_dispose$descriptor() {
-        return clang_PrintingPolicy_dispose$constants.DESC;
+        return clang_PrintingPolicy_dispose.DESC;
     }
 
     /**
@@ -8785,15 +9733,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_PrintingPolicy_dispose$handle() {
-        return clang_PrintingPolicy_dispose$constants.HANDLE;
+        return clang_PrintingPolicy_dispose.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_PrintingPolicy_dispose(CXPrintingPolicy Policy)
+     * }
+     */
+    public static MemorySegment clang_PrintingPolicy_dispose$address() {
+        return clang_PrintingPolicy_dispose.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_PrintingPolicy_dispose(CXPrintingPolicy Policy)
      * }
      */
     public static void clang_PrintingPolicy_dispose(MemorySegment Policy) {
-        var mh$ = clang_PrintingPolicy_dispose$constants.HANDLE;
+        var mh$ = clang_PrintingPolicy_dispose.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_PrintingPolicy_dispose", Policy);
@@ -8804,16 +9763,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorPrettyPrinted$constants {
+    private static class clang_getCursorPrettyPrinted {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             CXCursor.layout(),
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorPrettyPrinted"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorPrettyPrinted");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8823,7 +9782,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorPrettyPrinted$descriptor() {
-        return clang_getCursorPrettyPrinted$constants.DESC;
+        return clang_getCursorPrettyPrinted.DESC;
     }
 
     /**
@@ -8833,15 +9792,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorPrettyPrinted$handle() {
-        return clang_getCursorPrettyPrinted$constants.HANDLE;
+        return clang_getCursorPrettyPrinted.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getCursorPrettyPrinted(CXCursor Cursor, CXPrintingPolicy Policy)
+     * }
+     */
+    public static MemorySegment clang_getCursorPrettyPrinted$address() {
+        return clang_getCursorPrettyPrinted.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getCursorPrettyPrinted(CXCursor Cursor, CXPrintingPolicy Policy)
      * }
      */
     public static MemorySegment clang_getCursorPrettyPrinted(SegmentAllocator allocator, MemorySegment Cursor, MemorySegment Policy) {
-        var mh$ = clang_getCursorPrettyPrinted$constants.HANDLE;
+        var mh$ = clang_getCursorPrettyPrinted.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorPrettyPrinted", allocator, Cursor, Policy);
@@ -8852,15 +9822,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorDisplayName$constants {
+    private static class clang_getCursorDisplayName {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorDisplayName"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorDisplayName");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8870,7 +9840,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorDisplayName$descriptor() {
-        return clang_getCursorDisplayName$constants.DESC;
+        return clang_getCursorDisplayName.DESC;
     }
 
     /**
@@ -8880,15 +9850,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorDisplayName$handle() {
-        return clang_getCursorDisplayName$constants.HANDLE;
+        return clang_getCursorDisplayName.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getCursorDisplayName(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorDisplayName$address() {
+        return clang_getCursorDisplayName.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getCursorDisplayName(CXCursor)
      * }
      */
     public static MemorySegment clang_getCursorDisplayName(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getCursorDisplayName$constants.HANDLE;
+        var mh$ = clang_getCursorDisplayName.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorDisplayName", allocator, x0);
@@ -8899,15 +9880,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorReferenced$constants {
+    private static class clang_getCursorReferenced {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXCursor.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorReferenced"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorReferenced");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8917,7 +9898,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorReferenced$descriptor() {
-        return clang_getCursorReferenced$constants.DESC;
+        return clang_getCursorReferenced.DESC;
     }
 
     /**
@@ -8927,15 +9908,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorReferenced$handle() {
-        return clang_getCursorReferenced$constants.HANDLE;
+        return clang_getCursorReferenced.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXCursor clang_getCursorReferenced(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorReferenced$address() {
+        return clang_getCursorReferenced.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXCursor clang_getCursorReferenced(CXCursor)
      * }
      */
     public static MemorySegment clang_getCursorReferenced(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getCursorReferenced$constants.HANDLE;
+        var mh$ = clang_getCursorReferenced.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorReferenced", allocator, x0);
@@ -8946,15 +9938,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorDefinition$constants {
+    private static class clang_getCursorDefinition {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXCursor.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorDefinition"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorDefinition");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -8964,7 +9956,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorDefinition$descriptor() {
-        return clang_getCursorDefinition$constants.DESC;
+        return clang_getCursorDefinition.DESC;
     }
 
     /**
@@ -8974,15 +9966,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorDefinition$handle() {
-        return clang_getCursorDefinition$constants.HANDLE;
+        return clang_getCursorDefinition.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXCursor clang_getCursorDefinition(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_getCursorDefinition$address() {
+        return clang_getCursorDefinition.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXCursor clang_getCursorDefinition(CXCursor)
      * }
      */
     public static MemorySegment clang_getCursorDefinition(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_getCursorDefinition$constants.HANDLE;
+        var mh$ = clang_getCursorDefinition.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorDefinition", allocator, x0);
@@ -8993,15 +9996,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_isCursorDefinition$constants {
+    private static class clang_isCursorDefinition {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_isCursorDefinition"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isCursorDefinition");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9011,7 +10014,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_isCursorDefinition$descriptor() {
-        return clang_isCursorDefinition$constants.DESC;
+        return clang_isCursorDefinition.DESC;
     }
 
     /**
@@ -9021,15 +10024,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_isCursorDefinition$handle() {
-        return clang_isCursorDefinition$constants.HANDLE;
+        return clang_isCursorDefinition.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_isCursorDefinition(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_isCursorDefinition$address() {
+        return clang_isCursorDefinition.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_isCursorDefinition(CXCursor)
      * }
      */
     public static int clang_isCursorDefinition(MemorySegment x0) {
-        var mh$ = clang_isCursorDefinition$constants.HANDLE;
+        var mh$ = clang_isCursorDefinition.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_isCursorDefinition", x0);
@@ -9040,15 +10054,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_isVariadic$constants {
+    private static class clang_Cursor_isVariadic {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_isVariadic"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isVariadic");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9058,7 +10072,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_isVariadic$descriptor() {
-        return clang_Cursor_isVariadic$constants.DESC;
+        return clang_Cursor_isVariadic.DESC;
     }
 
     /**
@@ -9068,15 +10082,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_isVariadic$handle() {
-        return clang_Cursor_isVariadic$constants.HANDLE;
+        return clang_Cursor_isVariadic.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_Cursor_isVariadic(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_isVariadic$address() {
+        return clang_Cursor_isVariadic.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isVariadic(CXCursor C)
      * }
      */
     public static int clang_Cursor_isVariadic(MemorySegment C) {
-        var mh$ = clang_Cursor_isVariadic$constants.HANDLE;
+        var mh$ = clang_Cursor_isVariadic.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_isVariadic", C);
@@ -9087,15 +10112,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_getMangling$constants {
+    private static class clang_Cursor_getMangling {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_getMangling"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_getMangling");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9105,7 +10130,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_getMangling$descriptor() {
-        return clang_Cursor_getMangling$constants.DESC;
+        return clang_Cursor_getMangling.DESC;
     }
 
     /**
@@ -9115,15 +10140,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_getMangling$handle() {
-        return clang_Cursor_getMangling$constants.HANDLE;
+        return clang_Cursor_getMangling.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_Cursor_getMangling(CXCursor)
+     * }
+     */
+    public static MemorySegment clang_Cursor_getMangling$address() {
+        return clang_Cursor_getMangling.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_Cursor_getMangling(CXCursor)
      * }
      */
     public static MemorySegment clang_Cursor_getMangling(SegmentAllocator allocator, MemorySegment x0) {
-        var mh$ = clang_Cursor_getMangling$constants.HANDLE;
+        var mh$ = clang_Cursor_getMangling.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_getMangling", allocator, x0);
@@ -9179,15 +10215,15 @@ public class Index_h {
         return CXToken_Comment;
     }
 
-    private static class clang_getTokenKind$constants {
+    private static class clang_getTokenKind {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             CXToken.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTokenKind"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTokenKind");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9197,7 +10233,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTokenKind$descriptor() {
-        return clang_getTokenKind$constants.DESC;
+        return clang_getTokenKind.DESC;
     }
 
     /**
@@ -9207,15 +10243,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTokenKind$handle() {
-        return clang_getTokenKind$constants.HANDLE;
+        return clang_getTokenKind.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXTokenKind clang_getTokenKind(CXToken)
+     * }
+     */
+    public static MemorySegment clang_getTokenKind$address() {
+        return clang_getTokenKind.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXTokenKind clang_getTokenKind(CXToken)
      * }
      */
     public static int clang_getTokenKind(MemorySegment x0) {
-        var mh$ = clang_getTokenKind$constants.HANDLE;
+        var mh$ = clang_getTokenKind.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTokenKind", x0);
@@ -9226,16 +10273,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_getTokenSpelling$constants {
+    private static class clang_getTokenSpelling {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             Index_h.C_POINTER,
             CXToken.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTokenSpelling"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTokenSpelling");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9245,7 +10292,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTokenSpelling$descriptor() {
-        return clang_getTokenSpelling$constants.DESC;
+        return clang_getTokenSpelling.DESC;
     }
 
     /**
@@ -9255,15 +10302,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTokenSpelling$handle() {
-        return clang_getTokenSpelling$constants.HANDLE;
+        return clang_getTokenSpelling.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getTokenSpelling(CXTranslationUnit, CXToken)
+     * }
+     */
+    public static MemorySegment clang_getTokenSpelling$address() {
+        return clang_getTokenSpelling.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getTokenSpelling(CXTranslationUnit, CXToken)
      * }
      */
     public static MemorySegment clang_getTokenSpelling(SegmentAllocator allocator, MemorySegment x0, MemorySegment x1) {
-        var mh$ = clang_getTokenSpelling$constants.HANDLE;
+        var mh$ = clang_getTokenSpelling.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTokenSpelling", allocator, x0, x1);
@@ -9274,16 +10332,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_getTokenLocation$constants {
+    private static class clang_getTokenLocation {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceLocation.layout(),
             Index_h.C_POINTER,
             CXToken.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTokenLocation"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTokenLocation");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9293,7 +10351,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTokenLocation$descriptor() {
-        return clang_getTokenLocation$constants.DESC;
+        return clang_getTokenLocation.DESC;
     }
 
     /**
@@ -9303,15 +10361,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTokenLocation$handle() {
-        return clang_getTokenLocation$constants.HANDLE;
+        return clang_getTokenLocation.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceLocation clang_getTokenLocation(CXTranslationUnit, CXToken)
+     * }
+     */
+    public static MemorySegment clang_getTokenLocation$address() {
+        return clang_getTokenLocation.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceLocation clang_getTokenLocation(CXTranslationUnit, CXToken)
      * }
      */
     public static MemorySegment clang_getTokenLocation(SegmentAllocator allocator, MemorySegment x0, MemorySegment x1) {
-        var mh$ = clang_getTokenLocation$constants.HANDLE;
+        var mh$ = clang_getTokenLocation.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTokenLocation", allocator, x0, x1);
@@ -9322,16 +10391,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_getTokenExtent$constants {
+    private static class clang_getTokenExtent {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceRange.layout(),
             Index_h.C_POINTER,
             CXToken.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getTokenExtent"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTokenExtent");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9341,7 +10410,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getTokenExtent$descriptor() {
-        return clang_getTokenExtent$constants.DESC;
+        return clang_getTokenExtent.DESC;
     }
 
     /**
@@ -9351,15 +10420,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getTokenExtent$handle() {
-        return clang_getTokenExtent$constants.HANDLE;
+        return clang_getTokenExtent.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceRange clang_getTokenExtent(CXTranslationUnit, CXToken)
+     * }
+     */
+    public static MemorySegment clang_getTokenExtent$address() {
+        return clang_getTokenExtent.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXSourceRange clang_getTokenExtent(CXTranslationUnit, CXToken)
      * }
      */
     public static MemorySegment clang_getTokenExtent(SegmentAllocator allocator, MemorySegment x0, MemorySegment x1) {
-        var mh$ = clang_getTokenExtent$constants.HANDLE;
+        var mh$ = clang_getTokenExtent.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getTokenExtent", allocator, x0, x1);
@@ -9370,7 +10450,7 @@ public class Index_h {
         }
     }
 
-    private static class clang_tokenize$constants {
+    private static class clang_tokenize {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             Index_h.C_POINTER,
             CXSourceRange.layout(),
@@ -9378,9 +10458,9 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_tokenize"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_tokenize");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9390,7 +10470,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_tokenize$descriptor() {
-        return clang_tokenize$constants.DESC;
+        return clang_tokenize.DESC;
     }
 
     /**
@@ -9400,15 +10480,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_tokenize$handle() {
-        return clang_tokenize$constants.HANDLE;
+        return clang_tokenize.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_tokenize(CXTranslationUnit TU, CXSourceRange Range, CXToken **Tokens, unsigned int *NumTokens)
+     * }
+     */
+    public static MemorySegment clang_tokenize$address() {
+        return clang_tokenize.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_tokenize(CXTranslationUnit TU, CXSourceRange Range, CXToken **Tokens, unsigned int *NumTokens)
      * }
      */
     public static void clang_tokenize(MemorySegment TU, MemorySegment Range, MemorySegment Tokens, MemorySegment NumTokens) {
-        var mh$ = clang_tokenize$constants.HANDLE;
+        var mh$ = clang_tokenize.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_tokenize", TU, Range, Tokens, NumTokens);
@@ -9419,16 +10510,16 @@ public class Index_h {
         }
     }
 
-    private static class clang_disposeTokens$constants {
+    private static class clang_disposeTokens {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             Index_h.C_POINTER,
             Index_h.C_POINTER,
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_disposeTokens"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeTokens");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9438,7 +10529,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_disposeTokens$descriptor() {
-        return clang_disposeTokens$constants.DESC;
+        return clang_disposeTokens.DESC;
     }
 
     /**
@@ -9448,15 +10539,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_disposeTokens$handle() {
-        return clang_disposeTokens$constants.HANDLE;
+        return clang_disposeTokens.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_disposeTokens(CXTranslationUnit TU, CXToken *Tokens, unsigned int NumTokens)
+     * }
+     */
+    public static MemorySegment clang_disposeTokens$address() {
+        return clang_disposeTokens.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_disposeTokens(CXTranslationUnit TU, CXToken *Tokens, unsigned int NumTokens)
      * }
      */
     public static void clang_disposeTokens(MemorySegment TU, MemorySegment Tokens, int NumTokens) {
-        var mh$ = clang_disposeTokens$constants.HANDLE;
+        var mh$ = clang_disposeTokens.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_disposeTokens", TU, Tokens, NumTokens);
@@ -9467,15 +10569,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_getCursorKindSpelling$constants {
+    private static class clang_getCursorKindSpelling {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout(),
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getCursorKindSpelling"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorKindSpelling");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9485,7 +10587,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getCursorKindSpelling$descriptor() {
-        return clang_getCursorKindSpelling$constants.DESC;
+        return clang_getCursorKindSpelling.DESC;
     }
 
     /**
@@ -9495,15 +10597,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getCursorKindSpelling$handle() {
-        return clang_getCursorKindSpelling$constants.HANDLE;
+        return clang_getCursorKindSpelling.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getCursorKindSpelling(enum CXCursorKind Kind)
+     * }
+     */
+    public static MemorySegment clang_getCursorKindSpelling$address() {
+        return clang_getCursorKindSpelling.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getCursorKindSpelling(enum CXCursorKind Kind)
      * }
      */
     public static MemorySegment clang_getCursorKindSpelling(SegmentAllocator allocator, int Kind) {
-        var mh$ = clang_getCursorKindSpelling$constants.HANDLE;
+        var mh$ = clang_getCursorKindSpelling.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getCursorKindSpelling", allocator, Kind);
@@ -9514,13 +10627,13 @@ public class Index_h {
         }
     }
 
-    private static class clang_getClangVersion$constants {
+    private static class clang_getClangVersion {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout()    );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_getClangVersion"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getClangVersion");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9530,7 +10643,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_getClangVersion$descriptor() {
-        return clang_getClangVersion$constants.DESC;
+        return clang_getClangVersion.DESC;
     }
 
     /**
@@ -9540,15 +10653,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_getClangVersion$handle() {
-        return clang_getClangVersion$constants.HANDLE;
+        return clang_getClangVersion.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_getClangVersion()
+     * }
+     */
+    public static MemorySegment clang_getClangVersion$address() {
+        return clang_getClangVersion.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXString clang_getClangVersion()
      * }
      */
     public static MemorySegment clang_getClangVersion(SegmentAllocator allocator) {
-        var mh$ = clang_getClangVersion$constants.HANDLE;
+        var mh$ = clang_getClangVersion.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_getClangVersion", allocator);
@@ -9559,14 +10683,14 @@ public class Index_h {
         }
     }
 
-    private static class clang_toggleCrashRecovery$constants {
+    private static class clang_toggleCrashRecovery {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             Index_h.C_INT
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_toggleCrashRecovery"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_toggleCrashRecovery");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9576,7 +10700,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_toggleCrashRecovery$descriptor() {
-        return clang_toggleCrashRecovery$constants.DESC;
+        return clang_toggleCrashRecovery.DESC;
     }
 
     /**
@@ -9586,15 +10710,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_toggleCrashRecovery$handle() {
-        return clang_toggleCrashRecovery$constants.HANDLE;
+        return clang_toggleCrashRecovery.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_toggleCrashRecovery(unsigned int isEnabled)
+     * }
+     */
+    public static MemorySegment clang_toggleCrashRecovery$address() {
+        return clang_toggleCrashRecovery.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_toggleCrashRecovery(unsigned int isEnabled)
      * }
      */
     public static void clang_toggleCrashRecovery(int isEnabled) {
-        var mh$ = clang_toggleCrashRecovery$constants.HANDLE;
+        var mh$ = clang_toggleCrashRecovery.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_toggleCrashRecovery", isEnabled);
@@ -9605,15 +10740,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_Cursor_Evaluate$constants {
+    private static class clang_Cursor_Evaluate {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_POINTER,
             CXCursor.layout()
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_Cursor_Evaluate"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_Evaluate");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9623,7 +10758,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_Cursor_Evaluate$descriptor() {
-        return clang_Cursor_Evaluate$constants.DESC;
+        return clang_Cursor_Evaluate.DESC;
     }
 
     /**
@@ -9633,15 +10768,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_Cursor_Evaluate$handle() {
-        return clang_Cursor_Evaluate$constants.HANDLE;
+        return clang_Cursor_Evaluate.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXEvalResult clang_Cursor_Evaluate(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_Evaluate$address() {
+        return clang_Cursor_Evaluate.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXEvalResult clang_Cursor_Evaluate(CXCursor C)
      * }
      */
     public static MemorySegment clang_Cursor_Evaluate(MemorySegment C) {
-        var mh$ = clang_Cursor_Evaluate$constants.HANDLE;
+        var mh$ = clang_Cursor_Evaluate.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_Cursor_Evaluate", C);
@@ -9652,15 +10798,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_EvalResult_getKind$constants {
+    private static class clang_EvalResult_getKind {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_EvalResult_getKind"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getKind");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9670,7 +10816,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_EvalResult_getKind$descriptor() {
-        return clang_EvalResult_getKind$constants.DESC;
+        return clang_EvalResult_getKind.DESC;
     }
 
     /**
@@ -9680,15 +10826,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_EvalResult_getKind$handle() {
-        return clang_EvalResult_getKind$constants.HANDLE;
+        return clang_EvalResult_getKind.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXEvalResultKind clang_EvalResult_getKind(CXEvalResult E)
+     * }
+     */
+    public static MemorySegment clang_EvalResult_getKind$address() {
+        return clang_EvalResult_getKind.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * CXEvalResultKind clang_EvalResult_getKind(CXEvalResult E)
      * }
      */
     public static int clang_EvalResult_getKind(MemorySegment E) {
-        var mh$ = clang_EvalResult_getKind$constants.HANDLE;
+        var mh$ = clang_EvalResult_getKind.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_EvalResult_getKind", E);
@@ -9699,15 +10856,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_EvalResult_getAsInt$constants {
+    private static class clang_EvalResult_getAsInt {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_EvalResult_getAsInt"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsInt");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9717,7 +10874,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_EvalResult_getAsInt$descriptor() {
-        return clang_EvalResult_getAsInt$constants.DESC;
+        return clang_EvalResult_getAsInt.DESC;
     }
 
     /**
@@ -9727,15 +10884,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_EvalResult_getAsInt$handle() {
-        return clang_EvalResult_getAsInt$constants.HANDLE;
+        return clang_EvalResult_getAsInt.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * int clang_EvalResult_getAsInt(CXEvalResult E)
+     * }
+     */
+    public static MemorySegment clang_EvalResult_getAsInt$address() {
+        return clang_EvalResult_getAsInt.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * int clang_EvalResult_getAsInt(CXEvalResult E)
      * }
      */
     public static int clang_EvalResult_getAsInt(MemorySegment E) {
-        var mh$ = clang_EvalResult_getAsInt$constants.HANDLE;
+        var mh$ = clang_EvalResult_getAsInt.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_EvalResult_getAsInt", E);
@@ -9746,15 +10914,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_EvalResult_getAsLongLong$constants {
+    private static class clang_EvalResult_getAsLongLong {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_LONG_LONG,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_EvalResult_getAsLongLong"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsLongLong");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9764,7 +10932,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_EvalResult_getAsLongLong$descriptor() {
-        return clang_EvalResult_getAsLongLong$constants.DESC;
+        return clang_EvalResult_getAsLongLong.DESC;
     }
 
     /**
@@ -9774,15 +10942,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_EvalResult_getAsLongLong$handle() {
-        return clang_EvalResult_getAsLongLong$constants.HANDLE;
+        return clang_EvalResult_getAsLongLong.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * long long clang_EvalResult_getAsLongLong(CXEvalResult E)
+     * }
+     */
+    public static MemorySegment clang_EvalResult_getAsLongLong$address() {
+        return clang_EvalResult_getAsLongLong.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * long long clang_EvalResult_getAsLongLong(CXEvalResult E)
      * }
      */
     public static long clang_EvalResult_getAsLongLong(MemorySegment E) {
-        var mh$ = clang_EvalResult_getAsLongLong$constants.HANDLE;
+        var mh$ = clang_EvalResult_getAsLongLong.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_EvalResult_getAsLongLong", E);
@@ -9793,15 +10972,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_EvalResult_isUnsignedInt$constants {
+    private static class clang_EvalResult_isUnsignedInt {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_EvalResult_isUnsignedInt"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_isUnsignedInt");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9811,7 +10990,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_EvalResult_isUnsignedInt$descriptor() {
-        return clang_EvalResult_isUnsignedInt$constants.DESC;
+        return clang_EvalResult_isUnsignedInt.DESC;
     }
 
     /**
@@ -9821,15 +11000,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_EvalResult_isUnsignedInt$handle() {
-        return clang_EvalResult_isUnsignedInt$constants.HANDLE;
+        return clang_EvalResult_isUnsignedInt.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_EvalResult_isUnsignedInt(CXEvalResult E)
+     * }
+     */
+    public static MemorySegment clang_EvalResult_isUnsignedInt$address() {
+        return clang_EvalResult_isUnsignedInt.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned int clang_EvalResult_isUnsignedInt(CXEvalResult E)
      * }
      */
     public static int clang_EvalResult_isUnsignedInt(MemorySegment E) {
-        var mh$ = clang_EvalResult_isUnsignedInt$constants.HANDLE;
+        var mh$ = clang_EvalResult_isUnsignedInt.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_EvalResult_isUnsignedInt", E);
@@ -9840,15 +11030,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_EvalResult_getAsUnsigned$constants {
+    private static class clang_EvalResult_getAsUnsigned {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_LONG_LONG,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_EvalResult_getAsUnsigned"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsUnsigned");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9858,7 +11048,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_EvalResult_getAsUnsigned$descriptor() {
-        return clang_EvalResult_getAsUnsigned$constants.DESC;
+        return clang_EvalResult_getAsUnsigned.DESC;
     }
 
     /**
@@ -9868,15 +11058,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_EvalResult_getAsUnsigned$handle() {
-        return clang_EvalResult_getAsUnsigned$constants.HANDLE;
+        return clang_EvalResult_getAsUnsigned.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned long long clang_EvalResult_getAsUnsigned(CXEvalResult E)
+     * }
+     */
+    public static MemorySegment clang_EvalResult_getAsUnsigned$address() {
+        return clang_EvalResult_getAsUnsigned.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * unsigned long long clang_EvalResult_getAsUnsigned(CXEvalResult E)
      * }
      */
     public static long clang_EvalResult_getAsUnsigned(MemorySegment E) {
-        var mh$ = clang_EvalResult_getAsUnsigned$constants.HANDLE;
+        var mh$ = clang_EvalResult_getAsUnsigned.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_EvalResult_getAsUnsigned", E);
@@ -9887,15 +11088,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_EvalResult_getAsDouble$constants {
+    private static class clang_EvalResult_getAsDouble {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_DOUBLE,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_EvalResult_getAsDouble"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsDouble");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9905,7 +11106,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_EvalResult_getAsDouble$descriptor() {
-        return clang_EvalResult_getAsDouble$constants.DESC;
+        return clang_EvalResult_getAsDouble.DESC;
     }
 
     /**
@@ -9915,15 +11116,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_EvalResult_getAsDouble$handle() {
-        return clang_EvalResult_getAsDouble$constants.HANDLE;
+        return clang_EvalResult_getAsDouble.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * double clang_EvalResult_getAsDouble(CXEvalResult E)
+     * }
+     */
+    public static MemorySegment clang_EvalResult_getAsDouble$address() {
+        return clang_EvalResult_getAsDouble.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * double clang_EvalResult_getAsDouble(CXEvalResult E)
      * }
      */
     public static double clang_EvalResult_getAsDouble(MemorySegment E) {
-        var mh$ = clang_EvalResult_getAsDouble$constants.HANDLE;
+        var mh$ = clang_EvalResult_getAsDouble.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_EvalResult_getAsDouble", E);
@@ -9934,15 +11146,15 @@ public class Index_h {
         }
     }
 
-    private static class clang_EvalResult_getAsStr$constants {
+    private static class clang_EvalResult_getAsStr {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_POINTER,
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_EvalResult_getAsStr"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsStr");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9952,7 +11164,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_EvalResult_getAsStr$descriptor() {
-        return clang_EvalResult_getAsStr$constants.DESC;
+        return clang_EvalResult_getAsStr.DESC;
     }
 
     /**
@@ -9962,15 +11174,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_EvalResult_getAsStr$handle() {
-        return clang_EvalResult_getAsStr$constants.HANDLE;
+        return clang_EvalResult_getAsStr.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * const char *clang_EvalResult_getAsStr(CXEvalResult E)
+     * }
+     */
+    public static MemorySegment clang_EvalResult_getAsStr$address() {
+        return clang_EvalResult_getAsStr.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * const char *clang_EvalResult_getAsStr(CXEvalResult E)
      * }
      */
     public static MemorySegment clang_EvalResult_getAsStr(MemorySegment E) {
-        var mh$ = clang_EvalResult_getAsStr$constants.HANDLE;
+        var mh$ = clang_EvalResult_getAsStr.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_EvalResult_getAsStr", E);
@@ -9981,14 +11204,14 @@ public class Index_h {
         }
     }
 
-    private static class clang_EvalResult_dispose$constants {
+    private static class clang_EvalResult_dispose {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
             Index_h.C_POINTER
         );
 
-        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(
-                    Index_h.findOrThrow("clang_EvalResult_dispose"),
-                    DESC);
+        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_dispose");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
 
     /**
@@ -9998,7 +11221,7 @@ public class Index_h {
      * }
      */
     public static FunctionDescriptor clang_EvalResult_dispose$descriptor() {
-        return clang_EvalResult_dispose$constants.DESC;
+        return clang_EvalResult_dispose.DESC;
     }
 
     /**
@@ -10008,15 +11231,26 @@ public class Index_h {
      * }
      */
     public static MethodHandle clang_EvalResult_dispose$handle() {
-        return clang_EvalResult_dispose$constants.HANDLE;
+        return clang_EvalResult_dispose.HANDLE;
     }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * void clang_EvalResult_dispose(CXEvalResult E)
+     * }
+     */
+    public static MemorySegment clang_EvalResult_dispose$address() {
+        return clang_EvalResult_dispose.ADDR;
+    }
+
     /**
      * {@snippet lang=c :
      * void clang_EvalResult_dispose(CXEvalResult E)
      * }
      */
     public static void clang_EvalResult_dispose(MemorySegment E) {
-        var mh$ = clang_EvalResult_dispose$constants.HANDLE;
+        var mh$ = clang_EvalResult_dispose.HANDLE;
         try {
             if (TRACE_DOWNCALLS) {
                 traceDowncall("clang_EvalResult_dispose", E);

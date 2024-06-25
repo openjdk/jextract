@@ -29,8 +29,8 @@ package org.openjdk.jextract.clang;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import org.openjdk.jextract.clang.libclang.Index_h;
+import org.openjdk.jextract.clang.libclang.CXUnsavedFile;
 
-import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
@@ -45,13 +45,13 @@ public class Index extends ClangDisposable {
         final String file;
         final String contents;
 
-        private UnsavedFile(Path path, String contents) {
-            this.file = path.toAbsolutePath().toString();
+        private UnsavedFile(String file, String contents) {
+            this.file = file;
             this.contents = contents;
         }
 
-        public static UnsavedFile of(Path path, String contents) {
-            return new UnsavedFile(path, contents);
+        public static UnsavedFile of(String file, String contents) {
+            return new UnsavedFile(file, contents);
         }
     }
 
@@ -60,28 +60,37 @@ public class Index extends ClangDisposable {
         private final String srcFile;
         private final ErrorCode code;
 
-        public ParsingFailedException(Path srcFile, ErrorCode code) {
-            super("Failed to parse " + srcFile.toAbsolutePath().toString() + ": " + code);
-            this.srcFile = srcFile.toAbsolutePath().toString();
+        public ParsingFailedException(String srcFile, ErrorCode code) {
+            super("Failed to parse " + srcFile + ": " + code);
+            this.srcFile = srcFile;
             this.code = code;
         }
     }
 
-    public TranslationUnit parseTU(String file, Consumer<Diagnostic> dh, int options, String... args)
-            throws ParsingFailedException {
+    private TranslationUnit parseTU(String file, String content,
+                Consumer<Diagnostic> dh, int options, String... args)
+                throws ParsingFailedException {
         try (Arena arena = Arena.ofConfined()) {
-            MemorySegment src = arena.allocateFrom(file);
+            MemorySegment fileSeg = arena.allocateFrom(file);
+            MemorySegment contentSeg = arena.allocateFrom(content);
             MemorySegment cargs = args.length == 0 ? null : arena.allocate(C_POINTER, args.length);
             for (int i = 0 ; i < args.length ; i++) {
                 cargs.set(C_POINTER, i * C_POINTER.byteSize(), arena.allocateFrom(args[i]));
             }
+
+            MemorySegment unsavedFile = CXUnsavedFile.allocate(arena);
+            CXUnsavedFile.Filename(unsavedFile, fileSeg);
+            CXUnsavedFile.Contents(unsavedFile, contentSeg);
+            CXUnsavedFile.Length(unsavedFile, content.length());
+
             MemorySegment outAddress = arena.allocate(C_POINTER);
             ErrorCode code = ErrorCode.valueOf(Index_h.clang_parseTranslationUnit2(
                     ptr,
-                    src,
+                    fileSeg,
                     cargs == null ? MemorySegment.NULL : cargs,
-                    args.length, MemorySegment.NULL,
-                    0,
+                    args.length,
+                    unsavedFile,
+                    1,
                     options,
                     outAddress));
 
@@ -91,7 +100,7 @@ public class Index extends ClangDisposable {
             rv.processDiagnostics(dh);
 
             if (code != ErrorCode.Success) {
-                throw new ParsingFailedException(Path.of(file).toAbsolutePath(), code);
+                throw new ParsingFailedException(file, code);
             }
 
             return rv;
@@ -107,14 +116,13 @@ public class Index extends ClangDisposable {
         return rv;
     }
 
-    public TranslationUnit parse(String file, Consumer<Diagnostic> dh, boolean detailedPreprocessorRecord, String... args)
-    throws ParsingFailedException {
-        return parseTU(file, dh, defaultOptions(detailedPreprocessorRecord), args);
+    public TranslationUnit parse(String filename, String content, Consumer<Diagnostic> dh,
+            boolean detailedPreprocessorRecord, String... args) throws ParsingFailedException {
+        return parseTU(filename, content, dh, defaultOptions(detailedPreprocessorRecord), args);
     }
 
-    public TranslationUnit parse(String file, boolean detailedPreprocessorRecord, String... args)
-    throws ParsingFailedException {
-        return parse(file, dh -> {}, detailedPreprocessorRecord, args);
+    public TranslationUnit parse(String filename, String content, boolean detailedPreprocessorRecord, String... args)
+            throws ParsingFailedException {
+        return parse(filename, content, dh -> {}, detailedPreprocessorRecord, args);
     }
-
 }

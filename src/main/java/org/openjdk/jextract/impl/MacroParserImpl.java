@@ -109,7 +109,7 @@ class MacroParserImpl implements AutoCloseable {
      * into a precompiled header, so as to speed to incremental recompilation of the generated snippets.
      */
     static class ClangReparser {
-        final Path macro;
+        private static final String MACRO = "jextract$macro.h";
         final Index macroIndex = LibClang.createIndex(true);
         final TranslationUnit macroUnit;
         final Logger logger;
@@ -119,8 +119,6 @@ class MacroParserImpl implements AutoCloseable {
             precompiled.toFile().deleteOnExit();
             tu.save(precompiled);
             this.logger = logger;
-            this.macro = Files.createTempFile("jextract$", ".h");
-            this.macro.toFile().deleteOnExit();
             String[] patchedArgs = Stream.concat(
                 Stream.of(
                     // Avoid system search path, use bundled instead
@@ -129,7 +127,7 @@ class MacroParserImpl implements AutoCloseable {
                     // precompiled header
                     "-include-pch", precompiled.toAbsolutePath().toString()),
                 args.stream()).toArray(String[]::new);
-            this.macroUnit = macroIndex.parse(macro.toAbsolutePath().toString(),
+            this.macroUnit = macroIndex.parse(MACRO, "",
                     this::processDiagnostics,
                     false, //add serialization support (needed for macros)
                     patchedArgs);
@@ -143,7 +141,7 @@ class MacroParserImpl implements AutoCloseable {
 
         public Cursor reparse(String snippet) {
             macroUnit.reparse(this::processDiagnostics,
-                    Index.UnsavedFile.of(macro, snippet));
+                    Index.UnsavedFile.of(MACRO, snippet));
             return macroUnit.getCursor();
         }
     }

@@ -316,6 +316,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     private void emitSizeof() {
         appendIndentedLines("""
+
             /**
              * The size (in bytes) of this %1$s
              */
@@ -328,7 +329,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         appendIndentedLines("""
 
             /**
-             * Allocate a segment of size {@code layout().byteSize()} using {@code %1$s}}
+             * Allocate a segment of size {@code layout().byteSize()} using {@code %1$s}
              */
             public static MemorySegment allocate(SegmentAllocator %1$s) {
                 return %1$s.allocate(layout());
