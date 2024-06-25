@@ -38,7 +38,6 @@ import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
-
  * {@snippet lang=c :
  * typedef enum CXChildVisitResult {
  *     CXChildVisit_Break,

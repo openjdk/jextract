@@ -38,7 +38,6 @@ import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
-
  * {@snippet lang=c :
  * struct {
  *     enum CXTypeKind kind;
@@ -69,7 +68,6 @@ public class CXType {
 
     /**
      * Layout for field:
-
      * {@snippet lang=c :
      * enum CXTypeKind kind
      * }
@@ -82,7 +80,6 @@ public class CXType {
 
     /**
      * Offset for field:
-
      * {@snippet lang=c :
      * enum CXTypeKind kind
      * }
@@ -93,7 +90,6 @@ public class CXType {
 
     /**
      * Getter for field:
-
      * {@snippet lang=c :
      * enum CXTypeKind kind
      * }
@@ -104,7 +100,6 @@ public class CXType {
 
     /**
      * Setter for field:
-
      * {@snippet lang=c :
      * enum CXTypeKind kind
      * }
@@ -117,7 +112,6 @@ public class CXType {
 
     /**
      * Layout for field:
-
      * {@snippet lang=c :
      * void *data[2]
      * }
@@ -130,7 +124,6 @@ public class CXType {
 
     /**
      * Offset for field:
-
      * {@snippet lang=c :
      * void *data[2]
      * }
@@ -141,7 +134,6 @@ public class CXType {
 
     /**
      * Getter for field:
-
      * {@snippet lang=c :
      * void *data[2]
      * }
@@ -152,7 +144,6 @@ public class CXType {
 
     /**
      * Setter for field:
-
      * {@snippet lang=c :
      * void *data[2]
      * }
@@ -165,7 +156,6 @@ public class CXType {
 
     /**
      * Dimensions for array field:
-
      * {@snippet lang=c :
      * void *data[2]
      * }
@@ -177,7 +167,6 @@ public class CXType {
 
     /**
      * Indexed getter for field:
-
      * {@snippet lang=c :
      * void *data[2]
      * }
@@ -188,7 +177,6 @@ public class CXType {
 
     /**
      * Indexed setter for field:
-
      * {@snippet lang=c :
      * void *data[2]
      * }
@@ -204,13 +192,14 @@ public class CXType {
     public static MemorySegment asSlice(MemorySegment array, long index) {
         return array.asSlice(layout().byteSize() * index);
     }
+
     /**
      * The size (in bytes) of this struct
      */
     public static long sizeof() { return layout().byteSize(); }
 
     /**
-     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}}
+     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
      */
     public static MemorySegment allocate(SegmentAllocator allocator) {
         return allocator.allocate(layout());

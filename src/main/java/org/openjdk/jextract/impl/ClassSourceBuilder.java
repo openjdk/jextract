@@ -168,7 +168,7 @@ abstract class ClassSourceBuilder {
     final void emitDocComment(Declaration decl, String header) {
         appendLines("""
             /**
-            %1$s
+            %1$s\
              * {@snippet lang=c :
             %2$s
              * }

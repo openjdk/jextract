@@ -101,7 +101,6 @@ public class Index_h {
     public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;
     private static final int CXError_Success = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXErrorCode.CXError_Success = 0
      * }
@@ -111,7 +110,6 @@ public class Index_h {
     }
     private static final int CXError_Failure = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXErrorCode.CXError_Failure = 1
      * }
@@ -121,7 +119,6 @@ public class Index_h {
     }
     private static final int CXError_Crashed = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXErrorCode.CXError_Crashed = 2
      * }
@@ -131,7 +128,6 @@ public class Index_h {
     }
     private static final int CXError_InvalidArguments = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXErrorCode.CXError_InvalidArguments = 3
      * }
@@ -141,7 +137,6 @@ public class Index_h {
     }
     private static final int CXError_ASTReadError = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXErrorCode.CXError_ASTReadError = 4
      * }
@@ -163,7 +158,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * const char *clang_getCString(CXString string)
      * }
@@ -174,7 +168,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * const char *clang_getCString(CXString string)
      * }
@@ -185,7 +178,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * const char *clang_getCString(CXString string)
      * }
@@ -195,7 +187,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * const char *clang_getCString(CXString string)
      * }
@@ -224,7 +215,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_disposeString(CXString string)
      * }
@@ -235,7 +225,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_disposeString(CXString string)
      * }
@@ -246,7 +235,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_disposeString(CXString string)
      * }
@@ -256,7 +244,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_disposeString(CXString string)
      * }
@@ -273,14 +260,12 @@ public class Index_h {
         }
     }
     /**
-
      * {@snippet lang=c :
      * typedef void *CXIndex
      * }
      */
     public static final AddressLayout CXIndex = Index_h.C_POINTER;
     /**
-
      * {@snippet lang=c :
      * typedef struct CXTranslationUnitImpl *CXTranslationUnit
      * }
@@ -288,7 +273,6 @@ public class Index_h {
     public static final AddressLayout CXTranslationUnit = Index_h.C_POINTER;
     private static final int CXCursor_ExceptionSpecificationKind_None = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_None = 0
      * }
@@ -298,7 +282,6 @@ public class Index_h {
     }
     private static final int CXCursor_ExceptionSpecificationKind_DynamicNone = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_DynamicNone = 1
      * }
@@ -308,7 +291,6 @@ public class Index_h {
     }
     private static final int CXCursor_ExceptionSpecificationKind_Dynamic = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_Dynamic = 2
      * }
@@ -318,7 +300,6 @@ public class Index_h {
     }
     private static final int CXCursor_ExceptionSpecificationKind_MSAny = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_MSAny = 3
      * }
@@ -328,7 +309,6 @@ public class Index_h {
     }
     private static final int CXCursor_ExceptionSpecificationKind_BasicNoexcept = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_BasicNoexcept = 4
      * }
@@ -338,7 +318,6 @@ public class Index_h {
     }
     private static final int CXCursor_ExceptionSpecificationKind_ComputedNoexcept = (int)5L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_ComputedNoexcept = 5
      * }
@@ -348,7 +327,6 @@ public class Index_h {
     }
     private static final int CXCursor_ExceptionSpecificationKind_Unevaluated = (int)6L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_Unevaluated = 6
      * }
@@ -358,7 +336,6 @@ public class Index_h {
     }
     private static final int CXCursor_ExceptionSpecificationKind_Uninstantiated = (int)7L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_Uninstantiated = 7
      * }
@@ -368,7 +345,6 @@ public class Index_h {
     }
     private static final int CXCursor_ExceptionSpecificationKind_Unparsed = (int)8L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_Unparsed = 8
      * }
@@ -378,7 +354,6 @@ public class Index_h {
     }
     private static final int CXCursor_ExceptionSpecificationKind_NoThrow = (int)9L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursor_ExceptionSpecificationKind.CXCursor_ExceptionSpecificationKind_NoThrow = 9
      * }
@@ -401,7 +376,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXIndex clang_createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics)
      * }
@@ -412,7 +386,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXIndex clang_createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics)
      * }
@@ -423,7 +396,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXIndex clang_createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics)
      * }
@@ -433,7 +405,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXIndex clang_createIndex(int excludeDeclarationsFromPCH, int displayDiagnostics)
      * }
@@ -462,7 +433,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_disposeIndex(CXIndex index)
      * }
@@ -473,7 +443,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_disposeIndex(CXIndex index)
      * }
@@ -484,7 +453,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_disposeIndex(CXIndex index)
      * }
@@ -494,7 +462,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_disposeIndex(CXIndex index)
      * }
@@ -524,7 +491,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getFileName(CXFile SFile)
      * }
@@ -535,7 +501,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getFileName(CXFile SFile)
      * }
@@ -546,7 +511,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getFileName(CXFile SFile)
      * }
@@ -556,7 +520,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getFileName(CXFile SFile)
      * }
@@ -584,7 +547,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getNullLocation()
      * }
@@ -595,7 +557,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getNullLocation()
      * }
@@ -606,7 +567,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getNullLocation()
      * }
@@ -616,7 +576,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getNullLocation()
      * }
@@ -647,7 +606,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_equalLocations(CXSourceLocation loc1, CXSourceLocation loc2)
      * }
@@ -658,7 +616,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_equalLocations(CXSourceLocation loc1, CXSourceLocation loc2)
      * }
@@ -669,7 +626,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_equalLocations(CXSourceLocation loc1, CXSourceLocation loc2)
      * }
@@ -679,7 +635,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_equalLocations(CXSourceLocation loc1, CXSourceLocation loc2)
      * }
@@ -712,7 +667,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocation(CXTranslationUnit tu, CXFile file, unsigned int line, unsigned int column)
      * }
@@ -723,7 +677,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocation(CXTranslationUnit tu, CXFile file, unsigned int line, unsigned int column)
      * }
@@ -734,7 +687,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocation(CXTranslationUnit tu, CXFile file, unsigned int line, unsigned int column)
      * }
@@ -744,7 +696,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocation(CXTranslationUnit tu, CXFile file, unsigned int line, unsigned int column)
      * }
@@ -776,7 +727,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocationForOffset(CXTranslationUnit tu, CXFile file, unsigned int offset)
      * }
@@ -787,7 +737,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocationForOffset(CXTranslationUnit tu, CXFile file, unsigned int offset)
      * }
@@ -798,7 +747,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocationForOffset(CXTranslationUnit tu, CXFile file, unsigned int offset)
      * }
@@ -808,7 +756,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getLocationForOffset(CXTranslationUnit tu, CXFile file, unsigned int offset)
      * }
@@ -838,7 +785,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_Location_isInSystemHeader(CXSourceLocation location)
      * }
@@ -849,7 +795,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_Location_isInSystemHeader(CXSourceLocation location)
      * }
@@ -860,7 +805,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_Location_isInSystemHeader(CXSourceLocation location)
      * }
@@ -870,7 +814,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_Location_isInSystemHeader(CXSourceLocation location)
      * }
@@ -900,7 +843,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_Location_isFromMainFile(CXSourceLocation location)
      * }
@@ -911,7 +853,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_Location_isFromMainFile(CXSourceLocation location)
      * }
@@ -922,7 +863,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_Location_isFromMainFile(CXSourceLocation location)
      * }
@@ -932,7 +872,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_Location_isFromMainFile(CXSourceLocation location)
      * }
@@ -962,7 +901,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_Range_isNull(CXSourceRange range)
      * }
@@ -973,7 +911,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_Range_isNull(CXSourceRange range)
      * }
@@ -984,7 +921,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_Range_isNull(CXSourceRange range)
      * }
@@ -994,7 +930,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_Range_isNull(CXSourceRange range)
      * }
@@ -1027,7 +962,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_getExpansionLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1038,7 +972,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_getExpansionLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1049,7 +982,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_getExpansionLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1059,7 +991,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_getExpansionLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1092,7 +1023,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_getSpellingLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1103,7 +1033,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_getSpellingLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1114,7 +1043,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_getSpellingLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1124,7 +1052,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_getSpellingLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1157,7 +1084,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_getFileLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1168,7 +1094,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_getFileLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1179,7 +1104,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_getFileLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1189,7 +1113,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_getFileLocation(CXSourceLocation location, CXFile *file, unsigned int *line, unsigned int *column, unsigned int *offset)
      * }
@@ -1219,7 +1142,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeStart(CXSourceRange range)
      * }
@@ -1230,7 +1152,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeStart(CXSourceRange range)
      * }
@@ -1241,7 +1162,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeStart(CXSourceRange range)
      * }
@@ -1251,7 +1171,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeStart(CXSourceRange range)
      * }
@@ -1281,7 +1200,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeEnd(CXSourceRange range)
      * }
@@ -1292,7 +1210,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeEnd(CXSourceRange range)
      * }
@@ -1303,7 +1220,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeEnd(CXSourceRange range)
      * }
@@ -1313,7 +1229,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getRangeEnd(CXSourceRange range)
      * }
@@ -1331,7 +1246,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_Ignored = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Ignored = 0
      * }
@@ -1341,7 +1255,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_Note = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Note = 1
      * }
@@ -1351,7 +1264,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_Warning = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Warning = 2
      * }
@@ -1361,7 +1273,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_Error = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Error = 3
      * }
@@ -1371,7 +1282,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_Fatal = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity.CXDiagnostic_Fatal = 4
      * }
@@ -1393,7 +1303,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXDiagnosticSet clang_getChildDiagnostics(CXDiagnostic D)
      * }
@@ -1404,7 +1313,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXDiagnosticSet clang_getChildDiagnostics(CXDiagnostic D)
      * }
@@ -1415,7 +1323,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXDiagnosticSet clang_getChildDiagnostics(CXDiagnostic D)
      * }
@@ -1425,7 +1332,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXDiagnosticSet clang_getChildDiagnostics(CXDiagnostic D)
      * }
@@ -1455,7 +1361,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_getNumDiagnostics(CXTranslationUnit Unit)
      * }
@@ -1466,7 +1371,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_getNumDiagnostics(CXTranslationUnit Unit)
      * }
@@ -1477,7 +1381,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_getNumDiagnostics(CXTranslationUnit Unit)
      * }
@@ -1487,7 +1390,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_getNumDiagnostics(CXTranslationUnit Unit)
      * }
@@ -1518,7 +1420,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXDiagnostic clang_getDiagnostic(CXTranslationUnit Unit, unsigned int Index)
      * }
@@ -1529,7 +1430,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXDiagnostic clang_getDiagnostic(CXTranslationUnit Unit, unsigned int Index)
      * }
@@ -1540,7 +1440,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXDiagnostic clang_getDiagnostic(CXTranslationUnit Unit, unsigned int Index)
      * }
@@ -1550,7 +1449,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXDiagnostic clang_getDiagnostic(CXTranslationUnit Unit, unsigned int Index)
      * }
@@ -1579,7 +1477,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_disposeDiagnostic(CXDiagnostic Diagnostic)
      * }
@@ -1590,7 +1487,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_disposeDiagnostic(CXDiagnostic Diagnostic)
      * }
@@ -1601,7 +1497,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_disposeDiagnostic(CXDiagnostic Diagnostic)
      * }
@@ -1611,7 +1506,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_disposeDiagnostic(CXDiagnostic Diagnostic)
      * }
@@ -1629,7 +1523,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_DisplaySourceLocation = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplaySourceLocation = 1
      * }
@@ -1639,7 +1532,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_DisplayColumn = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplayColumn = 2
      * }
@@ -1649,7 +1541,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_DisplaySourceRanges = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplaySourceRanges = 4
      * }
@@ -1659,7 +1550,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_DisplayOption = (int)8L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplayOption = 8
      * }
@@ -1669,7 +1559,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_DisplayCategoryId = (int)16L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplayCategoryId = 16
      * }
@@ -1679,7 +1568,6 @@ public class Index_h {
     }
     private static final int CXDiagnostic_DisplayCategoryName = (int)32L;
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticDisplayOptions.CXDiagnostic_DisplayCategoryName = 32
      * }
@@ -1702,7 +1590,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_formatDiagnostic(CXDiagnostic Diagnostic, unsigned int Options)
      * }
@@ -1713,7 +1600,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_formatDiagnostic(CXDiagnostic Diagnostic, unsigned int Options)
      * }
@@ -1724,7 +1610,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_formatDiagnostic(CXDiagnostic Diagnostic, unsigned int Options)
      * }
@@ -1734,7 +1619,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_formatDiagnostic(CXDiagnostic Diagnostic, unsigned int Options)
      * }
@@ -1762,7 +1646,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_defaultDiagnosticDisplayOptions()
      * }
@@ -1773,7 +1656,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_defaultDiagnosticDisplayOptions()
      * }
@@ -1784,7 +1666,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_defaultDiagnosticDisplayOptions()
      * }
@@ -1794,7 +1675,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_defaultDiagnosticDisplayOptions()
      * }
@@ -1824,7 +1704,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity clang_getDiagnosticSeverity(CXDiagnostic)
      * }
@@ -1835,7 +1714,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity clang_getDiagnosticSeverity(CXDiagnostic)
      * }
@@ -1846,7 +1724,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity clang_getDiagnosticSeverity(CXDiagnostic)
      * }
@@ -1856,7 +1733,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * enum CXDiagnosticSeverity clang_getDiagnosticSeverity(CXDiagnostic)
      * }
@@ -1886,7 +1762,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getDiagnosticLocation(CXDiagnostic)
      * }
@@ -1897,7 +1772,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getDiagnosticLocation(CXDiagnostic)
      * }
@@ -1908,7 +1782,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getDiagnosticLocation(CXDiagnostic)
      * }
@@ -1918,7 +1791,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getDiagnosticLocation(CXDiagnostic)
      * }
@@ -1948,7 +1820,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getDiagnosticSpelling(CXDiagnostic)
      * }
@@ -1959,7 +1830,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getDiagnosticSpelling(CXDiagnostic)
      * }
@@ -1970,7 +1840,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getDiagnosticSpelling(CXDiagnostic)
      * }
@@ -1980,7 +1849,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getDiagnosticSpelling(CXDiagnostic)
      * }
@@ -2015,7 +1883,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_createTranslationUnitFromSourceFile(CXIndex CIdx, const char *source_filename, int num_clang_command_line_args, const char *const *clang_command_line_args, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files)
      * }
@@ -2026,7 +1893,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_createTranslationUnitFromSourceFile(CXIndex CIdx, const char *source_filename, int num_clang_command_line_args, const char *const *clang_command_line_args, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files)
      * }
@@ -2037,7 +1903,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_createTranslationUnitFromSourceFile(CXIndex CIdx, const char *source_filename, int num_clang_command_line_args, const char *const *clang_command_line_args, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files)
      * }
@@ -2047,7 +1912,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_createTranslationUnitFromSourceFile(CXIndex CIdx, const char *source_filename, int num_clang_command_line_args, const char *const *clang_command_line_args, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files)
      * }
@@ -2065,7 +1929,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_None = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_None = 0
      * }
@@ -2075,7 +1938,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_DetailedPreprocessingRecord = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_DetailedPreprocessingRecord = 1
      * }
@@ -2085,7 +1947,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_Incomplete = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_Incomplete = 2
      * }
@@ -2095,7 +1956,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_PrecompiledPreamble = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_PrecompiledPreamble = 4
      * }
@@ -2105,7 +1965,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_CacheCompletionResults = (int)8L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_CacheCompletionResults = 8
      * }
@@ -2115,7 +1974,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_ForSerialization = (int)16L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_ForSerialization = 16
      * }
@@ -2125,7 +1983,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_CXXChainedPCH = (int)32L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_CXXChainedPCH = 32
      * }
@@ -2135,7 +1992,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_SkipFunctionBodies = (int)64L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_SkipFunctionBodies = 64
      * }
@@ -2145,7 +2001,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_IncludeBriefCommentsInCodeCompletion = (int)128L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_IncludeBriefCommentsInCodeCompletion = 128
      * }
@@ -2155,7 +2010,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_CreatePreambleOnFirstParse = (int)256L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_CreatePreambleOnFirstParse = 256
      * }
@@ -2165,7 +2019,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_KeepGoing = (int)512L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_KeepGoing = 512
      * }
@@ -2175,7 +2028,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_SingleFileParse = (int)1024L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_SingleFileParse = 1024
      * }
@@ -2185,7 +2037,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_LimitSkipFunctionBodiesToPreamble = (int)2048L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_LimitSkipFunctionBodiesToPreamble = 2048
      * }
@@ -2195,7 +2046,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_IncludeAttributedTypes = (int)4096L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_IncludeAttributedTypes = 4096
      * }
@@ -2205,7 +2055,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_VisitImplicitAttributes = (int)8192L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_VisitImplicitAttributes = 8192
      * }
@@ -2215,7 +2064,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles = (int)16384L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles = 16384
      * }
@@ -2225,7 +2073,6 @@ public class Index_h {
     }
     private static final int CXTranslationUnit_RetainExcludedConditionalBlocks = (int)32768L;
     /**
-
      * {@snippet lang=c :
      * enum CXTranslationUnit_Flags.CXTranslationUnit_RetainExcludedConditionalBlocks = 32768
      * }
@@ -2253,7 +2100,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_parseTranslationUnit(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options)
      * }
@@ -2264,7 +2110,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_parseTranslationUnit(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options)
      * }
@@ -2275,7 +2120,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_parseTranslationUnit(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options)
      * }
@@ -2285,7 +2129,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_parseTranslationUnit(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options)
      * }
@@ -2322,7 +2165,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * enum CXErrorCode clang_parseTranslationUnit2(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options, CXTranslationUnit *out_TU)
      * }
@@ -2333,7 +2175,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * enum CXErrorCode clang_parseTranslationUnit2(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options, CXTranslationUnit *out_TU)
      * }
@@ -2344,7 +2185,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * enum CXErrorCode clang_parseTranslationUnit2(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options, CXTranslationUnit *out_TU)
      * }
@@ -2354,7 +2194,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * enum CXErrorCode clang_parseTranslationUnit2(CXIndex CIdx, const char *source_filename, const char *const *command_line_args, int num_command_line_args, struct CXUnsavedFile *unsaved_files, unsigned int num_unsaved_files, unsigned int options, CXTranslationUnit *out_TU)
      * }
@@ -2372,7 +2211,6 @@ public class Index_h {
     }
     private static final int CXSaveTranslationUnit_None = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXSaveTranslationUnit_Flags.CXSaveTranslationUnit_None = 0
      * }
@@ -2382,7 +2220,6 @@ public class Index_h {
     }
     private static final int CXSaveError_None = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXSaveError.CXSaveError_None = 0
      * }
@@ -2392,7 +2229,6 @@ public class Index_h {
     }
     private static final int CXSaveError_Unknown = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXSaveError.CXSaveError_Unknown = 1
      * }
@@ -2402,7 +2238,6 @@ public class Index_h {
     }
     private static final int CXSaveError_TranslationErrors = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXSaveError.CXSaveError_TranslationErrors = 2
      * }
@@ -2412,7 +2247,6 @@ public class Index_h {
     }
     private static final int CXSaveError_InvalidTU = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXSaveError.CXSaveError_InvalidTU = 3
      * }
@@ -2436,7 +2270,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_saveTranslationUnit(CXTranslationUnit TU, const char *FileName, unsigned int options)
      * }
@@ -2447,7 +2280,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_saveTranslationUnit(CXTranslationUnit TU, const char *FileName, unsigned int options)
      * }
@@ -2458,7 +2290,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_saveTranslationUnit(CXTranslationUnit TU, const char *FileName, unsigned int options)
      * }
@@ -2468,7 +2299,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_saveTranslationUnit(CXTranslationUnit TU, const char *FileName, unsigned int options)
      * }
@@ -2497,7 +2327,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_disposeTranslationUnit(CXTranslationUnit)
      * }
@@ -2508,7 +2337,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_disposeTranslationUnit(CXTranslationUnit)
      * }
@@ -2519,7 +2347,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_disposeTranslationUnit(CXTranslationUnit)
      * }
@@ -2529,7 +2356,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_disposeTranslationUnit(CXTranslationUnit)
      * }
@@ -2547,7 +2373,6 @@ public class Index_h {
     }
     private static final int CXReparse_None = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXReparse_Flags.CXReparse_None = 0
      * }
@@ -2569,7 +2394,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_defaultReparseOptions(CXTranslationUnit TU)
      * }
@@ -2580,7 +2404,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_defaultReparseOptions(CXTranslationUnit TU)
      * }
@@ -2591,7 +2414,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_defaultReparseOptions(CXTranslationUnit TU)
      * }
@@ -2601,7 +2423,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_defaultReparseOptions(CXTranslationUnit TU)
      * }
@@ -2634,7 +2455,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_reparseTranslationUnit(CXTranslationUnit TU, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files, unsigned int options)
      * }
@@ -2645,7 +2465,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_reparseTranslationUnit(CXTranslationUnit TU, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files, unsigned int options)
      * }
@@ -2656,7 +2475,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_reparseTranslationUnit(CXTranslationUnit TU, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files, unsigned int options)
      * }
@@ -2666,7 +2484,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_reparseTranslationUnit(CXTranslationUnit TU, unsigned int num_unsaved_files, struct CXUnsavedFile *unsaved_files, unsigned int options)
      * }
@@ -2684,7 +2501,6 @@ public class Index_h {
     }
     private static final int CXCursor_UnexposedDecl = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnexposedDecl = 1
      * }
@@ -2694,7 +2510,6 @@ public class Index_h {
     }
     private static final int CXCursor_StructDecl = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_StructDecl = 2
      * }
@@ -2704,7 +2519,6 @@ public class Index_h {
     }
     private static final int CXCursor_UnionDecl = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnionDecl = 3
      * }
@@ -2714,7 +2528,6 @@ public class Index_h {
     }
     private static final int CXCursor_ClassDecl = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ClassDecl = 4
      * }
@@ -2724,7 +2537,6 @@ public class Index_h {
     }
     private static final int CXCursor_EnumDecl = (int)5L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_EnumDecl = 5
      * }
@@ -2734,7 +2546,6 @@ public class Index_h {
     }
     private static final int CXCursor_FieldDecl = (int)6L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FieldDecl = 6
      * }
@@ -2744,7 +2555,6 @@ public class Index_h {
     }
     private static final int CXCursor_EnumConstantDecl = (int)7L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_EnumConstantDecl = 7
      * }
@@ -2754,7 +2564,6 @@ public class Index_h {
     }
     private static final int CXCursor_FunctionDecl = (int)8L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FunctionDecl = 8
      * }
@@ -2764,7 +2573,6 @@ public class Index_h {
     }
     private static final int CXCursor_VarDecl = (int)9L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_VarDecl = 9
      * }
@@ -2774,7 +2582,6 @@ public class Index_h {
     }
     private static final int CXCursor_ParmDecl = (int)10L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ParmDecl = 10
      * }
@@ -2784,7 +2591,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCInterfaceDecl = (int)11L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCInterfaceDecl = 11
      * }
@@ -2794,7 +2600,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCCategoryDecl = (int)12L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCCategoryDecl = 12
      * }
@@ -2804,7 +2609,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCProtocolDecl = (int)13L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCProtocolDecl = 13
      * }
@@ -2814,7 +2618,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCPropertyDecl = (int)14L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCPropertyDecl = 14
      * }
@@ -2824,7 +2627,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCIvarDecl = (int)15L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCIvarDecl = 15
      * }
@@ -2834,7 +2636,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCInstanceMethodDecl = (int)16L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCInstanceMethodDecl = 16
      * }
@@ -2844,7 +2645,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCClassMethodDecl = (int)17L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCClassMethodDecl = 17
      * }
@@ -2854,7 +2654,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCImplementationDecl = (int)18L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCImplementationDecl = 18
      * }
@@ -2864,7 +2663,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCCategoryImplDecl = (int)19L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCCategoryImplDecl = 19
      * }
@@ -2874,7 +2672,6 @@ public class Index_h {
     }
     private static final int CXCursor_TypedefDecl = (int)20L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TypedefDecl = 20
      * }
@@ -2884,7 +2681,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXMethod = (int)21L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXMethod = 21
      * }
@@ -2894,7 +2690,6 @@ public class Index_h {
     }
     private static final int CXCursor_Namespace = (int)22L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_Namespace = 22
      * }
@@ -2904,7 +2699,6 @@ public class Index_h {
     }
     private static final int CXCursor_LinkageSpec = (int)23L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LinkageSpec = 23
      * }
@@ -2914,7 +2708,6 @@ public class Index_h {
     }
     private static final int CXCursor_Constructor = (int)24L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_Constructor = 24
      * }
@@ -2924,7 +2717,6 @@ public class Index_h {
     }
     private static final int CXCursor_Destructor = (int)25L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_Destructor = 25
      * }
@@ -2934,7 +2726,6 @@ public class Index_h {
     }
     private static final int CXCursor_ConversionFunction = (int)26L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ConversionFunction = 26
      * }
@@ -2944,7 +2735,6 @@ public class Index_h {
     }
     private static final int CXCursor_TemplateTypeParameter = (int)27L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TemplateTypeParameter = 27
      * }
@@ -2954,7 +2744,6 @@ public class Index_h {
     }
     private static final int CXCursor_NonTypeTemplateParameter = (int)28L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NonTypeTemplateParameter = 28
      * }
@@ -2964,7 +2753,6 @@ public class Index_h {
     }
     private static final int CXCursor_TemplateTemplateParameter = (int)29L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TemplateTemplateParameter = 29
      * }
@@ -2974,7 +2762,6 @@ public class Index_h {
     }
     private static final int CXCursor_FunctionTemplate = (int)30L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FunctionTemplate = 30
      * }
@@ -2984,7 +2771,6 @@ public class Index_h {
     }
     private static final int CXCursor_ClassTemplate = (int)31L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ClassTemplate = 31
      * }
@@ -2994,7 +2780,6 @@ public class Index_h {
     }
     private static final int CXCursor_ClassTemplatePartialSpecialization = (int)32L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ClassTemplatePartialSpecialization = 32
      * }
@@ -3004,7 +2789,6 @@ public class Index_h {
     }
     private static final int CXCursor_NamespaceAlias = (int)33L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NamespaceAlias = 33
      * }
@@ -3014,7 +2798,6 @@ public class Index_h {
     }
     private static final int CXCursor_UsingDirective = (int)34L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UsingDirective = 34
      * }
@@ -3024,7 +2807,6 @@ public class Index_h {
     }
     private static final int CXCursor_UsingDeclaration = (int)35L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UsingDeclaration = 35
      * }
@@ -3034,7 +2816,6 @@ public class Index_h {
     }
     private static final int CXCursor_TypeAliasDecl = (int)36L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TypeAliasDecl = 36
      * }
@@ -3044,7 +2825,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCSynthesizeDecl = (int)37L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSynthesizeDecl = 37
      * }
@@ -3054,7 +2834,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCDynamicDecl = (int)38L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCDynamicDecl = 38
      * }
@@ -3064,7 +2843,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXAccessSpecifier = (int)39L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXAccessSpecifier = 39
      * }
@@ -3074,7 +2852,6 @@ public class Index_h {
     }
     private static final int CXCursor_FirstDecl = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstDecl = 1
      * }
@@ -3084,7 +2861,6 @@ public class Index_h {
     }
     private static final int CXCursor_LastDecl = (int)39L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastDecl = 39
      * }
@@ -3094,7 +2870,6 @@ public class Index_h {
     }
     private static final int CXCursor_FirstRef = (int)40L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstRef = 40
      * }
@@ -3104,7 +2879,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCSuperClassRef = (int)40L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSuperClassRef = 40
      * }
@@ -3114,7 +2888,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCProtocolRef = (int)41L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCProtocolRef = 41
      * }
@@ -3124,7 +2897,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCClassRef = (int)42L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCClassRef = 42
      * }
@@ -3134,7 +2906,6 @@ public class Index_h {
     }
     private static final int CXCursor_TypeRef = (int)43L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TypeRef = 43
      * }
@@ -3144,7 +2915,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXBaseSpecifier = (int)44L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXBaseSpecifier = 44
      * }
@@ -3154,7 +2924,6 @@ public class Index_h {
     }
     private static final int CXCursor_TemplateRef = (int)45L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TemplateRef = 45
      * }
@@ -3164,7 +2933,6 @@ public class Index_h {
     }
     private static final int CXCursor_NamespaceRef = (int)46L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NamespaceRef = 46
      * }
@@ -3174,7 +2942,6 @@ public class Index_h {
     }
     private static final int CXCursor_MemberRef = (int)47L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MemberRef = 47
      * }
@@ -3184,7 +2951,6 @@ public class Index_h {
     }
     private static final int CXCursor_LabelRef = (int)48L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LabelRef = 48
      * }
@@ -3194,7 +2960,6 @@ public class Index_h {
     }
     private static final int CXCursor_OverloadedDeclRef = (int)49L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OverloadedDeclRef = 49
      * }
@@ -3204,7 +2969,6 @@ public class Index_h {
     }
     private static final int CXCursor_VariableRef = (int)50L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_VariableRef = 50
      * }
@@ -3214,7 +2978,6 @@ public class Index_h {
     }
     private static final int CXCursor_LastRef = (int)50L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastRef = 50
      * }
@@ -3224,7 +2987,6 @@ public class Index_h {
     }
     private static final int CXCursor_FirstInvalid = (int)70L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstInvalid = 70
      * }
@@ -3234,7 +2996,6 @@ public class Index_h {
     }
     private static final int CXCursor_InvalidFile = (int)70L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_InvalidFile = 70
      * }
@@ -3244,7 +3005,6 @@ public class Index_h {
     }
     private static final int CXCursor_NoDeclFound = (int)71L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NoDeclFound = 71
      * }
@@ -3254,7 +3014,6 @@ public class Index_h {
     }
     private static final int CXCursor_NotImplemented = (int)72L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NotImplemented = 72
      * }
@@ -3264,7 +3023,6 @@ public class Index_h {
     }
     private static final int CXCursor_InvalidCode = (int)73L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_InvalidCode = 73
      * }
@@ -3274,7 +3032,6 @@ public class Index_h {
     }
     private static final int CXCursor_LastInvalid = (int)73L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastInvalid = 73
      * }
@@ -3284,7 +3041,6 @@ public class Index_h {
     }
     private static final int CXCursor_FirstExpr = (int)100L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstExpr = 100
      * }
@@ -3294,7 +3050,6 @@ public class Index_h {
     }
     private static final int CXCursor_UnexposedExpr = (int)100L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnexposedExpr = 100
      * }
@@ -3304,7 +3059,6 @@ public class Index_h {
     }
     private static final int CXCursor_DeclRefExpr = (int)101L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DeclRefExpr = 101
      * }
@@ -3314,7 +3068,6 @@ public class Index_h {
     }
     private static final int CXCursor_MemberRefExpr = (int)102L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MemberRefExpr = 102
      * }
@@ -3324,7 +3077,6 @@ public class Index_h {
     }
     private static final int CXCursor_CallExpr = (int)103L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CallExpr = 103
      * }
@@ -3334,7 +3086,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCMessageExpr = (int)104L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCMessageExpr = 104
      * }
@@ -3344,7 +3095,6 @@ public class Index_h {
     }
     private static final int CXCursor_BlockExpr = (int)105L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_BlockExpr = 105
      * }
@@ -3354,7 +3104,6 @@ public class Index_h {
     }
     private static final int CXCursor_IntegerLiteral = (int)106L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IntegerLiteral = 106
      * }
@@ -3364,7 +3113,6 @@ public class Index_h {
     }
     private static final int CXCursor_FloatingLiteral = (int)107L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FloatingLiteral = 107
      * }
@@ -3374,7 +3122,6 @@ public class Index_h {
     }
     private static final int CXCursor_ImaginaryLiteral = (int)108L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ImaginaryLiteral = 108
      * }
@@ -3384,7 +3131,6 @@ public class Index_h {
     }
     private static final int CXCursor_StringLiteral = (int)109L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_StringLiteral = 109
      * }
@@ -3394,7 +3140,6 @@ public class Index_h {
     }
     private static final int CXCursor_CharacterLiteral = (int)110L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CharacterLiteral = 110
      * }
@@ -3404,7 +3149,6 @@ public class Index_h {
     }
     private static final int CXCursor_ParenExpr = (int)111L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ParenExpr = 111
      * }
@@ -3414,7 +3158,6 @@ public class Index_h {
     }
     private static final int CXCursor_UnaryOperator = (int)112L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnaryOperator = 112
      * }
@@ -3424,7 +3167,6 @@ public class Index_h {
     }
     private static final int CXCursor_ArraySubscriptExpr = (int)113L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ArraySubscriptExpr = 113
      * }
@@ -3434,7 +3176,6 @@ public class Index_h {
     }
     private static final int CXCursor_BinaryOperator = (int)114L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_BinaryOperator = 114
      * }
@@ -3444,7 +3185,6 @@ public class Index_h {
     }
     private static final int CXCursor_CompoundAssignOperator = (int)115L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CompoundAssignOperator = 115
      * }
@@ -3454,7 +3194,6 @@ public class Index_h {
     }
     private static final int CXCursor_ConditionalOperator = (int)116L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ConditionalOperator = 116
      * }
@@ -3464,7 +3203,6 @@ public class Index_h {
     }
     private static final int CXCursor_CStyleCastExpr = (int)117L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CStyleCastExpr = 117
      * }
@@ -3474,7 +3212,6 @@ public class Index_h {
     }
     private static final int CXCursor_CompoundLiteralExpr = (int)118L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CompoundLiteralExpr = 118
      * }
@@ -3484,7 +3221,6 @@ public class Index_h {
     }
     private static final int CXCursor_InitListExpr = (int)119L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_InitListExpr = 119
      * }
@@ -3494,7 +3230,6 @@ public class Index_h {
     }
     private static final int CXCursor_AddrLabelExpr = (int)120L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AddrLabelExpr = 120
      * }
@@ -3504,7 +3239,6 @@ public class Index_h {
     }
     private static final int CXCursor_StmtExpr = (int)121L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_StmtExpr = 121
      * }
@@ -3514,7 +3248,6 @@ public class Index_h {
     }
     private static final int CXCursor_GenericSelectionExpr = (int)122L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_GenericSelectionExpr = 122
      * }
@@ -3524,7 +3257,6 @@ public class Index_h {
     }
     private static final int CXCursor_GNUNullExpr = (int)123L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_GNUNullExpr = 123
      * }
@@ -3534,7 +3266,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXStaticCastExpr = (int)124L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXStaticCastExpr = 124
      * }
@@ -3544,7 +3275,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXDynamicCastExpr = (int)125L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXDynamicCastExpr = 125
      * }
@@ -3554,7 +3284,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXReinterpretCastExpr = (int)126L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXReinterpretCastExpr = 126
      * }
@@ -3564,7 +3293,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXConstCastExpr = (int)127L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXConstCastExpr = 127
      * }
@@ -3574,7 +3302,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXFunctionalCastExpr = (int)128L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXFunctionalCastExpr = 128
      * }
@@ -3584,7 +3311,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXTypeidExpr = (int)129L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXTypeidExpr = 129
      * }
@@ -3594,7 +3320,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXBoolLiteralExpr = (int)130L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXBoolLiteralExpr = 130
      * }
@@ -3604,7 +3329,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXNullPtrLiteralExpr = (int)131L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXNullPtrLiteralExpr = 131
      * }
@@ -3614,7 +3338,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXThisExpr = (int)132L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXThisExpr = 132
      * }
@@ -3624,7 +3347,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXThrowExpr = (int)133L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXThrowExpr = 133
      * }
@@ -3634,7 +3356,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXNewExpr = (int)134L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXNewExpr = 134
      * }
@@ -3644,7 +3365,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXDeleteExpr = (int)135L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXDeleteExpr = 135
      * }
@@ -3654,7 +3374,6 @@ public class Index_h {
     }
     private static final int CXCursor_UnaryExpr = (int)136L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnaryExpr = 136
      * }
@@ -3664,7 +3383,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCStringLiteral = (int)137L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCStringLiteral = 137
      * }
@@ -3674,7 +3392,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCEncodeExpr = (int)138L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCEncodeExpr = 138
      * }
@@ -3684,7 +3401,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCSelectorExpr = (int)139L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSelectorExpr = 139
      * }
@@ -3694,7 +3410,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCProtocolExpr = (int)140L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCProtocolExpr = 140
      * }
@@ -3704,7 +3419,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCBridgedCastExpr = (int)141L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCBridgedCastExpr = 141
      * }
@@ -3714,7 +3428,6 @@ public class Index_h {
     }
     private static final int CXCursor_PackExpansionExpr = (int)142L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_PackExpansionExpr = 142
      * }
@@ -3724,7 +3437,6 @@ public class Index_h {
     }
     private static final int CXCursor_SizeOfPackExpr = (int)143L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SizeOfPackExpr = 143
      * }
@@ -3734,7 +3446,6 @@ public class Index_h {
     }
     private static final int CXCursor_LambdaExpr = (int)144L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LambdaExpr = 144
      * }
@@ -3744,7 +3455,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCBoolLiteralExpr = (int)145L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCBoolLiteralExpr = 145
      * }
@@ -3754,7 +3464,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCSelfExpr = (int)146L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSelfExpr = 146
      * }
@@ -3764,7 +3473,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPArraySectionExpr = (int)147L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPArraySectionExpr = 147
      * }
@@ -3774,7 +3482,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCAvailabilityCheckExpr = (int)148L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAvailabilityCheckExpr = 148
      * }
@@ -3784,7 +3491,6 @@ public class Index_h {
     }
     private static final int CXCursor_FixedPointLiteral = (int)149L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FixedPointLiteral = 149
      * }
@@ -3794,7 +3500,6 @@ public class Index_h {
     }
     private static final int CXCursor_LastExpr = (int)152L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastExpr = 152
      * }
@@ -3804,7 +3509,6 @@ public class Index_h {
     }
     private static final int CXCursor_FirstStmt = (int)200L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstStmt = 200
      * }
@@ -3814,7 +3518,6 @@ public class Index_h {
     }
     private static final int CXCursor_UnexposedStmt = (int)200L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnexposedStmt = 200
      * }
@@ -3824,7 +3527,6 @@ public class Index_h {
     }
     private static final int CXCursor_LabelStmt = (int)201L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LabelStmt = 201
      * }
@@ -3834,7 +3536,6 @@ public class Index_h {
     }
     private static final int CXCursor_CompoundStmt = (int)202L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CompoundStmt = 202
      * }
@@ -3844,7 +3545,6 @@ public class Index_h {
     }
     private static final int CXCursor_CaseStmt = (int)203L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CaseStmt = 203
      * }
@@ -3854,7 +3554,6 @@ public class Index_h {
     }
     private static final int CXCursor_DefaultStmt = (int)204L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DefaultStmt = 204
      * }
@@ -3864,7 +3563,6 @@ public class Index_h {
     }
     private static final int CXCursor_IfStmt = (int)205L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IfStmt = 205
      * }
@@ -3874,7 +3572,6 @@ public class Index_h {
     }
     private static final int CXCursor_SwitchStmt = (int)206L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SwitchStmt = 206
      * }
@@ -3884,7 +3581,6 @@ public class Index_h {
     }
     private static final int CXCursor_WhileStmt = (int)207L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_WhileStmt = 207
      * }
@@ -3894,7 +3590,6 @@ public class Index_h {
     }
     private static final int CXCursor_DoStmt = (int)208L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DoStmt = 208
      * }
@@ -3904,7 +3599,6 @@ public class Index_h {
     }
     private static final int CXCursor_ForStmt = (int)209L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ForStmt = 209
      * }
@@ -3914,7 +3608,6 @@ public class Index_h {
     }
     private static final int CXCursor_GotoStmt = (int)210L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_GotoStmt = 210
      * }
@@ -3924,7 +3617,6 @@ public class Index_h {
     }
     private static final int CXCursor_IndirectGotoStmt = (int)211L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IndirectGotoStmt = 211
      * }
@@ -3934,7 +3626,6 @@ public class Index_h {
     }
     private static final int CXCursor_ContinueStmt = (int)212L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ContinueStmt = 212
      * }
@@ -3944,7 +3635,6 @@ public class Index_h {
     }
     private static final int CXCursor_BreakStmt = (int)213L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_BreakStmt = 213
      * }
@@ -3954,7 +3644,6 @@ public class Index_h {
     }
     private static final int CXCursor_ReturnStmt = (int)214L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ReturnStmt = 214
      * }
@@ -3964,7 +3653,6 @@ public class Index_h {
     }
     private static final int CXCursor_GCCAsmStmt = (int)215L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_GCCAsmStmt = 215
      * }
@@ -3974,7 +3662,6 @@ public class Index_h {
     }
     private static final int CXCursor_AsmStmt = (int)215L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AsmStmt = 215
      * }
@@ -3984,7 +3671,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCAtTryStmt = (int)216L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtTryStmt = 216
      * }
@@ -3994,7 +3680,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCAtCatchStmt = (int)217L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtCatchStmt = 217
      * }
@@ -4004,7 +3689,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCAtFinallyStmt = (int)218L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtFinallyStmt = 218
      * }
@@ -4014,7 +3698,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCAtThrowStmt = (int)219L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtThrowStmt = 219
      * }
@@ -4024,7 +3707,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCAtSynchronizedStmt = (int)220L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAtSynchronizedStmt = 220
      * }
@@ -4034,7 +3716,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCAutoreleasePoolStmt = (int)221L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCAutoreleasePoolStmt = 221
      * }
@@ -4044,7 +3725,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCForCollectionStmt = (int)222L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCForCollectionStmt = 222
      * }
@@ -4054,7 +3734,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXCatchStmt = (int)223L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXCatchStmt = 223
      * }
@@ -4064,7 +3743,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXTryStmt = (int)224L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXTryStmt = 224
      * }
@@ -4074,7 +3752,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXForRangeStmt = (int)225L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXForRangeStmt = 225
      * }
@@ -4084,7 +3761,6 @@ public class Index_h {
     }
     private static final int CXCursor_SEHTryStmt = (int)226L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SEHTryStmt = 226
      * }
@@ -4094,7 +3770,6 @@ public class Index_h {
     }
     private static final int CXCursor_SEHExceptStmt = (int)227L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SEHExceptStmt = 227
      * }
@@ -4104,7 +3779,6 @@ public class Index_h {
     }
     private static final int CXCursor_SEHFinallyStmt = (int)228L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SEHFinallyStmt = 228
      * }
@@ -4114,7 +3788,6 @@ public class Index_h {
     }
     private static final int CXCursor_MSAsmStmt = (int)229L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MSAsmStmt = 229
      * }
@@ -4124,7 +3797,6 @@ public class Index_h {
     }
     private static final int CXCursor_NullStmt = (int)230L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NullStmt = 230
      * }
@@ -4134,7 +3806,6 @@ public class Index_h {
     }
     private static final int CXCursor_DeclStmt = (int)231L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DeclStmt = 231
      * }
@@ -4144,7 +3815,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPParallelDirective = (int)232L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelDirective = 232
      * }
@@ -4154,7 +3824,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPSimdDirective = (int)233L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPSimdDirective = 233
      * }
@@ -4164,7 +3833,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPForDirective = (int)234L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPForDirective = 234
      * }
@@ -4174,7 +3842,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPSectionsDirective = (int)235L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPSectionsDirective = 235
      * }
@@ -4184,7 +3851,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPSectionDirective = (int)236L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPSectionDirective = 236
      * }
@@ -4194,7 +3860,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPSingleDirective = (int)237L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPSingleDirective = 237
      * }
@@ -4204,7 +3869,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPParallelForDirective = (int)238L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelForDirective = 238
      * }
@@ -4214,7 +3878,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPParallelSectionsDirective = (int)239L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelSectionsDirective = 239
      * }
@@ -4224,7 +3887,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTaskDirective = (int)240L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskDirective = 240
      * }
@@ -4234,7 +3896,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPMasterDirective = (int)241L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPMasterDirective = 241
      * }
@@ -4244,7 +3905,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPCriticalDirective = (int)242L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPCriticalDirective = 242
      * }
@@ -4254,7 +3914,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTaskyieldDirective = (int)243L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskyieldDirective = 243
      * }
@@ -4264,7 +3923,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPBarrierDirective = (int)244L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPBarrierDirective = 244
      * }
@@ -4274,7 +3932,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTaskwaitDirective = (int)245L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskwaitDirective = 245
      * }
@@ -4284,7 +3941,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPFlushDirective = (int)246L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPFlushDirective = 246
      * }
@@ -4294,7 +3950,6 @@ public class Index_h {
     }
     private static final int CXCursor_SEHLeaveStmt = (int)247L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_SEHLeaveStmt = 247
      * }
@@ -4304,7 +3959,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPOrderedDirective = (int)248L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPOrderedDirective = 248
      * }
@@ -4314,7 +3968,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPAtomicDirective = (int)249L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPAtomicDirective = 249
      * }
@@ -4324,7 +3977,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPForSimdDirective = (int)250L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPForSimdDirective = 250
      * }
@@ -4334,7 +3986,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPParallelForSimdDirective = (int)251L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelForSimdDirective = 251
      * }
@@ -4344,7 +3995,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetDirective = (int)252L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetDirective = 252
      * }
@@ -4354,7 +4004,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTeamsDirective = (int)253L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDirective = 253
      * }
@@ -4364,7 +4013,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTaskgroupDirective = (int)254L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskgroupDirective = 254
      * }
@@ -4374,7 +4022,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPCancellationPointDirective = (int)255L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPCancellationPointDirective = 255
      * }
@@ -4384,7 +4031,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPCancelDirective = (int)256L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPCancelDirective = 256
      * }
@@ -4394,7 +4040,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetDataDirective = (int)257L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetDataDirective = 257
      * }
@@ -4404,7 +4049,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTaskLoopDirective = (int)258L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskLoopDirective = 258
      * }
@@ -4414,7 +4058,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTaskLoopSimdDirective = (int)259L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTaskLoopSimdDirective = 259
      * }
@@ -4424,7 +4067,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPDistributeDirective = (int)260L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPDistributeDirective = 260
      * }
@@ -4434,7 +4076,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetEnterDataDirective = (int)261L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetEnterDataDirective = 261
      * }
@@ -4444,7 +4085,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetExitDataDirective = (int)262L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetExitDataDirective = 262
      * }
@@ -4454,7 +4094,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetParallelDirective = (int)263L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetParallelDirective = 263
      * }
@@ -4464,7 +4103,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetParallelForDirective = (int)264L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetParallelForDirective = 264
      * }
@@ -4474,7 +4112,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetUpdateDirective = (int)265L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetUpdateDirective = 265
      * }
@@ -4484,7 +4121,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPDistributeParallelForDirective = (int)266L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPDistributeParallelForDirective = 266
      * }
@@ -4494,7 +4130,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPDistributeParallelForSimdDirective = (int)267L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPDistributeParallelForSimdDirective = 267
      * }
@@ -4504,7 +4139,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPDistributeSimdDirective = (int)268L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPDistributeSimdDirective = 268
      * }
@@ -4514,7 +4148,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetParallelForSimdDirective = (int)269L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetParallelForSimdDirective = 269
      * }
@@ -4524,7 +4157,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetSimdDirective = (int)270L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetSimdDirective = 270
      * }
@@ -4534,7 +4166,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTeamsDistributeDirective = (int)271L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDistributeDirective = 271
      * }
@@ -4544,7 +4175,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTeamsDistributeSimdDirective = (int)272L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDistributeSimdDirective = 272
      * }
@@ -4554,7 +4184,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTeamsDistributeParallelForSimdDirective = (int)273L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDistributeParallelForSimdDirective = 273
      * }
@@ -4564,7 +4193,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTeamsDistributeParallelForDirective = (int)274L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTeamsDistributeParallelForDirective = 274
      * }
@@ -4574,7 +4202,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetTeamsDirective = (int)275L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDirective = 275
      * }
@@ -4584,7 +4211,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetTeamsDistributeDirective = (int)276L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDistributeDirective = 276
      * }
@@ -4594,7 +4220,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetTeamsDistributeParallelForDirective = (int)277L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDistributeParallelForDirective = 277
      * }
@@ -4604,7 +4229,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective = (int)278L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective = 278
      * }
@@ -4614,7 +4238,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPTargetTeamsDistributeSimdDirective = (int)279L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPTargetTeamsDistributeSimdDirective = 279
      * }
@@ -4624,7 +4247,6 @@ public class Index_h {
     }
     private static final int CXCursor_BuiltinBitCastExpr = (int)280L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_BuiltinBitCastExpr = 280
      * }
@@ -4634,7 +4256,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPMasterTaskLoopDirective = (int)281L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPMasterTaskLoopDirective = 281
      * }
@@ -4644,7 +4265,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPParallelMasterTaskLoopDirective = (int)282L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelMasterTaskLoopDirective = 282
      * }
@@ -4654,7 +4274,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPMasterTaskLoopSimdDirective = (int)283L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPMasterTaskLoopSimdDirective = 283
      * }
@@ -4664,7 +4283,6 @@ public class Index_h {
     }
     private static final int CXCursor_OMPParallelMasterTaskLoopSimdDirective = (int)284L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OMPParallelMasterTaskLoopSimdDirective = 284
      * }
@@ -4674,7 +4292,6 @@ public class Index_h {
     }
     private static final int CXCursor_LastStmt = (int)293L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastStmt = 293
      * }
@@ -4684,7 +4301,6 @@ public class Index_h {
     }
     private static final int CXCursor_TranslationUnit = (int)300L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TranslationUnit = 300
      * }
@@ -4694,7 +4310,6 @@ public class Index_h {
     }
     private static final int CXCursor_FirstAttr = (int)400L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstAttr = 400
      * }
@@ -4704,7 +4319,6 @@ public class Index_h {
     }
     private static final int CXCursor_UnexposedAttr = (int)400L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_UnexposedAttr = 400
      * }
@@ -4714,7 +4328,6 @@ public class Index_h {
     }
     private static final int CXCursor_IBActionAttr = (int)401L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IBActionAttr = 401
      * }
@@ -4724,7 +4337,6 @@ public class Index_h {
     }
     private static final int CXCursor_IBOutletAttr = (int)402L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IBOutletAttr = 402
      * }
@@ -4734,7 +4346,6 @@ public class Index_h {
     }
     private static final int CXCursor_IBOutletCollectionAttr = (int)403L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_IBOutletCollectionAttr = 403
      * }
@@ -4744,7 +4355,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXFinalAttr = (int)404L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXFinalAttr = 404
      * }
@@ -4754,7 +4364,6 @@ public class Index_h {
     }
     private static final int CXCursor_CXXOverrideAttr = (int)405L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CXXOverrideAttr = 405
      * }
@@ -4764,7 +4373,6 @@ public class Index_h {
     }
     private static final int CXCursor_AnnotateAttr = (int)406L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AnnotateAttr = 406
      * }
@@ -4774,7 +4382,6 @@ public class Index_h {
     }
     private static final int CXCursor_AsmLabelAttr = (int)407L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AsmLabelAttr = 407
      * }
@@ -4784,7 +4391,6 @@ public class Index_h {
     }
     private static final int CXCursor_PackedAttr = (int)408L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_PackedAttr = 408
      * }
@@ -4794,7 +4400,6 @@ public class Index_h {
     }
     private static final int CXCursor_PureAttr = (int)409L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_PureAttr = 409
      * }
@@ -4804,7 +4409,6 @@ public class Index_h {
     }
     private static final int CXCursor_ConstAttr = (int)410L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ConstAttr = 410
      * }
@@ -4814,7 +4418,6 @@ public class Index_h {
     }
     private static final int CXCursor_NoDuplicateAttr = (int)411L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NoDuplicateAttr = 411
      * }
@@ -4824,7 +4427,6 @@ public class Index_h {
     }
     private static final int CXCursor_CUDAConstantAttr = (int)412L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDAConstantAttr = 412
      * }
@@ -4834,7 +4436,6 @@ public class Index_h {
     }
     private static final int CXCursor_CUDADeviceAttr = (int)413L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDADeviceAttr = 413
      * }
@@ -4844,7 +4445,6 @@ public class Index_h {
     }
     private static final int CXCursor_CUDAGlobalAttr = (int)414L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDAGlobalAttr = 414
      * }
@@ -4854,7 +4454,6 @@ public class Index_h {
     }
     private static final int CXCursor_CUDAHostAttr = (int)415L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDAHostAttr = 415
      * }
@@ -4864,7 +4463,6 @@ public class Index_h {
     }
     private static final int CXCursor_CUDASharedAttr = (int)416L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_CUDASharedAttr = 416
      * }
@@ -4874,7 +4472,6 @@ public class Index_h {
     }
     private static final int CXCursor_VisibilityAttr = (int)417L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_VisibilityAttr = 417
      * }
@@ -4884,7 +4481,6 @@ public class Index_h {
     }
     private static final int CXCursor_DLLExport = (int)418L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DLLExport = 418
      * }
@@ -4894,7 +4490,6 @@ public class Index_h {
     }
     private static final int CXCursor_DLLImport = (int)419L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_DLLImport = 419
      * }
@@ -4904,7 +4499,6 @@ public class Index_h {
     }
     private static final int CXCursor_NSReturnsRetained = (int)420L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSReturnsRetained = 420
      * }
@@ -4914,7 +4508,6 @@ public class Index_h {
     }
     private static final int CXCursor_NSReturnsNotRetained = (int)421L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSReturnsNotRetained = 421
      * }
@@ -4924,7 +4517,6 @@ public class Index_h {
     }
     private static final int CXCursor_NSReturnsAutoreleased = (int)422L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSReturnsAutoreleased = 422
      * }
@@ -4934,7 +4526,6 @@ public class Index_h {
     }
     private static final int CXCursor_NSConsumesSelf = (int)423L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSConsumesSelf = 423
      * }
@@ -4944,7 +4535,6 @@ public class Index_h {
     }
     private static final int CXCursor_NSConsumed = (int)424L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_NSConsumed = 424
      * }
@@ -4954,7 +4544,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCException = (int)425L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCException = 425
      * }
@@ -4964,7 +4553,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCNSObject = (int)426L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCNSObject = 426
      * }
@@ -4974,7 +4562,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCIndependentClass = (int)427L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCIndependentClass = 427
      * }
@@ -4984,7 +4571,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCPreciseLifetime = (int)428L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCPreciseLifetime = 428
      * }
@@ -4994,7 +4580,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCReturnsInnerPointer = (int)429L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCReturnsInnerPointer = 429
      * }
@@ -5004,7 +4589,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCRequiresSuper = (int)430L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCRequiresSuper = 430
      * }
@@ -5014,7 +4598,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCRootClass = (int)431L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCRootClass = 431
      * }
@@ -5024,7 +4607,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCSubclassingRestricted = (int)432L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCSubclassingRestricted = 432
      * }
@@ -5034,7 +4616,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCExplicitProtocolImpl = (int)433L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCExplicitProtocolImpl = 433
      * }
@@ -5044,7 +4625,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCDesignatedInitializer = (int)434L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCDesignatedInitializer = 434
      * }
@@ -5054,7 +4634,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCRuntimeVisible = (int)435L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCRuntimeVisible = 435
      * }
@@ -5064,7 +4643,6 @@ public class Index_h {
     }
     private static final int CXCursor_ObjCBoxable = (int)436L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ObjCBoxable = 436
      * }
@@ -5074,7 +4652,6 @@ public class Index_h {
     }
     private static final int CXCursor_FlagEnum = (int)437L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FlagEnum = 437
      * }
@@ -5084,7 +4661,6 @@ public class Index_h {
     }
     private static final int CXCursor_ConvergentAttr = (int)438L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ConvergentAttr = 438
      * }
@@ -5094,7 +4670,6 @@ public class Index_h {
     }
     private static final int CXCursor_WarnUnusedAttr = (int)439L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_WarnUnusedAttr = 439
      * }
@@ -5104,7 +4679,6 @@ public class Index_h {
     }
     private static final int CXCursor_WarnUnusedResultAttr = (int)440L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_WarnUnusedResultAttr = 440
      * }
@@ -5114,7 +4688,6 @@ public class Index_h {
     }
     private static final int CXCursor_AlignedAttr = (int)441L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_AlignedAttr = 441
      * }
@@ -5124,7 +4697,6 @@ public class Index_h {
     }
     private static final int CXCursor_LastAttr = (int)441L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastAttr = 441
      * }
@@ -5134,7 +4706,6 @@ public class Index_h {
     }
     private static final int CXCursor_PreprocessingDirective = (int)500L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_PreprocessingDirective = 500
      * }
@@ -5144,7 +4715,6 @@ public class Index_h {
     }
     private static final int CXCursor_MacroDefinition = (int)501L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MacroDefinition = 501
      * }
@@ -5154,7 +4724,6 @@ public class Index_h {
     }
     private static final int CXCursor_MacroExpansion = (int)502L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MacroExpansion = 502
      * }
@@ -5164,7 +4733,6 @@ public class Index_h {
     }
     private static final int CXCursor_MacroInstantiation = (int)502L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_MacroInstantiation = 502
      * }
@@ -5174,7 +4742,6 @@ public class Index_h {
     }
     private static final int CXCursor_InclusionDirective = (int)503L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_InclusionDirective = 503
      * }
@@ -5184,7 +4751,6 @@ public class Index_h {
     }
     private static final int CXCursor_FirstPreprocessing = (int)500L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstPreprocessing = 500
      * }
@@ -5194,7 +4760,6 @@ public class Index_h {
     }
     private static final int CXCursor_LastPreprocessing = (int)503L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastPreprocessing = 503
      * }
@@ -5204,7 +4769,6 @@ public class Index_h {
     }
     private static final int CXCursor_ModuleImportDecl = (int)600L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_ModuleImportDecl = 600
      * }
@@ -5214,7 +4778,6 @@ public class Index_h {
     }
     private static final int CXCursor_TypeAliasTemplateDecl = (int)601L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_TypeAliasTemplateDecl = 601
      * }
@@ -5224,7 +4787,6 @@ public class Index_h {
     }
     private static final int CXCursor_StaticAssert = (int)602L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_StaticAssert = 602
      * }
@@ -5234,7 +4796,6 @@ public class Index_h {
     }
     private static final int CXCursor_FriendDecl = (int)603L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FriendDecl = 603
      * }
@@ -5244,7 +4805,6 @@ public class Index_h {
     }
     private static final int CXCursor_FirstExtraDecl = (int)600L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_FirstExtraDecl = 600
      * }
@@ -5254,7 +4814,6 @@ public class Index_h {
     }
     private static final int CXCursor_LastExtraDecl = (int)603L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_LastExtraDecl = 603
      * }
@@ -5264,7 +4823,6 @@ public class Index_h {
     }
     private static final int CXCursor_OverloadCandidate = (int)700L;
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind.CXCursor_OverloadCandidate = 700
      * }
@@ -5284,7 +4842,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXCursor clang_getNullCursor()
      * }
@@ -5295,7 +4852,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXCursor clang_getNullCursor()
      * }
@@ -5306,7 +4862,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXCursor clang_getNullCursor()
      * }
@@ -5316,7 +4871,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXCursor clang_getNullCursor()
      * }
@@ -5346,7 +4900,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXCursor clang_getTranslationUnitCursor(CXTranslationUnit)
      * }
@@ -5357,7 +4910,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXCursor clang_getTranslationUnitCursor(CXTranslationUnit)
      * }
@@ -5368,7 +4920,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXCursor clang_getTranslationUnitCursor(CXTranslationUnit)
      * }
@@ -5378,7 +4929,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXCursor clang_getTranslationUnitCursor(CXTranslationUnit)
      * }
@@ -5409,7 +4959,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_equalCursors(CXCursor, CXCursor)
      * }
@@ -5420,7 +4969,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_equalCursors(CXCursor, CXCursor)
      * }
@@ -5431,7 +4979,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_equalCursors(CXCursor, CXCursor)
      * }
@@ -5441,7 +4988,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_equalCursors(CXCursor, CXCursor)
      * }
@@ -5471,7 +5017,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_Cursor_isNull(CXCursor cursor)
      * }
@@ -5482,7 +5027,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_Cursor_isNull(CXCursor cursor)
      * }
@@ -5493,7 +5037,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_Cursor_isNull(CXCursor cursor)
      * }
@@ -5503,7 +5046,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_Cursor_isNull(CXCursor cursor)
      * }
@@ -5533,7 +5075,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * enum CXCursorKind clang_getCursorKind(CXCursor)
      * }
@@ -5544,7 +5085,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * enum CXCursorKind clang_getCursorKind(CXCursor)
      * }
@@ -5555,7 +5095,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * enum CXCursorKind clang_getCursorKind(CXCursor)
      * }
@@ -5565,7 +5104,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * enum CXCursorKind clang_getCursorKind(CXCursor)
      * }
@@ -5595,7 +5133,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_isDeclaration(enum CXCursorKind)
      * }
@@ -5606,7 +5143,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_isDeclaration(enum CXCursorKind)
      * }
@@ -5617,7 +5153,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_isDeclaration(enum CXCursorKind)
      * }
@@ -5627,7 +5162,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_isDeclaration(enum CXCursorKind)
      * }
@@ -5657,7 +5191,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_isAttribute(enum CXCursorKind)
      * }
@@ -5668,7 +5201,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_isAttribute(enum CXCursorKind)
      * }
@@ -5679,7 +5211,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_isAttribute(enum CXCursorKind)
      * }
@@ -5689,7 +5220,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_isAttribute(enum CXCursorKind)
      * }
@@ -5719,7 +5249,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_isInvalid(enum CXCursorKind)
      * }
@@ -5730,7 +5259,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_isInvalid(enum CXCursorKind)
      * }
@@ -5741,7 +5269,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_isInvalid(enum CXCursorKind)
      * }
@@ -5751,7 +5278,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_isInvalid(enum CXCursorKind)
      * }
@@ -5781,7 +5307,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_isPreprocessing(enum CXCursorKind)
      * }
@@ -5792,7 +5317,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_isPreprocessing(enum CXCursorKind)
      * }
@@ -5803,7 +5327,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_isPreprocessing(enum CXCursorKind)
      * }
@@ -5813,7 +5336,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_isPreprocessing(enum CXCursorKind)
      * }
@@ -5831,7 +5353,6 @@ public class Index_h {
     }
     private static final int CXLinkage_Invalid = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_Invalid = 0
      * }
@@ -5841,7 +5362,6 @@ public class Index_h {
     }
     private static final int CXLinkage_NoLinkage = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_NoLinkage = 1
      * }
@@ -5851,7 +5371,6 @@ public class Index_h {
     }
     private static final int CXLinkage_Internal = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_Internal = 2
      * }
@@ -5861,7 +5380,6 @@ public class Index_h {
     }
     private static final int CXLinkage_UniqueExternal = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_UniqueExternal = 3
      * }
@@ -5871,7 +5389,6 @@ public class Index_h {
     }
     private static final int CXLinkage_External = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXLinkageKind.CXLinkage_External = 4
      * }
@@ -5893,7 +5410,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * enum CXLinkageKind clang_getCursorLinkage(CXCursor cursor)
      * }
@@ -5904,7 +5420,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * enum CXLinkageKind clang_getCursorLinkage(CXCursor cursor)
      * }
@@ -5915,7 +5430,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * enum CXLinkageKind clang_getCursorLinkage(CXCursor cursor)
      * }
@@ -5925,7 +5439,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * enum CXLinkageKind clang_getCursorLinkage(CXCursor cursor)
      * }
@@ -5943,7 +5456,6 @@ public class Index_h {
     }
     private static final int CXLanguage_Invalid = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXLanguageKind.CXLanguage_Invalid = 0
      * }
@@ -5953,7 +5465,6 @@ public class Index_h {
     }
     private static final int CXLanguage_C = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXLanguageKind.CXLanguage_C = 1
      * }
@@ -5963,7 +5474,6 @@ public class Index_h {
     }
     private static final int CXLanguage_ObjC = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXLanguageKind.CXLanguage_ObjC = 2
      * }
@@ -5973,7 +5483,6 @@ public class Index_h {
     }
     private static final int CXLanguage_CPlusPlus = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXLanguageKind.CXLanguage_CPlusPlus = 3
      * }
@@ -5995,7 +5504,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * enum CXLanguageKind clang_getCursorLanguage(CXCursor cursor)
      * }
@@ -6006,7 +5514,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * enum CXLanguageKind clang_getCursorLanguage(CXCursor cursor)
      * }
@@ -6017,7 +5524,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * enum CXLanguageKind clang_getCursorLanguage(CXCursor cursor)
      * }
@@ -6027,7 +5533,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * enum CXLanguageKind clang_getCursorLanguage(CXCursor cursor)
      * }
@@ -6057,7 +5562,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_Cursor_getTranslationUnit(CXCursor)
      * }
@@ -6068,7 +5572,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_Cursor_getTranslationUnit(CXCursor)
      * }
@@ -6079,7 +5582,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_Cursor_getTranslationUnit(CXCursor)
      * }
@@ -6089,7 +5591,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXTranslationUnit clang_Cursor_getTranslationUnit(CXCursor)
      * }
@@ -6119,7 +5620,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getCursorLocation(CXCursor)
      * }
@@ -6130,7 +5630,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getCursorLocation(CXCursor)
      * }
@@ -6141,7 +5640,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getCursorLocation(CXCursor)
      * }
@@ -6151,7 +5649,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getCursorLocation(CXCursor)
      * }
@@ -6181,7 +5678,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceRange clang_getCursorExtent(CXCursor)
      * }
@@ -6192,7 +5688,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceRange clang_getCursorExtent(CXCursor)
      * }
@@ -6203,7 +5698,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceRange clang_getCursorExtent(CXCursor)
      * }
@@ -6213,7 +5707,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceRange clang_getCursorExtent(CXCursor)
      * }
@@ -6231,7 +5724,6 @@ public class Index_h {
     }
     private static final int CXType_Invalid = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Invalid = 0
      * }
@@ -6241,7 +5733,6 @@ public class Index_h {
     }
     private static final int CXType_Unexposed = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Unexposed = 1
      * }
@@ -6251,7 +5742,6 @@ public class Index_h {
     }
     private static final int CXType_Void = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Void = 2
      * }
@@ -6261,7 +5751,6 @@ public class Index_h {
     }
     private static final int CXType_Bool = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Bool = 3
      * }
@@ -6271,7 +5760,6 @@ public class Index_h {
     }
     private static final int CXType_Char_U = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Char_U = 4
      * }
@@ -6281,7 +5769,6 @@ public class Index_h {
     }
     private static final int CXType_UChar = (int)5L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_UChar = 5
      * }
@@ -6291,7 +5778,6 @@ public class Index_h {
     }
     private static final int CXType_Char16 = (int)6L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Char16 = 6
      * }
@@ -6301,7 +5787,6 @@ public class Index_h {
     }
     private static final int CXType_Char32 = (int)7L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Char32 = 7
      * }
@@ -6311,7 +5796,6 @@ public class Index_h {
     }
     private static final int CXType_UShort = (int)8L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_UShort = 8
      * }
@@ -6321,7 +5805,6 @@ public class Index_h {
     }
     private static final int CXType_UInt = (int)9L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_UInt = 9
      * }
@@ -6331,7 +5814,6 @@ public class Index_h {
     }
     private static final int CXType_ULong = (int)10L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ULong = 10
      * }
@@ -6341,7 +5823,6 @@ public class Index_h {
     }
     private static final int CXType_ULongLong = (int)11L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ULongLong = 11
      * }
@@ -6351,7 +5832,6 @@ public class Index_h {
     }
     private static final int CXType_UInt128 = (int)12L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_UInt128 = 12
      * }
@@ -6361,7 +5841,6 @@ public class Index_h {
     }
     private static final int CXType_Char_S = (int)13L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Char_S = 13
      * }
@@ -6371,7 +5850,6 @@ public class Index_h {
     }
     private static final int CXType_SChar = (int)14L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_SChar = 14
      * }
@@ -6381,7 +5859,6 @@ public class Index_h {
     }
     private static final int CXType_WChar = (int)15L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_WChar = 15
      * }
@@ -6391,7 +5868,6 @@ public class Index_h {
     }
     private static final int CXType_Short = (int)16L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Short = 16
      * }
@@ -6401,7 +5877,6 @@ public class Index_h {
     }
     private static final int CXType_Int = (int)17L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Int = 17
      * }
@@ -6411,7 +5886,6 @@ public class Index_h {
     }
     private static final int CXType_Long = (int)18L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Long = 18
      * }
@@ -6421,7 +5895,6 @@ public class Index_h {
     }
     private static final int CXType_LongLong = (int)19L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_LongLong = 19
      * }
@@ -6431,7 +5904,6 @@ public class Index_h {
     }
     private static final int CXType_Int128 = (int)20L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Int128 = 20
      * }
@@ -6441,7 +5913,6 @@ public class Index_h {
     }
     private static final int CXType_Float = (int)21L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Float = 21
      * }
@@ -6451,7 +5922,6 @@ public class Index_h {
     }
     private static final int CXType_Double = (int)22L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Double = 22
      * }
@@ -6461,7 +5931,6 @@ public class Index_h {
     }
     private static final int CXType_LongDouble = (int)23L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_LongDouble = 23
      * }
@@ -6471,7 +5940,6 @@ public class Index_h {
     }
     private static final int CXType_NullPtr = (int)24L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_NullPtr = 24
      * }
@@ -6481,7 +5949,6 @@ public class Index_h {
     }
     private static final int CXType_Overload = (int)25L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Overload = 25
      * }
@@ -6491,7 +5958,6 @@ public class Index_h {
     }
     private static final int CXType_Dependent = (int)26L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Dependent = 26
      * }
@@ -6501,7 +5967,6 @@ public class Index_h {
     }
     private static final int CXType_ObjCId = (int)27L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCId = 27
      * }
@@ -6511,7 +5976,6 @@ public class Index_h {
     }
     private static final int CXType_ObjCClass = (int)28L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCClass = 28
      * }
@@ -6521,7 +5985,6 @@ public class Index_h {
     }
     private static final int CXType_ObjCSel = (int)29L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCSel = 29
      * }
@@ -6531,7 +5994,6 @@ public class Index_h {
     }
     private static final int CXType_Float128 = (int)30L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Float128 = 30
      * }
@@ -6541,7 +6003,6 @@ public class Index_h {
     }
     private static final int CXType_Half = (int)31L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Half = 31
      * }
@@ -6551,7 +6012,6 @@ public class Index_h {
     }
     private static final int CXType_Float16 = (int)32L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Float16 = 32
      * }
@@ -6561,7 +6021,6 @@ public class Index_h {
     }
     private static final int CXType_ShortAccum = (int)33L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ShortAccum = 33
      * }
@@ -6571,7 +6030,6 @@ public class Index_h {
     }
     private static final int CXType_Accum = (int)34L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Accum = 34
      * }
@@ -6581,7 +6039,6 @@ public class Index_h {
     }
     private static final int CXType_LongAccum = (int)35L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_LongAccum = 35
      * }
@@ -6591,7 +6048,6 @@ public class Index_h {
     }
     private static final int CXType_UShortAccum = (int)36L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_UShortAccum = 36
      * }
@@ -6601,7 +6057,6 @@ public class Index_h {
     }
     private static final int CXType_UAccum = (int)37L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_UAccum = 37
      * }
@@ -6611,7 +6066,6 @@ public class Index_h {
     }
     private static final int CXType_ULongAccum = (int)38L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ULongAccum = 38
      * }
@@ -6621,7 +6075,6 @@ public class Index_h {
     }
     private static final int CXType_FirstBuiltin = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_FirstBuiltin = 2
      * }
@@ -6631,7 +6084,6 @@ public class Index_h {
     }
     private static final int CXType_LastBuiltin = (int)39L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_LastBuiltin = 39
      * }
@@ -6641,7 +6093,6 @@ public class Index_h {
     }
     private static final int CXType_Complex = (int)100L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Complex = 100
      * }
@@ -6651,7 +6102,6 @@ public class Index_h {
     }
     private static final int CXType_Pointer = (int)101L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Pointer = 101
      * }
@@ -6661,7 +6111,6 @@ public class Index_h {
     }
     private static final int CXType_BlockPointer = (int)102L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_BlockPointer = 102
      * }
@@ -6671,7 +6120,6 @@ public class Index_h {
     }
     private static final int CXType_LValueReference = (int)103L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_LValueReference = 103
      * }
@@ -6681,7 +6129,6 @@ public class Index_h {
     }
     private static final int CXType_RValueReference = (int)104L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_RValueReference = 104
      * }
@@ -6691,7 +6138,6 @@ public class Index_h {
     }
     private static final int CXType_Record = (int)105L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Record = 105
      * }
@@ -6701,7 +6147,6 @@ public class Index_h {
     }
     private static final int CXType_Enum = (int)106L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Enum = 106
      * }
@@ -6711,7 +6156,6 @@ public class Index_h {
     }
     private static final int CXType_Typedef = (int)107L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Typedef = 107
      * }
@@ -6721,7 +6165,6 @@ public class Index_h {
     }
     private static final int CXType_ObjCInterface = (int)108L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCInterface = 108
      * }
@@ -6731,7 +6174,6 @@ public class Index_h {
     }
     private static final int CXType_ObjCObjectPointer = (int)109L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCObjectPointer = 109
      * }
@@ -6741,7 +6183,6 @@ public class Index_h {
     }
     private static final int CXType_FunctionNoProto = (int)110L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_FunctionNoProto = 110
      * }
@@ -6751,7 +6192,6 @@ public class Index_h {
     }
     private static final int CXType_FunctionProto = (int)111L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_FunctionProto = 111
      * }
@@ -6761,7 +6201,6 @@ public class Index_h {
     }
     private static final int CXType_ConstantArray = (int)112L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ConstantArray = 112
      * }
@@ -6771,7 +6210,6 @@ public class Index_h {
     }
     private static final int CXType_Vector = (int)113L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Vector = 113
      * }
@@ -6781,7 +6219,6 @@ public class Index_h {
     }
     private static final int CXType_IncompleteArray = (int)114L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_IncompleteArray = 114
      * }
@@ -6791,7 +6228,6 @@ public class Index_h {
     }
     private static final int CXType_VariableArray = (int)115L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_VariableArray = 115
      * }
@@ -6801,7 +6237,6 @@ public class Index_h {
     }
     private static final int CXType_DependentSizedArray = (int)116L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_DependentSizedArray = 116
      * }
@@ -6811,7 +6246,6 @@ public class Index_h {
     }
     private static final int CXType_MemberPointer = (int)117L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_MemberPointer = 117
      * }
@@ -6821,7 +6255,6 @@ public class Index_h {
     }
     private static final int CXType_Auto = (int)118L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Auto = 118
      * }
@@ -6831,7 +6264,6 @@ public class Index_h {
     }
     private static final int CXType_Elaborated = (int)119L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Elaborated = 119
      * }
@@ -6841,7 +6273,6 @@ public class Index_h {
     }
     private static final int CXType_Pipe = (int)120L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Pipe = 120
      * }
@@ -6851,7 +6282,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage1dRO = (int)121L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dRO = 121
      * }
@@ -6861,7 +6291,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage1dArrayRO = (int)122L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dArrayRO = 122
      * }
@@ -6871,7 +6300,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage1dBufferRO = (int)123L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dBufferRO = 123
      * }
@@ -6881,7 +6309,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dRO = (int)124L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dRO = 124
      * }
@@ -6891,7 +6318,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayRO = (int)125L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayRO = 125
      * }
@@ -6901,7 +6327,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dDepthRO = (int)126L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dDepthRO = 126
      * }
@@ -6911,7 +6336,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayDepthRO = (int)127L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayDepthRO = 127
      * }
@@ -6921,7 +6345,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dMSAARO = (int)128L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAARO = 128
      * }
@@ -6931,7 +6354,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayMSAARO = (int)129L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAARO = 129
      * }
@@ -6941,7 +6363,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dMSAADepthRO = (int)130L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAADepthRO = 130
      * }
@@ -6951,7 +6372,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayMSAADepthRO = (int)131L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAADepthRO = 131
      * }
@@ -6961,7 +6381,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage3dRO = (int)132L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage3dRO = 132
      * }
@@ -6971,7 +6390,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage1dWO = (int)133L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dWO = 133
      * }
@@ -6981,7 +6399,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage1dArrayWO = (int)134L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dArrayWO = 134
      * }
@@ -6991,7 +6408,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage1dBufferWO = (int)135L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dBufferWO = 135
      * }
@@ -7001,7 +6417,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dWO = (int)136L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dWO = 136
      * }
@@ -7011,7 +6426,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayWO = (int)137L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayWO = 137
      * }
@@ -7021,7 +6435,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dDepthWO = (int)138L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dDepthWO = 138
      * }
@@ -7031,7 +6444,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayDepthWO = (int)139L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayDepthWO = 139
      * }
@@ -7041,7 +6453,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dMSAAWO = (int)140L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAAWO = 140
      * }
@@ -7051,7 +6462,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayMSAAWO = (int)141L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAAWO = 141
      * }
@@ -7061,7 +6471,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dMSAADepthWO = (int)142L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAADepthWO = 142
      * }
@@ -7071,7 +6480,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayMSAADepthWO = (int)143L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAADepthWO = 143
      * }
@@ -7081,7 +6489,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage3dWO = (int)144L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage3dWO = 144
      * }
@@ -7091,7 +6498,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage1dRW = (int)145L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dRW = 145
      * }
@@ -7101,7 +6507,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage1dArrayRW = (int)146L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dArrayRW = 146
      * }
@@ -7111,7 +6516,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage1dBufferRW = (int)147L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage1dBufferRW = 147
      * }
@@ -7121,7 +6525,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dRW = (int)148L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dRW = 148
      * }
@@ -7131,7 +6534,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayRW = (int)149L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayRW = 149
      * }
@@ -7141,7 +6543,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dDepthRW = (int)150L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dDepthRW = 150
      * }
@@ -7151,7 +6552,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayDepthRW = (int)151L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayDepthRW = 151
      * }
@@ -7161,7 +6561,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dMSAARW = (int)152L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAARW = 152
      * }
@@ -7171,7 +6570,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayMSAARW = (int)153L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAARW = 153
      * }
@@ -7181,7 +6579,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dMSAADepthRW = (int)154L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dMSAADepthRW = 154
      * }
@@ -7191,7 +6588,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage2dArrayMSAADepthRW = (int)155L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage2dArrayMSAADepthRW = 155
      * }
@@ -7201,7 +6597,6 @@ public class Index_h {
     }
     private static final int CXType_OCLImage3dRW = (int)156L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLImage3dRW = 156
      * }
@@ -7211,7 +6606,6 @@ public class Index_h {
     }
     private static final int CXType_OCLSampler = (int)157L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLSampler = 157
      * }
@@ -7221,7 +6615,6 @@ public class Index_h {
     }
     private static final int CXType_OCLEvent = (int)158L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLEvent = 158
      * }
@@ -7231,7 +6624,6 @@ public class Index_h {
     }
     private static final int CXType_OCLQueue = (int)159L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLQueue = 159
      * }
@@ -7241,7 +6633,6 @@ public class Index_h {
     }
     private static final int CXType_OCLReserveID = (int)160L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLReserveID = 160
      * }
@@ -7251,7 +6642,6 @@ public class Index_h {
     }
     private static final int CXType_ObjCObject = (int)161L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCObject = 161
      * }
@@ -7261,7 +6651,6 @@ public class Index_h {
     }
     private static final int CXType_ObjCTypeParam = (int)162L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ObjCTypeParam = 162
      * }
@@ -7271,7 +6660,6 @@ public class Index_h {
     }
     private static final int CXType_Attributed = (int)163L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_Attributed = 163
      * }
@@ -7281,7 +6669,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCMcePayload = (int)164L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCMcePayload = 164
      * }
@@ -7291,7 +6678,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCImePayload = (int)165L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImePayload = 165
      * }
@@ -7301,7 +6687,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCRefPayload = (int)166L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCRefPayload = 166
      * }
@@ -7311,7 +6696,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCSicPayload = (int)167L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCSicPayload = 167
      * }
@@ -7321,7 +6705,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCMceResult = (int)168L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCMceResult = 168
      * }
@@ -7331,7 +6714,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCImeResult = (int)169L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeResult = 169
      * }
@@ -7341,7 +6723,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCRefResult = (int)170L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCRefResult = 170
      * }
@@ -7351,7 +6732,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCSicResult = (int)171L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCSicResult = 171
      * }
@@ -7361,7 +6741,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCImeResultSingleRefStreamout = (int)172L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeResultSingleRefStreamout = 172
      * }
@@ -7371,7 +6750,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCImeResultDualRefStreamout = (int)173L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeResultDualRefStreamout = 173
      * }
@@ -7381,7 +6759,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCImeSingleRefStreamin = (int)174L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeSingleRefStreamin = 174
      * }
@@ -7391,7 +6768,6 @@ public class Index_h {
     }
     private static final int CXType_OCLIntelSubgroupAVCImeDualRefStreamin = (int)175L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_OCLIntelSubgroupAVCImeDualRefStreamin = 175
      * }
@@ -7401,7 +6777,6 @@ public class Index_h {
     }
     private static final int CXType_ExtVector = (int)176L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeKind.CXType_ExtVector = 176
      * }
@@ -7411,7 +6786,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_Default = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Default = 0
      * }
@@ -7421,7 +6795,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_C = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_C = 1
      * }
@@ -7431,7 +6804,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_X86StdCall = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86StdCall = 2
      * }
@@ -7441,7 +6813,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_X86FastCall = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86FastCall = 3
      * }
@@ -7451,7 +6822,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_X86ThisCall = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86ThisCall = 4
      * }
@@ -7461,7 +6831,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_X86Pascal = (int)5L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86Pascal = 5
      * }
@@ -7471,7 +6840,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_AAPCS = (int)6L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_AAPCS = 6
      * }
@@ -7481,7 +6849,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_AAPCS_VFP = (int)7L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_AAPCS_VFP = 7
      * }
@@ -7491,7 +6858,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_X86RegCall = (int)8L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86RegCall = 8
      * }
@@ -7501,7 +6867,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_IntelOclBicc = (int)9L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_IntelOclBicc = 9
      * }
@@ -7511,7 +6876,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_Win64 = (int)10L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Win64 = 10
      * }
@@ -7521,7 +6885,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_X86_64Win64 = (int)10L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86_64Win64 = 10
      * }
@@ -7531,7 +6894,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_X86_64SysV = (int)11L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86_64SysV = 11
      * }
@@ -7541,7 +6903,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_X86VectorCall = (int)12L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_X86VectorCall = 12
      * }
@@ -7551,7 +6912,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_Swift = (int)13L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Swift = 13
      * }
@@ -7561,7 +6921,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_PreserveMost = (int)14L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_PreserveMost = 14
      * }
@@ -7571,7 +6930,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_PreserveAll = (int)15L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_PreserveAll = 15
      * }
@@ -7581,7 +6939,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_AArch64VectorCall = (int)16L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_AArch64VectorCall = 16
      * }
@@ -7591,7 +6948,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_Invalid = (int)100L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Invalid = 100
      * }
@@ -7601,7 +6957,6 @@ public class Index_h {
     }
     private static final int CXCallingConv_Unexposed = (int)200L;
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv.CXCallingConv_Unexposed = 200
      * }
@@ -7623,7 +6978,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getCursorType(CXCursor C)
      * }
@@ -7634,7 +6988,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getCursorType(CXCursor C)
      * }
@@ -7645,7 +6998,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getCursorType(CXCursor C)
      * }
@@ -7655,7 +7007,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getCursorType(CXCursor C)
      * }
@@ -7685,7 +7036,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getTypeSpelling(CXType CT)
      * }
@@ -7696,7 +7046,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getTypeSpelling(CXType CT)
      * }
@@ -7707,7 +7056,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getTypeSpelling(CXType CT)
      * }
@@ -7717,7 +7065,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getTypeSpelling(CXType CT)
      * }
@@ -7747,7 +7094,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getTypedefDeclUnderlyingType(CXCursor C)
      * }
@@ -7758,7 +7104,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getTypedefDeclUnderlyingType(CXCursor C)
      * }
@@ -7769,7 +7114,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getTypedefDeclUnderlyingType(CXCursor C)
      * }
@@ -7779,7 +7123,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getTypedefDeclUnderlyingType(CXCursor C)
      * }
@@ -7809,7 +7152,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getEnumDeclIntegerType(CXCursor C)
      * }
@@ -7820,7 +7162,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getEnumDeclIntegerType(CXCursor C)
      * }
@@ -7831,7 +7172,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getEnumDeclIntegerType(CXCursor C)
      * }
@@ -7841,7 +7181,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getEnumDeclIntegerType(CXCursor C)
      * }
@@ -7871,7 +7210,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * long long clang_getEnumConstantDeclValue(CXCursor C)
      * }
@@ -7882,7 +7220,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * long long clang_getEnumConstantDeclValue(CXCursor C)
      * }
@@ -7893,7 +7230,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * long long clang_getEnumConstantDeclValue(CXCursor C)
      * }
@@ -7903,7 +7239,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * long long clang_getEnumConstantDeclValue(CXCursor C)
      * }
@@ -7933,7 +7268,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned long long clang_getEnumConstantDeclUnsignedValue(CXCursor C)
      * }
@@ -7944,7 +7278,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned long long clang_getEnumConstantDeclUnsignedValue(CXCursor C)
      * }
@@ -7955,7 +7288,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned long long clang_getEnumConstantDeclUnsignedValue(CXCursor C)
      * }
@@ -7965,7 +7297,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned long long clang_getEnumConstantDeclUnsignedValue(CXCursor C)
      * }
@@ -7995,7 +7326,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_getFieldDeclBitWidth(CXCursor C)
      * }
@@ -8006,7 +7336,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_getFieldDeclBitWidth(CXCursor C)
      * }
@@ -8017,7 +7346,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_getFieldDeclBitWidth(CXCursor C)
      * }
@@ -8027,7 +7355,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_getFieldDeclBitWidth(CXCursor C)
      * }
@@ -8057,7 +7384,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_Cursor_getNumArguments(CXCursor C)
      * }
@@ -8068,7 +7394,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_Cursor_getNumArguments(CXCursor C)
      * }
@@ -8079,7 +7404,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_Cursor_getNumArguments(CXCursor C)
      * }
@@ -8089,7 +7413,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_Cursor_getNumArguments(CXCursor C)
      * }
@@ -8120,7 +7443,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXCursor clang_Cursor_getArgument(CXCursor C, unsigned int i)
      * }
@@ -8131,7 +7453,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXCursor clang_Cursor_getArgument(CXCursor C, unsigned int i)
      * }
@@ -8142,7 +7463,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXCursor clang_Cursor_getArgument(CXCursor C, unsigned int i)
      * }
@@ -8152,7 +7472,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXCursor clang_Cursor_getArgument(CXCursor C, unsigned int i)
      * }
@@ -8183,7 +7502,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_equalTypes(CXType A, CXType B)
      * }
@@ -8194,7 +7512,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_equalTypes(CXType A, CXType B)
      * }
@@ -8205,7 +7522,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_equalTypes(CXType A, CXType B)
      * }
@@ -8215,7 +7531,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_equalTypes(CXType A, CXType B)
      * }
@@ -8245,7 +7560,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getCanonicalType(CXType T)
      * }
@@ -8256,7 +7570,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getCanonicalType(CXType T)
      * }
@@ -8267,7 +7580,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getCanonicalType(CXType T)
      * }
@@ -8277,7 +7589,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getCanonicalType(CXType T)
      * }
@@ -8307,7 +7618,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_isConstQualifiedType(CXType T)
      * }
@@ -8318,7 +7628,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_isConstQualifiedType(CXType T)
      * }
@@ -8329,7 +7638,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_isConstQualifiedType(CXType T)
      * }
@@ -8339,7 +7647,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_isConstQualifiedType(CXType T)
      * }
@@ -8369,7 +7676,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isMacroFunctionLike(CXCursor C)
      * }
@@ -8380,7 +7686,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isMacroFunctionLike(CXCursor C)
      * }
@@ -8391,7 +7696,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isMacroFunctionLike(CXCursor C)
      * }
@@ -8401,7 +7705,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isMacroFunctionLike(CXCursor C)
      * }
@@ -8431,7 +7734,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isFunctionInlined(CXCursor C)
      * }
@@ -8442,7 +7744,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isFunctionInlined(CXCursor C)
      * }
@@ -8453,7 +7754,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isFunctionInlined(CXCursor C)
      * }
@@ -8463,7 +7763,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isFunctionInlined(CXCursor C)
      * }
@@ -8493,7 +7792,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_isVolatileQualifiedType(CXType T)
      * }
@@ -8504,7 +7802,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_isVolatileQualifiedType(CXType T)
      * }
@@ -8515,7 +7812,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_isVolatileQualifiedType(CXType T)
      * }
@@ -8525,7 +7821,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_isVolatileQualifiedType(CXType T)
      * }
@@ -8555,7 +7850,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getTypedefName(CXType CT)
      * }
@@ -8566,7 +7860,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getTypedefName(CXType CT)
      * }
@@ -8577,7 +7870,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getTypedefName(CXType CT)
      * }
@@ -8587,7 +7879,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getTypedefName(CXType CT)
      * }
@@ -8617,7 +7908,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getPointeeType(CXType T)
      * }
@@ -8628,7 +7918,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getPointeeType(CXType T)
      * }
@@ -8639,7 +7928,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getPointeeType(CXType T)
      * }
@@ -8649,7 +7937,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getPointeeType(CXType T)
      * }
@@ -8679,7 +7966,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXCursor clang_getTypeDeclaration(CXType T)
      * }
@@ -8690,7 +7976,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXCursor clang_getTypeDeclaration(CXType T)
      * }
@@ -8701,7 +7986,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXCursor clang_getTypeDeclaration(CXType T)
      * }
@@ -8711,7 +7995,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXCursor clang_getTypeDeclaration(CXType T)
      * }
@@ -8741,7 +8024,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getTypeKindSpelling(enum CXTypeKind K)
      * }
@@ -8752,7 +8034,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getTypeKindSpelling(enum CXTypeKind K)
      * }
@@ -8763,7 +8044,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getTypeKindSpelling(enum CXTypeKind K)
      * }
@@ -8773,7 +8053,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getTypeKindSpelling(enum CXTypeKind K)
      * }
@@ -8803,7 +8082,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * enum CXCallingConv clang_getFunctionTypeCallingConv(CXType T)
      * }
@@ -8814,7 +8092,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * enum CXCallingConv clang_getFunctionTypeCallingConv(CXType T)
      * }
@@ -8825,7 +8102,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * enum CXCallingConv clang_getFunctionTypeCallingConv(CXType T)
      * }
@@ -8835,7 +8111,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * enum CXCallingConv clang_getFunctionTypeCallingConv(CXType T)
      * }
@@ -8865,7 +8140,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getResultType(CXType T)
      * }
@@ -8876,7 +8150,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getResultType(CXType T)
      * }
@@ -8887,7 +8160,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getResultType(CXType T)
      * }
@@ -8897,7 +8169,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getResultType(CXType T)
      * }
@@ -8927,7 +8198,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_getNumArgTypes(CXType T)
      * }
@@ -8938,7 +8208,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_getNumArgTypes(CXType T)
      * }
@@ -8949,7 +8218,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_getNumArgTypes(CXType T)
      * }
@@ -8959,7 +8227,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_getNumArgTypes(CXType T)
      * }
@@ -8990,7 +8257,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getArgType(CXType T, unsigned int i)
      * }
@@ -9001,7 +8267,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getArgType(CXType T, unsigned int i)
      * }
@@ -9012,7 +8277,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getArgType(CXType T, unsigned int i)
      * }
@@ -9022,7 +8286,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getArgType(CXType T, unsigned int i)
      * }
@@ -9052,7 +8315,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_isFunctionTypeVariadic(CXType T)
      * }
@@ -9063,7 +8325,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_isFunctionTypeVariadic(CXType T)
      * }
@@ -9074,7 +8335,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_isFunctionTypeVariadic(CXType T)
      * }
@@ -9084,7 +8344,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_isFunctionTypeVariadic(CXType T)
      * }
@@ -9114,7 +8373,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getCursorResultType(CXCursor C)
      * }
@@ -9125,7 +8383,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getCursorResultType(CXCursor C)
      * }
@@ -9136,7 +8393,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getCursorResultType(CXCursor C)
      * }
@@ -9146,7 +8402,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getCursorResultType(CXCursor C)
      * }
@@ -9176,7 +8431,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getElementType(CXType T)
      * }
@@ -9187,7 +8441,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getElementType(CXType T)
      * }
@@ -9198,7 +8451,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getElementType(CXType T)
      * }
@@ -9208,7 +8460,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getElementType(CXType T)
      * }
@@ -9238,7 +8489,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * long long clang_getNumElements(CXType T)
      * }
@@ -9249,7 +8499,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * long long clang_getNumElements(CXType T)
      * }
@@ -9260,7 +8509,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * long long clang_getNumElements(CXType T)
      * }
@@ -9270,7 +8518,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * long long clang_getNumElements(CXType T)
      * }
@@ -9300,7 +8547,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_getArrayElementType(CXType T)
      * }
@@ -9311,7 +8557,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_getArrayElementType(CXType T)
      * }
@@ -9322,7 +8567,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_getArrayElementType(CXType T)
      * }
@@ -9332,7 +8576,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_getArrayElementType(CXType T)
      * }
@@ -9362,7 +8605,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * long long clang_getArraySize(CXType T)
      * }
@@ -9373,7 +8615,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * long long clang_getArraySize(CXType T)
      * }
@@ -9384,7 +8625,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * long long clang_getArraySize(CXType T)
      * }
@@ -9394,7 +8634,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * long long clang_getArraySize(CXType T)
      * }
@@ -9412,7 +8651,6 @@ public class Index_h {
     }
     private static final int CXTypeNullability_NonNull = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeNullabilityKind.CXTypeNullability_NonNull = 0
      * }
@@ -9422,7 +8660,6 @@ public class Index_h {
     }
     private static final int CXTypeNullability_Nullable = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeNullabilityKind.CXTypeNullability_Nullable = 1
      * }
@@ -9432,7 +8669,6 @@ public class Index_h {
     }
     private static final int CXTypeNullability_Unspecified = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeNullabilityKind.CXTypeNullability_Unspecified = 2
      * }
@@ -9442,7 +8678,6 @@ public class Index_h {
     }
     private static final int CXTypeNullability_Invalid = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeNullabilityKind.CXTypeNullability_Invalid = 3
      * }
@@ -9452,7 +8687,6 @@ public class Index_h {
     }
     private static final int CXTypeLayoutError_Invalid = (int)-1L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_Invalid = -1
      * }
@@ -9462,7 +8696,6 @@ public class Index_h {
     }
     private static final int CXTypeLayoutError_Incomplete = (int)-2L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_Incomplete = -2
      * }
@@ -9472,7 +8705,6 @@ public class Index_h {
     }
     private static final int CXTypeLayoutError_Dependent = (int)-3L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_Dependent = -3
      * }
@@ -9482,7 +8714,6 @@ public class Index_h {
     }
     private static final int CXTypeLayoutError_NotConstantSize = (int)-4L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_NotConstantSize = -4
      * }
@@ -9492,7 +8723,6 @@ public class Index_h {
     }
     private static final int CXTypeLayoutError_InvalidFieldName = (int)-5L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_InvalidFieldName = -5
      * }
@@ -9502,7 +8732,6 @@ public class Index_h {
     }
     private static final int CXTypeLayoutError_Undeduced = (int)-6L;
     /**
-
      * {@snippet lang=c :
      * enum CXTypeLayoutError.CXTypeLayoutError_Undeduced = -6
      * }
@@ -9524,7 +8753,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * long long clang_Type_getAlignOf(CXType T)
      * }
@@ -9535,7 +8763,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * long long clang_Type_getAlignOf(CXType T)
      * }
@@ -9546,7 +8773,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * long long clang_Type_getAlignOf(CXType T)
      * }
@@ -9556,7 +8782,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * long long clang_Type_getAlignOf(CXType T)
      * }
@@ -9586,7 +8811,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * long long clang_Type_getSizeOf(CXType T)
      * }
@@ -9597,7 +8821,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * long long clang_Type_getSizeOf(CXType T)
      * }
@@ -9608,7 +8831,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * long long clang_Type_getSizeOf(CXType T)
      * }
@@ -9618,7 +8840,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * long long clang_Type_getSizeOf(CXType T)
      * }
@@ -9649,7 +8870,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * long long clang_Type_getOffsetOf(CXType T, const char *S)
      * }
@@ -9660,7 +8880,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * long long clang_Type_getOffsetOf(CXType T, const char *S)
      * }
@@ -9671,7 +8890,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * long long clang_Type_getOffsetOf(CXType T, const char *S)
      * }
@@ -9681,7 +8899,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * long long clang_Type_getOffsetOf(CXType T, const char *S)
      * }
@@ -9711,7 +8928,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXType clang_Type_getValueType(CXType CT)
      * }
@@ -9722,7 +8938,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXType clang_Type_getValueType(CXType CT)
      * }
@@ -9733,7 +8948,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXType clang_Type_getValueType(CXType CT)
      * }
@@ -9743,7 +8957,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXType clang_Type_getValueType(CXType CT)
      * }
@@ -9773,7 +8986,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymous(CXCursor C)
      * }
@@ -9784,7 +8996,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymous(CXCursor C)
      * }
@@ -9795,7 +9006,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymous(CXCursor C)
      * }
@@ -9805,7 +9015,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymous(CXCursor C)
      * }
@@ -9835,7 +9044,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymousRecordDecl(CXCursor C)
      * }
@@ -9846,7 +9054,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymousRecordDecl(CXCursor C)
      * }
@@ -9857,7 +9064,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymousRecordDecl(CXCursor C)
      * }
@@ -9867,7 +9073,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isAnonymousRecordDecl(CXCursor C)
      * }
@@ -9897,7 +9102,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isBitField(CXCursor C)
      * }
@@ -9908,7 +9112,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isBitField(CXCursor C)
      * }
@@ -9919,7 +9122,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isBitField(CXCursor C)
      * }
@@ -9929,7 +9131,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isBitField(CXCursor C)
      * }
@@ -9947,7 +9148,6 @@ public class Index_h {
     }
     private static final int CXChildVisit_Break = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXChildVisitResult.CXChildVisit_Break = 0
      * }
@@ -9957,7 +9157,6 @@ public class Index_h {
     }
     private static final int CXChildVisit_Continue = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXChildVisitResult.CXChildVisit_Continue = 1
      * }
@@ -9967,7 +9166,6 @@ public class Index_h {
     }
     private static final int CXChildVisit_Recurse = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXChildVisitResult.CXChildVisit_Recurse = 2
      * }
@@ -9991,7 +9189,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_visitChildren(CXCursor parent, CXCursorVisitor visitor, CXClientData client_data)
      * }
@@ -10002,7 +9199,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_visitChildren(CXCursor parent, CXCursorVisitor visitor, CXClientData client_data)
      * }
@@ -10013,7 +9209,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_visitChildren(CXCursor parent, CXCursorVisitor visitor, CXClientData client_data)
      * }
@@ -10023,7 +9218,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_visitChildren(CXCursor parent, CXCursorVisitor visitor, CXClientData client_data)
      * }
@@ -10053,7 +9247,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorUSR(CXCursor)
      * }
@@ -10064,7 +9257,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorUSR(CXCursor)
      * }
@@ -10075,7 +9267,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorUSR(CXCursor)
      * }
@@ -10085,7 +9276,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getCursorUSR(CXCursor)
      * }
@@ -10115,7 +9305,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorSpelling(CXCursor)
      * }
@@ -10126,7 +9315,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorSpelling(CXCursor)
      * }
@@ -10137,7 +9325,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorSpelling(CXCursor)
      * }
@@ -10147,7 +9334,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getCursorSpelling(CXCursor)
      * }
@@ -10165,7 +9351,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_Indentation = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Indentation = 0
      * }
@@ -10175,7 +9360,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_SuppressSpecifiers = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressSpecifiers = 1
      * }
@@ -10185,7 +9369,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_SuppressTagKeyword = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressTagKeyword = 2
      * }
@@ -10195,7 +9378,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_IncludeTagDefinition = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_IncludeTagDefinition = 3
      * }
@@ -10205,7 +9387,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_SuppressScope = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressScope = 4
      * }
@@ -10215,7 +9396,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_SuppressUnwrittenScope = (int)5L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressUnwrittenScope = 5
      * }
@@ -10225,7 +9405,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_SuppressInitializers = (int)6L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressInitializers = 6
      * }
@@ -10235,7 +9414,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_ConstantArraySizeAsWritten = (int)7L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_ConstantArraySizeAsWritten = 7
      * }
@@ -10245,7 +9423,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_AnonymousTagLocations = (int)8L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_AnonymousTagLocations = 8
      * }
@@ -10255,7 +9432,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_SuppressStrongLifetime = (int)9L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressStrongLifetime = 9
      * }
@@ -10265,7 +9441,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_SuppressLifetimeQualifiers = (int)10L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressLifetimeQualifiers = 10
      * }
@@ -10275,7 +9450,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors = (int)11L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors = 11
      * }
@@ -10285,7 +9459,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_Bool = (int)12L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Bool = 12
      * }
@@ -10295,7 +9468,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_Restrict = (int)13L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Restrict = 13
      * }
@@ -10305,7 +9477,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_Alignof = (int)14L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Alignof = 14
      * }
@@ -10315,7 +9486,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_UnderscoreAlignof = (int)15L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_UnderscoreAlignof = 15
      * }
@@ -10325,7 +9495,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_UseVoidForZeroParams = (int)16L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_UseVoidForZeroParams = 16
      * }
@@ -10335,7 +9504,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_TerseOutput = (int)17L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_TerseOutput = 17
      * }
@@ -10345,7 +9513,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_PolishForDeclaration = (int)18L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_PolishForDeclaration = 18
      * }
@@ -10355,7 +9522,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_Half = (int)19L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_Half = 19
      * }
@@ -10365,7 +9531,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_MSWChar = (int)20L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_MSWChar = 20
      * }
@@ -10375,7 +9540,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_IncludeNewlines = (int)21L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_IncludeNewlines = 21
      * }
@@ -10385,7 +9549,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_MSVCFormatting = (int)22L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_MSVCFormatting = 22
      * }
@@ -10395,7 +9558,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_ConstantsAsWritten = (int)23L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_ConstantsAsWritten = 23
      * }
@@ -10405,7 +9567,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_SuppressImplicitBase = (int)24L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_SuppressImplicitBase = 24
      * }
@@ -10415,7 +9576,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_FullyQualifiedName = (int)25L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_FullyQualifiedName = 25
      * }
@@ -10425,7 +9585,6 @@ public class Index_h {
     }
     private static final int CXPrintingPolicy_LastProperty = (int)25L;
     /**
-
      * {@snippet lang=c :
      * enum CXPrintingPolicyProperty.CXPrintingPolicy_LastProperty = 25
      * }
@@ -10448,7 +9607,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_PrintingPolicy_getProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property)
      * }
@@ -10459,7 +9617,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_PrintingPolicy_getProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property)
      * }
@@ -10470,7 +9627,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_PrintingPolicy_getProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property)
      * }
@@ -10480,7 +9636,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_PrintingPolicy_getProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property)
      * }
@@ -10511,7 +9666,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_PrintingPolicy_setProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property, unsigned int Value)
      * }
@@ -10522,7 +9676,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_PrintingPolicy_setProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property, unsigned int Value)
      * }
@@ -10533,7 +9686,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_PrintingPolicy_setProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property, unsigned int Value)
      * }
@@ -10543,7 +9695,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_PrintingPolicy_setProperty(CXPrintingPolicy Policy, enum CXPrintingPolicyProperty Property, unsigned int Value)
      * }
@@ -10573,7 +9724,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXPrintingPolicy clang_getCursorPrintingPolicy(CXCursor)
      * }
@@ -10584,7 +9734,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXPrintingPolicy clang_getCursorPrintingPolicy(CXCursor)
      * }
@@ -10595,7 +9744,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXPrintingPolicy clang_getCursorPrintingPolicy(CXCursor)
      * }
@@ -10605,7 +9753,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXPrintingPolicy clang_getCursorPrintingPolicy(CXCursor)
      * }
@@ -10634,7 +9781,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_PrintingPolicy_dispose(CXPrintingPolicy Policy)
      * }
@@ -10645,7 +9791,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_PrintingPolicy_dispose(CXPrintingPolicy Policy)
      * }
@@ -10656,7 +9801,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_PrintingPolicy_dispose(CXPrintingPolicy Policy)
      * }
@@ -10666,7 +9810,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_PrintingPolicy_dispose(CXPrintingPolicy Policy)
      * }
@@ -10697,7 +9840,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorPrettyPrinted(CXCursor Cursor, CXPrintingPolicy Policy)
      * }
@@ -10708,7 +9850,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorPrettyPrinted(CXCursor Cursor, CXPrintingPolicy Policy)
      * }
@@ -10719,7 +9860,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorPrettyPrinted(CXCursor Cursor, CXPrintingPolicy Policy)
      * }
@@ -10729,7 +9869,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getCursorPrettyPrinted(CXCursor Cursor, CXPrintingPolicy Policy)
      * }
@@ -10759,7 +9898,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorDisplayName(CXCursor)
      * }
@@ -10770,7 +9908,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorDisplayName(CXCursor)
      * }
@@ -10781,7 +9918,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorDisplayName(CXCursor)
      * }
@@ -10791,7 +9927,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getCursorDisplayName(CXCursor)
      * }
@@ -10821,7 +9956,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXCursor clang_getCursorReferenced(CXCursor)
      * }
@@ -10832,7 +9966,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXCursor clang_getCursorReferenced(CXCursor)
      * }
@@ -10843,7 +9976,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXCursor clang_getCursorReferenced(CXCursor)
      * }
@@ -10853,7 +9985,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXCursor clang_getCursorReferenced(CXCursor)
      * }
@@ -10883,7 +10014,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXCursor clang_getCursorDefinition(CXCursor)
      * }
@@ -10894,7 +10024,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXCursor clang_getCursorDefinition(CXCursor)
      * }
@@ -10905,7 +10034,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXCursor clang_getCursorDefinition(CXCursor)
      * }
@@ -10915,7 +10043,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXCursor clang_getCursorDefinition(CXCursor)
      * }
@@ -10945,7 +10072,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_isCursorDefinition(CXCursor)
      * }
@@ -10956,7 +10082,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_isCursorDefinition(CXCursor)
      * }
@@ -10967,7 +10092,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_isCursorDefinition(CXCursor)
      * }
@@ -10977,7 +10101,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_isCursorDefinition(CXCursor)
      * }
@@ -11007,7 +10130,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isVariadic(CXCursor C)
      * }
@@ -11018,7 +10140,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isVariadic(CXCursor C)
      * }
@@ -11029,7 +10150,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isVariadic(CXCursor C)
      * }
@@ -11039,7 +10159,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_Cursor_isVariadic(CXCursor C)
      * }
@@ -11069,7 +10188,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_Cursor_getMangling(CXCursor)
      * }
@@ -11080,7 +10198,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_Cursor_getMangling(CXCursor)
      * }
@@ -11091,7 +10208,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_Cursor_getMangling(CXCursor)
      * }
@@ -11101,7 +10217,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_Cursor_getMangling(CXCursor)
      * }
@@ -11119,7 +10234,6 @@ public class Index_h {
     }
     private static final int CXToken_Punctuation = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Punctuation = 0
      * }
@@ -11129,7 +10243,6 @@ public class Index_h {
     }
     private static final int CXToken_Keyword = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Keyword = 1
      * }
@@ -11139,7 +10252,6 @@ public class Index_h {
     }
     private static final int CXToken_Identifier = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Identifier = 2
      * }
@@ -11149,7 +10261,6 @@ public class Index_h {
     }
     private static final int CXToken_Literal = (int)3L;
     /**
-
      * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Literal = 3
      * }
@@ -11159,7 +10270,6 @@ public class Index_h {
     }
     private static final int CXToken_Comment = (int)4L;
     /**
-
      * {@snippet lang=c :
      * enum CXTokenKind.CXToken_Comment = 4
      * }
@@ -11181,7 +10291,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXTokenKind clang_getTokenKind(CXToken)
      * }
@@ -11192,7 +10301,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXTokenKind clang_getTokenKind(CXToken)
      * }
@@ -11203,7 +10311,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXTokenKind clang_getTokenKind(CXToken)
      * }
@@ -11213,7 +10320,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXTokenKind clang_getTokenKind(CXToken)
      * }
@@ -11244,7 +10350,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getTokenSpelling(CXTranslationUnit, CXToken)
      * }
@@ -11255,7 +10360,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getTokenSpelling(CXTranslationUnit, CXToken)
      * }
@@ -11266,7 +10370,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getTokenSpelling(CXTranslationUnit, CXToken)
      * }
@@ -11276,7 +10379,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getTokenSpelling(CXTranslationUnit, CXToken)
      * }
@@ -11307,7 +10409,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getTokenLocation(CXTranslationUnit, CXToken)
      * }
@@ -11318,7 +10419,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getTokenLocation(CXTranslationUnit, CXToken)
      * }
@@ -11329,7 +10429,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getTokenLocation(CXTranslationUnit, CXToken)
      * }
@@ -11339,7 +10438,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceLocation clang_getTokenLocation(CXTranslationUnit, CXToken)
      * }
@@ -11370,7 +10468,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXSourceRange clang_getTokenExtent(CXTranslationUnit, CXToken)
      * }
@@ -11381,7 +10478,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXSourceRange clang_getTokenExtent(CXTranslationUnit, CXToken)
      * }
@@ -11392,7 +10488,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXSourceRange clang_getTokenExtent(CXTranslationUnit, CXToken)
      * }
@@ -11402,7 +10497,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXSourceRange clang_getTokenExtent(CXTranslationUnit, CXToken)
      * }
@@ -11434,7 +10528,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_tokenize(CXTranslationUnit TU, CXSourceRange Range, CXToken **Tokens, unsigned int *NumTokens)
      * }
@@ -11445,7 +10538,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_tokenize(CXTranslationUnit TU, CXSourceRange Range, CXToken **Tokens, unsigned int *NumTokens)
      * }
@@ -11456,7 +10548,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_tokenize(CXTranslationUnit TU, CXSourceRange Range, CXToken **Tokens, unsigned int *NumTokens)
      * }
@@ -11466,7 +10557,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_tokenize(CXTranslationUnit TU, CXSourceRange Range, CXToken **Tokens, unsigned int *NumTokens)
      * }
@@ -11497,7 +10587,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_disposeTokens(CXTranslationUnit TU, CXToken *Tokens, unsigned int NumTokens)
      * }
@@ -11508,7 +10597,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_disposeTokens(CXTranslationUnit TU, CXToken *Tokens, unsigned int NumTokens)
      * }
@@ -11519,7 +10607,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_disposeTokens(CXTranslationUnit TU, CXToken *Tokens, unsigned int NumTokens)
      * }
@@ -11529,7 +10616,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_disposeTokens(CXTranslationUnit TU, CXToken *Tokens, unsigned int NumTokens)
      * }
@@ -11559,7 +10645,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorKindSpelling(enum CXCursorKind Kind)
      * }
@@ -11570,7 +10655,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorKindSpelling(enum CXCursorKind Kind)
      * }
@@ -11581,7 +10665,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getCursorKindSpelling(enum CXCursorKind Kind)
      * }
@@ -11591,7 +10674,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getCursorKindSpelling(enum CXCursorKind Kind)
      * }
@@ -11619,7 +10701,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXString clang_getClangVersion()
      * }
@@ -11630,7 +10711,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXString clang_getClangVersion()
      * }
@@ -11641,7 +10721,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXString clang_getClangVersion()
      * }
@@ -11651,7 +10730,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXString clang_getClangVersion()
      * }
@@ -11680,7 +10758,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_toggleCrashRecovery(unsigned int isEnabled)
      * }
@@ -11691,7 +10768,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_toggleCrashRecovery(unsigned int isEnabled)
      * }
@@ -11702,7 +10778,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_toggleCrashRecovery(unsigned int isEnabled)
      * }
@@ -11712,7 +10787,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_toggleCrashRecovery(unsigned int isEnabled)
      * }
@@ -11742,7 +10816,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXEvalResult clang_Cursor_Evaluate(CXCursor C)
      * }
@@ -11753,7 +10826,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXEvalResult clang_Cursor_Evaluate(CXCursor C)
      * }
@@ -11764,7 +10836,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXEvalResult clang_Cursor_Evaluate(CXCursor C)
      * }
@@ -11774,7 +10845,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXEvalResult clang_Cursor_Evaluate(CXCursor C)
      * }
@@ -11804,7 +10874,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * CXEvalResultKind clang_EvalResult_getKind(CXEvalResult E)
      * }
@@ -11815,7 +10884,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * CXEvalResultKind clang_EvalResult_getKind(CXEvalResult E)
      * }
@@ -11826,7 +10894,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * CXEvalResultKind clang_EvalResult_getKind(CXEvalResult E)
      * }
@@ -11836,7 +10903,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * CXEvalResultKind clang_EvalResult_getKind(CXEvalResult E)
      * }
@@ -11866,7 +10932,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * int clang_EvalResult_getAsInt(CXEvalResult E)
      * }
@@ -11877,7 +10942,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * int clang_EvalResult_getAsInt(CXEvalResult E)
      * }
@@ -11888,7 +10952,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * int clang_EvalResult_getAsInt(CXEvalResult E)
      * }
@@ -11898,7 +10961,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * int clang_EvalResult_getAsInt(CXEvalResult E)
      * }
@@ -11928,7 +10990,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * long long clang_EvalResult_getAsLongLong(CXEvalResult E)
      * }
@@ -11939,7 +11000,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * long long clang_EvalResult_getAsLongLong(CXEvalResult E)
      * }
@@ -11950,7 +11010,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * long long clang_EvalResult_getAsLongLong(CXEvalResult E)
      * }
@@ -11960,7 +11019,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * long long clang_EvalResult_getAsLongLong(CXEvalResult E)
      * }
@@ -11990,7 +11048,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned int clang_EvalResult_isUnsignedInt(CXEvalResult E)
      * }
@@ -12001,7 +11058,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned int clang_EvalResult_isUnsignedInt(CXEvalResult E)
      * }
@@ -12012,7 +11068,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned int clang_EvalResult_isUnsignedInt(CXEvalResult E)
      * }
@@ -12022,7 +11077,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned int clang_EvalResult_isUnsignedInt(CXEvalResult E)
      * }
@@ -12052,7 +11106,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * unsigned long long clang_EvalResult_getAsUnsigned(CXEvalResult E)
      * }
@@ -12063,7 +11116,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * unsigned long long clang_EvalResult_getAsUnsigned(CXEvalResult E)
      * }
@@ -12074,7 +11126,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * unsigned long long clang_EvalResult_getAsUnsigned(CXEvalResult E)
      * }
@@ -12084,7 +11135,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * unsigned long long clang_EvalResult_getAsUnsigned(CXEvalResult E)
      * }
@@ -12114,7 +11164,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * double clang_EvalResult_getAsDouble(CXEvalResult E)
      * }
@@ -12125,7 +11174,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * double clang_EvalResult_getAsDouble(CXEvalResult E)
      * }
@@ -12136,7 +11184,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * double clang_EvalResult_getAsDouble(CXEvalResult E)
      * }
@@ -12146,7 +11193,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * double clang_EvalResult_getAsDouble(CXEvalResult E)
      * }
@@ -12176,7 +11222,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * const char *clang_EvalResult_getAsStr(CXEvalResult E)
      * }
@@ -12187,7 +11232,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * const char *clang_EvalResult_getAsStr(CXEvalResult E)
      * }
@@ -12198,7 +11242,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * const char *clang_EvalResult_getAsStr(CXEvalResult E)
      * }
@@ -12208,7 +11251,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * const char *clang_EvalResult_getAsStr(CXEvalResult E)
      * }
@@ -12237,7 +11279,6 @@ public class Index_h {
 
     /**
      * Function descriptor for:
-
      * {@snippet lang=c :
      * void clang_EvalResult_dispose(CXEvalResult E)
      * }
@@ -12248,7 +11289,6 @@ public class Index_h {
 
     /**
      * Downcall method handle for:
-
      * {@snippet lang=c :
      * void clang_EvalResult_dispose(CXEvalResult E)
      * }
@@ -12259,7 +11299,6 @@ public class Index_h {
 
     /**
      * Address for:
-
      * {@snippet lang=c :
      * void clang_EvalResult_dispose(CXEvalResult E)
      * }
@@ -12269,7 +11308,6 @@ public class Index_h {
     }
 
     /**
-
      * {@snippet lang=c :
      * void clang_EvalResult_dispose(CXEvalResult E)
      * }
@@ -12287,7 +11325,6 @@ public class Index_h {
     }
     private static final int CXResult_Success = (int)0L;
     /**
-
      * {@snippet lang=c :
      * enum <anonymous>.CXResult_Success = 0
      * }
@@ -12297,7 +11334,6 @@ public class Index_h {
     }
     private static final int CXResult_Invalid = (int)1L;
     /**
-
      * {@snippet lang=c :
      * enum <anonymous>.CXResult_Invalid = 1
      * }
@@ -12307,7 +11343,6 @@ public class Index_h {
     }
     private static final int CXResult_VisitBreak = (int)2L;
     /**
-
      * {@snippet lang=c :
      * enum <anonymous>.CXResult_VisitBreak = 2
      * }

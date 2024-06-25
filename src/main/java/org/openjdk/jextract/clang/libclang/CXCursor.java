@@ -38,7 +38,6 @@ import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
-
  * {@snippet lang=c :
  * struct {
  *     enum CXCursorKind kind;
@@ -70,7 +69,6 @@ public class CXCursor {
 
     /**
      * Layout for field:
-
      * {@snippet lang=c :
      * enum CXCursorKind kind
      * }
@@ -83,7 +81,6 @@ public class CXCursor {
 
     /**
      * Offset for field:
-
      * {@snippet lang=c :
      * enum CXCursorKind kind
      * }
@@ -94,7 +91,6 @@ public class CXCursor {
 
     /**
      * Getter for field:
-
      * {@snippet lang=c :
      * enum CXCursorKind kind
      * }
@@ -105,7 +101,6 @@ public class CXCursor {
 
     /**
      * Setter for field:
-
      * {@snippet lang=c :
      * enum CXCursorKind kind
      * }
@@ -118,7 +113,6 @@ public class CXCursor {
 
     /**
      * Layout for field:
-
      * {@snippet lang=c :
      * int xdata
      * }
@@ -131,7 +125,6 @@ public class CXCursor {
 
     /**
      * Offset for field:
-
      * {@snippet lang=c :
      * int xdata
      * }
@@ -142,7 +135,6 @@ public class CXCursor {
 
     /**
      * Getter for field:
-
      * {@snippet lang=c :
      * int xdata
      * }
@@ -153,7 +145,6 @@ public class CXCursor {
 
     /**
      * Setter for field:
-
      * {@snippet lang=c :
      * int xdata
      * }
@@ -166,7 +157,6 @@ public class CXCursor {
 
     /**
      * Layout for field:
-
      * {@snippet lang=c :
      * const void *data[3]
      * }
@@ -179,7 +169,6 @@ public class CXCursor {
 
     /**
      * Offset for field:
-
      * {@snippet lang=c :
      * const void *data[3]
      * }
@@ -190,7 +179,6 @@ public class CXCursor {
 
     /**
      * Getter for field:
-
      * {@snippet lang=c :
      * const void *data[3]
      * }
@@ -201,7 +189,6 @@ public class CXCursor {
 
     /**
      * Setter for field:
-
      * {@snippet lang=c :
      * const void *data[3]
      * }
@@ -214,7 +201,6 @@ public class CXCursor {
 
     /**
      * Dimensions for array field:
-
      * {@snippet lang=c :
      * const void *data[3]
      * }
@@ -226,7 +212,6 @@ public class CXCursor {
 
     /**
      * Indexed getter for field:
-
      * {@snippet lang=c :
      * const void *data[3]
      * }
@@ -237,7 +222,6 @@ public class CXCursor {
 
     /**
      * Indexed setter for field:
-
      * {@snippet lang=c :
      * const void *data[3]
      * }
@@ -253,13 +237,14 @@ public class CXCursor {
     public static MemorySegment asSlice(MemorySegment array, long index) {
         return array.asSlice(layout().byteSize() * index);
     }
+
     /**
      * The size (in bytes) of this struct
      */
     public static long sizeof() { return layout().byteSize(); }
 
     /**
-     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}}
+     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
      */
     public static MemorySegment allocate(SegmentAllocator allocator) {
         return allocator.allocate(layout());

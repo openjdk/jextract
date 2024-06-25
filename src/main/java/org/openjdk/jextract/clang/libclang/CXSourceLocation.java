@@ -38,7 +38,6 @@ import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 
 /**
-
  * {@snippet lang=c :
  * struct {
  *     const void *ptr_data[2];
@@ -69,7 +68,6 @@ public class CXSourceLocation {
 
     /**
      * Layout for field:
-
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -82,7 +80,6 @@ public class CXSourceLocation {
 
     /**
      * Offset for field:
-
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -93,7 +90,6 @@ public class CXSourceLocation {
 
     /**
      * Getter for field:
-
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -104,7 +100,6 @@ public class CXSourceLocation {
 
     /**
      * Setter for field:
-
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -117,7 +112,6 @@ public class CXSourceLocation {
 
     /**
      * Dimensions for array field:
-
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -129,7 +123,6 @@ public class CXSourceLocation {
 
     /**
      * Indexed getter for field:
-
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -140,7 +133,6 @@ public class CXSourceLocation {
 
     /**
      * Indexed setter for field:
-
      * {@snippet lang=c :
      * const void *ptr_data[2]
      * }
@@ -153,7 +145,6 @@ public class CXSourceLocation {
 
     /**
      * Layout for field:
-
      * {@snippet lang=c :
      * unsigned int int_data
      * }
@@ -166,7 +157,6 @@ public class CXSourceLocation {
 
     /**
      * Offset for field:
-
      * {@snippet lang=c :
      * unsigned int int_data
      * }
@@ -177,7 +167,6 @@ public class CXSourceLocation {
 
     /**
      * Getter for field:
-
      * {@snippet lang=c :
      * unsigned int int_data
      * }
@@ -188,7 +177,6 @@ public class CXSourceLocation {
 
     /**
      * Setter for field:
-
      * {@snippet lang=c :
      * unsigned int int_data
      * }
@@ -204,13 +192,14 @@ public class CXSourceLocation {
     public static MemorySegment asSlice(MemorySegment array, long index) {
         return array.asSlice(layout().byteSize() * index);
     }
+
     /**
      * The size (in bytes) of this struct
      */
     public static long sizeof() { return layout().byteSize(); }
 
     /**
-     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}}
+     * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
      */
     public static MemorySegment allocate(SegmentAllocator allocator) {
         return allocator.allocate(layout());
