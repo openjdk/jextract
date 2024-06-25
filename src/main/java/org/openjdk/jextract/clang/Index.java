@@ -72,24 +72,21 @@ public class Index extends ClangDisposable {
         }
     }
 
-    private TranslationUnit parseTUImpl(String file, String content,
+    private TranslationUnit parseTU(String file, String content,
                 Consumer<Diagnostic> dh, int options, String... args)
                 throws ParsingFailedException {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment fileSeg = arena.allocateFrom(file);
-            MemorySegment contentSeg = content == null ? null : arena.allocateFrom(content);
+            MemorySegment contentSeg = arena.allocateFrom(content);
             MemorySegment cargs = args.length == 0 ? null : arena.allocate(C_POINTER, args.length);
             for (int i = 0 ; i < args.length ; i++) {
                 cargs.set(C_POINTER, i * C_POINTER.byteSize(), arena.allocateFrom(args[i]));
             }
 
-            MemorySegment unsavedFile = contentSeg == null ?
-                null : CXUnsavedFile.allocate(arena);
-            if (unsavedFile != null) {
-                CXUnsavedFile.Filename(unsavedFile, fileSeg);
-                CXUnsavedFile.Contents(unsavedFile, contentSeg);
-                CXUnsavedFile.Length(unsavedFile, content.length());
-            }
+            MemorySegment unsavedFile = CXUnsavedFile.allocate(arena);
+            CXUnsavedFile.Filename(unsavedFile, fileSeg);
+            CXUnsavedFile.Contents(unsavedFile, contentSeg);
+            CXUnsavedFile.Length(unsavedFile, content.length());
 
             MemorySegment outAddress = arena.allocate(C_POINTER);
             ErrorCode code = ErrorCode.valueOf(Index_h.clang_parseTranslationUnit2(
@@ -97,8 +94,8 @@ public class Index extends ClangDisposable {
                     fileSeg,
                     cargs == null ? MemorySegment.NULL : cargs,
                     args.length,
-                    unsavedFile == null ? MemorySegment.NULL : unsavedFile,
-                    unsavedFile == null ? 0 : 1,
+                    unsavedFile,
+                    1,
                     options,
                     outAddress));
 
@@ -115,17 +112,6 @@ public class Index extends ClangDisposable {
         }
     }
 
-
-    public TranslationUnit parseTU(String file, Consumer<Diagnostic> dh, int options, String... args)
-            throws ParsingFailedException {
-        return parseTUImpl(file, null, dh, options, args);
-    }
-
-    public TranslationUnit parseTU(String filename, String content, Consumer<Diagnostic> dh, int options, String... args)
-            throws ParsingFailedException {
-        return parseTUImpl(filename, content, dh, options, args);
-    }
-
     private int defaultOptions(boolean detailedPreprocessorRecord) {
         int rv = Index_h.CXTranslationUnit_ForSerialization();
         rv |= Index_h.CXTranslationUnit_SkipFunctionBodies();
@@ -133,16 +119,6 @@ public class Index extends ClangDisposable {
             rv |= Index_h.CXTranslationUnit_DetailedPreprocessingRecord();
         }
         return rv;
-    }
-
-    public TranslationUnit parse(String file, Consumer<Diagnostic> dh, boolean detailedPreprocessorRecord, String... args)
-            throws ParsingFailedException {
-        return parseTU(file, dh, defaultOptions(detailedPreprocessorRecord), args);
-    }
-
-    public TranslationUnit parse(String file, boolean detailedPreprocessorRecord, String... args)
-            throws ParsingFailedException {
-        return parse(file, dh -> {}, detailedPreprocessorRecord, args);
     }
 
     public TranslationUnit parse(String filename, String content, Consumer<Diagnostic> dh,
