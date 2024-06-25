@@ -94,20 +94,6 @@ public class Parser {
         return rv;
     }
 
-    public Declaration.Scoped parse(Path path, Collection<String> args) {
-        try (Index index = LibClang.createIndex(false) ;
-             TranslationUnit tu = index.parse(path.toString(),
-                d -> {
-                    if (d.severity() > Diagnostic.CXDiagnostic_Warning) {
-                        throw new ClangException(d.toString());
-                    }
-                },
-            true, args.toArray(new String[0])) ;
-            MacroParserImpl macroParser = MacroParserImpl.make(treeMaker, logger, tu, args)) {
-            return collectDeclarations(tu, macroParser);
-        }
-    }
-
     public Declaration.Scoped parse(String name, String content, Collection<String> args) {
         try (Index index = LibClang.createIndex(false) ;
              TranslationUnit tu = index.parse(name, content,
