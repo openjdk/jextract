@@ -113,7 +113,7 @@ public class Index extends ClangDisposable {
             CXUnsavedFile.Filename(unsavedFile, filenameSeg);
             CXUnsavedFile.Contents(unsavedFile, contentSeg);
             CXUnsavedFile.Length(unsavedFile, content.length());
- 
+
             MemorySegment tu = Index_h.clang_createTranslationUnitFromSourceFile(
                     ptr,
                     filenameSeg,
