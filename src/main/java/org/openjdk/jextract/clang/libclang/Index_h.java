@@ -82,7 +82,8 @@ public class Index_h {
 
 
     static {
-        System.loadLibrary("clang");
+        String libName = System.getProperty("os.name").startsWith("Windows") ? "libclang" : "clang";
+        System.loadLibrary(libName);
     }
 
     static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.loaderLookup()
