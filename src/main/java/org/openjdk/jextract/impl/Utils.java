@@ -252,7 +252,7 @@ class Utils {
                 yield CARRIERS_TO_LAYOUT_CARRIERS.get(clazz);
             }
             case Type.Declared declared when isStructOrUnion(declared) -> GroupLayout.class;
-            case Type.Declared declared when isEnum(declared) -> layoutCarrierFor(((Constant)declared.tree().members().get(0)).type());
+            case Type.Declared declared when isEnum(declared) -> layoutCarrierFor(ClangEnumType.get(declared.tree()).get());
             default -> throw new UnsupportedOperationException(t.toString());
         };
     }
