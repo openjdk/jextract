@@ -319,6 +319,11 @@ public final class NameMangler implements Declaration.Visitor<Void, Declaration>
     }
 
     private static boolean isJavaTypeName(String name) {
+        // rule out common case of lower-case starting identifier.
+        if (name.length() == 0 || Character.isLowerCase(name.charAt(0))) {
+            return false;
+        }
+
         // Java types that are used unqualified in the generated code
         return switch (name) {
             case "String", "Struct", "MethodHandle",
@@ -327,7 +332,16 @@ public final class NameMangler implements Declaration.Visitor<Void, Declaration>
                 "MemoryLayout",
                 "Arena", "NativeArena", "MemorySegment", "ValueLayout"
                     -> true;
-            default -> false;
+            default -> {
+                try {
+                    // java.lang package is auto-imported. Check if we've clash
+                    // of the given identifier with any of the java.lang.* types.
+                    Class.forName("java.lang." + name);
+                    yield true;
+                } catch (Exception ignored) {
+                }
+                yield false;
+            }
         };
     }
 }
