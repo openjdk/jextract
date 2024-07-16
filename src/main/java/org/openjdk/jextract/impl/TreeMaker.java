@@ -375,7 +375,9 @@ class TreeMaker {
                     decls.add(enumConstantDecl);
                 }
             });
-            return Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
+            Declaration.Scoped enumDecl = Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
+            DeclarationImpl.ClangEnumType.with(enumDecl, toType(c.getEnumDeclIntegerType()));
+            return enumDecl;
         } else {
             //if there's a real definition somewhere else, skip this redundant declaration
             return null;
@@ -479,6 +481,10 @@ class TreeMaker {
 
     Type toType(Cursor c) {
         return TypeMaker.makeType(c.type(), this);
+    }
+
+    Type toType(org.openjdk.jextract.clang.Type t) {
+        return TypeMaker.makeType(t, this);
     }
 
     private void checkCursor(Cursor c, CursorKind k) {

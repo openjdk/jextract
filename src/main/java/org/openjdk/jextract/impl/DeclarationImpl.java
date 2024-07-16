@@ -349,14 +349,28 @@ public abstract class DeclarationImpl implements Declaration {
     /**
      * An attribute to mark enum constants, with a link to the name of their parent enum.
      */
-    record EnumConstant(String get) {
+    record EnumConstant(String enumName) {
         public static void with(Constant constant, String enumName) {
             constant.addAttribute(new EnumConstant(enumName));
         }
 
         public static Optional<String> get(Constant constant) {
             return constant.getAttribute(EnumConstant.class)
-                    .map(EnumConstant::get);
+                    .map(EnumConstant::enumName);
+        }
+    }
+
+    /**
+     * An attribute used to store the type of an enum declaration, as seen by clang.
+     */
+    record ClangEnumType(Type type) {
+        public static void with(Declaration.Scoped enumDecl, Type type) {
+            enumDecl.addAttribute(new ClangEnumType(type));
+        }
+
+        public static Optional<Type> get(Declaration.Scoped enumDecl) {
+            return enumDecl.getAttribute(ClangEnumType.class)
+                    .map(ClangEnumType::type);
         }
     }
 
