@@ -28,16 +28,13 @@ package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.Constant;
-import org.openjdk.jextract.Declaration.Scoped;
-import org.openjdk.jextract.Declaration.Typedef;
-import org.openjdk.jextract.JavaSourceFile;
 import org.openjdk.jextract.Type;
-import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Delegated.Kind;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangEnumType;
 import org.openjdk.jextract.impl.DeclarationImpl.NestedDeclarations;
 
 import java.lang.foreign.AddressLayout;
@@ -157,8 +154,7 @@ class Utils {
 
     static boolean isPrimitive(Type type) {
         return switch (type) {
-            case Type.Declared declared when declared.tree().kind() == Declaration.Scoped.Kind.ENUM ->
-                isPrimitive(((Declaration.Constant)declared.tree().members().get(0)).type());
+            case Type.Declared declared when declared.tree().kind() == Declaration.Scoped.Kind.ENUM -> true;
             case Type.Delegated delegated when delegated.kind() != Kind.POINTER -> isPrimitive(delegated.type());
             case Type.Primitive _ -> true;
             default -> false;
@@ -214,7 +210,7 @@ class Utils {
             case Type.Array _ -> MemorySegment.class;
             case Type.Primitive p -> Utils.carrierFor(p);
             case Type.Declared declared -> declared.tree().kind() == Declaration.Scoped.Kind.ENUM ?
-                    carrierFor(((Declaration.Constant) declared.tree().members().get(0)).type()) :
+                    carrierFor(ClangEnumType.get(declared.tree()).get()) :
                     MemorySegment.class;
             case Type.Delegated delegated -> delegated.kind() == Type.Delegated.Kind.POINTER ?
                     MemorySegment.class :
@@ -256,7 +252,7 @@ class Utils {
                 yield CARRIERS_TO_LAYOUT_CARRIERS.get(clazz);
             }
             case Type.Declared declared when isStructOrUnion(declared) -> GroupLayout.class;
-            case Type.Declared declared when isEnum(declared) -> layoutCarrierFor(((Constant)declared.tree().members().get(0)).type());
+            case Type.Declared declared when isEnum(declared) -> layoutCarrierFor(ClangEnumType.get(declared.tree()).get());
             default -> throw new UnsupportedOperationException(t.toString());
         };
     }
