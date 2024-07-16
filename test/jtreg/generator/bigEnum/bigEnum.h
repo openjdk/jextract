@@ -7,6 +7,6 @@ typedef enum
 
 typedef struct structType
 {
-	EnumDef someEnum;
-	long long bigNumber;
+    EnumDef someEnum;
+    long long bigNumber;
 } value;
