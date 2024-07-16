@@ -32,6 +32,7 @@ import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.Type.Primitive;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
+import org.openjdk.jextract.impl.DeclarationImpl.ClangEnumType;
 import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
@@ -199,7 +200,7 @@ abstract class ClassSourceBuilder {
     String layoutString(Type type, long align) {
         return switch (type) {
             case Primitive p -> primitiveLayoutString(p, align);
-            case Declared d when Utils.isEnum(d) -> layoutString(DeclarationImpl.ClangEnumType.get(d.tree()).get(), align);
+            case Declared d when Utils.isEnum(d) -> layoutString(ClangEnumType.get(d.tree()).get(), align);
             case Declared d when Utils.isStructOrUnion(d) -> alignIfNeeded(JavaName.getFullNameOrThrow(d.tree()) + ".layout()", ClangAlignOf.getOrThrow(d.tree()) / 8, align);
             case Delegated d when d.kind() == Delegated.Kind.POINTER -> alignIfNeeded(runtimeHelperName() + ".C_POINTER", 8, align);
             case Delegated d -> layoutString(d.type(), align);
