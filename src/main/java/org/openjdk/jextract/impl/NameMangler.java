@@ -35,12 +35,14 @@ import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaFunctionalInterfaceName;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.lang.model.SourceVersion;
 
 /*
@@ -318,16 +320,46 @@ public final class NameMangler implements Declaration.Visitor<Void, Declaration>
         };
     }
 
+
+    // well known java type names that are potentially used
+    // as unqualified name in the jextract generated code.
+    private static final Set<String> WELL_KNOWN_JAVA_TYPES = ConcurrentHashMap.newKeySet();
+    static {
+        WELL_KNOWN_JAVA_TYPES.add("ByteOrder");
+        WELL_KNOWN_JAVA_TYPES.add("MethodHandle");
+        WELL_KNOWN_JAVA_TYPES.add("VarHandle");
+    }
+
     private static boolean isJavaTypeName(String name) {
+        // rule out common case of lower-case starting identifier.
+        if (name.length() == 0 || Character.isLowerCase(name.charAt(0))) {
+            return false;
+        }
+
         // Java types that are used unqualified in the generated code
-        return switch (name) {
-            case "String", "Struct", "MethodHandle",
-                "VarHandle", "ByteOrder",
-                "FunctionDescriptor", "LibraryLookup",
-                "MemoryLayout",
-                "Arena", "NativeArena", "MemorySegment", "ValueLayout"
-                    -> true;
-            default -> false;
-        };
+        if (WELL_KNOWN_JAVA_TYPES.contains(name)) {
+            return true;
+        }
+
+        // may be it is not cached as well-known java type yet.
+        if (checkTypeInPackage("java.lang", name)) {
+            return true;
+        } else if (checkTypeInPackage("java.lang.foreign", name)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean checkTypeInPackage(String pkgName, String typeName) {
+        try {
+            int mods = Class.forName(pkgName + "." + typeName).getModifiers();
+            if (Modifier.isPublic(mods)) {
+                WELL_KNOWN_JAVA_TYPES.add(typeName);
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
     }
 }
