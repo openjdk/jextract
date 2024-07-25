@@ -26,6 +26,7 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.JextractTool;
+import org.openjdk.jextract.Position;
 
 import java.io.PrintWriter;
 import java.text.MessageFormat;
@@ -50,19 +51,50 @@ public class Logger {
         this.errWriter = errStream;
     }
 
+    public void print(ClangException exp) {
+        errWriter.println(String.format("%1$s: %2$s: %3$s",
+            position(exp.position()),
+            exp.isFatal()? "fatal" : "error",
+            exp.spelling()));
+        nErrors++;
+    }
+
     public void err(String key, Object... args) {
-        errWriter.println(String.format("ERROR: %1$s", format(key, args)));
+        err(Position.NO_POSITION, key, args);
+    }
+
+    public void err(Position pos, String key, Object... args) {
+        String msg = Position.NO_POSITION.equals(pos) ?
+            String.format("error: %1$s", format(key, args)) :
+            String.format("%1$s: error: %2$s", position(pos), format(key, args));
+        errWriter.println(msg);
         nErrors++;
     }
 
     public void warn(String key, Object... args) {
-        errWriter.println(String.format("WARNING: %1$s", format(key, args)));
+        warn(Position.NO_POSITION, key, args);
+    }
+
+    public void warn(Position pos, String key, Object... args) {
+        String msg = Position.NO_POSITION.equals(pos) ?
+            String.format("warning: %1$s", format(key, args)) :
+            String.format("%1$s: warning: %2$s", position(pos), format(key, args));
+        errWriter.println(msg);
         nWarnings++;
     }
 
     public void info(String key, Object... args) {
-        errWriter.println(format(key, args));
-        nWarnings++;
+        info(Position.NO_POSITION, key, args);
+    }
+
+    public void info(Position pos, String key, Object... args) {
+        String msg = Position.NO_POSITION.equals(pos) ?
+            format(key, args) : position(pos) + ": " + format(key, args);
+        errWriter.println(msg);
+    }
+
+    private String position(Position pos) {
+        return pos.path().getFileName().toString() + ":" + pos.line() + ":" + pos.col();
     }
 
     public void printStackTrace(Throwable t) {
@@ -70,7 +102,7 @@ public class Logger {
     }
 
     public void fatal(Throwable t, String msg, Object... args) {
-        errWriter.println(String.format("FATAL: %1$s", format(msg, args)));
+        errWriter.println(String.format("fatal: %1$s", format(msg, args)));
         if (JextractTool.DEBUG) {
             printStackTrace(t);
         }

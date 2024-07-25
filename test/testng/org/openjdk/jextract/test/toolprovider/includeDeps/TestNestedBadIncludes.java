@@ -53,7 +53,7 @@ public class TestNestedBadIncludes extends JextractToolRunner {
 
     @Test(dataProvider = "cases")
     public void testBadIncludes(String includeOption, String badDeclName, String missingDepName) {
-        result.checkContainsOutput("ERROR: " + badDeclName + " depends on " + missingDepName);
+        result.checkContainsOutput("error: " + badDeclName + " depends on " + missingDepName);
     }
 
     @DataProvider

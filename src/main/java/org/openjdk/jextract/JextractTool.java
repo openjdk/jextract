@@ -503,7 +503,7 @@ public final class JextractTool {
                 toplevel, headerName,
                 options.targetPackage, options.includeHelper, options.libraries, options.useSystemLoadLibrary, logger);
         } catch (ClangException ce) {
-            logger.err("jextract.clang.error", ce.getMessage());
+            logger.print(ce);
             if (JextractTool.DEBUG) {
                 logger.printStackTrace(ce);
             }

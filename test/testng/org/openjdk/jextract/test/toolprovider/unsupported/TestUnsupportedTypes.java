@@ -42,7 +42,7 @@ public class TestUnsupportedTypes extends JextractToolRunner {
 
     @Test(dataProvider = "cases")
     public void testUnsupportedTypes(String skippedName, String reason) {
-        result.checkContainsOutput("WARNING: Skipping " + skippedName + " (" + reason);
+        result.checkContainsOutput("warning: Skipping " + skippedName + " (" + reason);
     }
 
     private static final String REASON_UNSUPPORTED_TYPE = "type";
