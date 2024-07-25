@@ -112,9 +112,9 @@ public class Parser {
         }
     }
 
-    record PositionRecord(Path path, int line, int col) implements Position {}
-
     private Position asPosition(SourceLocation.Location loc) {
+        record PositionRecord(Path path, int line, int col) implements Position {}
+
         return new PositionRecord(loc.path(), loc.line(), loc.column());
     }
 
