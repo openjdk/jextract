@@ -26,6 +26,7 @@
 package org.openjdk.jextract.impl;
 
 import org.openjdk.jextract.Declaration;
+import org.openjdk.jextract.Position;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.Diagnostic;
@@ -99,13 +100,22 @@ public class Parser {
              TranslationUnit tu = index.parse(name, content,
                 d -> {
                     if (d.severity() > Diagnostic.CXDiagnostic_Warning) {
-                        throw new ClangException(d.toString());
+                        throw new ClangException(
+                            asPosition(d.location().getSpellingLocation()),
+                            d.severity(),
+                            d.spelling());
                     }
                 },
             true, args.toArray(new String[0])) ;
             MacroParserImpl macroParser = MacroParserImpl.make(treeMaker, logger, tu, args)) {
             return collectDeclarations(tu, macroParser);
         }
+    }
+
+    record PositionRecord(Path path, int line, int col) implements Position {}
+
+    private Position asPosition(SourceLocation.Location loc) {
+        return new PositionRecord(loc.path(), loc.line(), loc.column());
     }
 
     private boolean isMacro(Cursor c) {

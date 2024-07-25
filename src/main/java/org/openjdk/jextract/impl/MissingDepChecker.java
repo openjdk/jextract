@@ -115,7 +115,7 @@ public final class MissingDepChecker implements Declaration.Visitor<Void, Declar
             // to valid code and (b) missing typedefs to existing structs are resolved correctly, as typedefs are never
             // referred to by name in the generated code (because of libclang limitations).
             if (Skip.isPresent(declared.tree())) {
-                logger.err("jextract.bad.include", decl.name(), declared.tree().name());
+                logger.err(decl.pos(), "jextract.bad.include", decl.name(), declared.tree().name());
             }
         } else if (type instanceof Delegated delegated &&
                         delegated.kind() == Delegated.Kind.TYPEDEF) {

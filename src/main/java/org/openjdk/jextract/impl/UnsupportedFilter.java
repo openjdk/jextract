@@ -32,6 +32,7 @@ import org.openjdk.jextract.Declaration.Scoped;
 import org.openjdk.jextract.Declaration.Scoped.Kind;
 import org.openjdk.jextract.Declaration.Typedef;
 import org.openjdk.jextract.Declaration.Variable;
+import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
@@ -74,7 +75,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         //generate static wrapper for function
         Type unsupportedType = firstUnsupportedType(funcTree.type(), false);
         if (unsupportedType != null) {
-            warnSkip(funcTree.name(), unsupportedType(unsupportedType));
+            warnSkip(funcTree.pos(), funcTree.name(), unsupportedType(unsupportedType));
             Skip.with(funcTree);
             return null;
         }
@@ -112,7 +113,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         Type unsupportedType = firstUnsupportedType(varTree.type(), false);
         String name = fieldName(firstNamedParent, varTree);
         if (unsupportedType != null) {
-            warnSkip(name, unsupportedType(unsupportedType));
+            warnSkip(varTree.pos(), name, unsupportedType(unsupportedType));
             Skip.with(varTree);
             return null;
         }
@@ -132,7 +133,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
         Type unsupportedType = firstUnsupportedType(Type.declared(scoped), false);
         if (unsupportedType != null) {
-            warnSkip(scoped.name(), unsupportedType(unsupportedType));
+            warnSkip(scoped.pos(), scoped.name(), unsupportedType(unsupportedType));
             Skip.with(scoped);
             return null;
         }
@@ -140,7 +141,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         if (scoped.kind() == Kind.BITFIELDS) {
             for (Declaration bitField : scoped.members()) {
                 if (!bitField.name().isEmpty()) {
-                    warnSkip(fieldName(firstNamedParent, bitField), unsupportedBitfield());
+                    warnSkip(scoped.pos(), fieldName(firstNamedParent, bitField), unsupportedBitfield());
                 }
             }
             Skip.with(scoped);
@@ -166,7 +167,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
 
         Type unsupportedType = firstUnsupportedType(typedefTree.type(),false);
         if (unsupportedType != null) {
-            warnSkip(typedefTree.name(), unsupportedType(unsupportedType));
+            warnSkip(typedefTree.pos(), typedefTree.name(), unsupportedType(unsupportedType));
             Skip.with(typedefTree);
             return null;
         }
@@ -185,7 +186,7 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         Type unsupportedType = firstUnsupportedType(d.type(), false);
         String name = fieldName(firstNamedParent, d);
         if (unsupportedType != null) {
-            warnSkip(name, unsupportedType(unsupportedType));
+            warnSkip(d.pos(), name, unsupportedType(unsupportedType));
             Skip.with(d);
             return null;
         }
@@ -201,12 +202,12 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
     private boolean checkFunctionTypeSupported(Declaration decl, Type.Function func, String nameOfSkipped) {
         Type unsupportedType = firstUnsupportedType(func, false);
         if (unsupportedType != null) {
-            warnSkip(nameOfSkipped, unsupportedType(unsupportedType));
+            warnSkip(decl.pos(), nameOfSkipped, unsupportedType(unsupportedType));
             return false;
         }
         //generate functional interface
         if (func.varargs() && !func.argumentTypes().isEmpty()) {
-            warnSkip(nameOfSkipped, unsupportedVariadicCallback(decl.name()));
+            warnSkip(decl.pos(), nameOfSkipped, unsupportedVariadicCallback(decl.name()));
             return false;
         }
         return true;
@@ -281,8 +282,8 @@ public class UnsupportedFilter implements Declaration.Visitor<Void, Declaration>
         }
     };
 
-    private void warnSkip(String treeName, String message) {
-        logger.warn("jextract.skip.unsupported", treeName, message);
+    private void warnSkip(Position pos, String treeName, String message) {
+        logger.warn(pos, "jextract.skip.unsupported", treeName, message);
     }
 
     private String unsupportedType(Type type) {

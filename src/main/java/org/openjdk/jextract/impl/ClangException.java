@@ -25,18 +25,40 @@
  */
 package org.openjdk.jextract.impl;
 
+import org.openjdk.jextract.Position;
+import org.openjdk.jextract.clang.Diagnostic;
+
 public class ClangException extends RuntimeException {
     private static final long serialVersionUID = 0L;
 
-    public ClangException(String message) {
-        super(message);
+    private final Position position;
+    private final int severity;
+    private final String spelling;
+
+    public ClangException(Position pos, int severity, String spelling) {
+        super(spelling);
+        this.position = pos;
+        this.severity = severity;
+        this.spelling = spelling;
     }
 
-    public ClangException(String message, Throwable cause) {
-        super(message, cause);
+    public Position position() {
+        return position;
     }
 
-    public ClangException(Throwable cause) {
-        super(cause);
+    public int severity() {
+        return severity;
+    }
+
+    public String spelling() {
+        return spelling;
+    }
+
+    public boolean isError() {
+        return severity == Diagnostic.CXDiagnostic_Error;
+    }
+
+    public boolean isFatal() {
+        return severity == Diagnostic.CXDiagnostic_Fatal;
     }
 }
