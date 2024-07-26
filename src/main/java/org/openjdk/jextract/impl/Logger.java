@@ -45,18 +45,12 @@ public class Logger {
     final PrintWriter errWriter;
     private int nWarnings;
     private int nErrors;
+    private int nClangWarnings;
+    private int nClangErrors;
 
     public Logger(PrintWriter outWriter, PrintWriter errStream) {
         this.outWriter = outWriter;
         this.errWriter = errStream;
-    }
-
-    public void print(ClangException exp) {
-        errWriter.println(String.format("%1$s: %2$s: %3$s",
-            position(exp.position()),
-            exp.isFatal()? "fatal" : "error",
-            exp.spelling()));
-        nErrors++;
     }
 
     public void err(String key, Object... args) {
@@ -93,6 +87,33 @@ public class Logger {
         errWriter.println(msg);
     }
 
+    public void clangErr(Position pos, String msg) {
+        errWriter.println(
+            Position.NO_POSITION.equals(pos) ?
+                String.format("error: %1$s", msg) :
+                String.format("%1$s: error: %2$s", position(pos), msg)
+        );
+        nClangErrors++;
+    }
+
+    public void clangWarn(Position pos, String msg) {
+        errWriter.println(
+            Position.NO_POSITION.equals(pos) ?
+                String.format("warning: %1$s", msg) :
+                String.format("%1$s: warning: %2$s", position(pos), msg)
+        );
+        nClangWarnings++;
+    }
+
+
+    public void clangInfo(Position pos, String msg) {
+        if (Position.NO_POSITION.equals(pos)) {
+            errWriter.println(msg);
+        } else {
+            errWriter.println(position(pos) + ": " + msg);
+        }
+    }
+
     private String position(Position pos) {
         return pos.path().getFileName().toString() + ":" + pos.line() + ":" + pos.col();
     }
@@ -118,6 +139,14 @@ public class Logger {
 
     public boolean hasWarnings() {
         return nWarnings > 0;
+    }
+
+    public boolean hasClangErrors() {
+        return nClangErrors > 0;
+    }
+
+    public boolean hasClangWarnings() {
+        return nClangWarnings > 0;
     }
 
     public String format(String key, Object... args) {

@@ -26,7 +26,6 @@
 package org.openjdk.jextract;
 
 import org.openjdk.jextract.clang.LibClang;
-import org.openjdk.jextract.impl.ClangException;
 import org.openjdk.jextract.impl.CommandLine;
 import org.openjdk.jextract.impl.DuplicateFilter;
 import org.openjdk.jextract.impl.IncludeFilter;
@@ -502,12 +501,10 @@ public final class JextractTool {
             files = generateInternal(
                 toplevel, headerName,
                 options.targetPackage, options.includeHelper, options.libraries, options.useSystemLoadLibrary, logger);
-        } catch (ClangException ce) {
-            logger.print(ce);
-            if (JextractTool.DEBUG) {
-                logger.printStackTrace(ce);
+
+            if (logger.hasClangErrors()) {
+                return CLANG_ERROR;
             }
-            return CLANG_ERROR;
         } catch (RuntimeException re) {
             logger.fatal(re);
             return FATAL_ERROR;

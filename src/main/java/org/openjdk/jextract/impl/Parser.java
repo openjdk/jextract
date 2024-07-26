@@ -101,11 +101,11 @@ public class Parser {
                 d -> {
                     Position pos = asPosition(d.location().getSpellingLocation());
                     if (d.severity() > Diagnostic.CXDiagnostic_Warning) {
-                        throw new ClangException(pos, d.severity(), d.spelling());
+                        logger.clangErr(pos, d.spelling());
                     } else if (d.severity() == Diagnostic.CXDiagnostic_Warning) {
-                        logger.warn(pos, "jextract.clang.warn", d.spelling());
-                    } else {
-                        logger.info(pos, "jextract.clang.info", d.spelling());
+                        logger.clangWarn(pos, d.spelling());
+                    } else if (d.severity() == Diagnostic.CXDiagnostic_Note) {
+                        logger.clangInfo(pos, d.spelling());
                     }
                 },
             true, args.toArray(new String[0])) ;
