@@ -43,9 +43,7 @@ public class Logger {
 
     final PrintWriter outWriter;
     final PrintWriter errWriter;
-    private int nWarnings;
     private int nErrors;
-    private int nClangWarnings;
     private int nClangErrors;
 
     public Logger(PrintWriter outWriter, PrintWriter errStream) {
@@ -74,7 +72,6 @@ public class Logger {
             String.format("warning: %1$s", format(key, args)) :
             String.format("%1$s: warning: %2$s", position(pos), format(key, args));
         errWriter.println(msg);
-        nWarnings++;
     }
 
     public void info(String key, Object... args) {
@@ -102,7 +99,6 @@ public class Logger {
                 String.format("warning: %1$s", msg) :
                 String.format("%1$s: warning: %2$s", position(pos), msg)
         );
-        nClangWarnings++;
     }
 
 
@@ -137,16 +133,8 @@ public class Logger {
         return nErrors > 0;
     }
 
-    public boolean hasWarnings() {
-        return nWarnings > 0;
-    }
-
     public boolean hasClangErrors() {
         return nClangErrors > 0;
-    }
-
-    public boolean hasClangWarnings() {
-        return nClangWarnings > 0;
     }
 
     public String format(String key, Object... args) {
