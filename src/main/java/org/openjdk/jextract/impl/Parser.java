@@ -99,11 +99,13 @@ public class Parser {
         try (Index index = LibClang.createIndex(false) ;
              TranslationUnit tu = index.parse(name, content,
                 d -> {
+                    Position pos = asPosition(d.location().getSpellingLocation());
                     if (d.severity() > Diagnostic.CXDiagnostic_Warning) {
-                        throw new ClangException(
-                            asPosition(d.location().getSpellingLocation()),
-                            d.severity(),
-                            d.spelling());
+                        logger.clangErr(pos, d.spelling());
+                    } else if (d.severity() == Diagnostic.CXDiagnostic_Warning) {
+                        logger.clangWarn(pos, d.spelling());
+                    } else if (d.severity() == Diagnostic.CXDiagnostic_Note) {
+                        logger.clangInfo(pos, d.spelling());
                     }
                 },
             true, args.toArray(new String[0])) ;
@@ -115,7 +117,8 @@ public class Parser {
     private Position asPosition(SourceLocation.Location loc) {
         record PositionRecord(Path path, int line, int col) implements Position {}
 
-        return new PositionRecord(loc.path(), loc.line(), loc.column());
+        return loc.path() == null ? Position.NO_POSITION :
+               new PositionRecord(loc.path(), loc.line(), loc.column());
     }
 
     private boolean isMacro(Cursor c) {
