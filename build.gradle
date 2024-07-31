@@ -59,6 +59,7 @@ repositories {
 compileJava {
     options.release = 22
     options.compilerArgs << "--enable-preview"
+    options.compilerArgs << "-Xlint:unchecked"
     options.fork = true
     options.forkOptions.executable = "${jdk22_home}/bin/javac"
 }
@@ -233,6 +234,11 @@ void createJtregTask(String name, boolean coverage, String os_lib_dir) {
                 "-nativepath:$buildDir/testlib-install/${os_lib_dir}",
                 "-javaoption:--enable-preview",
                 "-javaoption:--enable-native-access=org.openjdk.jextract,ALL-UNNAMED",
+                "-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json=ALL-UNNAMED",
+                "-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
+                "-javacoption:-Xlint:unchecked",
+                "-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json=ALL-UNNAMED",
+                "-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-avm", "-conc:auto", "-verbose:summary,fail,error",
                 "-retain:fail,error",
         ]
