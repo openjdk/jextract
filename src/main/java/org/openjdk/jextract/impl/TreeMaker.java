@@ -108,7 +108,7 @@ class TreeMaker {
          */
         if (lang != CursorLanguage.C && lang != CursorLanguage.Invalid &&
                 !isAllowedCXXDecl(c)) {
-            logger.warn(CursorPosition.of(c), "jextract.skip.unsupported", c.kind(),
+            logger.warn(CursorPosition.of(c), "jextract.skip.unsupported", c.spelling(),
                     logger.format("unsupported.lang", c.language()));
             return null;
         }
@@ -256,6 +256,8 @@ class TreeMaker {
 
     public Declaration.Constant createEnumConstant(Cursor c) {
         return Declaration.constant(CursorPosition.of(c), c.spelling(), c.getEnumConstantValue(),
+                // in C++ the type of an enum constant is the enum type itself.
+                // We need to avoid infinite recursion, by using the enum integral type instead.
                 c.type().kind() == TypeKind.Enum ?
                         toType(c.type().getDeclarationCursor().getEnumDeclIntegerType()) :
                         toType(c));
@@ -383,7 +385,6 @@ class TreeMaker {
     public Declaration.Scoped createEnum(Cursor c) {
         if (c.isDefinition()) {
             List<Declaration> decls = new ArrayList<>();
-            System.out.println(c.spelling() + "@" + CursorPosition.of(c));
             c.forEach(child -> {
                 if (child.kind() == CursorKind.EnumConstantDecl) {
                     Declaration enumConstantDecl = createTree(child);

@@ -84,12 +84,8 @@ public class Parser {
     }
 
     private void parseDeclaration(Cursor c, List<Declaration> decls) {
-        if (c.kind() == CursorKind.UnexposedDecl) {
-            SourceRange range = c.getExtent();
-            String[] tokens = c.getTranslationUnit().tokens(range);
-            if (tokens.length > 0 && tokens[0].equals("extern")) {
-                c.forEach(t -> parseDeclaration(t, decls));
-            }
+        if (c.kind() == CursorKind.UnexposedDecl || c.kind() == CursorKind.Namespace) {
+            c.forEach(t -> parseDeclaration(t, decls));
         } else {
             Declaration decl = treeMaker.createTree(c);
             if (decl != null) {
