@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class Parser {
@@ -47,7 +48,7 @@ public class Parser {
     private final Logger logger;
 
     public Parser(Logger logger) {
-        this.treeMaker = new TreeMaker();
+        this.treeMaker = new TreeMaker(logger);
         this.logger = logger;
     }
 
@@ -66,20 +67,7 @@ public class Parser {
             }
 
             if (c.isDeclaration()) {
-                if (c.kind() == CursorKind.UnexposedDecl ||
-                        c.kind() == CursorKind.Namespace) {
-                    c.forEach(t -> {
-                        Declaration declaration = treeMaker.createTree(t);
-                        if (declaration != null) {
-                            decls.add(declaration);
-                        }
-                    });
-                } else {
-                    Declaration decl = treeMaker.createTree(c);
-                    if (decl != null) {
-                        decls.add(decl);
-                    }
-                }
+                parseDeclaration(c, decls);
             } else if (isMacro(c) && src.path() != null) {
                 SourceRange range = c.getExtent();
                 String[] tokens = c.getTranslationUnit().tokens(range);
@@ -93,6 +81,17 @@ public class Parser {
         decls.addAll(macroParser.macroTable.reparseConstants());
         Declaration.Scoped rv = treeMaker.createHeader(tuCursor, decls);
         return rv;
+    }
+
+    private void parseDeclaration(Cursor c, List<Declaration> decls) {
+        if (c.kind() == CursorKind.UnexposedDecl || c.kind() == CursorKind.Namespace) {
+            c.forEach(t -> parseDeclaration(t, decls));
+        } else {
+            Declaration decl = treeMaker.createTree(c);
+            if (decl != null) {
+                decls.add(decl);
+            }
+        }
     }
 
     public Declaration.Scoped parse(String name, String content, Collection<String> args) {
