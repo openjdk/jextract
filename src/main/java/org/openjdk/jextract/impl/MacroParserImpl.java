@@ -341,7 +341,7 @@ class MacroParserImpl implements AutoCloseable {
             // note: cursors returned during reparsing are not comparable with existing ones.
             // Because of that, here we create a brand new tree maker, which means pointers to already declared types
             // (e.g. structs, unions, enums) will be downgraded to void*.
-            TreeMaker treeMaker = new TreeMaker();
+            TreeMaker treeMaker = new TreeMaker(logger);
             reparser.reparse(snippet).forEach(c -> {
                 if (c.kind() == CursorKind.VarDecl &&
                         c.spelling().contains("jextract$")) {
