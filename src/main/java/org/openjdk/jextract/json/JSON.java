@@ -27,7 +27,6 @@ import java.util.Objects;
 import org.openjdk.jextract.json.parser.JSONObject;
 import org.openjdk.jextract.json.parser.JSONParser;
 import org.openjdk.jextract.json.parser.JSONValue;
-import org.openjdk.jextract.json.parser.JWCC;
 
 /**
  * Simple interface to parse a JSON string to a record and
@@ -41,27 +40,14 @@ public final class JSON {
      *
      * @param str JSON string to parse.
      * @param cls the target record class type.
-     * @param extension parse extended JSON format.
-     *                  Allows comments and trailing commas.
-     * @return parsed and mapped record.
-     */
-    public static <T extends Record> T parse(String str, Class<T> cls, boolean extension) {
-        Objects.requireNonNull(str);
-        Objects.requireNonNull(cls);
-
-        JSONValue jsonValue = extension ? JWCC.parse(str) : new JSONParser().parse(str);
-        return JSONObjects.toRecord(jsonValue.asObject(), cls);
-    }
-
-    /**
-     * Parse a given String to a Record object of given type.
-     *
-     * @param str JSON string to parse.
-     * @param cls the target record class type.
      * @return parsed and mapped record.
      */
     public static <T extends Record> T parse(String str, Class<T> cls) {
-        return JSON.parse(str, cls, false);
+        Objects.requireNonNull(str);
+        Objects.requireNonNull(cls);
+
+        JSONValue jsonValue = new JSONParser().parse(str);
+        return JSONObjects.toRecord(jsonValue.asObject(), cls);
     }
 
     /**

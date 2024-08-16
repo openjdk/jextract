@@ -68,37 +68,6 @@ public class JSONTests {
         assertEquals(pt.y(), 435);
     }
 
-    @Test
-    public void testParseRecordFromJSONExtended() {
-        String json = """
-        {
-          "x" : 888,  // X coordinate value
-          "y" : -777, // Y coordinate value
-        }""";
-        Point pt = JSON.parse(json, Point.class, true);
-        assertEquals(pt.x(), 888);
-        assertEquals(pt.y(), -777);
-
-        // parsing without extension should fail!
-        boolean gotException = false;
-        try {
-            JSON.parse(json, Point.class, false);
-        } catch (RuntimeException re) {
-            gotException = true;
-        }
-        assertTrue(gotException);
-
-        // parsing without extension should fail!
-        gotException = false;
-        try {
-            // default mode is to disable extensions
-            JSON.parse(json, Point.class);
-        } catch (RuntimeException re) {
-            gotException = true;
-        }
-        assertTrue(gotException);
-    }
-
     // simple expression language tree model
 
     // Expr = BinaryExpr | UnaryExpr | OptionalDouble
