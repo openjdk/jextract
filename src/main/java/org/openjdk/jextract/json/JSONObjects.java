@@ -28,7 +28,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
-import java.lang.reflect.WildcardType;
 import java.lang.reflect.Type;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -356,19 +355,7 @@ public final class JSONObjects {
 
     private static Type getNthTypeArgument(ParameterizedType pt, int n) {
         Type[] typeArgs = pt.getActualTypeArguments();
-        Type nthType = typeArgs.length > n ? typeArgs[n] : Object.class;
-        if (nthType instanceof WildcardType wt) {
-            Type[] upper = wt.getUpperBounds();
-            Type[] lower = wt.getLowerBounds();
-            if (upper.length > 0) {
-                nthType = upper[0];
-            } else if (lower.length > 0) {
-                nthType = lower[0];
-            } else {
-                nthType = Object.class;
-            }
-        }
-        return nthType;
+        return typeArgs.length > n ? typeArgs[n] : Object.class;
     }
 
     // record helpers
