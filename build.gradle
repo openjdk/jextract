@@ -233,6 +233,8 @@ void createJtregTask(String name, boolean coverage, String os_lib_dir) {
                 "-nativepath:$buildDir/testlib-install/${os_lib_dir}",
                 "-javaoption:--enable-preview",
                 "-javaoption:--enable-native-access=org.openjdk.jextract,ALL-UNNAMED",
+                "-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
+                "-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-avm", "-conc:auto", "-verbose:summary,fail,error",
                 "-retain:fail,error",
         ]
