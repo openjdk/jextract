@@ -31,8 +31,6 @@ import java.lang.reflect.RecordComponent;
 import java.lang.reflect.WildcardType;
 import java.lang.reflect.Type;
 import java.io.File;
-import java.math.BigInteger;
-import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -637,8 +635,6 @@ public final class JSONObjects {
         addNumberConverter(Long.class, JSONNumber::asLong);
         addNumberConverter(OptionalInt.class, jn -> OptionalInt.of(jn.asInt()));
         addNumberConverter(OptionalLong.class, jn -> OptionalLong.of(jn.asLong()));
-        addNumberConverter(BigInteger.class, jn -> BigInteger.valueOf(jn.asLong()));
-        addNumberConverter(BigDecimal.class, jn -> BigDecimal.valueOf(jn.asLong()));
         Function<JSONNumber, Object> intOrLong = jn -> {
             try {
                  return jn.asInt();
@@ -675,7 +671,6 @@ public final class JSONObjects {
         addDecimalConverter(float.class, JSONDecimal::asFloat);
         addDecimalConverter(Float.class, JSONDecimal::asFloat);
         addDecimalConverter(OptionalDouble.class, jd -> OptionalDouble.of(jd.asDouble()));
-        addDecimalConverter(BigDecimal.class, jd -> BigDecimal.valueOf(jd.asDouble()));
     }
 
     // convert the JSONDecimal value to a Java object of the given Type
@@ -696,25 +691,9 @@ public final class JSONObjects {
     }
 
     // special case String to object parse helpers
-    private static BigInteger parseBigInteger(String str) {
-        return new BigInteger(str);
-    }
-
-    private static BigDecimal parseBigDecimal(String str) {
-        return new BigDecimal(str);
-    }
 
     private static File parseFile(String str) {
         return new File(str);
-    }
-
-    private static Number parseBigNumber(String str) {
-        try {
-            return new BigInteger(str);
-        } catch (NumberFormatException nfe) {
-            // Try as BigDecimal
-            return new BigDecimal(str);
-        }
     }
 
     private static Path parsePath(String str) {
@@ -755,10 +734,7 @@ public final class JSONObjects {
 
     static {
         // special case parse methods
-        addParseFuncToCache(BigInteger.class, JSONObjects::parseBigInteger);
-        addParseFuncToCache(BigDecimal.class, JSONObjects::parseBigDecimal);
         addParseFuncToCache(File.class, JSONObjects::parseFile);
-        addParseFuncToCache(Number.class, JSONObjects::parseBigNumber);
         addParseFuncToCache(Path.class, JSONObjects::parsePath);
         addParseFuncToCache(URL.class, JSONObjects::parseURL);
 

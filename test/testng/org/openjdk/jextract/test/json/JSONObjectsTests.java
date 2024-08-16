@@ -24,8 +24,6 @@ package org.openjdk.jextract.test.json;
 
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -311,7 +309,6 @@ public class JSONObjectsTests {
         assertEquals(JSONObjects.toObject(jn, Object.class), jn.asLong());
         assertEquals(JSONObjects.toObject(jn, Number.class), jn.asLong());
         assertEquals(JSONObjects.toObject(jn, OptionalLong.class), OptionalLong.of(jn.asLong()));
-        assertEquals(JSONObjects.toObject(jn, BigInteger.class), BigInteger.valueOf(jn.asLong()));
     }
 
     @Test
@@ -328,8 +325,6 @@ public class JSONObjectsTests {
         assertEquals((float)obj, jd.asFloat(), (float) DELTA);
         obj = JSONObjects.toObject(jd, OptionalDouble.class);
         assertEquals(((OptionalDouble)obj).getAsDouble(), jd.asDouble(), DELTA);
-        obj = JSONObjects.toObject(jd, BigDecimal.class);
-        assertEquals(obj, BigDecimal.valueOf(jd.asDouble()));
     }
 
     @Test
@@ -360,14 +355,6 @@ public class JSONObjectsTests {
         assertEquals(obj, Color.RED);
 
         // use special parsing functions to convert JSON strings
-
-        js = new JSONString("123456789123456789444");
-        obj = JSONObjects.toObject(js, BigInteger.class);
-        assertEquals(obj, new BigInteger(js.asString()));
-
-        js = new JSONString("35.3E+400");
-        obj = JSONObjects.toObject(js, BigDecimal.class);
-        assertEquals(obj, new BigDecimal(js.asString()));
 
         js = new JSONString("2024-01-01");
         obj = JSONObjects.toObject(js, LocalDate.class);
