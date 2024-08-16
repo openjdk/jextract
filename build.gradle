@@ -59,7 +59,6 @@ repositories {
 compileJava {
     options.release = 22
     options.compilerArgs << "--enable-preview"
-    options.compilerArgs << "-Xlint:unchecked"
     options.fork = true
     options.forkOptions.executable = "${jdk22_home}/bin/javac"
 }
