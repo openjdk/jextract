@@ -128,7 +128,7 @@ public final class JSONObjects {
         Class<? extends Record> cls = record.getClass();
         Map<String, JSONValue> props = new LinkedHashMap<>();
         for (RecordComponent rc : cls.getRecordComponents()) {
-            props.put(rc.getName(), getRecordProperty(record, rc));
+            props.put(rc.getName(), getRecordComponentValue(record, rc));
         }
 
         return new JSONObject(props);
@@ -387,7 +387,7 @@ public final class JSONObjects {
     }
 
     // get the Record component value as a JSONValue
-    private static JSONValue getRecordProperty(Record record, RecordComponent rc) {
+    private static JSONValue getRecordComponentValue(Record record, RecordComponent rc) {
         Object value = null;
         try {
             value = rc.getAccessor().invoke(record);
