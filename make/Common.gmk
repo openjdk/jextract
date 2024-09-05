@@ -76,6 +76,9 @@ ifeq ($(UNAME_M),x86_64)
 else ifeq ($(UNAME_M),arm64)
   DEVKIT_VS_CPU_VAR_NAME := aarch64
   PLATFORM_CPU := aarch64
+else ifeq ($(UNAME_M),aarch64)
+  DEVKIT_VS_CPU_VAR_NAME := aarch64
+  PLATFORM_CPU := aarch64
 else
   $(error "Unknown CPU: $(UNAME_M)")
 endif
