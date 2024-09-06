@@ -44,17 +44,16 @@ NATIVE_TEST_SOURCES := $(shell find $(TOPDIR)/test -name "lib*.c")
 
 $(foreach file,$(NATIVE_TEST_SOURCES),$(eval $(call BuildNativeLibrary,$(file),$(JEXTRACT_IMAGE_NATIVE_TEST_DIR),$(BUILD_TEST_SUPPORT_DIR),BUILD_NATIVE_TEST_LIBRARIES)))
 
-JAVA_SOURCES = $(shell find $(TOPDIR)/src/main/java -name *.java)
-
 $(BUILD_CLASSES_DIR):
 	$(MKDIR) -p $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
 	    --release=22 \
 	    --enable-preview \
 	    -d "$(BUILD_CLASSES_DIR)" \
-	    $(JAVA_SOURCES)
-	$(CP) -r src/main/java/META-INF $(BUILD_CLASSES_DIR)
-	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
+	    --module-source-path org.openjdk.jextract=$(TOPDIR)/src/main/java \
+	    -m org.openjdk.jextract
+	$(CP) -r src/main/java/META-INF $(BUILD_CLASSES_DIR)/org.openjdk.jextract
+	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org.openjdk.jextract/org/openjdk/jextract/impl
 
 ifeq ($(PLATFORM_OS), linux)
   LIBCLANG_COPY_PATH := "libclang.so.$(LIBCLANG_VERSION)"
@@ -78,7 +77,7 @@ $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jmod \
 	    create \
 	    --module-version=22 \
-	    --class-path=$(BUILD_CLASSES_DIR) \
+	    --class-path=$(BUILD_CLASSES_DIR)/org.openjdk.jextract \
 	    --libs=$(JEXTRACT_JMOD_LIBS_DIR) \
 	    --conf=$(JEXTRACT_JMOD_CONF_DIR) \
 	    $(BUILD_MODULES_DIR)/org.openjdk.jextract.jmod
