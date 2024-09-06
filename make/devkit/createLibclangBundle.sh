@@ -22,6 +22,10 @@
 # questions.
 #
 
+# This build script builds a libclang bundle to be used for jextract.
+# Both cmake and ninja (ninja-build) are required to be installed for
+# this script to run.
+
 # Exit on error
 set -e
 
