@@ -165,5 +165,6 @@ fi
 # Create bundle
 if [ ! -e $OUTPUT_DIR/$BUNDLE_NAME ]; then
   echo "Creating $OUTPUT_DIR/$BUNDLE_NAME"
-  tar zcf $OUTPUT_DIR/$BUNDLE_NAME $IMAGE_DIR/*
+  cd $IMAGE_DIR
+  tar zcf $OUTPUT_DIR/$BUNDLE_NAME *
 fi
