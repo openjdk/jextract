@@ -34,6 +34,7 @@ LLVM_VERSION=13.0.0
 BUNDLE_NAME=libclang-$LLVM_VERSION.tar.gz
 
 SCRIPT_DIR="$(cd "$(dirname $0)" > /dev/null && pwd)"
+SCRIPT_FILE="$(basename $0)"
 OUTPUT_DIR="${SCRIPT_DIR}/../../build/libclang"
 SRC_DIR="$OUTPUT_DIR/src"
 BUILD_DIR="$OUTPUT_DIR/build"
@@ -104,29 +105,24 @@ if [ ! -e "$SRC_DIR" ]; then
 fi
 
 # Configure LLVM
-if [ ! -e "$BUILD_DIR/llvm" ]; then
-  cmake \
-    -B "$BUILD_DIR/llvm" \
-    -S "$SRC_DIR/llvm" \
-    -G Ninja \
-    -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR/llvm" \
-    -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \
-    -DLLVM_ENABLE_TERMINFO=no \
-    -DLLVM_TARGETS_TO_BUILD=$TARGET_ARCH \
-    -DCMAKE_C_COMPILER="$CMAKE_C_COMPILER" \
-    -DCMAKE_CXX_COMPILER="$CMAKE_CXX_COMPILER" \
-    -DCMAKE_C_FLAGS="$CMAKE_C_FLAGS" \
-    -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS"
-fi
+cmake \
+  -B "$BUILD_DIR/llvm" \
+  -S "$SRC_DIR/llvm" \
+  -G Ninja \
+  -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR/llvm" \
+  -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \
+  -DLLVM_ENABLE_TERMINFO=no \
+  -DLLVM_TARGETS_TO_BUILD=$TARGET_ARCH \
+  -DCMAKE_C_COMPILER="$CMAKE_C_COMPILER" \
+  -DCMAKE_CXX_COMPILER="$CMAKE_CXX_COMPILER" \
+  -DCMAKE_C_FLAGS="$CMAKE_C_FLAGS" \
+  -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS"
 
 # Build LLVM
-if [ ! -e "$INSTALL_DIR/llvm" ]; then
-    cmake --build "$BUILD_DIR/llvm" --config $CMAKE_BUILD_TYPE --target install --parallel $NUM_CORES
-fi
+cmake --build "$BUILD_DIR/llvm" --config $CMAKE_BUILD_TYPE --target install --parallel $NUM_CORES
 
 # Configure Clang
-if [ ! -e "$BUILD_DIR/clang" ]; then
-  cmake \
+cmake \
   -B "$BUILD_DIR/clang" \
   -S "$SRC_DIR/clang" \
   -G Ninja \
@@ -140,35 +136,32 @@ if [ ! -e "$BUILD_DIR/clang" ]; then
   -DCMAKE_CXX_COMPILER="$CMAKE_CXX_COMPILER" \
   -DCMAKE_C_FLAGS="$CMAKE_C_FLAGS" \
   -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS"
-fi
 
 # Build Clang
-if [ ! -e "$INSTALL_DIR/clang" ]; then
-  cmake --build "$BUILD_DIR/clang" --config $CMAKE_BUILD_TYPE --target install --parallel $NUM_CORES
-fi
+cmake --build "$BUILD_DIR/clang" --config $CMAKE_BUILD_TYPE --target install --parallel $NUM_CORES
+
 
 mkdir -p $IMAGE_DIR
 # Extract what we need into an image
-if [ ! -e $IMAGE_DIR/lib/libclang$LIB_SUFFIX ]; then
-  echo "Copying libclang$LIB_SUFFIX to image"
-  mkdir -p "$IMAGE_DIR/lib"
-  cp -a $INSTALL_DIR/clang/lib/libclang.* $IMAGE_DIR/lib/
-fi
-if [ ! -e $IMAGE_DIR/include/clang-c ]; then
-  echo "Copying include to image"
-  mkdir -p $IMAGE_DIR/include
-  cp -a $INSTALL_DIR/clang/include/. $IMAGE_DIR/include/
-fi
-if [ ! -e $IMAGE_DIR/lib/clang/$LLVM_VERSION/include/stddef.h ]; then
-  echo "Copying lib/clang/*/include to image"
-  mkdir -p $IMAGE_DIR/lib/clang/$LLVM_VERSION/include
-  cp -a $INSTALL_DIR/clang/lib/clang/$LLVM_VERSION/include/. \
-     $IMAGE_DIR/lib/clang/$LLVM_VERSION/include/
-fi
+echo "Copying libclang$LIB_SUFFIX to image"
+mkdir -p "$IMAGE_DIR/lib"
+cp -a $INSTALL_DIR/clang/lib/libclang.* $IMAGE_DIR/lib/
+
+echo "Copying include to image"
+mkdir -p $IMAGE_DIR/include
+cp -a $INSTALL_DIR/clang/include/. $IMAGE_DIR/include/
+
+echo "Copying lib/clang/*/include to image"
+mkdir -p $IMAGE_DIR/lib/clang/$LLVM_VERSION/include
+cp -a $INSTALL_DIR/clang/lib/clang/$LLVM_VERSION/include/. \
+    $IMAGE_DIR/lib/clang/$LLVM_VERSION/include/
+
+# Copy this script to image
+echo "Copying this script to image"
+cp -a $0 $IMAGE_DIR
+
 
 # Create bundle
-if [ ! -e $OUTPUT_DIR/$BUNDLE_NAME ]; then
-  echo "Creating $OUTPUT_DIR/$BUNDLE_NAME"
-  cd $IMAGE_DIR
-  tar zcf $OUTPUT_DIR/$BUNDLE_NAME *
-fi
+echo "Creating $OUTPUT_DIR/$BUNDLE_NAME"
+cd $IMAGE_DIR
+tar zcf $OUTPUT_DIR/$BUNDLE_NAME *
