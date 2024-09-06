@@ -54,7 +54,8 @@ $(BUILD_CLASSES_DIR):
 	    src/main/java/org/openjdk/jextract/*.java \
 	    src/main/java/org/openjdk/jextract/impl/*.java \
 	    src/main/java/org/openjdk/jextract/clang/*.java \
-	    src/main/java/org/openjdk/jextract/clang/libclang/*.java
+	    src/main/java/org/openjdk/jextract/clang/libclang/*.java \
+		src/main/java/org/openjdk/jextract/json/parser/*.java
 	$(CP) -r src/main/java/META-INF $(BUILD_CLASSES_DIR)
 	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 
