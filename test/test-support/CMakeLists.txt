@@ -3,7 +3,7 @@ project(TestSupportLibs)
 
 option(TEST_SOURCE_ROOT "src directory with test files")
 
-file(GLOB_RECURSE TEST_LIBS ${TEST_SOURCE_ROOT}/../*lib*.c)
+file(GLOB_RECURSE TEST_LIBS ${TEST_SOURCE_ROOT}/*lib*.c)
 
 foreach(TEST_LIB ${TEST_LIBS})
     message(STATUS "Processing test lib: ${TEST_LIB}")
