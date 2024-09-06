@@ -44,18 +44,15 @@ NATIVE_TEST_SOURCES := $(shell find $(TOPDIR)/test -name "lib*.c")
 
 $(foreach file,$(NATIVE_TEST_SOURCES),$(eval $(call BuildNativeLibrary,$(file),$(JEXTRACT_IMAGE_NATIVE_TEST_DIR),$(BUILD_TEST_SUPPORT_DIR),BUILD_NATIVE_TEST_LIBRARIES)))
 
+JAVA_SOURCES = $(shell find $(TOPDIR)/src/main/java -name *.java)
+
 $(BUILD_CLASSES_DIR):
 	$(MKDIR) -p $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/javac \
 	    --release=22 \
 	    --enable-preview \
 	    -d "$(BUILD_CLASSES_DIR)" \
-	    src/main/java/module-info.java \
-	    src/main/java/org/openjdk/jextract/*.java \
-	    src/main/java/org/openjdk/jextract/impl/*.java \
-	    src/main/java/org/openjdk/jextract/clang/*.java \
-	    src/main/java/org/openjdk/jextract/clang/libclang/*.java \
-		src/main/java/org/openjdk/jextract/json/parser/*.java
+	    $(JAVA_SOURCES)
 	$(CP) -r src/main/java/META-INF $(BUILD_CLASSES_DIR)
 	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
 
