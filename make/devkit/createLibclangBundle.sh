@@ -65,8 +65,8 @@ case $OS_NAME in
     ;;
   Darwin)
     LIB_SUFFIX=.dylib
-    CMAKE_C_COMPILER="$DEVKIT_HOME/Xcode/Contents/Developer/usr/bin/gcc"
-    CMAKE_CXX_COMPILER="$DEVKIT_HOME/Xcode/Contents/Developer/usr/bin/g++"
+    CMAKE_C_COMPILER="$DEVKIT_DIR/Xcode/Contents/Developer/usr/bin/gcc"
+    CMAKE_CXX_COMPILER="$DEVKIT_DIR/Xcode/Contents/Developer/usr/bin/g++"
     ;;
   *)
     echo " Unsupported OS: $OS_NAME"
