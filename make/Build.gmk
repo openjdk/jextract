@@ -50,13 +50,10 @@ $(BUILD_CLASSES_DIR):
 	    --release=22 \
 	    --enable-preview \
 	    -d "$(BUILD_CLASSES_DIR)" \
-	    src/main/java/module-info.java \
-	    src/main/java/org/openjdk/jextract/*.java \
-	    src/main/java/org/openjdk/jextract/impl/*.java \
-	    src/main/java/org/openjdk/jextract/clang/*.java \
-	    src/main/java/org/openjdk/jextract/clang/libclang/*.java
-	$(CP) -r src/main/java/META-INF $(BUILD_CLASSES_DIR)
-	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org/openjdk/jextract/impl
+	    --module-source-path org.openjdk.jextract=$(TOPDIR)/src/main/java \
+	    -m org.openjdk.jextract
+	$(CP) -r src/main/java/META-INF $(BUILD_CLASSES_DIR)/org.openjdk.jextract
+	$(CP) -r src/main/resources/org/openjdk/jextract/impl/resources $(BUILD_CLASSES_DIR)/org.openjdk.jextract/org/openjdk/jextract/impl
 
 ifeq ($(PLATFORM_OS), linux)
   LIBCLANG_COPY_PATH := "libclang.so.$(LIBCLANG_VERSION)"
@@ -80,7 +77,7 @@ $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jmod \
 	    create \
 	    --module-version=22 \
-	    --class-path=$(BUILD_CLASSES_DIR) \
+	    --class-path=$(BUILD_CLASSES_DIR)/org.openjdk.jextract \
 	    --libs=$(JEXTRACT_JMOD_LIBS_DIR) \
 	    --conf=$(JEXTRACT_JMOD_CONF_DIR) \
 	    $(BUILD_MODULES_DIR)/org.openjdk.jextract.jmod

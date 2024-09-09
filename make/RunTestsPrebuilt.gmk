@@ -69,6 +69,8 @@ define SetupRunJtregTest
 	    -verbose:summary,fail,error \
 	    -nativepath:$$(JEXTRACT_NATIVE_TEST_DIR) \
 	    -vmoption:--enable-native-access=ALL-UNNAMED,org.openjdk.jextract \
+		-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED \
+		-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED \
 	    $2 \
 	    && $$(ECHO) $$$$? > $$($1_EXITCODE) \
             || $$(ECHO) $$$$? > $$($1_EXITCODE)
