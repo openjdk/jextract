@@ -90,8 +90,9 @@ public class TestNestedAnonOffset extends JextractToolRunner {
         assertNotNull(baz);
         StructLayout layout = (StructLayout) findLayout(baz);
         assertEquals(layout.memberLayouts().get(0), C_CHAR.withName("c"));
-        // Note here: only on Windows, the bitfield needs to be aligned and requires more padding
-        assertEquals(layout.memberLayouts().get(1), MemoryLayout.paddingLayout(IS_WINDOWS ? 11 : 8));
+        // Note here: on some platforms, the bitfield needs to be aligned and requires more padding
+        int paddingBytes = (IS_WINDOWS || (IS_LINUX && IS_AARCH64)) ? 11 : 8;
+        assertEquals(layout.memberLayouts().get(1), MemoryLayout.paddingLayout(paddingBytes));
     }
 
     @Test
