@@ -92,6 +92,7 @@ $(JEXTRACT_IMAGE_DIR): $(BUILD_MODULES_DIR)
 	$(MKDIR) $(JEXTRACT_IMAGE_DIR)/bin
 	$(CP) src/main/jextract "$(JEXTRACT_IMAGE_DIR)/bin"
 	$(CP) src/main/jextract.bat "$(JEXTRACT_IMAGE_DIR)/bin"
+	$(CP) src/main/jextract.ps1 "$(JEXTRACT_IMAGE_DIR)/bin"
 	$(CHMOD) +x "$(JEXTRACT_IMAGE_DIR)/bin/jextract"
 
 $(JEXTRACT_IMAGE_TEST_JDK_DIR): $(JEXTRACT_IMAGE_DIR)
