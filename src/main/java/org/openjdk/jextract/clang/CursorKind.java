@@ -100,8 +100,8 @@ public enum CursorKind {
      * Per libclang API docs, clang returns this CursorKind
      * for both C11 _Static_assert and C++11 static_assert
      */
-    StaticAssert(CXCursor_StaticAssert());
-
+    StaticAssert(CXCursor_StaticAssert()),
+    Unsupported(-1);
 
     private final int value;
 
@@ -125,7 +125,7 @@ public enum CursorKind {
     public final static CursorKind valueOf(int value) {
         CursorKind x = lookup.get(value);
         if (null == x) {
-            throw new NoSuchElementException("Invalid Cursor kind value: " + value);
+            return Unsupported;
         }
         return x;
     }

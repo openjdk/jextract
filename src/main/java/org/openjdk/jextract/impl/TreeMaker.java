@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -68,8 +69,11 @@ import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 class TreeMaker {
 
     private final Map<Cursor.Key, Declaration> declarationCache = new HashMap<>();
+    private final Logger logger;
 
-    public TreeMaker() { }
+    public TreeMaker(Logger logger) {
+        this.logger = logger;
+    }
 
     Declaration addAttributes(Declaration d, Cursor c) {
         if (d == null) return null;
@@ -103,8 +107,10 @@ class TreeMaker {
          * we allow that exception here.
          */
         if (lang != CursorLanguage.C && lang != CursorLanguage.Invalid &&
-                c.kind() != CursorKind.StaticAssert) {
-            throw new RuntimeException("Unsupported language: " + c.language());
+                !isAllowedCXXDecl(c)) {
+            logger.warn(CursorPosition.of(c), "jextract.skip.unsupported", c.spelling(),
+                    logger.format("unsupported.lang", c.language()));
+            return null;
         }
 
         // If we can clearly determine internal linkage, then filter it.
@@ -118,6 +124,13 @@ class TreeMaker {
         }
         var rv = (DeclarationImpl) createTreeInternal(c);
         return addAttributes(rv, c);
+    }
+
+    private boolean isAllowedCXXDecl(Cursor cursor) {
+        return switch (cursor.kind()) {
+            case StaticAssert, StructDecl, UnionDecl -> true;
+            default -> false;
+        };
     }
 
     private Declaration createTreeInternal(Cursor c) {
@@ -243,7 +256,11 @@ class TreeMaker {
 
     public Declaration.Constant createEnumConstant(Cursor c) {
         return Declaration.constant(CursorPosition.of(c), c.spelling(), c.getEnumConstantValue(),
-                toType(c));
+                // in C++ the type of an enum constant is the enum type itself.
+                // We need to avoid infinite recursion, by using the enum integral type instead.
+                c.type().kind() == TypeKind.Enum ?
+                        toType(c.type().getDeclarationCursor().getEnumDeclIntegerType()) :
+                        toType(c));
     }
 
     public Declaration.Scoped createHeader(Cursor c, List<Declaration> decls) {
