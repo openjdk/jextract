@@ -390,9 +390,9 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private String emitOffsetFieldDecl(Declaration.Variable field, String javaName) {
         String offsetFieldName = javaName + "$OFFSET";
         appendIndentedLines(String.format("""
-            private static final long %1$s = %2$d;
+            private static final long %1$s = $LAYOUT.byteOffset(%2$s);
             """,
-            offsetFieldName, ClangOffsetOf.getOrThrow(field) / 8));
+            offsetFieldName, fieldElementPaths(field.name())));
         appendBlankLine();
         emitFieldDocComment(field, "Offset for field:");
         appendIndentedLines("""
