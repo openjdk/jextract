@@ -212,16 +212,17 @@ task cmakeBuild(type: Exec) {
     ]
 }
 
-void createJtregTask(String name, boolean coverage, String os_lib_dir) {
+// alias that can be easily referenced from a run configuration
+tasks.register("testDeps") {
+    dependsOn createRuntimeImageForTest,cmakeBuild
+}
+
+void createJtregTask(String name, String jacocoAgent, String os_lib_dir) {
     tasks.register(name, JavaExec) {
-        dependsOn createRuntimeImageForTest,cmakeBuild
+        dependsOn testDeps
 
         if (findProperty("jtreg_home") == null) {
             throw new GradleException("jtreg_home is not defined")
-        }
-        // e.g.: <jacoco repo>/org.jacoco.agent/target/classes/jacocoagent.jar
-        if (coverage && findProperty("jacoco_agent") == null) {
-            throw new GradleException("jacoco_agent is not defined")
         }
 
         workingDir = "$buildDir"
@@ -239,8 +240,7 @@ void createJtregTask(String name, boolean coverage, String os_lib_dir) {
                 "-retain:fail,error",
         ]
 
-        if (coverage) {
-            String jacocoAgent = findProperty("jacoco_agent")
+        if (jacocoAgent != null) {
             String coverageFile = "$buildDir/jacoco-run/jextract.exec"
             String includes = "org.openjdk.jextract.*"
             args += "-javaoption:-javaagent:$jacocoAgent=destfile=$coverageFile,includes=$includes"
@@ -250,8 +250,12 @@ void createJtregTask(String name, boolean coverage, String os_lib_dir) {
     }
 }
 
-createJtregTask("jtreg", false, os_lib_dir)
-createJtregTask("jtregWithCoverage", true, os_lib_dir)
+createJtregTask("jtreg", null, os_lib_dir)
+// e.g.: <jacoco repo>/org.jacoco.agent/target/classes/jacocoagent.jar
+String jacocoAgent = findProperty("jacoco_agent")
+if (jacocoAgent != null) {
+    createJtregTask("jtregWithCoverage", jacocoAgent, os_lib_dir)
+}
 
 tasks.register("coverage", JavaExec) {
     dependsOn jtregWithCoverage
