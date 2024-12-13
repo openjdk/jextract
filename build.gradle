@@ -38,6 +38,7 @@ if (clang_versions.length == 0) {
 }
 def clang_version = clang_versions[0]
 
+def buildDir = layout.buildDirectory.get()
 def jextract_version = "22"
 def jmods_dir = "$buildDir/jmods"
 def jextract_jmod_file = "$jmods_dir/org.openjdk.jextract.jmod"
@@ -58,7 +59,6 @@ repositories {
 
 compileJava {
     options.release = 22
-    options.compilerArgs << "--enable-preview"
     options.fork = true
     options.forkOptions.executable = "${jdk22_home}/bin/javac"
 }
@@ -122,8 +122,8 @@ task createJextractImage(type: Exec) {
     outputs.dir(jextract_app_dir)
 
     def quote_jlink_opts = Os.isFamily(Os.FAMILY_WINDOWS)?
-        '\\"--enable-native-access=org.openjdk.jextract\\" \\"--enable-preview\""' :
-        '"--enable-native-access=org.openjdk.jextract" "--enable-preview"'
+        '\\"--enable-native-access=org.openjdk.jextract\\"' :
+        '"--enable-native-access=org.openjdk.jextract"'
 
     doFirst {
         delete(jextract_app_dir)
@@ -232,7 +232,6 @@ void createJtregTask(String name, String jacocoAgent, String os_lib_dir) {
         args = [
                 "-jdk", "$buildDir/jextract-jdk-test-image",
                 "-nativepath:$buildDir/testlib-install/${os_lib_dir}",
-                "-javaoption:--enable-preview",
                 "-javaoption:--enable-native-access=org.openjdk.jextract,ALL-UNNAMED",
                 "-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
