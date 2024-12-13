@@ -50,6 +50,7 @@ def clang_include_dir = "${llvm_home}/lib/clang/${clang_version}/include"
 checkPath(clang_include_dir)
 def os_lib_dir = Os.isFamily(Os.FAMILY_WINDOWS)? "bin" : "lib"
 def os_script_extension = Os.isFamily(Os.FAMILY_WINDOWS)? ".bat" : ""
+def os_exe_suffix = Os.isFamily(Os.FAMILY_WINDOWS)? ".exe" : "" // needed for some, but not all shells
 def libclang_dir = "${llvm_home}/${os_lib_dir}"
 checkPath(libclang_dir)
 
@@ -60,7 +61,7 @@ repositories {
 compileJava {
     options.release = 22
     options.fork = true
-    options.forkOptions.executable = "${jdk22_home}/bin/javac"
+    options.forkOptions.executable = "${jdk22_home}/bin/javac${os_exe_suffix}"
 }
 
 jar {
