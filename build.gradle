@@ -38,6 +38,7 @@ if (clang_versions.length == 0) {
 }
 def clang_version = clang_versions[0]
 
+def buildDir = layout.buildDirectory.get()
 def jextract_version = "22"
 def jmods_dir = "$buildDir/jmods"
 def jextract_jmod_file = "$jmods_dir/org.openjdk.jextract.jmod"
