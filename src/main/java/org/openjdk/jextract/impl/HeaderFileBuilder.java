@@ -365,8 +365,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             }
 
             static MemorySegment findOrThrow(String symbol) {
-                return SYMBOL_LOOKUP.find(symbol)
-                    .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
+                return SYMBOL_LOOKUP.findOrThrow(symbol);
             }
 
             static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
