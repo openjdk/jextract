@@ -988,6 +988,14 @@ A complete list of all the supported command line options is given below:
 | `--include-[function,constant,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings. When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 | `--version`                                                  | print version information and exit |
 
+**macOS platform options (available only when running on macOS):**
+
+| Option                       | Meaning                                                                                                                                                                                                                                 |
+|:-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--mac-framework-dir <dir>`  | specify the framework directory dir include files <br/>defaults to the current Mac OS X SDK dir<br/> This removes the need of having a compile_flags.txt with the required `-framework XYZ` options in the folder where jextract is ran |
+| `-f, framework <framekwork>` | specify the name of the library, path will be expanded to that of the framework folder                                                                                                                                                  |
+
+
 Jextract accepts one or more header files. When multiple header files are specified,
 the `--header-class-name` option is mandatory. Header files can be specified in two different ways:
 
