@@ -23,7 +23,6 @@
  * questions.
  */
 package org.openjdk.jextract.impl;
-
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Array;
