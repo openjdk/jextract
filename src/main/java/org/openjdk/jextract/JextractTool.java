@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -290,7 +290,7 @@ public final class JextractTool {
             return str.substring(2);
         }
 
-        static boolean checkIfSupported( String option) {
+        static boolean isPlatformOption(String option) {
             return platformOptions.contains(option);
         }
 
@@ -314,7 +314,7 @@ public final class JextractTool {
                            argValue = singleCharOptionArg(arg);
                        } else {
                            // single char option special handling also failed. give up.
-                           if (checkIfSupported(arg)) {
+                           if (isPlatformOption(arg)) {
                                var message = String.format("Error: Option [%s] is not valid on this platform", arg);
                                throw new OptionException(message);
                            } else {
@@ -384,7 +384,7 @@ public final class JextractTool {
         parser.accepts("-t", List.of("--target-package"), "help.t", true);
         parser.accepts("--version", "help.version", false);
 
-        if(isMacOSX) {
+        if (isMacOSX) {
             parser.accepts("--mac-framework-dir", "help.mac.framework", true);
             parser.accepts("-f", "help.framework.library.path", true);
         }
@@ -554,7 +554,7 @@ public final class JextractTool {
         if (optionSet.has("-" + optionString)) {
             for (String lib : optionSet.valuesOf("-" + optionString)) {
                 try {
-                    if (optionString.equals("f")) lib = parseFrameworkPath(lib);
+                    if (optionString.equals("f")) lib = formatFrameworkPath(lib);
 
                     Library library = Library.parse(lib);
                     Path libPath = Paths.get(library.libSpec());
@@ -563,7 +563,7 @@ public final class JextractTool {
                             (libPath.isAbsolute() && Files.isRegularFile(libPath))) {
                         builder.addLibrary(library);
                     } else {
-                        // not an absolute path, but--use-system-load-library was specified
+                        // not an absolute path, but --use-system-load-library was specified
                         logger.err(optionString + ".option.value.absolute.path", lib);
                     }
                 } catch (IllegalArgumentException ex) {
@@ -624,7 +624,7 @@ public final class JextractTool {
         return Optional.empty();
     }
 
-    private String parseFrameworkPath(String optionString) {
+    private String formatFrameworkPath(String optionString) {
         return String.format(":/System/Library/Frameworks/%1$s.framework/%1$s", optionString);
     }
 }

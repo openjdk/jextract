@@ -993,7 +993,7 @@ A complete list of all the supported command line options is given below:
 | Option                       | Meaning                                                                                                                                                                                                                                 |
 |:-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--mac-framework-dir <dir>`  | specify the framework directory dir include files <br/>defaults to the current Mac OS X SDK dir<br/> This removes the need of having a compile_flags.txt with the required `-framework XYZ` options in the folder where jextract is ran |
-| `-f, framework <framekwork>` | specify the name of the library, path will be expanded to that of the framework folder                                                                                                                                                  |
+| `-f, framework <framework>` | specify the name of the library, path will be expanded to that of the framework folder                                                                                                                                                  |
 
 
 Jextract accepts one or more header files. When multiple header files are specified,
