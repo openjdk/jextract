@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -365,8 +365,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             }
 
             static MemorySegment findOrThrow(String symbol) {
-                return SYMBOL_LOOKUP.find(symbol)
-                    .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
+                return SYMBOL_LOOKUP.findOrThrow(symbol);
             }
 
             static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
