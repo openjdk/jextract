@@ -8,12 +8,21 @@ on:
   workflow_dispatch:
 
 env:
-  TOOLCHAIN_VERSION: 22
+  TOOLCHAIN_VERSION: 23
+  GRADLE_JAVA_VERSION: 23
   CLANG_LLVM_VERSION: 13.0.0
   CLANG_LLVM_BASE_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/"
   JTREG_VERSION: 7.3.1+1
 
 jobs:
+  validate-gradle-wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 1
+      - uses: gradle/wrapper-validation-action@v3
+
   build-jtreg:
     runs-on: ubuntu-latest
     steps:
@@ -112,10 +121,10 @@ jobs:
         ls ${{ matrix.DEPS_ROOT }}/jdk-toolchain/
         ${{ matrix.DEPS_ROOT }}/jdk-toolchain/bin/java --version
 
-    - name: 'Setup Java 17'
+    - name: 'Setup Gradle Java'
       uses: oracle-actions/setup-java@v1.3.4
       with:
-        release: 17
+        release: ${{ env.GRADLE_JAVA_VERSION }}
 
     - name: 'Check default Java version'
       shell: sh
