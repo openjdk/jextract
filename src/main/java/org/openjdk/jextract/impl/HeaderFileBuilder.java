@@ -217,6 +217,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                         traceDowncall(%5$s);
                     }
                     %6$smh$.invokeExact(%7$s);
+                } catch (Error | RuntimeException ex) {
+                   throw ex;
                 } catch (Throwable ex$) {
                    throw new AssertionError("should not reach here", ex$);
                 }
@@ -454,6 +456,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 public static MemorySegment %1$s(%2$s) {
                     try {
                         return (MemorySegment)%3$s.HANDLE.invokeExact(%3$s.SEGMENT, 0L, %4$s);
+                    } catch (Error | RuntimeException ex) {
+                        throw ex;
                     } catch (Throwable ex$) {
                         throw new AssertionError("should not reach here", ex$);
                     }

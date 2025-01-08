@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -261,6 +261,8 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 public static MemorySegment %1$s(MemorySegment %2$s, %3$s) {
                     try {
                         return (MemorySegment)%4$s.invokeExact(%2$s, 0L, %5$s);
+                    } catch (Error | RuntimeException ex) {
+                        throw ex;
                     } catch (Throwable ex$) {
                         throw new AssertionError("should not reach here", ex$);
                     }
