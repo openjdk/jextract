@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -41,6 +41,8 @@ import java.util.List;
  */
 class ToplevelBuilder implements OutputFactory.Builder {
     private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
+    public static final String PREV_SUFFIX = "#{PREV_SUFFIX}";
+    private static final String SUFFIX = "#{SUFFIX}";
 
     private int declCount;
     private final List<SourceFileBuilder> headerBuilders = new ArrayList<>();
@@ -91,20 +93,26 @@ class ToplevelBuilder implements OutputFactory.Builder {
         List<JavaSourceFile> files = new ArrayList<>();
 
         if (headerBuilders.size() == 1) {
-            files.add(headerBuilders.get(0).toFile(s -> s.replace("#{SUFFIX}", "")));
+            files.add(headerBuilders.getFirst().toFile(s -> s.replace(SUFFIX, "")));
         } else {
             // adjust suffixes so that the last header class becomes the main header class,
             // and extends all the other header classes
-            int suffix = headerBuilders.size() - 1;
-            for (SourceFileBuilder header : headerBuilders) {
-                String currentSuffix = suffix == 0 ?
+            int totalHeaders = headerBuilders.size();
+            for (int i = 0; i < totalHeaders; i++) {
+                SourceFileBuilder header = headerBuilders.get(i);
+                boolean isMainHeader = (i == totalHeaders - 1); // last header is the main header
+                String currentSuffix = isMainHeader ?
                         "" : // main header class, drop the suffix
-                        String.format("_%1$d", suffix);
-                String prevSuffix = String.format("_%1$d", suffix + 1);
-                files.add(header.toFile(currentSuffix,
-                        s -> s.replace("#{SUFFIX}", currentSuffix)
-                              .replace("#{PREV_SUFFIX}", prevSuffix)));
-                suffix--;
+                        String.format("_%d", totalHeaders - i - 1);
+                String preSuffix = String.format("_%d", totalHeaders - i);
+                String className = headerBuilders.getFirst().className();
+                String modifier = isMainHeader ? "public " : "";
+
+                files.add(header.toFile(currentSuffix, s ->
+                        s.replace("public class " + className, modifier + "class " + className)
+                                .replace(SUFFIX, currentSuffix)
+                                .replace(PREV_SUFFIX, preSuffix)
+                ));
             }
         }
         // add remaining builders
@@ -171,9 +179,9 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private HeaderFileBuilder nextHeader() {
         if (declCount == DECLS_PER_HEADER_CLASS) {
             SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), mainHeaderClassName());
-            String className = mainHeaderClassName() + "#{SUFFIX}";
+            String className = mainHeaderClassName() + SUFFIX;
             HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, className,
-                    mainHeaderClassName() + "#{PREV_SUFFIX}", mainHeaderClassName());
+                    mainHeaderClassName() + PREV_SUFFIX, mainHeaderClassName());
             lastHeader.classEnd();
             headerFileBuilder.appendBlankLine();
             headerFileBuilder.classBegin();
