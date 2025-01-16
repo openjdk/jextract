@@ -177,7 +177,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String holderClass = newHolderClassName(javaName);
             appendLines("""
 
-                private static class %1$s {
+                private static final class %1$s {
+                
+                    private %1$s(){ }
                     public static final FunctionDescriptor DESC = %2$s;
 
                     public static final MemorySegment ADDR = %3$s.findOrThrow("%4$s");
@@ -513,7 +515,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String dimsString = dimensions.stream().map(Object::toString)
                     .collect(Collectors.joining(", "));
             appendIndentedLines("""
-                private static class %1$s {
+                private static final class %1$s {
+                
+                    private %1$s(){ }
                     public static final %2$s LAYOUT = %3$s;
                     public static final MemorySegment SEGMENT = %4$s.findOrThrow("%5$s").reinterpret(LAYOUT.byteSize());
                 %6$s
@@ -523,7 +527,9 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     lookupName(var), accessHandle, dimsString);
         } else {
             appendIndentedLines("""
-                private static class %1$s {
+                private static final class %1$s {
+                   
+                    private %1$s(){ }
                     public static final %2$s LAYOUT = %3$s;
                     public static final MemorySegment SEGMENT = %4$s.findOrThrow("%5$s").reinterpret(LAYOUT.byteSize());
                 }
