@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+/* Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,6 +22,7 @@
 
 import org.testng.annotations.Test;
 import test.jextract.clinit.*;
+import static test.jextract.clinit.LayoutUtils.*;
 
 import java.lang.foreign.GroupLayout;
 import java.lang.foreign.ValueLayout;
@@ -40,7 +41,7 @@ public class TestStruct {
 
     @Test
     public void TestStruct() {
-        ValueLayout layout = clinit_struct_h.C_INT;
+        ValueLayout layout = C_INT;
         assertNotNull(layout);
         GroupLayout pointLayout = Point.layout();
         assertNotNull(pointLayout);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -45,6 +45,6 @@ public class TestNestedStructTypedef {
     }
 
     void checkLayout(GroupLayout layout) {
-        assertEquals(layout.memberLayouts().get(0), nestedStructTypedef_h.C_INT.withName("x"));
+        assertEquals(layout.memberLayouts().get(0), LayoutUtils.C_INT.withName("x"));
     }
 }
