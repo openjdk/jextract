@@ -49,10 +49,25 @@ final class SourceFileBuilder {
         return className;
     }
 
+    public String getPackageName(){
+        return packageName;
+    }
+
+    public String layoutUtilsName() {
+        return getPackageName().isEmpty() ? ToplevelBuilder.LAYOUT_UTILS + "." : "";
+    }
+
+    public String FFMUtilsName() {
+        return getPackageName().isEmpty() ? ToplevelBuilder.FFM_UTILS + "." : "";
+    }
+
     public static SourceFileBuilder newSourceFile(String packageName, String className) {
         SourceFileBuilder sfb = new SourceFileBuilder(packageName, className);
         sfb.emitPackagePrefix();
         sfb.emitImportSection();
+        if (!className.equals("FFMUtils") && !className.equals("LayoutUtils") && !packageName.isEmpty()){
+            sfb.emitStaticImportSection();
+        }
         return sfb;
     }
 
@@ -81,9 +96,16 @@ final class SourceFileBuilder {
 
             import static java.lang.foreign.ValueLayout.*;
             import static java.lang.foreign.MemoryLayout.PathElement.*;
+            
             """);
     }
 
+    void emitStaticImportSection() {
+        appendLines(String.format("""
+            import static %1$s.FFMUtils.*;
+            import static %1$s.LayoutUtils.*;
+            """, packageName));
+    }
 
     // Internal generation helpers (used by other builders)
 
