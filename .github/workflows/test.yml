@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 1
-      - uses: gradle/wrapper-validation-action@v3
+      - uses: gradle/actions/wrapper-validation@v4
 
   build-jtreg:
     runs-on: ubuntu-latest
@@ -167,7 +167,7 @@ jobs:
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.DEPS_ROOT }}/jdk-toolchain -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image clean verify        
+        sh ./gradlew -Pjdk22_home=${{ matrix.DEPS_ROOT }}/jdk-toolchain -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image clean verify
 
     - name: 'Get cached JTReg'
       uses: actions/cache@v4

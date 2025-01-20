@@ -28,7 +28,7 @@ Alternatively, to build jextract from the latest sources (which include all the 
 
 `jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
 
-We currently use gradle version 7.3.3 which is fetched automatically by the gradle wrapper. This version of gradle requires Java 17 on the `PATH`/`JAVA_HOME` to run. Note that the JDK we use to build (the toolchain JDK) is passed in separately as a property.
+We currently use gradle version 8.11.1 which is fetched automatically by the gradle wrapper. Please refer to the [compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html) to see which version of java is needed in `PATH`/`JAVA_HOME` to run gradle. Note that the JDK we use to build (the toolchain JDK) is passed in separately as a property.
 
 
 
