@@ -3,6 +3,7 @@ if [[ -z "${ANACONDA3_HOME}" ]]; then
 fi
 
 jextract --output src \
+  -D_Float16=short \
   -l :${ANACONDA3_HOME}/lib/libpython3.11.dylib \
   -I ${ANACONDA3_HOME}/include/python3.11 \
   -t org.python \
