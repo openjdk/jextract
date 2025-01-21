@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -41,6 +41,8 @@ import java.util.List;
  */
 class ToplevelBuilder implements OutputFactory.Builder {
     private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
+    public static final String PREV_SUFFIX = "#{PREV_SUFFIX}";
+    private static final String SUFFIX = "#{SUFFIX}";
 
     private int declCount;
     private final List<SourceFileBuilder> headerBuilders = new ArrayList<>();
@@ -66,21 +68,21 @@ class ToplevelBuilder implements OutputFactory.Builder {
         // emit basic primitive types
         first.appendIndentedLines("""
 
-            public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
-            public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
-            public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;
-            public static final ValueLayout.OfInt C_INT = ValueLayout.JAVA_INT;
-            public static final ValueLayout.OfLong C_LONG_LONG = ValueLayout.JAVA_LONG;
-            public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT;
-            public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
-            public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
-                    .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
+            public static final ValueLayout.OfBoolean C_BOOL = (ValueLayout.OfBoolean) Linker.nativeLinker().canonicalLayouts().get("bool");
+            public static final ValueLayout.OfByte C_CHAR =(ValueLayout.OfByte)Linker.nativeLinker().canonicalLayouts().get("char");
+            public static final ValueLayout.OfShort C_SHORT = (ValueLayout.OfShort) Linker.nativeLinker().canonicalLayouts().get("short");
+            public static final ValueLayout.OfInt C_INT = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get("int");
+            public static final ValueLayout.OfLong C_LONG_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get("long long");
+            public static final ValueLayout.OfFloat C_FLOAT = (ValueLayout.OfFloat) Linker.nativeLinker().canonicalLayouts().get("float");
+            public static final ValueLayout.OfDouble C_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get("double");
+            public static final AddressLayout C_POINTER = ((AddressLayout) Linker.nativeLinker().canonicalLayouts().get("void*"))
+                    .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, C_CHAR));
             """);
         if (TypeImpl.IS_WINDOWS) {
-            first.appendIndentedLines("public static final ValueLayout.OfInt C_LONG = ValueLayout.JAVA_INT;");
-            first.appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = ValueLayout.JAVA_DOUBLE;");
+            first.appendIndentedLines("public static final ValueLayout.OfInt C_LONG = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
+            first.appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get(\"double\");");
         } else {
-            first.appendIndentedLines("public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;");
+            first.appendIndentedLines("public static final ValueLayout.OfLong C_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
         }
         return first;
     }
@@ -91,20 +93,26 @@ class ToplevelBuilder implements OutputFactory.Builder {
         List<JavaSourceFile> files = new ArrayList<>();
 
         if (headerBuilders.size() == 1) {
-            files.add(headerBuilders.get(0).toFile(s -> s.replace("#{SUFFIX}", "")));
+            files.add(headerBuilders.getFirst().toFile(s -> s.replace(SUFFIX, "")));
         } else {
             // adjust suffixes so that the last header class becomes the main header class,
             // and extends all the other header classes
-            int suffix = headerBuilders.size() - 1;
-            for (SourceFileBuilder header : headerBuilders) {
-                String currentSuffix = suffix == 0 ?
+            int totalHeaders = headerBuilders.size();
+            for (int i = 0; i < totalHeaders; i++) {
+                SourceFileBuilder header = headerBuilders.get(i);
+                boolean isMainHeader = (i == totalHeaders - 1); // last header is the main header
+                String currentSuffix = isMainHeader ?
                         "" : // main header class, drop the suffix
-                        String.format("_%1$d", suffix);
-                String prevSuffix = String.format("_%1$d", suffix + 1);
-                files.add(header.toFile(currentSuffix,
-                        s -> s.replace("#{SUFFIX}", currentSuffix)
-                              .replace("#{PREV_SUFFIX}", prevSuffix)));
-                suffix--;
+                        String.format("_%d", totalHeaders - i - 1);
+                String preSuffix = String.format("_%d", totalHeaders - i);
+                String className = headerBuilders.getFirst().className();
+                String modifier = isMainHeader ? "public " : "";
+
+                files.add(header.toFile(currentSuffix, s ->
+                        s.replace("public class " + className, modifier + "class " + className)
+                                .replace(SUFFIX, currentSuffix)
+                                .replace(PREV_SUFFIX, preSuffix)
+                ));
             }
         }
         // add remaining builders
@@ -171,9 +179,9 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private HeaderFileBuilder nextHeader() {
         if (declCount == DECLS_PER_HEADER_CLASS) {
             SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), mainHeaderClassName());
-            String className = mainHeaderClassName() + "#{SUFFIX}";
+            String className = mainHeaderClassName() + SUFFIX;
             HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, className,
-                    mainHeaderClassName() + "#{PREV_SUFFIX}", mainHeaderClassName());
+                    mainHeaderClassName() + PREV_SUFFIX, mainHeaderClassName());
             lastHeader.classEnd();
             headerFileBuilder.appendBlankLine();
             headerFileBuilder.classBegin();
