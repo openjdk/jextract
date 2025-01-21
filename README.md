@@ -14,7 +14,7 @@ Alternatively, to build jextract from the latest sources (which include all the 
 
 ### Building
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (version 13.0.0 is recommended). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/454), so a suitable [jdk 22+ distribution](https://jdk.java.net/23/) is also required.
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (version 13.0.0 is recommended). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/454), a suitable [jdk 23 or higher distribution](https://jdk.java.net/23/) is also required.
 
 > <details><summary><strong>Building older jextract versions</strong></summary>
 >
