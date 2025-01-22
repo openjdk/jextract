@@ -14,7 +14,7 @@ Alternatively, to build jextract from the latest sources (which include all the 
 
 ### Building
 
-`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (version 13.0.0 is recommended). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/454), so a suitable [jdk 22 distribution](https://jdk.java.net/22/) is also required.
+`jextract` depends on the [C libclang API](https://clang.llvm.org/doxygen/group__CINDEX.html). To build the jextract sources, the easiest option is to download LLVM binaries for your platform, which can be found [here](https://releases.llvm.org/download.html) (version 13.0.0 is recommended). Both the `jextract` tool and the bindings it generates depend heavily on the [Foreign Function & Memory API](https://openjdk.java.net/jeps/454). A suitable [JDK 23 or higher distribution](https://jdk.java.net/23/) is also required.
 
 > <details><summary><strong>Building older jextract versions</strong></summary>
 >
@@ -33,7 +33,7 @@ We currently use gradle version 7.3.3 which is fetched automatically by the grad
 
 
 ```sh
-$ sh ./gradlew -Pjdk22_home=<jdk22_home_dir> -Pllvm_home=<libclang_dir> clean verify
+$ sh ./gradlew -Pjdk_home=<jdk_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
 
@@ -63,7 +63,7 @@ Expected a header file
 The repository also contains a comprehensive set of tests, written using the [jtreg](https://openjdk.java.net/jtreg/) test framework, which can be run as follows (again, on Windows, `gradlew.bat` should be used instead):
 
 ```sh
-$ sh ./gradlew -Pjdk22_home=<jdk22_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
+$ sh ./gradlew -Pjdk_home=<jdk_home_dir> -Pllvm_home=<libclang_dir> -Pjtreg_home=<jtreg_home> jtreg
 ```
 
 Note: running `jtreg` task requires `cmake` to be available on the `PATH`.
