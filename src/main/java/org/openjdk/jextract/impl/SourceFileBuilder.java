@@ -65,7 +65,8 @@ final class SourceFileBuilder {
         SourceFileBuilder sfb = new SourceFileBuilder(packageName, className);
         sfb.emitPackagePrefix();
         sfb.emitImportSection();
-        if (!className.equals("FFMUtils") && !className.equals("LayoutUtils") && !packageName.isEmpty()){
+        if (!className.equals(ToplevelBuilder.FFM_UTILS) && !className.equals(ToplevelBuilder.LAYOUT_UTILS)
+                && !packageName.isEmpty()) {
             sfb.emitStaticImportSection();
         }
         return sfb;
