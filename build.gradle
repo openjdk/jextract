@@ -29,6 +29,7 @@ def static checkPath(String p) {
 }
 
 def llvm_home = project.property("llvm_home")
+def jdk_home = project.property("jdk_home")
 checkPath(llvm_home)
 checkPath("${llvm_home}/lib/clang")
 def clang_versions = new File("${llvm_home}/lib/clang/").list();
@@ -39,7 +40,7 @@ if (clang_versions.length == 0) {
 def clang_version = clang_versions[0]
 
 def buildDir = layout.buildDirectory.get()
-def jextract_version = "22"
+def jextract_version = "23"
 def jmods_dir = "$buildDir/jmods"
 def jextract_jmod_file = "$jmods_dir/org.openjdk.jextract.jmod"
 def jextract_jmod_inputs = "$buildDir/jmod_inputs"
@@ -59,9 +60,9 @@ repositories {
 }
 
 compileJava {
-    options.release = 22
+    options.release = 23
     options.fork = true
-    options.forkOptions.executable = "${jdk22_home}/bin/javac${os_exe_suffix}"
+    options.forkOptions.executable = "${jdk_home}/bin/javac${os_exe_suffix}"
 }
 
 jar {
@@ -104,7 +105,7 @@ task createJextractJmod(type: Exec) {
         delete(jextract_jmod_file)
     }
 
-    executable = "${jdk22_home}/bin/jmod"
+    executable = "${jdk_home}/bin/jmod"
     args = [
           "create",
           "--module-version=$jextract_version",
@@ -131,7 +132,7 @@ task createJextractImage(type: Exec) {
         project.mkdir "${jextract_bin_dir}"
     }
 
-    executable = "${jdk22_home}/bin/jlink"
+    executable = "${jdk_home}/bin/jlink"
     args = [
          "--module-path=$jmods_dir",
          "--add-modules=org.openjdk.jextract",
@@ -183,9 +184,9 @@ task createRuntimeImageForTest(type: Exec) {
         delete(out_dir)
     }
 
-    executable = "${jdk22_home}/bin/jlink"
+    executable = "${jdk_home}/bin/jlink"
     args = [
-         "--module-path=$jmods_dir" + File.pathSeparator + "$jdk22_home/jmods",
+         "--module-path=$jmods_dir" + File.pathSeparator + "$jdk_home/jmods",
          "--add-modules=ALL-MODULE-PATH",
          "--output=$out_dir",
     ]
