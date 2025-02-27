@@ -174,9 +174,6 @@ public final class JextractTool {
 
     private int printHelp(int exitCode) {
         logger.info("jextract.usage");
-        if (isMacOSX){
-            logger.info("jextract.usage.mac");
-        }
         return exitCode;
     }
 
@@ -242,17 +239,6 @@ public final class JextractTool {
         // option name to corresponding OptionSpec mapping
         private Map<String, OptionSpec> optionSpecs = new HashMap<>();
 
-        private static HashSet <String> platformOptions = new HashSet<>();
-
-        void addPlatformOption(String name) {
-            platformOptions.add(name);
-        }
-
-        void addPlatformOption(String name, List<String> aliases) {
-            platformOptions.add(name);
-            platformOptions.addAll(aliases);
-        }
-
         void accepts(String name, String help, boolean argRequired) {
             accepts(name, List.of(), help, argRequired);
         }
@@ -290,10 +276,6 @@ public final class JextractTool {
             return str.substring(2);
         }
 
-        static boolean isPlatformOption(String option) {
-            return platformOptions.contains(option);
-        }
-
         OptionSet parse(String[] args) {
             Map<String, List<String>> options = new HashMap<>();
             List<String> nonOptionArgs = new ArrayList<>();
@@ -314,12 +296,7 @@ public final class JextractTool {
                            argValue = singleCharOptionArg(arg);
                        } else {
                            // single char option special handling also failed. give up.
-                           if (isPlatformOption(arg)) {
-                               var message = String.format("Error: Option [%s] is not valid on this platform", arg);
-                               throw new OptionException(message);
-                           } else {
-                               throw new OptionException("invalid option: " + arg);
-                           }
+                           throw new OptionException("invalid option: " + arg);
                        }
                    }
                    // handle argument associated with the current option, if any
@@ -383,14 +360,8 @@ public final class JextractTool {
         parser.accepts("--output", "help.output", true);
         parser.accepts("-t", List.of("--target-package"), "help.t", true);
         parser.accepts("--version", "help.version", false);
-
-        if (isMacOSX) {
-            parser.accepts("--mac-framework-dir", "help.mac.framework", true);
-            parser.accepts("-f", "help.framework.library.path", true);
-        }
-
-        parser.addPlatformOption("--mac-framework-dir");
-        parser.addPlatformOption("-f");
+        parser.accepts("--macos-framework", "help.mac.framework", true);
+        parser.accepts("-f", "help.framework.library.path", true);
 
         OptionSet optionSet;
         try {
@@ -438,7 +409,6 @@ public final class JextractTool {
             builder.addClangArg("-I" + builtinInc);
         }
 
-
         inferPlatformIncludePath().ifPresent(platformPath -> builder.addClangArg("-I" + platformPath));
 
         String jextractHeaderPath = System.getProperty("jextract.header.path");
@@ -465,18 +435,21 @@ public final class JextractTool {
 
         boolean useSystemLoadLibrary = optionSet.has("--use-system-load-library");
         if (useSystemLoadLibrary) {
+            if (!optionSet.has("-l")){
+                logger.warn("jextract.no.library.specified");
+            }
             builder.setUseSystemLoadLibrary(true);
         }
 
-        Integer optionError = parseLibraries("l", optionSet, useSystemLoadLibrary, builder);
-        if (optionError != null) return optionError;
+        int optionError = parseLibraries("l", optionSet, useSystemLoadLibrary, builder);
+        if (optionError != 0) return optionError;
 
         optionError = parseLibraries("f", optionSet, useSystemLoadLibrary, builder);
-        if (optionError != null) return optionError;
+        if (optionError != 0) return optionError;
 
 
-        if (optionSet.has("--mac-framework-dir")) {
-            optionSet.valuesOf("--mac-framework-dir").forEach(p -> builder.addClangArg("-F" + p));
+        if (optionSet.has("--macos-framework")) {
+            optionSet.valuesOf("--macos-framework").forEach(p -> builder.addClangArg("-F" + p));
         }
 
         inferMacOSFrameworkPath().ifPresent(platformPath -> builder.addClangArg("-F" + platformPath));
@@ -550,12 +523,15 @@ public final class JextractTool {
                 SUCCESS;
     }
 
-    private Integer parseLibraries(String optionString, OptionSet optionSet, boolean useSystemLoadLibrary, Options.Builder builder) {
+    private int parseLibraries(String optionString, OptionSet optionSet, boolean useSystemLoadLibrary, Options.Builder builder) {
         if (optionSet.has("-" + optionString)) {
             for (String lib : optionSet.valuesOf("-" + optionString)) {
                 try {
-                    if (optionString.equals("f")) lib = formatFrameworkPath(lib);
+                    if (optionString.equals("f")) {
+                        lib = formatFrameworkPath(lib);
+                    }
 
+                    assert lib != null;
                     Library library = Library.parse(lib);
                     Path libPath = Paths.get(library.libSpec());
                     if (!useSystemLoadLibrary ||
@@ -572,7 +548,7 @@ public final class JextractTool {
                 }
             }
         }
-        return null;
+        return 0;
     }
 
     /**
@@ -625,6 +601,15 @@ public final class JextractTool {
     }
 
     private String formatFrameworkPath(String optionString) {
-        return String.format(":/System/Library/Frameworks/%1$s.framework/%1$s", optionString);
+        String publicPath = String.format("/System/Library/Frameworks/%1$s.framework/", optionString);
+        String privatePath = String.format("/System/Library/PrivateFrameworks/%1$s.framework/", optionString);
+        String frameworkPath = "";
+        if (Files.exists(Path.of(privatePath))) {
+            frameworkPath = privatePath;
+        } else if (Files.exists(Path.of(publicPath))) {
+            frameworkPath = publicPath;
+        }
+
+        return String.format(":%1$s%2$s", frameworkPath, optionString);
     }
 }
