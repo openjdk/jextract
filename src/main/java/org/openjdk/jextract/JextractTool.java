@@ -540,7 +540,7 @@ public final class JextractTool {
                         builder.addLibrary(library);
                     } else {
                         // not an absolute path, but --use-system-load-library was specified
-                        logger.err(optionString + ".option.value.absolute.path", lib);
+                        logger.err("l.option.value.absolute.path", lib);
                     }
                 } catch (IllegalArgumentException ex) {
                     logger.err(optionString + ".option.value.invalid", lib);
