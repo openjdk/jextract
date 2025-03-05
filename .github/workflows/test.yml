@@ -167,7 +167,7 @@ jobs:
     - name: 'Build Jextract'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.DEPS_ROOT }}/jdk-toolchain -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image clean verify
+        sh ./gradlew -Pjdk_home=${{ matrix.DEPS_ROOT }}/jdk-toolchain -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image clean verify
 
     - name: 'Get cached JTReg'
       uses: actions/cache@v4
@@ -180,4 +180,4 @@ jobs:
     - name: 'Run tests'
       shell: sh
       run: |
-        sh ./gradlew -Pjdk22_home=${{ matrix.DEPS_ROOT }}/jdk-toolchain -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
+        sh ./gradlew -Pjdk_home=${{ matrix.DEPS_ROOT }}/jdk-toolchain -Pllvm_home=${{ matrix.DEPS_ROOT }}/llvm/image -Pjtreg_home=./deps/jtreg/build/images/jtreg jtreg
