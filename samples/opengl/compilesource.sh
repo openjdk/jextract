@@ -1,5 +1,5 @@
-jextract -t opengl -F GLUT \
-  -F OpenGL \
+jextract -t opengl -framework GLUT \
+  -framework OpenGL \
   "<GLUT/glut.h>"
 
 javac --source=22 -d . opengl/*.java

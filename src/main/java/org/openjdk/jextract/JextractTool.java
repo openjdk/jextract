@@ -362,8 +362,8 @@ public final class JextractTool {
         parser.accepts("--output", "help.output", true);
         parser.accepts("-t", List.of("--target-package"), "help.t", true);
         parser.accepts("--version", "help.version", false);
-        parser.accepts("-framework", "help.mac.framework", true);
-        parser.accepts("-F", "help.framework.library.path", true);
+        parser.accepts("-F", "help.mac.framework", true);
+        parser.accepts("-framework", "help.framework.library.path", true);
 
         OptionSet optionSet;
         try {
@@ -391,10 +391,7 @@ public final class JextractTool {
         Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
         if (Files.exists(compileFlagsTxt)) {
             try {
-                Files.lines(compileFlagsTxt).forEach(opt -> {
-                    builder.addClangArg(opt);
-                    frameworkDirs.add(opt.substring(2).trim());
-                });
+                Files.lines(compileFlagsTxt).forEach(opt -> builder.addClangArg(opt));
             } catch (IOException ioExp) {
                 logger.fatal(ioExp, "jextract.bad.compile.flags", ioExp.getMessage());
                 return OPTION_ERROR;
@@ -449,22 +446,19 @@ public final class JextractTool {
         int optionError = parseLibraries("l", optionSet, useSystemLoadLibrary, builder);
         if (optionError != 0) return optionError;
 
-        optionError = parseLibraries("F", optionSet, useSystemLoadLibrary, builder);
+        optionError = parseLibraries("framework", optionSet, useSystemLoadLibrary, builder);
         if (optionError != 0) return optionError;
 
 
-        if (optionSet.has("-framework")) {
-            optionSet.valuesOf("-framework").forEach(
+        if (optionSet.has("-F")) {
+            optionSet.valuesOf("-F").forEach(
                     p -> {
                         builder.addClangArg("-F" + p);
                         frameworkDirs.add(p);
                     });
         }
 
-        inferMacOSFrameworkPath().ifPresent(platformPath -> {
-            builder.addClangArg("-F" + platformPath);
-            frameworkDirs.add(String.valueOf(platformPath));
-        });
+        inferMacOSFrameworkPath().ifPresent(platformPath -> builder.addClangArg("-F" + platformPath));
 
         String targetPackage = optionSet.has("-t") ? optionSet.valueOf("-t") : "";
         builder.setTargetPackage(targetPackage);
@@ -539,7 +533,7 @@ public final class JextractTool {
         if (optionSet.has("-" + optionString)) {
             for (String lib : optionSet.valuesOf("-" + optionString)) {
                 try {
-                    if (optionString.equals("F")) {
+                    if (optionString.equals("framework")) {
                         lib = formatFrameworkPath(lib);
                     }
 
@@ -615,19 +609,17 @@ public final class JextractTool {
         for (String dir : frameworkDirs) {
             Path path = Path.of(dir, optionString + ".framework");
             if (Files.exists(path)) {
-                return String.format(":%s%s", path, optionString);
+                return ":" + path + optionString;
             }
         }
 
         String publicPath = String.format("/System/Library/Frameworks/%1$s.framework/", optionString);
         String privatePath = String.format("/System/Library/PrivateFrameworks/%1$s.framework/", optionString);
-        String frameworkPath = "";
-        if (Files.exists(Path.of(privatePath))) {
-            frameworkPath = privatePath;
-        } else if (Files.exists(Path.of(publicPath))) {
-            frameworkPath = publicPath;
-        }
 
-        return String.format(":%1$s%2$s", frameworkPath, optionString);
+        String frameworkPath = Files.exists(Path.of(privatePath)) ? privatePath :
+                Files.exists(Path.of(publicPath)) ? publicPath :
+                        String.valueOf(inferMacOSFrameworkPath().orElse(null));
+
+        return ":" + frameworkPath + optionString;
     }
 }
