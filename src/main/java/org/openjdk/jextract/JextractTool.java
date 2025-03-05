@@ -72,9 +72,11 @@ public final class JextractTool {
     private static final int OUTPUT_ERROR  = 6;
 
     private final Logger logger;
+    private List<String> frameworkDirs;
 
     private JextractTool(Logger logger) {
         this.logger = logger;
+        this.frameworkDirs = new ArrayList<>();
     }
 
     private static boolean isSpecialHeaderName(String str) {
@@ -360,8 +362,8 @@ public final class JextractTool {
         parser.accepts("--output", "help.output", true);
         parser.accepts("-t", List.of("--target-package"), "help.t", true);
         parser.accepts("--version", "help.version", false);
-        parser.accepts("--macos-framework", "help.mac.framework", true);
-        parser.accepts("-f", "help.framework.library.path", true);
+        parser.accepts("-framework", "help.mac.framework", true);
+        parser.accepts("-F", "help.framework.library.path", true);
 
         OptionSet optionSet;
         try {
@@ -389,7 +391,10 @@ public final class JextractTool {
         Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
         if (Files.exists(compileFlagsTxt)) {
             try {
-                Files.lines(compileFlagsTxt).forEach(opt -> builder.addClangArg(opt));
+                Files.lines(compileFlagsTxt).forEach(opt -> {
+                    builder.addClangArg(opt);
+                    frameworkDirs.add(opt.substring(2).trim());
+                });
             } catch (IOException ioExp) {
                 logger.fatal(ioExp, "jextract.bad.compile.flags", ioExp.getMessage());
                 return OPTION_ERROR;
@@ -444,15 +449,22 @@ public final class JextractTool {
         int optionError = parseLibraries("l", optionSet, useSystemLoadLibrary, builder);
         if (optionError != 0) return optionError;
 
-        optionError = parseLibraries("f", optionSet, useSystemLoadLibrary, builder);
+        optionError = parseLibraries("F", optionSet, useSystemLoadLibrary, builder);
         if (optionError != 0) return optionError;
 
 
-        if (optionSet.has("--macos-framework")) {
-            optionSet.valuesOf("--macos-framework").forEach(p -> builder.addClangArg("-F" + p));
+        if (optionSet.has("-framework")) {
+            optionSet.valuesOf("-framework").forEach(
+                    p -> {
+                        builder.addClangArg("-F" + p);
+                        frameworkDirs.add(p);
+                    });
         }
 
-        inferMacOSFrameworkPath().ifPresent(platformPath -> builder.addClangArg("-F" + platformPath));
+        inferMacOSFrameworkPath().ifPresent(platformPath -> {
+            builder.addClangArg("-F" + platformPath);
+            frameworkDirs.add(String.valueOf(platformPath));
+        });
 
         String targetPackage = optionSet.has("-t") ? optionSet.valueOf("-t") : "";
         builder.setTargetPackage(targetPackage);
@@ -527,11 +539,10 @@ public final class JextractTool {
         if (optionSet.has("-" + optionString)) {
             for (String lib : optionSet.valuesOf("-" + optionString)) {
                 try {
-                    if (optionString.equals("f")) {
+                    if (optionString.equals("F")) {
                         lib = formatFrameworkPath(lib);
                     }
 
-                    assert lib != null;
                     Library library = Library.parse(lib);
                     Path libPath = Paths.get(library.libSpec());
                     if (!useSystemLoadLibrary ||
@@ -601,6 +612,13 @@ public final class JextractTool {
     }
 
     private String formatFrameworkPath(String optionString) {
+        for (String dir : frameworkDirs) {
+            Path path = Path.of(dir, optionString + ".framework");
+            if (Files.exists(path)) {
+                return String.format(":%s%s", path, optionString);
+            }
+        }
+
         String publicPath = String.format("/System/Library/Frameworks/%1$s.framework/", optionString);
         String privatePath = String.format("/System/Library/PrivateFrameworks/%1$s.framework/", optionString);
         String frameworkPath = "";
