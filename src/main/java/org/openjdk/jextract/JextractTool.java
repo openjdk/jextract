@@ -39,6 +39,7 @@ import org.openjdk.jextract.impl.Parser;
 import org.openjdk.jextract.impl.Options;
 import org.openjdk.jextract.impl.UnsupportedFilter;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.FileAlreadyExistsException;
@@ -72,11 +73,15 @@ public final class JextractTool {
     private static final int OUTPUT_ERROR  = 6;
 
     private final Logger logger;
-    private List<String> frameworkDirs;
+    private final List<String> frameworkPaths;
 
     private JextractTool(Logger logger) {
         this.logger = logger;
-        this.frameworkDirs = new ArrayList<>();
+        frameworkPaths = new ArrayList<>(Arrays.asList(
+                "/System/Library/Frameworks/",
+                "/System/Library/PrivateFrameworks/"
+        ));
+        inferMacOSFrameworkPath().ifPresent(path -> frameworkPaths.add(path.toString()));
     }
 
     private static boolean isSpecialHeaderName(String str) {
@@ -443,22 +448,20 @@ public final class JextractTool {
             builder.setUseSystemLoadLibrary(true);
         }
 
+        if (optionSet.has("-F")) {
+            List<String> paths = optionSet.valuesOf("-F");
+
+            paths.forEach(p -> builder.addClangArg("-F" + p));
+            frameworkPaths.addAll(0, paths);
+        }
+
+        inferMacOSFrameworkPath().ifPresent(platformPath -> builder.addClangArg("-F" + platformPath));
+
         int optionError = parseLibraries("l", optionSet, useSystemLoadLibrary, builder);
         if (optionError != 0) return optionError;
 
         optionError = parseLibraries("framework", optionSet, useSystemLoadLibrary, builder);
         if (optionError != 0) return optionError;
-
-
-        if (optionSet.has("-F")) {
-            optionSet.valuesOf("-F").forEach(
-                    p -> {
-                        builder.addClangArg("-F" + p);
-                        frameworkDirs.add(p);
-                    });
-        }
-
-        inferMacOSFrameworkPath().ifPresent(platformPath -> builder.addClangArg("-F" + platformPath));
 
         String targetPackage = optionSet.has("-t") ? optionSet.valueOf("-t") : "";
         builder.setTargetPackage(targetPackage);
@@ -533,11 +536,13 @@ public final class JextractTool {
         if (optionSet.has("-" + optionString)) {
             for (String lib : optionSet.valuesOf("-" + optionString)) {
                 try {
+                    String frameworhPath = "";
                     if (optionString.equals("framework")) {
-                        lib = formatFrameworkPath(lib);
+                        frameworhPath = resolveFrameworkPath(lib);
                     }
 
-                    Library library = Library.parse(lib);
+                    assert frameworhPath != null : "Framework not found: " + lib;
+                    Library library = Library.parse(frameworhPath);
                     Path libPath = Paths.get(library.libSpec());
                     if (!useSystemLoadLibrary ||
                             library.specKind() == Library.SpecKind.NAME ||
@@ -605,21 +610,14 @@ public final class JextractTool {
         return Optional.empty();
     }
 
-    private String formatFrameworkPath(String optionString) {
-        for (String dir : frameworkDirs) {
+    private String resolveFrameworkPath(String optionString) {
+        for (String dir : frameworkPaths) {
             Path path = Path.of(dir, optionString + ".framework");
             if (Files.exists(path)) {
-                return ":" + path + optionString;
+                return ":" + path + File.separator + optionString;
             }
         }
 
-        String publicPath = String.format("/System/Library/Frameworks/%1$s.framework/", optionString);
-        String privatePath = String.format("/System/Library/PrivateFrameworks/%1$s.framework/", optionString);
-
-        String frameworkPath = Files.exists(Path.of(privatePath)) ? privatePath :
-                Files.exists(Path.of(publicPath)) ? publicPath :
-                        String.valueOf(inferMacOSFrameworkPath().orElse(null));
-
-        return ":" + frameworkPath + optionString;
+        return null;
     }
 }
