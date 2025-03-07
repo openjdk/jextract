@@ -536,15 +536,15 @@ public final class JextractTool {
         if (optionSet.has("-" + optionString)) {
             for (String lib : optionSet.valuesOf("-" + optionString)) {
                 try {
-                    String frameworhPath = optionString.equals("framework") ?
+                    lib = optionString.equals("framework") ?
                             resolveFrameworkPath(lib) :
                             lib;
 
-                    if (frameworhPath == null) {
+                    if (lib == null) {
                         throw new IllegalArgumentException("Framework path does not exist: " + lib);
                     }
 
-                    Library library = Library.parse(frameworhPath);
+                    Library library = Library.parse(lib);
                     Path libPath = Paths.get(library.libSpec());
                     if (!useSystemLoadLibrary ||
                             library.specKind() == Library.SpecKind.NAME ||
