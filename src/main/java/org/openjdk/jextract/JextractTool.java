@@ -367,8 +367,11 @@ public final class JextractTool {
         parser.accepts("--output", "help.output", true);
         parser.accepts("-t", List.of("--target-package"), "help.t", true);
         parser.accepts("--version", "help.version", false);
-        parser.accepts("-F", "help.mac.framework", true);
-        parser.accepts("-framework", "help.framework.library.path", true);
+
+        if (isMacOSX) {
+            parser.accepts("-F", "help.mac.framework", true);
+            parser.accepts("-framework", "help.framework.library.path", true);
+        }
 
         OptionSet optionSet;
         try {
