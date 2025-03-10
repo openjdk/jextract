@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -59,8 +59,8 @@ public class Test8245003 {
     @Test
     public void testArrayAccessor() {
         var seg = iarr();
-        assertEquals(seg.byteSize(), C_INT.byteSize()*5);
-        int[] arr = seg.toArray(C_INT);
+        assertEquals(seg.byteSize(), LayoutUtils.C_INT.byteSize()*5);
+        int[] arr = seg.toArray(LayoutUtils.C_INT);
         assertEquals(arr.length, 5);
         assertEquals(arr[0], 2);
         assertEquals(arr[1], -2);
@@ -72,7 +72,7 @@ public class Test8245003 {
         assertEquals(seg.byteSize(), Foo.sizeof());
         assertEquals(Foo.count(seg), 37);
         var greeting = Foo.greeting(seg);
-        byte[] barr = greeting.toArray(C_CHAR);
+        byte[] barr = greeting.toArray(LayoutUtils.C_CHAR);
         assertEquals(new String(barr), "hello");
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -41,11 +41,11 @@ import static org.testng.Assert.assertTrue;
 public class TestNestedTypesNames {
 
     static MemoryLayout ARG_STRUCT = MemoryLayout.structLayout(
-        nested_types_names_h.C_INT.withName("y")
+            LayoutUtils.C_INT.withName("y")
     );
 
     static MemoryLayout RET_STRUCT = MemoryLayout.structLayout(
-        nested_types_names_h.C_INT.withName("x")
+            LayoutUtils.C_INT.withName("x")
     );
 
     static FunctionDescriptor FUNC_DESC = FunctionDescriptor.of(

@@ -41,12 +41,15 @@ import java.util.List;
  */
 class ToplevelBuilder implements OutputFactory.Builder {
     private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
-    public static final String PREV_SUFFIX = "#{PREV_SUFFIX}";
+    private static final String PREV_SUFFIX = "#{PREV_SUFFIX}";
     private static final String SUFFIX = "#{SUFFIX}";
+    public static final String LAYOUT_UTILS = "LayoutUtils";
+    public static final String FFM_UTILS = "FFMUtils";
 
     private int declCount;
     private final List<SourceFileBuilder> headerBuilders = new ArrayList<>();
     private final List<SourceFileBuilder> otherBuilders = new ArrayList<>();
+    private final List<SourceFileBuilder> commonUtilsBuilders = new ArrayList<>();
     private HeaderFileBuilder lastHeader;
     private final ClassDesc headerDesc;
 
@@ -55,35 +58,25 @@ class ToplevelBuilder implements OutputFactory.Builder {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
         headerBuilders.add(sfb);
-        lastHeader = createFirstHeader(sfb, libs, useSystemLoadLibrary);
+        lastHeader = createFirstHeader(sfb);
+        generateCommonBindings(libs, useSystemLoadLibrary);
     }
 
-    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs, boolean useSystemLoadLibrary) {
-        HeaderFileBuilder first = new HeaderFileBuilder(sfb, String.format("%1$s#{SUFFIX}",sfb.className()), null, sfb.className());
+    private void generateCommonBindings(List<Options.Library> libs, boolean useSystemLoadLibrary) {
+        var sfb = SourceFileBuilder.newSourceFile(packageName(), LAYOUT_UTILS);
+        commonUtilsBuilders.add(sfb);
+        CommonBindingsBuilder.generate(sfb, LAYOUT_UTILS, mainHeaderClassName());
+
+        sfb = SourceFileBuilder.newSourceFile(packageName(), FFM_UTILS);
+        commonUtilsBuilders.add(sfb);
+        CommonBindingsBuilder.generate(sfb, FFM_UTILS, mainHeaderClassName(), libs, useSystemLoadLibrary);
+    }
+
+    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb) {
+        HeaderFileBuilder first = new HeaderFileBuilder(sfb, String.format("%1$s%2$s", sfb.className(), SUFFIX), null, sfb.className());
         first.appendBlankLine();
         first.classBegin();
         first.emitDefaultConstructor();
-        first.emitRuntimeHelperMethods();
-        first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
-        // emit basic primitive types
-        first.appendIndentedLines("""
-
-            public static final ValueLayout.OfBoolean C_BOOL = (ValueLayout.OfBoolean) Linker.nativeLinker().canonicalLayouts().get("bool");
-            public static final ValueLayout.OfByte C_CHAR =(ValueLayout.OfByte)Linker.nativeLinker().canonicalLayouts().get("char");
-            public static final ValueLayout.OfShort C_SHORT = (ValueLayout.OfShort) Linker.nativeLinker().canonicalLayouts().get("short");
-            public static final ValueLayout.OfInt C_INT = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get("int");
-            public static final ValueLayout.OfLong C_LONG_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get("long long");
-            public static final ValueLayout.OfFloat C_FLOAT = (ValueLayout.OfFloat) Linker.nativeLinker().canonicalLayouts().get("float");
-            public static final ValueLayout.OfDouble C_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get("double");
-            public static final AddressLayout C_POINTER = ((AddressLayout) Linker.nativeLinker().canonicalLayouts().get("void*"))
-                    .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, C_CHAR));
-            """);
-        if (TypeImpl.IS_WINDOWS) {
-            first.appendIndentedLines("public static final ValueLayout.OfInt C_LONG = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
-            first.appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get(\"double\");");
-        } else {
-            first.appendIndentedLines("public static final ValueLayout.OfLong C_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
-        }
         return first;
     }
 
@@ -117,6 +110,9 @@ class ToplevelBuilder implements OutputFactory.Builder {
         }
         // add remaining builders
         files.addAll(otherBuilders.stream()
+                .map(SourceFileBuilder::toFile).toList());
+        //add common bindings files
+        files.addAll(commonUtilsBuilders.stream()
                 .map(SourceFileBuilder::toFile).toList());
         return files;
     }
