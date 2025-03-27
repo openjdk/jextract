@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -39,19 +39,14 @@ import org.openjdk.jextract.impl.Parser;
 import org.openjdk.jextract.impl.Options;
 import org.openjdk.jextract.impl.UnsupportedFilter;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UncheckedIOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.spi.ToolProvider;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,6 +60,8 @@ import java.util.stream.Stream;
 public final class JextractTool {
 
     public static final boolean DEBUG = Boolean.getBoolean("jextract.debug");
+    private static final boolean isMacOSX =
+            System.getProperty("os.name", "unknown").equals("Mac OS X");
 
     // error codes
     private static final int SUCCESS       = 0;
@@ -76,9 +73,15 @@ public final class JextractTool {
     private static final int OUTPUT_ERROR  = 6;
 
     private final Logger logger;
+    private final List<String> frameworkPaths;
 
     private JextractTool(Logger logger) {
         this.logger = logger;
+        frameworkPaths = new ArrayList<>(Arrays.asList(
+                "/System/Library/Frameworks/",
+                "/System/Library/PrivateFrameworks/"
+        ));
+        inferMacOSFrameworkPath().ifPresent(path -> frameworkPaths.add(path.toString()));
     }
 
     private static boolean isSpecialHeaderName(String str) {
@@ -293,7 +296,7 @@ public final class JextractTool {
                    // check for single char option followed
                    // by option value without whitespace in between.
                    // Examples: -lclang, -DFOO
-                   if (spec == null ) {
+                   if (spec == null) {
                        spec = isSingleCharOptionWithArg(arg) ? optionSpecs.get(singleCharOption(arg)) : null;
                        // we have a matching single char option and that requires argument
                        if (spec != null && spec.argRequired()) {
@@ -365,6 +368,11 @@ public final class JextractTool {
         parser.accepts("-t", List.of("--target-package"), "help.t", true);
         parser.accepts("--version", "help.version", false);
 
+        if (isMacOSX) {
+            parser.accepts("-F", "help.mac.framework", true);
+            parser.accepts("-framework", "help.framework.library.path", true);
+        }
+
         OptionSet optionSet;
         try {
             optionSet = parser.parse(args);
@@ -411,9 +419,7 @@ public final class JextractTool {
             builder.addClangArg("-I" + builtinInc);
         }
 
-        inferPlatformIncludePath().ifPresent(platformPath -> {
-            builder.addClangArg("-I" + platformPath);
-        });
+        inferPlatformIncludePath().ifPresent(platformPath -> builder.addClangArg("-I" + platformPath));
 
         String jextractHeaderPath = System.getProperty("jextract.header.path");
         if (jextractHeaderPath != null) {
@@ -439,29 +445,26 @@ public final class JextractTool {
 
         boolean useSystemLoadLibrary = optionSet.has("--use-system-load-library");
         if (useSystemLoadLibrary) {
+            if (!optionSet.has("-l")){
+                logger.warn("jextract.no.library.specified");
+            }
             builder.setUseSystemLoadLibrary(true);
         }
 
-        boolean librariesSpecified = optionSet.has("-l");
-        if (librariesSpecified) {
-            for (String lib : optionSet.valuesOf("-l")) {
-                try {
-                    Library library = Options.Library.parse(lib);
-                    Path libPath = Paths.get(library.libSpec());
-                    if (!useSystemLoadLibrary ||
-                            library.specKind() == Library.SpecKind.NAME ||
-                            (libPath.isAbsolute() && Files.isRegularFile(libPath))) {
-                        builder.addLibrary(library);
-                    } else {
-                        // not an absolute path, but--use-system-load-library was specified
-                        logger.err("l.option.value.absolute.path", lib);
-                    }
-                } catch (IllegalArgumentException ex) {
-                    logger.err("l.option.value.invalid", lib);
-                    return OPTION_ERROR;
-                }
-            }
+        if (optionSet.has("-F")) {
+            List<String> paths = optionSet.valuesOf("-F");
+
+            paths.forEach(p -> builder.addClangArg("-F" + p));
+            frameworkPaths.addAll(0, paths);
         }
+
+        inferMacOSFrameworkPath().ifPresent(platformPath -> builder.addClangArg("-F" + platformPath));
+
+        int optionError = parseLibraries("l", optionSet, useSystemLoadLibrary, builder);
+        if (optionError != 0) return optionError;
+
+        optionError = parseLibraries("framework", optionSet, useSystemLoadLibrary, builder);
+        if (optionError != 0) return optionError;
 
         String targetPackage = optionSet.has("-t") ? optionSet.valueOf("-t") : "";
         builder.setTargetPackage(targetPackage);
@@ -532,6 +535,37 @@ public final class JextractTool {
                 SUCCESS;
     }
 
+    private int parseLibraries(String optionString, OptionSet optionSet, boolean useSystemLoadLibrary, Options.Builder builder) {
+        if (optionSet.has("-" + optionString)) {
+            for (String lib : optionSet.valuesOf("-" + optionString)) {
+                try {
+                    String spec = optionString.equals("framework") ?
+                            resolveFrameworkPath(lib) :
+                            lib;
+
+                    if (spec == null) {
+                        throw new IllegalArgumentException("Cannot find framework: " + lib);
+                    }
+
+                    Library library = Library.parse(spec);
+                    Path libPath = Paths.get(library.libSpec());
+                    if (!useSystemLoadLibrary ||
+                            library.specKind() == Library.SpecKind.NAME ||
+                            (libPath.isAbsolute() && Files.isRegularFile(libPath))) {
+                        builder.addLibrary(library);
+                    } else {
+                        // not an absolute path, but --use-system-load-library was specified
+                        logger.err("l.option.value.absolute.path", lib);
+                    }
+                } catch (IllegalArgumentException ex) {
+                    logger.err(optionString + ".option.value.invalid", lib);
+                    return OPTION_ERROR;
+                }
+            }
+        }
+        return 0;
+    }
+
     /**
      * ToolProvider implementation for jextract tool.
      */
@@ -551,14 +585,24 @@ public final class JextractTool {
     }
 
     private Optional<Path> inferPlatformIncludePath() {
-        String os = System.getProperty("os.name");
-        if (os.equals("Mac OS X")) {
+        return inferMacOsPath("usr", "include");
+    }
+
+    private Optional<Path> inferMacOSFrameworkPath() {
+        return inferMacOsPath("System", "Library", "Frameworks");
+    }
+
+    private static String getMacOsSDKPath() throws IOException {
+        ProcessBuilder pb = new ProcessBuilder().
+                command("/usr/bin/xcrun", "--show-sdk-path");
+        return new String(pb.start().getInputStream().readAllBytes());
+    }
+
+    private Optional<Path> inferMacOsPath(String... paths) {
+        if (isMacOSX) {
             try {
-                ProcessBuilder pb = new ProcessBuilder().
-                    command("/usr/bin/xcrun", "--show-sdk-path");
-                Process proc = pb.start();
-                String str = new String(proc.getInputStream().readAllBytes());
-                Path dir = Paths.get(str.trim(), "usr", "include");
+                String str = getMacOsSDKPath();
+                Path dir = Paths.get(str.trim(), paths);
                 if (Files.isDirectory(dir)) {
                     return Optional.of(dir);
                 }
@@ -568,7 +612,17 @@ public final class JextractTool {
                 }
             }
         }
-
         return Optional.empty();
+    }
+
+    private String resolveFrameworkPath(String optionString) {
+        for (String dir : frameworkPaths) {
+            Path path = Path.of(dir, optionString + ".framework");
+            if (Files.exists(path)) {
+                return ":" + path + File.separator + optionString;
+            }
+        }
+
+        return null;
     }
 }
