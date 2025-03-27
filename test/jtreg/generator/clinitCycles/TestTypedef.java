@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
+/* Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -40,7 +40,7 @@ public class TestTypedef {
 
     @Test
     public void TestTypedef() {
-        ValueLayout layout = LayoutUtils.C_INT;
+        ValueLayout layout = clinit_typedef_h.C_INT;
         assertNotNull(layout);
         assertEquals(layout, clinit_typedef_h.one);
         assertEquals(layout, clinit_typedef_h.two);

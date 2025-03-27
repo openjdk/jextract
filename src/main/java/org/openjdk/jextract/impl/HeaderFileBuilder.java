@@ -180,12 +180,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 private static class %1$s {
                     public static final FunctionDescriptor DESC = %2$s;
 
-                    public static final MemorySegment ADDR = %4$sfindOrThrow("%3$s");
+                    public static final MemorySegment ADDR = %3$s.findOrThrow("%4$s");
 
                     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
                 }
                 """, holderClass, functionDescriptorString(1, decl.type()),
-                    lookupName(decl), sourceFileBuilder().FFMUtilsName());
+                    runtimeHelperName(), lookupName(decl));
             appendBlankLine();
             emitDocComment(decl, "Function descriptor for:");
             appendLines("""
@@ -213,8 +213,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             public static %1$s %2$s(%3$s) {
                 var mh$ = %4$s.HANDLE;
                 try {
-                    if (%8$sTRACE_DOWNCALLS) {
-                        %8$straceDowncall(%5$s);
+                    if (TRACE_DOWNCALLS) {
+                        traceDowncall(%5$s);
                     }
                     %6$smh$.invokeExact(%7$s);
                 } catch (Throwable ex$) {
@@ -223,8 +223,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             }
             """, retType, javaName,
             paramExprs(declType, finalParamNames, isVarArg),
-            holderClass, traceArgList, returnWithCast, paramList,
-            sourceFileBuilder().FFMUtilsName());
+            holderClass, traceArgList, returnWithCast, paramList);
         } else {
             String invokerClassName = newHolderClassName(javaName);
             String paramExprs = paramExprs(declType, finalParamNames, isVarArg);
@@ -233,19 +232,19 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendLines("""
                 public static class %1$s {
                     private static final FunctionDescriptor BASE_DESC = %2$s;
-                    private static final MemorySegment ADDR = %4$sfindOrThrow("%3$s");
+                    private static final MemorySegment ADDR = %3$s.findOrThrow("%4$s");
 
                     private final MethodHandle handle;
                     private final FunctionDescriptor descriptor;
                     private final MethodHandle spreader;
 
-                    private %1$s(MethodHandle handle, FunctionDescriptor descriptor, MethodHandle spreader) {
+                    private %5$s(MethodHandle handle, FunctionDescriptor descriptor, MethodHandle spreader) {
                         this.handle = handle;
                         this.descriptor = descriptor;
                         this.spreader = spreader;
                     }
                 """, invokerClassName, functionDescriptorString(2, decl.type()),
-                    lookupName(decl), sourceFileBuilder().FFMUtilsName());
+                    runtimeHelperName(), lookupName(decl), invokerClassName);
             incrAlign();
             appendBlankLine();
             emitDocComment(decl, "Variadic invoker factory for:");
@@ -284,8 +283,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
                     public %1$s apply(%2$s) {
                         try {
-                            if (%6$sTRACE_DOWNCALLS) {
-                                %6$straceDowncall(%3$s);
+                            if (TRACE_DOWNCALLS) {
+                                traceDowncall(%3$s);
                             }
                             %4$s spreader.invokeExact(%5$s);
                         } catch(IllegalArgumentException | ClassCastException ex$)  {
@@ -295,8 +294,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                         }
                     }
                 }
-                """, retType, paramExprs, traceArgList,
-                    returnWithCast, paramList, sourceFileBuilder().FFMUtilsName());
+                """, retType, paramExprs, traceArgList, returnWithCast, paramList);
         }
         decrAlign();
     }
@@ -307,6 +305,91 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     void emitPointerTypedef(Declaration.Typedef typedefTree, String name) {
         emitPrimitiveTypedefLayout(name, Type.pointer(), typedefTree);
+    }
+
+    void emitFirstHeaderPreamble(List<Options.Library> libraries, boolean useSystemLoadLibrary) {
+        List<String> lookups = new ArrayList<>();
+        // if legacy library loading is selected, load libraries (if any) into current loader
+        if (useSystemLoadLibrary) {
+            appendBlankLine();
+            appendIndentedLines("""
+
+                static {
+                """);
+            incrAlign();
+            for (Options.Library lib : libraries) {
+                String method = lib.specKind() == Options.Library.SpecKind.PATH ? "load" : "loadLibrary";
+                appendIndentedLines("System.%1$s(\"%2$s\");", method, lib.toQuotedName());
+            }
+            decrAlign();
+            appendIndentedLines("""
+                }
+                """);
+        } else {
+            // otherwise, add a library lookup per library (if any)
+            libraries.stream() // add library lookups (if any)
+                    .map(l -> l.specKind() == Options.Library.SpecKind.PATH ?
+                            String.format("SymbolLookup.libraryLookup(\"%1$s\", LIBRARY_ARENA)", l.toQuotedName()) :
+                            String.format("SymbolLookup.libraryLookup(System.mapLibraryName(\"%1$s\"), LIBRARY_ARENA)", l.toQuotedName()))
+                    .collect(Collectors.toCollection(() -> lookups));
+        }
+
+        lookups.add("SymbolLookup.loaderLookup()"); // fallback to loader lookup
+        lookups.add("Linker.nativeLinker().defaultLookup()"); // fallback to native lookup
+
+        // wrap all lookups (but the first) with ".or(...)"
+        List<String> lookupCalls = new ArrayList<>();
+        boolean isFirst = true;
+        for (String lookup : lookups) {
+            lookupCalls.add(isFirst ? lookup : String.format(".or(%1$s)", lookup));
+            isFirst = false;
+        }
+
+        // chain all the calls together into a combined symbol lookup
+        appendBlankLine();
+        appendIndentedLines(lookupCalls.stream()
+                .collect(Collectors.joining(String.format("\n%1$s", indentString(2)), "static final SymbolLookup SYMBOL_LOOKUP = ", ";")));
+    }
+
+    void emitRuntimeHelperMethods() {
+        appendIndentedLines("""
+
+            static final Arena LIBRARY_ARENA = Arena.ofAuto();
+            static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
+
+            static void traceDowncall(String name, Object... args) {
+                 String traceArgs = Arrays.stream(args)
+                               .map(Object::toString)
+                               .collect(Collectors.joining(", "));
+                 System.out.printf("%s(%s)\\n", name, traceArgs);
+            }
+
+            static MemorySegment findOrThrow(String symbol) {
+                return SYMBOL_LOOKUP.findOrThrow(symbol);
+            }
+
+            static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
+                try {
+                    return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
+                } catch (ReflectiveOperationException ex) {
+                    throw new AssertionError(ex);
+                }
+            }
+
+            static MemoryLayout align(MemoryLayout layout, long align) {
+                return switch (layout) {
+                    case PaddingLayout p -> p;
+                    case ValueLayout v -> v.withByteAlignment(align);
+                    case GroupLayout g -> {
+                        MemoryLayout[] alignedMembers = g.memberLayouts().stream()
+                                .map(m -> align(m, align)).toArray(MemoryLayout[]::new);
+                        yield g instanceof StructLayout ?
+                                MemoryLayout.structLayout(alignedMembers) : MemoryLayout.unionLayout(alignedMembers);
+                    }
+                    case SequenceLayout s -> MemoryLayout.sequenceLayout(s.elementCount(), align(s.elementLayout(), align));
+                };
+            }
+            """);
     }
 
     private void emitGlobalGetter(String holderClass, String javaName,
@@ -432,20 +515,19 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendIndentedLines("""
                 private static class %1$s {
                     public static final %2$s LAYOUT = %3$s;
-                    public static final MemorySegment SEGMENT = %7$sfindOrThrow("%4$s").reinterpret(LAYOUT.byteSize());
-                %5$s
-                    public static final long[] DIMS = { %6$s };
+                    public static final MemorySegment SEGMENT = %4$s.findOrThrow("%5$s").reinterpret(LAYOUT.byteSize());
+                %6$s
+                    public static final long[] DIMS = { %7$s };
                 }
-                """, mangledName, layoutType, layoutString(varType), lookupName(var),
-                    accessHandle, dimsString, sourceFileBuilder().FFMUtilsName());
+                """, mangledName, layoutType, layoutString(varType), runtimeHelperName(),
+                    lookupName(var), accessHandle, dimsString);
         } else {
             appendIndentedLines("""
                 private static class %1$s {
                     public static final %2$s LAYOUT = %3$s;
-                    public static final MemorySegment SEGMENT = %5$sfindOrThrow("%4$s").reinterpret(LAYOUT.byteSize());
+                    public static final MemorySegment SEGMENT = %4$s.findOrThrow("%5$s").reinterpret(LAYOUT.byteSize());
                 }
-                """, mangledName, layoutType, layoutString(varType),
-                    lookupName(var), sourceFileBuilder().FFMUtilsName());
+                """, mangledName, layoutType, layoutString(varType), runtimeHelperName(), lookupName(var));
         }
         incrAlign();
         appendBlankLine();
@@ -485,15 +567,15 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 public static %1$s %2$s() {
                     class Holder {
                         static final %1$s %2$s
-                            = %4$sLIBRARY_ARENA.allocateFrom("%3$s");
+                            = %3$s.LIBRARY_ARENA.allocateFrom("%4$s");
                     }
                     return Holder.%2$s;
                 }
                 """,
                 javaType.getSimpleName(),
                 constantName,
-                Utils.quote(Objects.toString(value)),
-                sourceFileBuilder().FFMUtilsName());
+                runtimeHelperName(),
+                Utils.quote(Objects.toString(value)));
         } else {
             appendLines("""
                 private static final %1$s %2$s = %3$s;
