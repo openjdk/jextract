@@ -137,7 +137,8 @@ public final class JextractTool {
                 .findFirst().get();
         return logger.hasErrors() ?
                 List.of() :
-                List.of(OutputFactory.generateWrapped(transformedDecl, targetPkg, libs, useSystemLoadLibrary));
+                List.of(OutputFactory.generateWrapped(transformedDecl, targetPkg,
+                        libs, useSystemLoadLibrary, includeHelper.getSharableItems()));
     }
 
     /**
@@ -334,7 +335,7 @@ public final class JextractTool {
                    // so that option lookup, value lookup will work regardless
                    // which alias was used to check.
                    options.put(spec.name(), values);
-                   for (String alias : spec.aliases()) {
+                   for (String _ : spec.aliases()) {
                        options.put(spec.name(), values);
                    }
                } else { // !isOption(arg)
@@ -356,6 +357,7 @@ public final class JextractTool {
         OptionParser parser = new OptionParser();
         parser.accepts("-D", List.of("--define-macro"), "help.D", true);
         parser.accepts("--dump-includes", "help.dump-includes", true);
+        parser.accepts("--sharable-items", "help.sharable.items", true);
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
             parser.accepts("--" + includeKind.optionName(), "help." + includeKind.optionName(), true);
         }
@@ -370,7 +372,7 @@ public final class JextractTool {
 
         if (isMacOSX) {
             parser.accepts("-F", "help.mac.framework", true);
-            parser.accepts("-framework", "help.framework.library.path", true);
+            parser.accepts("--framework", "help.framework.library.path", true);
         }
 
         OptionSet optionSet;
@@ -399,7 +401,7 @@ public final class JextractTool {
         Path compileFlagsTxt = Paths.get(".", "compile_flags.txt");
         if (Files.exists(compileFlagsTxt)) {
             try {
-                Files.lines(compileFlagsTxt).forEach(opt -> builder.addClangArg(opt));
+                Files.lines(compileFlagsTxt).forEach(builder::addClangArg);
             } catch (IOException ioExp) {
                 logger.fatal(ioExp, "jextract.bad.compile.flags", ioExp.getMessage());
                 return OPTION_ERROR;
@@ -439,6 +441,10 @@ public final class JextractTool {
             builder.setDumpIncludeFile(optionSet.valueOf("--dump-includes"));
         }
 
+        if (optionSet.has("--sharable-items")) {
+            builder.useSharableItems(optionSet.valueOf("--sharable-items"));
+        }
+
         if (optionSet.has("--output")) {
             builder.setOutputDir(optionSet.valueOf("--output"));
         }
@@ -471,7 +477,7 @@ public final class JextractTool {
 
         builder.addClangArg("-I" + System.getProperty("user.dir"));
 
-        if (optionSet.nonOptionArguments().size() == 0) {
+        if (optionSet.nonOptionArguments().isEmpty()) {
             printOptionError(logger.format("expected.atleast.one.header"));
             return OPTION_ERROR;
         }
@@ -514,7 +520,7 @@ public final class JextractTool {
         }
 
         try {
-            if (options.includeHelper.dumpIncludesFile != null) {
+            if (options.includeHelper.getDumpIncludesFile() != null) {
                 options.includeHelper.dumpIncludes();
             } else {
                 Path output = Path.of(options.outputDir);
@@ -536,10 +542,13 @@ public final class JextractTool {
     }
 
     private int parseLibraries(String optionString, OptionSet optionSet, boolean useSystemLoadLibrary, Options.Builder builder) {
-        if (optionSet.has("-" + optionString)) {
-            for (String lib : optionSet.valuesOf("-" + optionString)) {
+        String cmdOption = optionString.length() < 3 ?
+                "-" + optionString :
+                "--" + optionString;
+        if (optionSet.has(cmdOption)) {
+            for (String lib : optionSet.valuesOf(cmdOption)) {
                 try {
-                    String spec = optionString.equals("framework") ?
+                    String spec = cmdOption.equals("--framework") ?
                             resolveFrameworkPath(lib) :
                             lib;
 
