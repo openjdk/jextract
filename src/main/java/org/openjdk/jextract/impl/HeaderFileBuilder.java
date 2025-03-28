@@ -180,12 +180,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 private static class %1$s {
                     public static final FunctionDescriptor DESC = %2$s;
 
-                    public static final MemorySegment ADDR = %3$s.findOrThrow("%4$s");
+                    public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("%3$s");
 
                     public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
                 }
                 """, holderClass, functionDescriptorString(1, decl.type()),
-                    runtimeHelperName(), lookupName(decl));
+                    lookupName(decl));
             appendBlankLine();
             emitDocComment(decl, "Function descriptor for:");
             appendLines("""
@@ -232,19 +232,19 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendLines("""
                 public static class %1$s {
                     private static final FunctionDescriptor BASE_DESC = %2$s;
-                    private static final MemorySegment ADDR = %3$s.findOrThrow("%4$s");
+                    private static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("%3$s");
 
                     private final MethodHandle handle;
                     private final FunctionDescriptor descriptor;
                     private final MethodHandle spreader;
 
-                    private %5$s(MethodHandle handle, FunctionDescriptor descriptor, MethodHandle spreader) {
+                    private %4$s(MethodHandle handle, FunctionDescriptor descriptor, MethodHandle spreader) {
                         this.handle = handle;
                         this.descriptor = descriptor;
                         this.spreader = spreader;
                     }
                 """, invokerClassName, functionDescriptorString(2, decl.type()),
-                    runtimeHelperName(), lookupName(decl), invokerClassName);
+                    lookupName(decl), invokerClassName);
             incrAlign();
             appendBlankLine();
             emitDocComment(decl, "Variadic invoker factory for:");
@@ -362,10 +362,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                .map(Object::toString)
                                .collect(Collectors.joining(", "));
                  System.out.printf("%s(%s)\\n", name, traceArgs);
-            }
-
-            static MemorySegment findOrThrow(String symbol) {
-                return SYMBOL_LOOKUP.findOrThrow(symbol);
             }
 
             static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
@@ -515,19 +511,19 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             appendIndentedLines("""
                 private static class %1$s {
                     public static final %2$s LAYOUT = %3$s;
-                    public static final MemorySegment SEGMENT = %4$s.findOrThrow("%5$s").reinterpret(LAYOUT.byteSize());
-                %6$s
-                    public static final long[] DIMS = { %7$s };
+                    public static final MemorySegment SEGMENT = SYMBOL_LOOKUP.findOrThrow("%4$s").reinterpret(LAYOUT.byteSize());
+                %5$s
+                    public static final long[] DIMS = { %6$s };
                 }
-                """, mangledName, layoutType, layoutString(varType), runtimeHelperName(),
-                    lookupName(var), accessHandle, dimsString);
+                """, mangledName, layoutType, layoutString(varType),lookupName(var),
+                    accessHandle, dimsString);
         } else {
             appendIndentedLines("""
                 private static class %1$s {
                     public static final %2$s LAYOUT = %3$s;
-                    public static final MemorySegment SEGMENT = %4$s.findOrThrow("%5$s").reinterpret(LAYOUT.byteSize());
+                    public static final MemorySegment SEGMENT = SYMBOL_LOOKUP.findOrThrow("%4$s").reinterpret(LAYOUT.byteSize());
                 }
-                """, mangledName, layoutType, layoutString(varType), runtimeHelperName(), lookupName(var));
+                """, mangledName, layoutType, layoutString(varType), lookupName(var));
         }
         incrAlign();
         appendBlankLine();
