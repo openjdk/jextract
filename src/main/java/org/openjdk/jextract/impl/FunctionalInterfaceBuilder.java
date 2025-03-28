@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -82,8 +82,16 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalFactory(String fiName) {
         appendIndentedLines("""
+            
+            static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
+                try {
+                    return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
+                } catch (ReflectiveOperationException ex) {
+                    throw new AssertionError(ex);
+                }
+            }
 
-            private static final MethodHandle UP$MH = %1$s.upcallHandle(%2$s.%3$s.class, "apply", $DESC);
+            private static final MethodHandle UP$MH = upcallHandle(%2$s.%3$s.class, "apply", $DESC);
 
             /**
              * Allocates a new upcall stub, whose implementation is defined by {@code fi}.
