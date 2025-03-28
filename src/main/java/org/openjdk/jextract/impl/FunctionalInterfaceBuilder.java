@@ -82,7 +82,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private void emitFunctionalFactory(String fiName) {
         appendIndentedLines("""
-            
+
             static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
                 try {
                     return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
