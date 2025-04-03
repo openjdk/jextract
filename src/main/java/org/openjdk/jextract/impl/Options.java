@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -99,7 +99,11 @@ public final class Options {
         }
 
         public void setDumpIncludeFile(String dumpIncludesFile) {
-            includeHelper.dumpIncludesFile = dumpIncludesFile;
+            includeHelper.setDumpIncludesFile(dumpIncludesFile);
+        }
+
+        public void useSharableItems(String name) {
+            includeHelper.setSharableItems(name);
         }
 
         public void addIncludeSymbol(IncludeHelper.IncludeKind kind, String symbolName) {

@@ -43,54 +43,76 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
     public static final String PREV_SUFFIX = "#{PREV_SUFFIX}";
     private static final String SUFFIX = "#{SUFFIX}";
+    private final String jextractUTILS;
 
     private int declCount;
     private final List<SourceFileBuilder> headerBuilders = new ArrayList<>();
     private final List<SourceFileBuilder> otherBuilders = new ArrayList<>();
     private HeaderFileBuilder lastHeader;
     private final ClassDesc headerDesc;
+    private SourceFileBuilder jextractUtilsBuilder;
 
     ToplevelBuilder(String packageName, String headerClassName,
-                    List<Options.Library> libs, boolean useSystemLoadLibrary) {
+                    List<Options.Library> libs,
+                    boolean useSystemLoadLibrary,
+                    String generateShareableItems) {
+        jextractUTILS = generateShareableItems;
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
+
+        if (jextractUTILS != null) {
+            jextractUtilsBuilder = createJextractUtilsBuilder(packageName,libs,useSystemLoadLibrary);
+        }
+
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
         headerBuilders.add(sfb);
-        lastHeader = createFirstHeader(sfb, libs, useSystemLoadLibrary);
+        lastHeader = createFirstHeader(sfb, libs, useSystemLoadLibrary, jextractUTILS);
     }
 
-    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs, boolean useSystemLoadLibrary) {
-        HeaderFileBuilder first = new HeaderFileBuilder(sfb, String.format("%1$s#{SUFFIX}",sfb.className()), null, sfb.className());
+    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb,
+                                                       List<Options.Library> libs,
+                                                       boolean useSystemLoadLibrary,
+                                                       String generateShareableItems) {
+        HeaderFileBuilder first = new HeaderFileBuilder(sfb,
+                String.format("%1$s#{SUFFIX}", sfb.className()),
+                generateShareableItems,
+                sfb.className());
         first.appendBlankLine();
         first.classBegin();
         first.emitDefaultConstructor();
-        first.emitRuntimeHelperMethods();
-        first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
-        // emit basic primitive types
-        first.appendIndentedLines("""
 
-            public static final ValueLayout.OfBoolean C_BOOL = (ValueLayout.OfBoolean) Linker.nativeLinker().canonicalLayouts().get("bool");
-            public static final ValueLayout.OfByte C_CHAR =(ValueLayout.OfByte)Linker.nativeLinker().canonicalLayouts().get("char");
-            public static final ValueLayout.OfShort C_SHORT = (ValueLayout.OfShort) Linker.nativeLinker().canonicalLayouts().get("short");
-            public static final ValueLayout.OfInt C_INT = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get("int");
-            public static final ValueLayout.OfLong C_LONG_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get("long long");
-            public static final ValueLayout.OfFloat C_FLOAT = (ValueLayout.OfFloat) Linker.nativeLinker().canonicalLayouts().get("float");
-            public static final ValueLayout.OfDouble C_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get("double");
-            public static final AddressLayout C_POINTER = ((AddressLayout) Linker.nativeLinker().canonicalLayouts().get("void*"))
-                    .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, C_CHAR));
-            """);
-        if (TypeImpl.IS_WINDOWS) {
-            first.appendIndentedLines("public static final ValueLayout.OfInt C_LONG = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
-            first.appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get(\"double\");");
-        } else {
-            first.appendIndentedLines("public static final ValueLayout.OfLong C_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
+        if (generateShareableItems == null) {
+            first.emitRuntimeHelperMethods();
+            first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
+            first.emitBasicPrimitiveTypes();
         }
+
         return first;
+    }
+
+    private SourceFileBuilder createJextractUtilsBuilder(String packageName, List<Options.Library> libs, boolean useSystemLoadLibrary) {
+        SourceFileBuilder utilsBuilder = SourceFileBuilder.newSourceFile(packageName, jextractUTILS);
+        HeaderFileBuilder utilsHeader = new HeaderFileBuilder(utilsBuilder, jextractUTILS, null, jextractUTILS);
+
+        utilsHeader.appendBlankLine();
+        utilsHeader.classBegin();
+        utilsHeader.emitDefaultConstructor();
+
+        utilsHeader.emitRuntimeHelperMethods();
+        utilsHeader.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
+        utilsHeader.emitBasicPrimitiveTypes();
+        utilsHeader.classEnd();
+
+        return utilsBuilder;
     }
 
     public List<JavaSourceFile> toFiles() {
         lastHeader.classEnd();
 
         List<JavaSourceFile> files = new ArrayList<>();
+
+        if (jextractUTILS != null && jextractUtilsBuilder != null) {
+            files.add(jextractUtilsBuilder.toFile());
+        }
 
         if (headerBuilders.size() == 1) {
             files.add(headerBuilders.getFirst().toFile(s -> s.replace(SUFFIX, "")));

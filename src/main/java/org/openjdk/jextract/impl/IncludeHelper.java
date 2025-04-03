@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -83,10 +83,27 @@ public class IncludeHelper {
 
     private final EnumMap<IncludeKind, Set<String>> includesSymbolNamesByKind = new EnumMap<>(IncludeKind.class);
     private final Set<Declaration> usedDeclarations = new HashSet<>();
-    public String dumpIncludesFile;
+
+    private String dumpIncludesFile;
+    private String sharableItems;
+
+    public String getDumpIncludesFile() {
+        return dumpIncludesFile;
+    }
+
+    public void setDumpIncludesFile(String dumpIncludesFile) {
+        this.dumpIncludesFile = dumpIncludesFile;
+    }
+
+    public void setSharableItems(String sharableItems) {
+        this.sharableItems = sharableItems;
+    }
+    public String getSharableItems() {
+        return sharableItems;
+    }
 
     public void addSymbol(IncludeKind kind, String symbolName) {
-        Set<String> names = includesSymbolNamesByKind.computeIfAbsent(kind, (_unused) -> new HashSet<>());
+        Set<String> names = includesSymbolNamesByKind.computeIfAbsent(kind, _unused -> new HashSet<>());
         names.add(symbolName);
     }
 
@@ -122,7 +139,7 @@ public class IncludeHelper {
         if (!isEnabled()) {
             return true;
         } else {
-            Set<String> names = includesSymbolNamesByKind.computeIfAbsent(kind, (_unused) -> new HashSet<>());
+            Set<String> names = includesSymbolNamesByKind.computeIfAbsent(kind, _unused -> new HashSet<>());
             return names.contains(declaration.name());
         }
     }
