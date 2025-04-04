@@ -364,14 +364,6 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                  System.out.printf("%s(%s)\\n", name, traceArgs);
             }
 
-            static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
-                try {
-                    return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
-                } catch (ReflectiveOperationException ex) {
-                    throw new AssertionError(ex);
-                }
-            }
-
             static MemoryLayout align(MemoryLayout layout, long align) {
                 return switch (layout) {
                     case PaddingLayout p -> p;
