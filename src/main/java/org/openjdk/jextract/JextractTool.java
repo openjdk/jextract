@@ -370,7 +370,7 @@ public final class JextractTool {
 
         if (isMacOSX) {
             parser.accepts("-F", "help.mac.framework", true);
-            parser.accepts("-framework", "help.framework.library.path", true);
+            parser.accepts("--framework", "help.framework.library.path", true);
         }
 
         OptionSet optionSet;
@@ -536,10 +536,13 @@ public final class JextractTool {
     }
 
     private int parseLibraries(String optionString, OptionSet optionSet, boolean useSystemLoadLibrary, Options.Builder builder) {
-        if (optionSet.has("-" + optionString)) {
-            for (String lib : optionSet.valuesOf("-" + optionString)) {
+        String cmdOption = optionString.length() < 3 ?
+                "-" + optionString :
+                "--" + optionString;
+        if (optionSet.has(cmdOption)) {
+            for (String lib : optionSet.valuesOf(cmdOption)) {
                 try {
-                    String spec = optionString.equals("framework") ?
+                    String spec = cmdOption.equals("--framework") ?
                             resolveFrameworkPath(lib) :
                             lib;
 

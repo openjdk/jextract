@@ -988,7 +988,7 @@ A complete list of all the supported command line options is given below:
 | `--include-[function,constant,struct,union,typedef,var]<String>` | Include a symbol of the given name and kind in the generated bindings. When one of these options is specified, any symbol that is not matched by any specified filters is omitted from the generated bindings. |
 | `--version`                                                  | print version information and exit |
 | `-F <dir>` (macOs only)                                          | specify the framework directory include files. Defaults to the current Mac OS X SDK dir.|
-| `-framework <framework>` (macOs only)                            | specify the name of the library, path will be expanded to that of the framework folder.|
+| `--framework <framework>` (macOs only)                           | specify the name of the library, path will be expanded to that of the framework folder.|
 
 
 Jextract accepts one or more header files. When multiple header files are specified,
