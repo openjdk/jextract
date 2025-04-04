@@ -83,15 +83,15 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private void emitFunctionalFactory(String fiName) {
         appendIndentedLines("""
 
-            static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
+            static MethodHandle upcallHandle() {
                 try {
-                    return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
+                    return MethodHandles.lookup().findVirtual(%2$s.%3$s.class, "apply", $DESC.toMethodType());
                 } catch (ReflectiveOperationException ex) {
                     throw new AssertionError(ex);
                 }
             }
 
-            private static final MethodHandle UP$MH = upcallHandle(%2$s.%3$s.class, "apply", $DESC);
+            private static final MethodHandle UP$MH = upcallHandle();
 
             /**
              * Allocates a new upcall stub, whose implementation is defined by {@code fi}.
