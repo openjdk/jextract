@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -192,7 +192,7 @@ public class TestClassGeneration extends JextractToolRunner {
     @Test(dataProvider = "functionalInterfaces")
     public void testFunctionalInterface(String name, MethodType type) {
         Class<?> fpClass = loader.loadClass("com.acme." + name);
-        checkDefaultConstructor(fpClass);
+        checkPrivateConstructor(fpClass);
         Class<?> fiClass = findNestedClass(fpClass, "Function");
         assertNotNull(fiClass);
         checkMethod(fiClass, "apply", type);
@@ -226,6 +226,15 @@ public class TestClassGeneration extends JextractToolRunner {
             assertEquals(c.getModifiers(), 0, "Unexpected constructor modifiers");
         } catch (ReflectiveOperationException ex) {
             fail("Default constructor not found!");
+        }
+    }
+
+    private void checkPrivateConstructor(Class<?> cls) {
+        try {
+            Constructor<?> c = cls.getDeclaredConstructor();
+            assertEquals(c.getModifiers(), Modifier.PRIVATE, "Unexpected constructor modifiers");
+        } catch (ReflectiveOperationException ex) {
+            fail("Private constructor not found!");
         }
     }
 }
