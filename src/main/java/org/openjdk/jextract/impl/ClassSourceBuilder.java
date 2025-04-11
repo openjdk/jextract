@@ -160,6 +160,15 @@ abstract class ClassSourceBuilder {
             """, className);
     }
 
+    final void emitPrivateConstructor() {
+        appendIndentedLines("""
+
+            private %1$s() {
+                // Should not be called directly
+            }
+            """, className);
+    }
+
     final void emitDocComment(Declaration decl) {
         emitDocComment(decl, "");
     }

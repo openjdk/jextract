@@ -42,7 +42,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
                                        String runtimeHelperName, Type.Function funcType, boolean isNested) {
-        super(builder, isNested ? "public static" : "public", Kind.CLASS, className, null, enclosing, runtimeHelperName);
+        super(builder, isNested ? "public final static" : "public final", Kind.CLASS, className, null, enclosing, runtimeHelperName);
         this.parameterNames = funcType.parameterNames().map(NameMangler::javaSafeIdentifiers);
         this.funcType = funcType;
         this.methodType = Utils.methodTypeFor(funcType);
@@ -55,7 +55,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         fib.appendBlankLine();
         fib.emitDocComment(parentDecl);
         fib.classBegin();
-        fib.emitDefaultConstructor();
+        fib.emitPrivateConstructor();
         String fiName = fib.emitFunctionalInterface();
         fib.emitDescriptorDecl();
         fib.emitFunctionalFactory(fiName);
@@ -83,7 +83,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private void emitFunctionalFactory(String fiName) {
         appendIndentedLines("""
 
-            static MethodHandle upcallHandle() {
+            private static MethodHandle upcallHandle() {
                 try {
                     return MethodHandles.lookup().findVirtual(%2$s.%3$s.class, "apply", $DESC.toMethodType());
                 } catch (ReflectiveOperationException ex) {
@@ -107,7 +107,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         boolean needsAllocator = Utils.isStructOrUnion(funcType.returnType());
         String allocParam = needsAllocator ? ", SegmentAllocator alloc" : "";
         String allocArg = needsAllocator ? ", alloc" : "";
-        String paramStr = methodType.parameterCount() != 0 ? String.format(",%1$s", paramExprs()) : "";
+        String paramStr = methodType.parameterCount() != 0 ? String.format(", %1$s", paramExprs()) : "";
         appendIndentedLines("""
 
             private static final MethodHandle DOWN$MH = Linker.nativeLinker().downcallHandle($DESC);
