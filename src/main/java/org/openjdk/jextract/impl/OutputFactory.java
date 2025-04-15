@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -47,15 +47,10 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                                                    String pkgName,
                                                    List<Options.Library> libs,
                                                    boolean useSystemLoadLibrary,
-                                                   String generateShareableItems) {
+                                                   String sharedSymbolsFile) {
         String clsName = JavaName.getOrThrow(decl);
-        ToplevelBuilder toplevelBuilder = new ToplevelBuilder(
-                pkgName,
-                clsName,
-                libs,
-                useSystemLoadLibrary,
-                generateShareableItems
-        );
+        ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName,
+                libs, useSystemLoadLibrary, sharedSymbolsFile);
         return new OutputFactory(toplevelBuilder).generate(decl);
     }
 

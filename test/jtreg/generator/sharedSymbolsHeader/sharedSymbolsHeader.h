@@ -21,10 +21,5 @@
  * questions.
  */
 
-typedef struct {
-    struct {
-        struct {
-            char y;
-        } Flags;
-    };
-} S;
+typedef int T;
+typedef char* P1;

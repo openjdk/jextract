@@ -43,76 +43,49 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
     public static final String PREV_SUFFIX = "#{PREV_SUFFIX}";
     private static final String SUFFIX = "#{SUFFIX}";
-    private final String jextractUTILS;
+    private static String SHARED;
 
     private int declCount;
     private final List<SourceFileBuilder> headerBuilders = new ArrayList<>();
     private final List<SourceFileBuilder> otherBuilders = new ArrayList<>();
     private HeaderFileBuilder lastHeader;
     private final ClassDesc headerDesc;
-    private SourceFileBuilder jextractUtilsBuilder;
 
     ToplevelBuilder(String packageName, String headerClassName,
-                    List<Options.Library> libs,
-                    boolean useSystemLoadLibrary,
-                    String generateShareableItems) {
-        jextractUTILS = generateShareableItems;
+                    List<Options.Library> libs, boolean useSystemLoadLibrary, String sharedSymbolsFile) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
-
-        if (jextractUTILS != null) {
-            jextractUtilsBuilder = createJextractUtilsBuilder(packageName,libs,useSystemLoadLibrary);
-        }
-
+        SHARED = sharedSymbolsFile != null ? sharedSymbolsFile : headerDesc.displayName() + "$shared";
+        createSharedClass();
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
         headerBuilders.add(sfb);
-        lastHeader = createFirstHeader(sfb, libs, useSystemLoadLibrary, jextractUTILS);
+        lastHeader = createFirstHeader(sfb, libs, useSystemLoadLibrary);
     }
 
-    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb,
-                                                       List<Options.Library> libs,
-                                                       boolean useSystemLoadLibrary,
-                                                       String generateShareableItems) {
-        HeaderFileBuilder first = new HeaderFileBuilder(sfb,
-                String.format("%1$s#{SUFFIX}", sfb.className()),
-                generateShareableItems,
-                sfb.className());
+    private void createSharedClass() {
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), SHARED);
+        HeaderFileBuilder sharedBuilder = new HeaderFileBuilder(sfb, SHARED, null, SHARED);
+        sharedBuilder.appendBlankLine();
+        sharedBuilder.classBegin();
+        sharedBuilder.emitDefaultConstructor();
+        sharedBuilder.emitBasicPrimitiveTypes();
+        sharedBuilder.classEnd();
+        otherBuilders.add(sfb);
+    }
+
+    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs, boolean useSystemLoadLibrary) {
+        HeaderFileBuilder first = new HeaderFileBuilder(sfb, String.format("%1$s#{SUFFIX}",sfb.className()), SHARED, sfb.className());
         first.appendBlankLine();
         first.classBegin();
         first.emitDefaultConstructor();
-
-        if (generateShareableItems == null) {
-            first.emitRuntimeHelperMethods();
-            first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
-            first.emitBasicPrimitiveTypes();
-        }
-
+        first.emitRuntimeHelperMethods();
+        first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
         return first;
-    }
-
-    private SourceFileBuilder createJextractUtilsBuilder(String packageName, List<Options.Library> libs, boolean useSystemLoadLibrary) {
-        SourceFileBuilder utilsBuilder = SourceFileBuilder.newSourceFile(packageName, jextractUTILS);
-        HeaderFileBuilder utilsHeader = new HeaderFileBuilder(utilsBuilder, jextractUTILS, null, jextractUTILS);
-
-        utilsHeader.appendBlankLine();
-        utilsHeader.classBegin();
-        utilsHeader.emitDefaultConstructor();
-
-        utilsHeader.emitRuntimeHelperMethods();
-        utilsHeader.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
-        utilsHeader.emitBasicPrimitiveTypes();
-        utilsHeader.classEnd();
-
-        return utilsBuilder;
     }
 
     public List<JavaSourceFile> toFiles() {
         lastHeader.classEnd();
 
         List<JavaSourceFile> files = new ArrayList<>();
-
-        if (jextractUTILS != null && jextractUtilsBuilder != null) {
-            files.add(jextractUtilsBuilder.toFile());
-        }
 
         if (headerBuilders.size() == 1) {
             files.add(headerBuilders.getFirst().toFile(s -> s.replace(SUFFIX, "")));

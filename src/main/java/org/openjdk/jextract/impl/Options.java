@@ -99,11 +99,11 @@ public final class Options {
         }
 
         public void setDumpIncludeFile(String dumpIncludesFile) {
-            includeHelper.setDumpIncludesFile(dumpIncludesFile);
+            includeHelper.dumpIncludesFile = dumpIncludesFile;
         }
 
-        public void useSharableItems(String name) {
-            includeHelper.setSharableItems(name);
+        public void setSharedUtilsName(String sharedSymbolsFile) {
+            includeHelper.sharedSymbolsFile = sharedSymbolsFile;
         }
 
         public void addIncludeSymbol(IncludeHelper.IncludeKind kind, String symbolName) {

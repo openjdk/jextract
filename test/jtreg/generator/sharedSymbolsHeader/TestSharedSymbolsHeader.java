@@ -22,34 +22,30 @@
  */
 
 import org.testng.annotations.Test;
-import test.jextract.sharableItems.*;
-
-import java.lang.foreign.Arena;
-import java.lang.foreign.GroupLayout;
-import java.lang.foreign.MemorySegment;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.testng.Assert.assertEquals;
-import static test.jextract.sharableItems.sharableItems_h.*;
+import java.nio.file.Path;
+import testlib.TestUtils;
+import testlib.JextractToolRunner;
+import test.jextract.sharedSymbolsHeader.*;
+import static org.testng.Assert.*;
 
 /*
  * @test
  * @bug 7903933
- * @summary This is verbatim copy of TestNestedInsideAnon except for the `@run` command, used to test the `--sharable-items` option
+ * @summary check that header containg the shared symbols was created with the specified name
  * @library /lib
- * @build testlib.TestUtils
- * @run main/othervm JtregJextract --sharable-items FFM_UTILS -t test.jextract.sharableItems sharableItems.h
- * @build TestSharableItems
- * @run testng/othervm --enable-native-access=ALL-UNNAMED TestSharableItems
+ * @build testlib.JextractToolRunner testlib.TestUtils
+ * @run main/othervm JtregJextract -t test.jextract.sharedSymbolsHeader sharedSymbolsHeader.h
  */
-public class TestSharableItems {
+public class TestSharedSymbolsHeader extends JextractToolRunner {
     @Test
-    public void testAnonField() {
-        checkLayout(S.layout());
-    }
-
-    void checkLayout(GroupLayout layout) {
-        assertEquals(((GroupLayout)layout.memberLayouts().get(0)).memberLayouts().get(0).withoutName(),
-                S.Flags.layout().withoutName());
+    public void testSplit() {
+        Path splitOutput = getOutputFilePath("sharedSymbolsHeader");
+        Path splitH = getInputFilePath("sharedSymbolsHeader.h");
+        runAndCompile(splitOutput, splitH.toString());
+        try(TestUtils.Loader loader = TestUtils.classLoader(splitOutput)) {
+            assertNotNull(loader.loadClass("sharedSymbolsHeader_h$shared"));
+        } finally {
+            TestUtils.deleteDir(splitOutput);
+        }
     }
 }

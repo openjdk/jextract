@@ -137,8 +137,8 @@ public final class JextractTool {
                 .findFirst().get();
         return logger.hasErrors() ?
                 List.of() :
-                List.of(OutputFactory.generateWrapped(transformedDecl, targetPkg,
-                        libs, useSystemLoadLibrary, includeHelper.getSharableItems()));
+                List.of(OutputFactory.generateWrapped(transformedDecl, targetPkg, libs, useSystemLoadLibrary,
+                        includeHelper.getSharedSymbolsFile()));
     }
 
     /**
@@ -357,7 +357,7 @@ public final class JextractTool {
         OptionParser parser = new OptionParser();
         parser.accepts("-D", List.of("--define-macro"), "help.D", true);
         parser.accepts("--dump-includes", "help.dump-includes", true);
-        parser.accepts("--sharable-items", "help.sharable.items", true);
+        parser.accepts("--shared-symbols", "help.shared.symbols", true);
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
             parser.accepts("--" + includeKind.optionName(), "help." + includeKind.optionName(), true);
         }
@@ -441,8 +441,8 @@ public final class JextractTool {
             builder.setDumpIncludeFile(optionSet.valueOf("--dump-includes"));
         }
 
-        if (optionSet.has("--sharable-items")) {
-            builder.useSharableItems(optionSet.valueOf("--sharable-items"));
+        if (optionSet.has("--shared-symbols")) {
+            builder.setSharedUtilsName(optionSet.valueOf("--shared-symbols"));
         }
 
         if (optionSet.has("--output")) {
@@ -520,7 +520,7 @@ public final class JextractTool {
         }
 
         try {
-            if (options.includeHelper.getDumpIncludesFile() != null) {
+            if (options.includeHelper.dumpIncludesFile != null) {
                 options.includeHelper.dumpIncludes();
             } else {
                 Path output = Path.of(options.outputDir);

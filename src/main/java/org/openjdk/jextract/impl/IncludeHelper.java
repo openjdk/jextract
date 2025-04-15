@@ -83,27 +83,15 @@ public class IncludeHelper {
 
     private final EnumMap<IncludeKind, Set<String>> includesSymbolNamesByKind = new EnumMap<>(IncludeKind.class);
     private final Set<Declaration> usedDeclarations = new HashSet<>();
+    public String dumpIncludesFile;
+    public String sharedSymbolsFile;
 
-    private String dumpIncludesFile;
-    private String sharableItems;
-
-    public String getDumpIncludesFile() {
-        return dumpIncludesFile;
-    }
-
-    public void setDumpIncludesFile(String dumpIncludesFile) {
-        this.dumpIncludesFile = dumpIncludesFile;
-    }
-
-    public void setSharableItems(String sharableItems) {
-        this.sharableItems = sharableItems;
-    }
-    public String getSharableItems() {
-        return sharableItems;
+    public String getSharedSymbolsFile() {
+        return sharedSymbolsFile;
     }
 
     public void addSymbol(IncludeKind kind, String symbolName) {
-        Set<String> names = includesSymbolNamesByKind.computeIfAbsent(kind, _unused -> new HashSet<>());
+        Set<String> names = includesSymbolNamesByKind.computeIfAbsent(kind, (_unused) -> new HashSet<>());
         names.add(symbolName);
     }
 
