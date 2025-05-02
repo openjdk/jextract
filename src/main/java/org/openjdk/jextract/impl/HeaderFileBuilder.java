@@ -351,10 +351,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 .collect(Collectors.joining(String.format("\n%1$s", indentString(2)), "static final SymbolLookup SYMBOL_LOOKUP = ", ";")));
     }
 
+    void emitLibaryArena(){appendIndentedLines("""
+
+            static final Arena LIBRARY_ARENA = Arena.ofAuto();""");
+    }
+
     void emitRuntimeHelperMethods() {
         appendIndentedLines("""
 
-            static final Arena LIBRARY_ARENA = Arena.ofAuto();
             static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
 
             static void traceDowncall(String name, Object... args) {

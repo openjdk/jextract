@@ -357,7 +357,7 @@ public final class JextractTool {
         OptionParser parser = new OptionParser();
         parser.accepts("-D", List.of("--define-macro"), "help.D", true);
         parser.accepts("--dump-includes", "help.dump-includes", true);
-        parser.accepts("--shared-symbols", "help.shared.symbols", true);
+        parser.accepts("--symbols-class-name", "help.shared.symbols", true);
         for (IncludeHelper.IncludeKind includeKind : IncludeHelper.IncludeKind.values()) {
             parser.accepts("--" + includeKind.optionName(), "help." + includeKind.optionName(), true);
         }
@@ -441,8 +441,8 @@ public final class JextractTool {
             builder.setDumpIncludeFile(optionSet.valueOf("--dump-includes"));
         }
 
-        if (optionSet.has("--shared-symbols")) {
-            builder.setSharedUtilsName(optionSet.valueOf("--shared-symbols"));
+        if (optionSet.has("--symbols-class-name")) {
+            builder.setSharedUtilsName(optionSet.valueOf("--symbols-class-name"));
         }
 
         if (optionSet.has("--output")) {
