@@ -35,6 +35,7 @@ import static org.testng.Assert.*;
  * @library /lib
  * @build testlib.JextractToolRunner testlib.TestUtils
  * @run main/othervm JtregJextract -t test.jextract.sharedSymbolsHeader sharedSymbolsHeader.h
+ * @run testng/othervm TestSharedSymbolsHeader
  */
 public class TestSharedSymbolsHeader extends JextractToolRunner {
     @Test
