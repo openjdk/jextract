@@ -43,7 +43,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
     public static final String PREV_SUFFIX = "#{PREV_SUFFIX}";
     private static final String SUFFIX = "#{SUFFIX}";
-    private static String SHARED;
+    private final String shared;
 
     private int declCount;
     private final List<SourceFileBuilder> headerBuilders = new ArrayList<>();
@@ -52,10 +52,10 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private final ClassDesc headerDesc;
 
     ToplevelBuilder(String packageName, String headerClassName, List<Options.Library> libs,
-                    boolean useSystemLoadLibrary, String sharedSymbolsFile) {
+                    boolean useSystemLoadLibrary, String sharedClassName) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
-        SHARED = sharedSymbolsFile != null ?
-                sharedSymbolsFile :
+        shared = sharedClassName != null ?
+                sharedClassName :
                 headerDesc.displayName() + "$shared";
 
         initSharedClass();
@@ -63,12 +63,12 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     private void initSharedClass() {
-        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), SHARED);
-        HeaderFileBuilder shared = initHeader(sfb, SHARED, null, null);
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), shared);
+        HeaderFileBuilder sharedHeader = initHeader(sfb, shared, null, null);
         otherBuilders.add(sfb);
-        shared.emitBasicPrimitiveTypes();
-        shared.emitRuntimeHelperMethods();
-        shared.classEnd();
+        sharedHeader.emitBasicPrimitiveTypes();
+        sharedHeader.emitRuntimeHelperMethods();
+        sharedHeader.classEnd();
     }
 
     private void initFirstHeader(List<Options.Library> libs, boolean useSystemLoadLibrary) {
@@ -79,7 +79,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
         lastHeader = initHeader(
                 sfb,
                 base + SUFFIX,
-                SHARED,
+                shared,
                 base
         );
         lastHeader.emitLibaryArena();

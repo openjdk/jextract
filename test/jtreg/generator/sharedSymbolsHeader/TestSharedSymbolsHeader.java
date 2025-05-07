@@ -25,7 +25,6 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import testlib.TestUtils;
 import testlib.JextractToolRunner;
-import test.jextract.sharedSymbolsHeader.*;
 import static org.testng.Assert.*;
 
 /*
@@ -34,7 +33,6 @@ import static org.testng.Assert.*;
  * @summary check that header containg the shared symbols was created with the specified name
  * @library /lib
  * @build testlib.JextractToolRunner testlib.TestUtils
- * @run main/othervm JtregJextract -t test.jextract.sharedSymbolsHeader sharedSymbolsHeader.h
  * @run testng/othervm TestSharedSymbolsHeader
  */
 public class TestSharedSymbolsHeader extends JextractToolRunner {
@@ -45,6 +43,18 @@ public class TestSharedSymbolsHeader extends JextractToolRunner {
         runAndCompile(splitOutput, splitH.toString());
         try(TestUtils.Loader loader = TestUtils.classLoader(splitOutput)) {
             assertNotNull(loader.loadClass("sharedSymbolsHeader_h$shared"));
+        } finally {
+            TestUtils.deleteDir(splitOutput);
+        }
+    }
+
+    @Test
+    public void testSharedClassNameOption() {
+        Path splitOutput = getOutputFilePath("sharedSymbolsHeaderCustomName");
+        Path splitH = getInputFilePath("sharedSymbolsHeader.h");
+        runAndCompile(splitOutput, "--symbols-class-name", "CustomName", splitH.toString());
+        try(TestUtils.Loader loader = TestUtils.classLoader(splitOutput)) {
+            assertNotNull(loader.loadClass("CustomName"));
         } finally {
             TestUtils.deleteDir(splitOutput);
         }

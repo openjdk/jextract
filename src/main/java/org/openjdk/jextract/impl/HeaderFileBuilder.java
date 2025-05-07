@@ -349,9 +349,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         appendBlankLine();
         appendIndentedLines(lookupCalls.stream()
                 .collect(Collectors.joining(String.format("\n%1$s", indentString(2)), "static final SymbolLookup SYMBOL_LOOKUP = ", ";")));
+        appendBlankLine();
     }
 
-    void emitLibaryArena(){appendIndentedLines("""
+    void emitLibaryArena(){
+        appendIndentedLines("""
 
             static final Arena LIBRARY_ARENA = Arena.ofAuto();""");
     }

@@ -118,17 +118,24 @@ public final class JextractTool {
     public static List<JavaSourceFile> generate(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, List<Options.Library> libs,
                                                 boolean useSystemLoadLibrary) {
-        return generateInternal(decl, headerName, targetPkg, new IncludeHelper(),
-                libs, useSystemLoadLibrary, Logger.DEFAULT);
+        Options.Builder builder = Options.builder();
+        builder.setTargetPackage(targetPkg);
+        builder.setUseSystemLoadLibrary(useSystemLoadLibrary);
+        libs.forEach(builder::addLibrary);
+        Options options = builder.build();
+        return generateInternal(decl, headerName, targetPkg, options, Logger.DEFAULT);
     }
 
-    private static List<JavaSourceFile> generateInternal(Declaration.Scoped decl, String headerName,
-                                                         String targetPkg, IncludeHelper includeHelper,
-                                                         List<Options.Library> libs, boolean useSystemLoadLibrary,
+
+
+    private static List<JavaSourceFile> generateInternal(Declaration.Scoped decl,
+                                                         String headerName,
+                                                         String targetPkg,
+                                                         Options options,
                                                          Logger logger) {
         var transformedDecl = Stream.of(decl)
                 // process phases that add Skips first
-                .map(new IncludeFilter(includeHelper)::scan)
+                .map(new IncludeFilter(options.includeHelper)::scan)
                 .map(new DuplicateFilter()::scan)
                 .map(new UnsupportedFilter(logger)::scan)
                 // then do the rest
@@ -137,8 +144,8 @@ public final class JextractTool {
                 .findFirst().get();
         return logger.hasErrors() ?
                 List.of() :
-                List.of(OutputFactory.generateWrapped(transformedDecl, targetPkg, libs, useSystemLoadLibrary,
-                        includeHelper.getSharedSymbolsFile()));
+                List.of(OutputFactory.generateWrapped(transformedDecl, targetPkg, options.libraries, options.useSystemLoadLibrary,
+                        options.sharedClassName));
     }
 
     /**
@@ -442,7 +449,7 @@ public final class JextractTool {
         }
 
         if (optionSet.has("--symbols-class-name")) {
-            builder.setSharedUtilsName(optionSet.valueOf("--symbols-class-name"));
+            builder.setSharedClassName(optionSet.valueOf("--symbols-class-name"));
         }
 
         if (optionSet.has("--output")) {
@@ -508,8 +515,8 @@ public final class JextractTool {
                 System.out.println(toplevel);
             }
             files = generateInternal(
-                toplevel, headerName,
-                options.targetPackage, options.includeHelper, options.libraries, options.useSystemLoadLibrary, logger);
+                    toplevel, headerName, targetPackage, options, logger
+            );
 
             if (logger.hasClangErrors()) {
                 return CLANG_ERROR;

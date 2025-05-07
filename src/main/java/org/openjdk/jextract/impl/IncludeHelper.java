@@ -84,10 +84,10 @@ public class IncludeHelper {
     private final EnumMap<IncludeKind, Set<String>> includesSymbolNamesByKind = new EnumMap<>(IncludeKind.class);
     private final Set<Declaration> usedDeclarations = new HashSet<>();
     public String dumpIncludesFile;
-    public String sharedSymbolsFile;
+    public String sharedClassName;
 
-    public String getSharedSymbolsFile() {
-        return sharedSymbolsFile;
+    public String getSharedClassName() {
+        return sharedClassName;
     }
 
     public void addSymbol(IncludeKind kind, String symbolName) {
