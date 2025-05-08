@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -38,16 +38,20 @@ public final class Options {
     public final String targetPackage;
     // output directory
     public final String outputDir;
+    // name of the shared class
+    public String sharedClassName;
     public final IncludeHelper includeHelper;
 
     private Options(List<String> clangArgs, List<Library> libraries, boolean useSystemLoadLibrary,
-                    String targetPackage, String outputDir, IncludeHelper includeHelper) {
+                    String targetPackage, String outputDir, String sharedClassName,
+                    IncludeHelper includeHelper) {
         this.clangArgs = clangArgs;
         this.libraries = libraries;
         this.useSystemLoadLibrary = useSystemLoadLibrary;
         this.targetPackage = targetPackage;
         this.outputDir = outputDir;
         this.includeHelper = includeHelper;
+        this.sharedClassName = sharedClassName;
     }
 
     public static Builder builder() {
@@ -60,6 +64,7 @@ public final class Options {
         private boolean useSystemLoadLibrary;
         private String targetPackage;
         private String outputDir;
+        private String sharedClassName;
         private final IncludeHelper includeHelper = new IncludeHelper();
 
         public Builder() {
@@ -68,13 +73,14 @@ public final class Options {
             this.targetPackage = "";
             this.outputDir = ".";
             this.useSystemLoadLibrary = false;
+            this.sharedClassName = null;
         }
 
         public Options build() {
             return new Options(
                     Collections.unmodifiableList(clangArgs),
                     Collections.unmodifiableList(libraries),
-                    useSystemLoadLibrary, targetPackage, outputDir, includeHelper
+                    useSystemLoadLibrary, targetPackage, outputDir, sharedClassName, includeHelper
             );
         }
 
@@ -100,6 +106,10 @@ public final class Options {
 
         public void setDumpIncludeFile(String dumpIncludesFile) {
             includeHelper.dumpIncludesFile = dumpIncludesFile;
+        }
+
+        public void setSharedClassName(String file) {
+            this.sharedClassName = file;
         }
 
         public void addIncludeSymbol(IncludeHelper.IncludeKind kind, String symbolName) {

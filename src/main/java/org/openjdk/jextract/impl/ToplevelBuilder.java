@@ -43,6 +43,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private static final int DECLS_PER_HEADER_CLASS = Integer.getInteger("jextract.decls.per.header", 1000);
     public static final String PREV_SUFFIX = "#{PREV_SUFFIX}";
     private static final String SUFFIX = "#{SUFFIX}";
+    private final String shared;
 
     private int declCount;
     private final List<SourceFileBuilder> headerBuilders = new ArrayList<>();
@@ -50,41 +51,68 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private HeaderFileBuilder lastHeader;
     private final ClassDesc headerDesc;
 
-    ToplevelBuilder(String packageName, String headerClassName,
-                    List<Options.Library> libs, boolean useSystemLoadLibrary) {
+    ToplevelBuilder(String packageName, String headerClassName, List<Options.Library> libs,
+                    boolean useSystemLoadLibrary, String sharedClassName) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
-        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName, headerClassName);
-        headerBuilders.add(sfb);
-        lastHeader = createFirstHeader(sfb, libs, useSystemLoadLibrary);
+        shared = sharedClassName != null ?
+                sharedClassName :
+                headerDesc.displayName() + "$shared";
+
+        initSharedClass();
+        initFirstHeader(libs, useSystemLoadLibrary);
     }
 
-    private static HeaderFileBuilder createFirstHeader(SourceFileBuilder sfb, List<Options.Library> libs, boolean useSystemLoadLibrary) {
-        HeaderFileBuilder first = new HeaderFileBuilder(sfb, String.format("%1$s#{SUFFIX}",sfb.className()), null, sfb.className());
-        first.appendBlankLine();
-        first.classBegin();
-        first.emitDefaultConstructor();
-        first.emitRuntimeHelperMethods();
-        first.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
-        // emit basic primitive types
-        first.appendIndentedLines("""
+    private void initSharedClass() {
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), shared);
+        HeaderFileBuilder sharedHeader = initHeader(sfb, shared, null, null);
+        otherBuilders.add(sfb);
+        sharedHeader.emitBasicPrimitiveTypes();
+        sharedHeader.emitRuntimeHelperMethods();
+        sharedHeader.classEnd();
+    }
 
-            public static final ValueLayout.OfBoolean C_BOOL = (ValueLayout.OfBoolean) Linker.nativeLinker().canonicalLayouts().get("bool");
-            public static final ValueLayout.OfByte C_CHAR =(ValueLayout.OfByte)Linker.nativeLinker().canonicalLayouts().get("char");
-            public static final ValueLayout.OfShort C_SHORT = (ValueLayout.OfShort) Linker.nativeLinker().canonicalLayouts().get("short");
-            public static final ValueLayout.OfInt C_INT = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get("int");
-            public static final ValueLayout.OfLong C_LONG_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get("long long");
-            public static final ValueLayout.OfFloat C_FLOAT = (ValueLayout.OfFloat) Linker.nativeLinker().canonicalLayouts().get("float");
-            public static final ValueLayout.OfDouble C_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get("double");
-            public static final AddressLayout C_POINTER = ((AddressLayout) Linker.nativeLinker().canonicalLayouts().get("void*"))
-                    .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, C_CHAR));
-            """);
-        if (TypeImpl.IS_WINDOWS) {
-            first.appendIndentedLines("public static final ValueLayout.OfInt C_LONG = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
-            first.appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get(\"double\");");
-        } else {
-            first.appendIndentedLines("public static final ValueLayout.OfLong C_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
-        }
-        return first;
+    private void initFirstHeader(List<Options.Library> libs, boolean useSystemLoadLibrary) {
+        String base = headerDesc.displayName();
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), base);
+        headerBuilders.add(sfb);
+
+        lastHeader = initHeader(
+                sfb,
+                base + SUFFIX,
+                shared,
+                base
+        );
+        lastHeader.emitLibaryArena();
+        lastHeader.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
+    }
+
+    /**
+     * Shared boilerplate: blank line + classBegin + default constructor
+     */
+    private HeaderFileBuilder initHeader(SourceFileBuilder sfb, String classNameWithSuffix,
+                                         String superClass, String extendsClass) {
+        HeaderFileBuilder hfb = new HeaderFileBuilder(sfb, classNameWithSuffix,
+                superClass, extendsClass);
+        hfb.appendBlankLine();
+        hfb.classBegin();
+        hfb.emitDefaultConstructor();
+        return hfb;
+    }
+
+    /**
+     * Creates a new header file chunk
+     */
+    private HeaderFileBuilder newHeaderChunk() {
+        String base = headerDesc.displayName();
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), base);
+        HeaderFileBuilder hfb = initHeader(
+                sfb,
+                base + SUFFIX,
+                base + PREV_SUFFIX,
+                base
+        );
+        headerBuilders.add(sfb);
+        return hfb;
     }
 
     public List<JavaSourceFile> toFiles() {
@@ -178,21 +206,12 @@ class ToplevelBuilder implements OutputFactory.Builder {
 
     private HeaderFileBuilder nextHeader() {
         if (declCount == DECLS_PER_HEADER_CLASS) {
-            SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), mainHeaderClassName());
-            String className = mainHeaderClassName() + SUFFIX;
-            HeaderFileBuilder headerFileBuilder = new HeaderFileBuilder(sfb, className,
-                    mainHeaderClassName() + PREV_SUFFIX, mainHeaderClassName());
             lastHeader.classEnd();
-            headerFileBuilder.appendBlankLine();
-            headerFileBuilder.classBegin();
-            headerFileBuilder.emitDefaultConstructor();
-            headerBuilders.add(sfb);
-            lastHeader = headerFileBuilder;
+            lastHeader = newHeaderChunk();
             declCount = 1;
-            return headerFileBuilder;
         } else {
             declCount++;
-            return lastHeader;
         }
+        return lastHeader;
     }
 }

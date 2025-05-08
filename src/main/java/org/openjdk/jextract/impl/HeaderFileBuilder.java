@@ -351,12 +351,18 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         appendBlankLine();
         appendIndentedLines(lookupCalls.stream()
                 .collect(Collectors.joining(String.format("\n%1$s", indentString(2)), "static final SymbolLookup SYMBOL_LOOKUP = ", ";")));
+        appendBlankLine();
+    }
+
+    void emitLibaryArena(){
+        appendIndentedLines("""
+
+            static final Arena LIBRARY_ARENA = Arena.ofAuto();""");
     }
 
     void emitRuntimeHelperMethods() {
         appendIndentedLines("""
 
-            static final Arena LIBRARY_ARENA = Arena.ofAuto();
             static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
 
             static void traceDowncall(String name, Object... args) {
@@ -390,6 +396,26 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             """);
     }
 
+    void emitBasicPrimitiveTypes(){
+        appendIndentedLines("""
+
+            public static final ValueLayout.OfBoolean C_BOOL = (ValueLayout.OfBoolean) Linker.nativeLinker().canonicalLayouts().get("bool");
+            public static final ValueLayout.OfByte C_CHAR =(ValueLayout.OfByte)Linker.nativeLinker().canonicalLayouts().get("char");
+            public static final ValueLayout.OfShort C_SHORT = (ValueLayout.OfShort) Linker.nativeLinker().canonicalLayouts().get("short");
+            public static final ValueLayout.OfInt C_INT = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get("int");
+            public static final ValueLayout.OfLong C_LONG_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get("long long");
+            public static final ValueLayout.OfFloat C_FLOAT = (ValueLayout.OfFloat) Linker.nativeLinker().canonicalLayouts().get("float");
+            public static final ValueLayout.OfDouble C_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get("double");
+            public static final AddressLayout C_POINTER = ((AddressLayout) Linker.nativeLinker().canonicalLayouts().get("void*"))
+                    .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, C_CHAR));
+            """);
+        if (TypeImpl.IS_WINDOWS) {
+            appendIndentedLines("public static final ValueLayout.OfInt C_LONG = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
+            appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get(\"double\");");
+        } else {
+            appendIndentedLines("public static final ValueLayout.OfLong C_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
+        }
+    }
     private void emitGlobalGetter(String holderClass, String javaName,
                                   Declaration.Variable decl, String docHeader) {
         appendBlankLine();
