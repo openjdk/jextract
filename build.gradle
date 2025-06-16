@@ -94,10 +94,10 @@ tasks.register("copyLibClang", Sync) {
 }
 
 tasks.register("createJextractJmod", Exec) {
-    dependsOn jar, copyLibClang
+    dependsOn copyLibClang
 
     // if these inputs or outputs change, gradle will rerun the task
-    inputs.file(jar.archiveFile.get())
+    inputs.file(tasks.named('jar', Jar).flatMap { it.archiveFile})
     inputs.dir("$jextract_jmod_inputs")
     outputs.file(jextract_jmod_file)
 
