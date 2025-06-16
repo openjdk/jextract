@@ -1,3 +1,4 @@
+import org.apache.groovy.nio.extensions.NioExtensions
 import org.apache.tools.ant.taskdefs.condition.Os
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -97,12 +98,12 @@ tasks.register("createJextractJmod", Exec) {
     dependsOn copyLibClang
 
     // if these inputs or outputs change, gradle will rerun the task
-    inputs.file(tasks.named('jar', Jar).flatMap { it.archiveFile})
+    inputs.file(tasks.named('jar', Jar).flatMap { it.archiveFile })
     inputs.dir("$jextract_jmod_inputs")
     outputs.file(jextract_jmod_file)
 
     doFirst {
-        delete(jextract_jmod_file)
+        Files.deleteIfExists(Path.of(jextract_jmod_file))
     }
 
     executable = "${jdk_home}/bin/jmod"
@@ -119,7 +120,11 @@ tasks.register("createJextractJmod", Exec) {
 tasks.register("createJextractImage", Exec) {
     dependsOn createJextractJmod
 
+    def main_sources = "$projectDir/src/main"
     // if these inputs or outputs change, gradle will rerun the task
+    inputs.file("$main_sources/jextract")
+    inputs.file("$main_sources/jextract.bat")
+    inputs.file("$main_sources/jextract.ps1")
     inputs.file("$jextract_jmod_file")
     outputs.dir(jextract_app_dir)
 
@@ -128,7 +133,7 @@ tasks.register("createJextractImage", Exec) {
         '"--enable-native-access=org.openjdk.jextract"'
 
     doFirst {
-        delete(jextract_app_dir)
+        NioExtensions.deleteDir(Path.of(jextract_app_dir))
         Files.createDirectories(Path.of(jextract_bin_dir))
     }
 
@@ -145,7 +150,7 @@ tasks.register("createJextractImage", Exec) {
     doLast {
         // Add launcher scripts
         Path unixOut = Path.of("${jextract_bin_dir}/jextract");
-        Files.copy(Path.of("$projectDir/src/main/jextract"), unixOut);
+        Files.copy(Path.of("$main_sources/jextract"), unixOut);
         if (unixOut.getFileSystem().supportedFileAttributeViews().contains("posix")) {
             Set<PosixFilePermission> perms = Files.getPosixFilePermissions(unixOut);
             perms.add(PosixFilePermission.OWNER_EXECUTE);
@@ -154,8 +159,8 @@ tasks.register("createJextractImage", Exec) {
             Files.setPosixFilePermissions(unixOut, perms);
         }
 
-        Files.copy(Path.of("$projectDir/src/main/jextract.bat"), Path.of("${jextract_bin_dir}/jextract.bat"))
-        Files.copy(Path.of("$projectDir/src/main/jextract.ps1"), Path.of("${jextract_bin_dir}/jextract.ps1"))
+        Files.copy(Path.of("$main_sources/jextract.bat"), Path.of("${jextract_bin_dir}/jextract.bat"))
+        Files.copy(Path.of("$main_sources/jextract.ps1"), Path.of("${jextract_bin_dir}/jextract.ps1"))
     }
 }
 
