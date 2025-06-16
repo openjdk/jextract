@@ -70,7 +70,7 @@ jar {
     archiveVersion = project.version
 }
 
-task copyLibClang(type: Sync) {
+tasks.register("copyLibClang", Sync) {
     into("$buildDir/jmod_inputs")
 
     // make sure we only pick up the "real" shared library file from LLVM installation
@@ -93,7 +93,7 @@ task copyLibClang(type: Sync) {
     }
 }
 
-task createJextractJmod(type: Exec) {
+tasks.register("createJextractJmod", Exec) {
     dependsOn jar, copyLibClang
 
     // if these inputs or outputs change, gradle will rerun the task
@@ -116,7 +116,7 @@ task createJextractJmod(type: Exec) {
     ]
 }
 
-task createJextractImage(type: Exec) {
+tasks.register("createJextractImage", Exec) {
     dependsOn createJextractJmod
 
     // if these inputs or outputs change, gradle will rerun the task
@@ -163,7 +163,7 @@ task createJextractImage(type: Exec) {
 assemble.dependsOn(createJextractImage)
 
 // very simple integration test for generated jextract
-task verify(type: Exec) {
+tasks.register("verify", Exec) {
     dependsOn createJextractImage
 
     executable = "${jextract_bin_dir}/jextract${os_script_extension}"
@@ -171,7 +171,7 @@ task verify(type: Exec) {
 }
 
 // jlink a JDK image with org.openjdk.jextract for testing
-task createRuntimeImageForTest(type: Exec) {
+tasks.register("createRuntimeImageForTest", Exec) {
     dependsOn createJextractJmod
 
     def out_dir = "$buildDir/jextract-jdk-test-image"
@@ -192,7 +192,7 @@ task createRuntimeImageForTest(type: Exec) {
     ]
 }
 
-task cmakeConfigure(type: Exec) {
+tasks.register("cmakeConfigure", Exec) {
     executable = "cmake"
     args = [
         "-B", "$buildDir/testlib-build",
@@ -203,7 +203,7 @@ task cmakeConfigure(type: Exec) {
     ]
 }
 
-task cmakeBuild(type: Exec) {
+tasks.register("cmakeBuild", Exec) {
     dependsOn cmakeConfigure
 
     executable = "cmake"
