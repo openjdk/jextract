@@ -137,6 +137,11 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
+    public void addEnum(Declaration.Scoped tree, String name) {
+        nextHeader().addEnum(tree, name);
+    }
+
+    @Override
     public void addTypedef(Declaration.Typedef typedefTree, String superClass, Type type) {
         String javaName = JavaName.getOrThrow(typedefTree);
         if (type instanceof Type.Primitive primitive) {
@@ -159,15 +164,6 @@ class ToplevelBuilder implements OutputFactory.Builder {
         StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree);
         structBuilder.begin();
         return structBuilder;
-    }
-
-    @Override
-    public EnumBuilder addEnum(Declaration.Scoped tree, String name) {
-        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), name);
-        otherBuilders.add(sfb);
-        EnumBuilder enumBuilder = new EnumBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree);
-        enumBuilder.build();
-        return enumBuilder;
     }
 
     @Override

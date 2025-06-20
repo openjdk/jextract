@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.Iterator;
 
 /**
  * A helper class to generate header interface class in source form.
@@ -89,6 +90,10 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     public void addConstant(Declaration.Constant constantTree) {
         Object value = constantTree.value();
         emitConstant(Utils.carrierFor(constantTree.type()), JavaName.getOrThrow(constantTree), value, constantTree);
+    }
+
+    public void addEnum(Declaration.Scoped enumTree, String name) {
+        emitEnum(enumTree, name);
     }
 
     // private generation
@@ -499,6 +504,45 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         }
         decrAlign();
         return mangledName;
+    }
+
+    private void emitEnum(Declaration.Scoped enumTree, String enumName) {
+        incrAlign();
+        emitDocComment(enumTree);
+        appendLines(STR."""
+            public enum \{enumName} {
+            """);
+        Iterator<Declaration> it = enumTree.members().iterator();
+        StringBuilder sb = new StringBuilder();
+        while (it.hasNext()) {
+            Declaration.Constant member = (Declaration.Constant)it.next();
+            String memberName = member.name().toUpperCase();
+            sb.append(STR."\{memberName}(\{member.value()})");
+            if (it.hasNext()) {
+                sb.append(",\n");
+            }
+        }
+        appendIndentedLines(sb.append(";").toString());
+        appendBlankLine();
+        appendIndentedLines(STR."""
+            private final int value;
+            """);
+        appendBlankLine();
+        appendIndentedLines(STR."""
+            private \{enumName}(int value) {;
+                this.value = value;
+            }
+            """);
+        appendBlankLine();
+        appendIndentedLines(STR."""
+            public int getValue() {
+                return this.value;
+            }
+            """);
+        appendLines(STR."""
+            }
+            """);
+        decrAlign();
     }
 
     private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {

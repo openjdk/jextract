@@ -231,7 +231,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        default EnumBuilder addEnum(Declaration.Scoped enumTree, String name) {
+        default void addEnum(Declaration.Scoped enumTree, String name) {
             throw new UnsupportedOperationException("Not implemented");
         }
     }

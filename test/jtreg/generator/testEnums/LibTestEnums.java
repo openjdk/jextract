@@ -22,13 +22,12 @@
  */
 
 import org.testng.annotations.Test;
-
-import test.jextract.testEnums.CodetypeT;
-import test.jextract.testEnums.Size;
-import test.jextract.testEnums.Temp;
-import test.jextract.testEnums.TempT;
-
 import static org.testng.Assert.assertEquals;
+import static test.jextract.testEnums.testEnums_h.CodetypeT;
+import static test.jextract.testEnums.testEnums_h.Size;
+import static test.jextract.testEnums.testEnums_h.Temp;
+import static test.jextract.testEnums.testEnums_h.TempT;
+
 /*
  * @test
  * @library /lib
