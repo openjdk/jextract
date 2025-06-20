@@ -39,15 +39,17 @@ public final class Options {
     // output directory
     public final String outputDir;
     public final IncludeHelper includeHelper;
+    public final Boolean includeJavaEnums;
 
     private Options(List<String> clangArgs, List<Library> libraries, boolean useSystemLoadLibrary,
-                    String targetPackage, String outputDir, IncludeHelper includeHelper) {
+                    String targetPackage, String outputDir, IncludeHelper includeHelper, Boolean includeJavaEnums) {
         this.clangArgs = clangArgs;
         this.libraries = libraries;
         this.useSystemLoadLibrary = useSystemLoadLibrary;
         this.targetPackage = targetPackage;
         this.outputDir = outputDir;
         this.includeHelper = includeHelper;
+        this.includeJavaEnums  = includeJavaEnums;
     }
 
     public static Builder builder() {
@@ -61,6 +63,7 @@ public final class Options {
         private String targetPackage;
         private String outputDir;
         private final IncludeHelper includeHelper = new IncludeHelper();
+        private Boolean includeJavaEnums;
 
         public Builder() {
             this.clangArgs = new ArrayList<>();
@@ -68,13 +71,14 @@ public final class Options {
             this.targetPackage = "";
             this.outputDir = ".";
             this.useSystemLoadLibrary = false;
+            this.includeJavaEnums = false;
         }
 
         public Options build() {
             return new Options(
                     Collections.unmodifiableList(clangArgs),
                     Collections.unmodifiableList(libraries),
-                    useSystemLoadLibrary, targetPackage, outputDir, includeHelper
+                    useSystemLoadLibrary, targetPackage, outputDir, includeHelper, includeJavaEnums
             );
         }
 
@@ -104,6 +108,10 @@ public final class Options {
 
         public void addIncludeSymbol(IncludeHelper.IncludeKind kind, String symbolName) {
             includeHelper.addSymbol(kind, symbolName);
+        }
+
+        public void setIncludeJavaEnums(Boolean includeJavaEnums) {
+            this.includeJavaEnums = includeJavaEnums;
         }
     }
 

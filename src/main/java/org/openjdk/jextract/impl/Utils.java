@@ -278,4 +278,29 @@ class Utils {
                 type.argumentTypes().stream().map(Utils::carrierFor).toList()
         );
     }
+
+    public static String toPascalCase(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        boolean capitalizeNext = true;
+
+        for (int i = 0; i < text.length(); i++) {
+            char currentChar = text.charAt(i);
+
+            if (!Character.isLetter(currentChar)) {
+                capitalizeNext = true;
+            } else {
+                if (capitalizeNext) {
+                    builder.append(Character.toUpperCase(currentChar));
+                    capitalizeNext = false;
+                } else {
+                    builder.append(Character.toLowerCase(currentChar));
+                }
+            }
+        }
+        return builder.toString();
+    }
 }

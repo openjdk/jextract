@@ -71,6 +71,10 @@ public class JtregJextract {
                 break;
             }
 
+            if ("--generate-java-enums".equals(opt)) {
+                jextrOpts.add("--generate-java-enums");
+            }
+
             if ("--output".equals(opt)) {
                 i++;
                 continue;

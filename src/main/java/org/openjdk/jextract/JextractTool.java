@@ -121,28 +121,28 @@ public final class JextractTool {
 
     public static List<JavaSourceFile> generate(Declaration.Scoped decl, String headerName,
                                                 String targetPkg, List<Options.Library> libs,
-                                                boolean useSystemLoadLibrary, PrintWriter errStream) {
-        return List.of(generate(decl, headerName, targetPkg, new IncludeHelper(), libs, useSystemLoadLibrary, errStream));
+                                                boolean useSystemLoadLibrary, PrintWriter errStream, Boolean includeJavaEnums) {
+        return List.of(generate(decl, headerName, targetPkg, new IncludeHelper(), libs, useSystemLoadLibrary, errStream, includeJavaEnums));
     }
 
     private static List<JavaSourceFile> generateInternal(Declaration.Scoped decl, String headerName,
                                                          String targetPkg, IncludeHelper includeHelper,
                                                          List<Options.Library> libs, boolean useSystemLoadLibrary,
-                                                         PrintWriter errStream) {
-        return List.of(generate(decl, headerName, targetPkg, includeHelper, libs, useSystemLoadLibrary, errStream));
+                                                         PrintWriter errStream, Boolean includeJavaEnums) {
+        return List.of(generate(decl, headerName, targetPkg, includeHelper, libs, useSystemLoadLibrary, errStream, includeJavaEnums));
     }
 
     private static JavaSourceFile[] generate(Declaration.Scoped decl, String headerName,
                                              String targetPkg, IncludeHelper includeHelper,
                                              List<Options.Library> libs, boolean useSystemLoadLibrary,
-                                             PrintWriter errStream) {
+                                             PrintWriter errStream, Boolean includeJavaEnums) {
         var transformedDecl = Stream.of(decl)
                 .map(new IncludeFilter(includeHelper)::scan)
                 .map(new DuplicateFilter()::scan)
                 .map(new NameMangler(headerName)::scan)
                 .map(new UnsupportedFilter(errStream)::scan)
                 .findFirst().get();
-        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libs, useSystemLoadLibrary);
+        return OutputFactory.generateWrapped(transformedDecl, targetPkg, libs, useSystemLoadLibrary, includeJavaEnums);
     }
 
     /**
@@ -390,6 +390,7 @@ public final class JextractTool {
         parser.accepts("--output", format("help.output"), true);
         parser.accepts("-t", List.of("--target-package"), format("help.t"), true);
         parser.accepts("--version", format("help.version"), false);
+        parser.accepts("--generate-java-enums", format("help.generate-java-enums"), false);
 
         OptionSet optionSet;
         try {
@@ -470,6 +471,10 @@ public final class JextractTool {
             builder.setOutputDir(optionSet.valueOf("--output"));
         }
 
+        if (optionSet.has("--generate-java-enums")) {
+            builder.setIncludeJavaEnums(true);
+        }
+
         boolean useSystemLoadLibrary = optionSet.has("--use-system-load-library");
         if (useSystemLoadLibrary) {
             builder.setUseSystemLoadLibrary(true);
@@ -525,7 +530,7 @@ public final class JextractTool {
 
             files = generateInternal(
                 toplevel, headerName,
-                options.targetPackage, options.includeHelper, options.libraries, options.useSystemLoadLibrary, err);
+                options.targetPackage, options.includeHelper, options.libraries, options.useSystemLoadLibrary, err, options.includeJavaEnums);
         } catch (ClangException ce) {
             err.println(ce.getMessage());
             if (JextractTool.DEBUG) {

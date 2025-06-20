@@ -162,6 +162,15 @@ class ToplevelBuilder implements OutputFactory.Builder {
     }
 
     @Override
+    public EnumBuilder addEnum(Declaration.Scoped tree, String name) {
+        SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), name);
+        otherBuilders.add(sfb);
+        EnumBuilder enumBuilder = new EnumBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree);
+        enumBuilder.build();
+        return enumBuilder;
+    }
+
+    @Override
     public void addFunctionalInterface(Declaration parentDecl, Type.Function funcType) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaFunctionalInterfaceName.getOrThrow(parentDecl));
         otherBuilders.add(sfb);

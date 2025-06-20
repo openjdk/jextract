@@ -33,6 +33,7 @@ import org.openjdk.jextract.impl.DeclarationImpl.Skip;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /*
  * Scan a header file and generate Java source items for entities defined in that header
@@ -42,12 +43,14 @@ import java.util.List;
 public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
     protected final ToplevelBuilder toplevelBuilder;
     protected Builder currentBuilder;
+    private static Boolean includeJavaEnums;
 
     public static JavaSourceFile[] generateWrapped(Declaration.Scoped decl,
                                                    String pkgName,
-                                                   List<Options.Library> libs, boolean useSystemLoadLibrary) {
+                                                   List<Options.Library> libs, boolean useSystemLoadLibrary, Boolean includeJavaEnums) {
         String clsName = JavaName.getOrThrow(decl);
         ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName, libs, useSystemLoadLibrary);
+        OutputFactory.includeJavaEnums = includeJavaEnums;
         return new OutputFactory(toplevelBuilder).generate(decl);
     }
 
@@ -103,6 +106,9 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                 currentBuilder = prevBuilder;
             }
         }
+        if(includeJavaEnums && Utils.isEnum(d) && !d.name().isEmpty()) {
+           toplevelBuilder.addEnum(d, Utils.toPascalCase(d.name()));
+        }
         return null;
     }
 
@@ -144,7 +150,7 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
         Type type = tree.type();
         Utils.forEachNested(tree, s -> s.accept(this, null));
-
+        Optional<List<Declaration.Scoped>> nde = NestedDeclarations.get(tree);
         Declaration.Scoped structOrUnionDecl = Utils.structOrUnionDecl(type);
         if (structOrUnionDecl != null) {
             if (!structOrUnionDecl.name().isEmpty() ||
@@ -154,6 +160,8 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                 // which indicates a typedef of some other typedef.
                 toplevelBuilder.addTypedef(tree, JavaName.getFullNameOrThrow(structOrUnionDecl));
             }
+        } else if (includeJavaEnums && Utils.isEnum(type) && nde.isPresent() && !nde.get().isEmpty()) {
+            toplevelBuilder.addEnum(nde.get().get(0), Utils.toPascalCase(tree.name()));
         } else if (type instanceof Type.Primitive) {
             toplevelBuilder.addTypedef(tree, null);
         } else {
@@ -220,6 +228,10 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
         }
 
         default void addFunctionalInterface(Declaration parentDecl, Type.Function funcType) {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        default EnumBuilder addEnum(Declaration.Scoped enumTree, String name) {
             throw new UnsupportedOperationException("Not implemented");
         }
     }

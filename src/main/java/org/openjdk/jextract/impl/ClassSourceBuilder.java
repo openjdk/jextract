@@ -51,7 +51,8 @@ import java.util.stream.IntStream;
 abstract class ClassSourceBuilder {
     enum Kind {
         CLASS("class"),
-        INTERFACE("interface");
+        INTERFACE("interface"),
+        ENUM("enum");
 
         final String kindName;
 
