@@ -38,6 +38,7 @@ import java.util.function.Consumer;
 
 import static oracle.code.onnx.foreign.ort_genai_c_h$shared.*;
 import static oracle.code.onnx.foreign.ort_genai_c_h.*;
+import oracle.code.onnx.foreign.ort_genai_c_h;
 
 public class OnnxGenerator implements AutoCloseable {
 
@@ -57,14 +58,20 @@ You are a helpful assistant.<|end|>
     public OnnxGenerator(String modelPath, Consumer<String> out) {
         arena = Arena.ofConfined();
         ret = arena.allocate(C_POINTER);
-        model = call(OgaCreateModel(arena.allocateFrom(modelPath), ret));
-        tokenizer = call(OgaCreateTokenizer(model, ret));
-        tokenizerStream = call(OgaCreateTokenizerStream(tokenizer, ret));
-        generatorParams = call(OgaCreateGeneratorParams(model, ret));
-        call(OgaGeneratorParamsSetSearchNumber(generatorParams, arena.allocateFrom("max_length"), 1024)); // this is necessary to run with GPU model
-        generator = call(OgaCreateGenerator(model, generatorParams, ret));
-        count = arena.allocate(C_LONG);
         this.out = out;
+
+        model = call(OgaCreateModel(arena.allocateFrom(modelPath), ret))
+                .reinterpret(arena, ort_genai_c_h::OgaDestroyModel);
+        tokenizer = call(OgaCreateTokenizer(model, ret))
+                .reinterpret(arena, ort_genai_c_h::OgaDestroyTokenizer);
+        tokenizerStream = call(OgaCreateTokenizerStream(tokenizer, ret))
+                .reinterpret(arena, ort_genai_c_h::OgaDestroyTokenizerStream);
+        generatorParams = call(OgaCreateGeneratorParams(model, ret))
+                .reinterpret(arena, ort_genai_c_h::OgaDestroyGeneratorParams);
+        call(OgaGeneratorParamsSetSearchNumber(generatorParams, arena.allocateFrom("max_length"), 1024)); // this is necessary to run with GPU model
+        generator = call(OgaCreateGenerator(model, generatorParams, ret))
+                .reinterpret(arena, ort_genai_c_h::OgaDestroyGenerator);
+        count = arena.allocate(C_LONG);
     }
 
     public static void main(String[] args) throws Exception {
@@ -120,12 +127,7 @@ You are a helpful assistant.<|end|>
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         arena.close();
-        OgaDestroyGenerator(generator);
-        OgaDestroyGeneratorParams(generatorParams);
-        OgaDestroyTokenizerStream(tokenizerStream);
-        OgaDestroyTokenizer(tokenizer);
-        OgaDestroyModel(model);
     }
 }
