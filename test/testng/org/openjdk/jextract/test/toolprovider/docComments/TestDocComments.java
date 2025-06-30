@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -69,10 +69,10 @@ public class TestDocComments extends JextractToolRunner {
     public void testTypedefs() throws IOException {
         var comments = getDocComments("typedefs.h", "typedefs_h.java");
         assertEquals(comments, List.of(
-            "typedef unsigned long long size_t",
             "typedef int INT_32",
             "typedef int *INT_PTR",
-            "typedef struct Foo *OPAQUE_PTR"));
+            "typedef struct Foo *OPAQUE_PTR",
+            "typedef unsigned long long size_t"));
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -38,6 +38,7 @@ import org.openjdk.jextract.clang.TranslationUnit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -91,6 +92,8 @@ public class Parser {
         });
 
         decls.addAll(macroParser.macroTable.reparseConstants());
+        decls.sort(Comparator.comparing(Declaration::name, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(Declaration::name, Comparator.reverseOrder()));
         Declaration.Scoped rv = treeMaker.createHeader(tuCursor, decls);
         return rv;
     }
