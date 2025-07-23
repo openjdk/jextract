@@ -33,7 +33,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -82,12 +84,35 @@ public class IncludeHelper {
     }
 
     private final EnumMap<IncludeKind, Set<String>> includesSymbolNamesByKind = new EnumMap<>(IncludeKind.class);
+
+    private final Map<String, Set<String>> propertiesByName = new HashMap<>();
+
     private final Set<Declaration> usedDeclarations = new HashSet<>();
     public String dumpIncludesFile;
 
+    /**
+     * Register an include, may be:Name or Name,flag1,flag2 orName,prop=value,flag
+     */
     public void addSymbol(IncludeKind kind, String symbolName) {
-        Set<String> names = includesSymbolNamesByKind.computeIfAbsent(kind, (_unused) -> new HashSet<>());
-        names.add(symbolName);
+        String[] parts = symbolName.split(",", 2);
+        String name = parts[0].trim();
+
+        includesSymbolNamesByKind.computeIfAbsent(kind, k -> new HashSet<>())
+                .add(name);
+
+        if (parts.length == 2) {
+            Set<String> props = propertiesByName
+                    .computeIfAbsent(name, k -> new HashSet<>());
+            for (String tok : parts[1].split(",")) {
+                props.add(tok.trim());
+            }
+        }
+
+        if (kind == IncludeKind.STRUCT || kind == IncludeKind.UNION) {
+            includesSymbolNamesByKind
+                    .computeIfAbsent(IncludeKind.TYPEDEF, k -> new HashSet<>())
+                    .add(name);
+        }
     }
 
     public boolean isIncluded(Declaration.Variable variable) {
@@ -111,24 +136,24 @@ public class IncludeHelper {
     }
 
     private boolean checkIncludedAndAddIfNeeded(IncludeKind kind, Declaration declaration) {
-        boolean included = isIncludedInternal(kind, declaration);
+        boolean included = !isEnabled()
+                || includesSymbolNamesByKind
+                .getOrDefault(kind, Collections.emptySet())
+                .contains(declaration.name());
         if (included && dumpIncludesFile != null) {
             usedDeclarations.add(declaration);
         }
         return included;
     }
 
-    private boolean isIncludedInternal(IncludeKind kind, Declaration declaration) {
-        if (!isEnabled()) {
-            return true;
-        } else {
-            Set<String> names = includesSymbolNamesByKind.computeIfAbsent(kind, (_unused) -> new HashSet<>());
-            return names.contains(declaration.name());
-        }
+    public boolean isEnabled() {
+        return !includesSymbolNamesByKind.isEmpty();
     }
 
-    public boolean isEnabled() {
-        return includesSymbolNamesByKind.size() > 0;
+    public boolean isFunctionalDispatch(String name) {
+        return propertiesByName
+                .getOrDefault(name, Collections.emptySet())
+                .contains("functional");
     }
 
     public void dumpIncludes() {
@@ -139,8 +164,9 @@ public class IncludeHelper {
                             Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Declaration::name)))));
             String lineSep = "";
             for (Map.Entry<Path, Set<Declaration>> pathEntries : declsByPath.entrySet()) {
-                writer.append(lineSep);
-                writer.append("#### Extracted from: " + pathEntries.getKey().toString() + "\n\n");
+                writer.append(lineSep)
+                        .append("#### Extracted from: ")
+                        .append(pathEntries.getKey().toString()).append("\n\n");
                 Map<IncludeKind, List<Declaration>> declsByKind = pathEntries.getValue().stream()
                         .collect(Collectors.groupingBy(IncludeKind::fromDeclaration));
                 int maxLengthOptionCol = pathEntries.getValue().stream().mapToInt(d -> d.name().length()).max().getAsInt();
@@ -149,9 +175,9 @@ public class IncludeHelper {
                 maxLengthOptionCol += 1; // space
                 for (Map.Entry<IncludeKind, List<Declaration>> kindEntries : declsByKind.entrySet()) {
                     for (Declaration d : kindEntries.getValue()) {
-                        writer.append(String.format("%-" + maxLengthOptionCol + "s %s",
+                        writer.append(String.format("%-" + maxLengthOptionCol + "s %s\n",
                                 "--" + kindEntries.getKey().optionName() + " " + d.name(),
-                                       "# header: " + pathEntries.getKey() + "\n"));
+                                "# header: " + pathEntries.getKey()));
                     }
                 }
                 lineSep = "\n";

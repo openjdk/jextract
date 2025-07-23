@@ -47,10 +47,11 @@ public class OutputFactory implements Declaration.Visitor<Void, Declaration> {
                                                    String pkgName,
                                                    List<Options.Library> libs,
                                                    boolean useSystemLoadLibrary,
+                                                   IncludeHelper includeHelper,
                                                    String sharedClassName) {
         String clsName = JavaName.getOrThrow(decl);
         ToplevelBuilder toplevelBuilder = new ToplevelBuilder(pkgName, clsName,
-                libs, useSystemLoadLibrary, sharedClassName);
+                libs, useSystemLoadLibrary, sharedClassName, includeHelper);
         return new OutputFactory(toplevelBuilder).generate(decl);
     }
 

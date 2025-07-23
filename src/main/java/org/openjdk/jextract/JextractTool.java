@@ -145,7 +145,7 @@ public final class JextractTool {
         return logger.hasErrors() ?
                 List.of() :
                 List.of(OutputFactory.generateWrapped(transformedDecl, targetPkg, options.libraries, options.useSystemLoadLibrary,
-                        options.sharedClassName));
+                        options.includeHelper, options.sharedClassName));
     }
 
     /**

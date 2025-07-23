@@ -52,13 +52,18 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     private final Declaration.Scoped structTree;
     private final Type structType;
     private final Deque<Declaration> nestedAnonDeclarations;
+    private final IncludeHelper includeHelper;
+    private final boolean functionalDispatch;
 
     StructBuilder(SourceFileBuilder builder, String modifiers, String className,
-                  ClassSourceBuilder enclosing, String runtimeHelperName, Declaration.Scoped structTree) {
+                  ClassSourceBuilder enclosing, String runtimeHelperName, Declaration.Scoped structTree,
+                  IncludeHelper includeHelper) {
         super(builder, modifiers, Kind.CLASS, className, null, enclosing, runtimeHelperName);
         this.structTree = structTree;
         this.structType = Type.declared(structTree);
         this.nestedAnonDeclarations = new ArrayDeque<>();
+        this.functionalDispatch = includeHelper.isFunctionalDispatch(builder.className());
+        this.includeHelper = includeHelper;
     }
 
     private String safeParameterName(String paramName) {
@@ -116,7 +121,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
             return this;
         } else {
             StructBuilder builder = new StructBuilder(sourceFileBuilder(), "public static",
-                    JavaName.getOrThrow(tree), this, runtimeHelperName(), tree);
+                    JavaName.getOrThrow(tree), this, runtimeHelperName(), tree, this.includeHelper);
             builder.begin();
             return builder;
         }
@@ -137,10 +142,11 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String layoutField = emitLayoutFieldDecl(varTree, javaName);
         appendBlankLine();
         String offsetField = emitOffsetFieldDecl(varTree, javaName);
-        if (Utils.isArray(varTree.type()) || Utils.isStructOrUnion(varTree.type())) {
+        Type type = varTree.type();
+        if (Utils.isArray(type) || Utils.isStructOrUnion(type)) {
             emitSegmentGetter(javaName, varTree, offsetField, layoutField);
             emitSegmentSetter(javaName, varTree, offsetField, layoutField);
-            int dims = Utils.dimensions(varTree.type()).size();
+            int dims = Utils.dimensions(type).size();
             if (dims > 0) {
                 emitDimensionsFieldDecl(varTree, javaName);
                 String arrayHandle = emitArrayElementHandle(javaName, varTree, layoutField, dims);
@@ -148,12 +154,88 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 emitFieldArrayGetter(javaName, varTree, arrayHandle, indexList);
                 emitFieldArraySetter(javaName, varTree, arrayHandle, indexList);
             }
-        } else if (Utils.isPointer(varTree.type()) || Utils.isPrimitive(varTree.type())) {
-            emitFieldGetter(javaName, varTree, layoutField, offsetField);
-            emitFieldSetter(javaName, varTree, layoutField, offsetField);
+        } else if (Utils.isPointer(type) || Utils.isPrimitive(type)) {
+            boolean isFuncPtr = functionalDispatch && Utils.isFunctionPointer(type);
+            if (isFuncPtr) {
+                emitFieldSetter(javaName, varTree, layoutField, offsetField);
+                emitFunctionalConvenience(
+                        javaName,
+                        (Type.Function)((Type.Delegated) type).type(),
+                        varTree,
+                        layoutField,
+                        offsetField
+                );
+            } else {
+                emitFieldGetter(javaName, varTree, layoutField, offsetField);
+                emitFieldSetter(javaName, varTree, layoutField, offsetField);
+            }
         } else {
-            throw new IllegalArgumentException(String.format("Type not supported: %1$s", varTree.type()));
+            throw new IllegalArgumentException("Type not supported: " + type);
         }
+    }
+
+    /**
+     * Generates exactly one invoker, inlining the struct.get(...) to avoid name collision.
+     */
+    private void emitFunctionalConvenience(String invokerName,
+                                           Type.Function funcType,
+                                           Declaration.Variable varTree,
+                                           String layoutField,
+                                           String offsetField) {
+        String returnType = Utils.carrierFor(funcType.returnType()).getSimpleName();
+        List<Type> params = funcType.argumentTypes();
+
+        String sig  = IntStream.range(0, params.size())
+                .mapToObj(i -> Utils.carrierFor(params.get(i)).getSimpleName() + " _x" + i)
+                .collect(Collectors.joining(", "));
+        String args = IntStream.range(0, params.size())
+                .mapToObj(i -> "_x" + i)
+                .collect(Collectors.joining(", "));
+
+        boolean structRet = !Utils.isPrimitive(funcType.returnType())
+                && !Utils.isPointer(funcType.returnType());
+        String retKw = returnType.equals("void") ? "" : "return ";
+
+        appendBlankLine();
+        incrAlign();
+        emitDocComment(varTree, "Invoker for the pointer inside the Struct:");
+        decrAlign();
+
+        if (structRet) {
+            appendIndentedLines(
+                    "public static %1$s %2$s(MemorySegment struct, SegmentAllocator alloc%3$s) {",
+                    returnType, invokerName, sig.isEmpty() ? "" : ", " + sig
+            );
+            incrAlign();
+            appendIndentedLines(
+                    "MemorySegment fp = struct.get(%1$s, %2$s);",
+                    layoutField, offsetField
+            );
+            appendIndentedLines(
+                    "%1$s%2$s.invoke(fp, alloc%3$s);",
+                    retKw,
+                    JavaFunctionalInterfaceName.getOrThrow(varTree),
+                    args.isEmpty() ? "" : ", " + args
+            );
+        } else {
+            appendIndentedLines(
+                    "public static %1$s %2$s(MemorySegment struct%3$s) {",
+                    returnType, invokerName, sig.isEmpty() ? "" : ", " + sig
+            );
+            incrAlign();
+            appendIndentedLines(
+                    "MemorySegment fp = struct.get(%1$s, %2$s);",
+                    layoutField, offsetField
+            );
+            appendIndentedLines(
+                    "%1$s%2$s.invoke(fp%3$s);",
+                    retKw,
+                    JavaFunctionalInterfaceName.getOrThrow(varTree),
+                    args.isEmpty() ? "" : ", " + args
+            );
+        }
+        decrAlign();
+        appendIndentedLines("}");
     }
 
     private List<String> prefixNamesList() {
@@ -490,7 +572,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                     offset += fieldSize;
                     size += fieldSize;
                 } else {
-                    size = Math.max(size, ClangSizeOf.getOrThrow(member));
+                    size = Math.max(size, fieldSize);
                 }
             }
         }

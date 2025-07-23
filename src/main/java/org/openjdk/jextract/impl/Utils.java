@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -150,6 +150,17 @@ class Utils {
             default -> false;
         };
     }
+
+    static boolean isFunctionPointer(Type type) {
+        return switch (type) {
+            case Type.Delegated delegated when delegated.kind() == Delegated.Kind.POINTER ->
+                    delegated.type() instanceof Type.Function;
+            case Type.Delegated delegated when delegated.kind() == Delegated.Kind.TYPEDEF ->
+                    isFunctionPointer(delegated.type());
+            default -> false;
+        };
+    }
+
 
     static boolean isPrimitive(Type type) {
         return switch (type) {

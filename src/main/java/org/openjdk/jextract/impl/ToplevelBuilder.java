@@ -50,10 +50,12 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private final List<SourceFileBuilder> otherBuilders = new ArrayList<>();
     private HeaderFileBuilder lastHeader;
     private final ClassDesc headerDesc;
+    private final IncludeHelper includeHelper;
 
     ToplevelBuilder(String packageName, String headerClassName, List<Options.Library> libs,
-                    boolean useSystemLoadLibrary, String sharedClassName) {
+                    boolean useSystemLoadLibrary, String sharedClassName, IncludeHelper includeHelper) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
+        this.includeHelper = includeHelper;
         shared = sharedClassName != null ?
                 sharedClassName :
                 headerDesc.displayName() + "$shared";
@@ -126,6 +128,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
             // adjust suffixes so that the last header class becomes the main header class,
             // and extends all the other header classes
             int totalHeaders = headerBuilders.size();
+            String className = headerBuilders.get(0).className();
             for (int i = 0; i < totalHeaders; i++) {
                 SourceFileBuilder header = headerBuilders.get(i);
                 boolean isMainHeader = (i == totalHeaders - 1); // last header is the main header
@@ -133,7 +136,6 @@ class ToplevelBuilder implements OutputFactory.Builder {
                         "" : // main header class, drop the suffix
                         String.format("_%d", totalHeaders - i - 1);
                 String preSuffix = String.format("_%d", totalHeaders - i);
-                String className = headerBuilders.getFirst().className();
                 String modifier = isMainHeader ? "public " : "";
 
                 files.add(header.toFile(currentSuffix, s ->
@@ -192,7 +194,14 @@ class ToplevelBuilder implements OutputFactory.Builder {
     public StructBuilder addStruct(Declaration.Scoped tree) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaName.getOrThrow(tree));
         otherBuilders.add(sfb);
-        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree);
+        StructBuilder structBuilder = new StructBuilder(sfb,
+                "public",
+                sfb.className(),
+                null,
+                mainHeaderClassName(),
+                tree,
+                includeHelper
+        );
         structBuilder.begin();
         return structBuilder;
     }
