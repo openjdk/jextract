@@ -40,6 +40,7 @@ import java.util.function.Consumer;
 
 import static org.openjdk.jextract.clang.LibClang.STRING_ALLOCATOR;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_INT;
+import static org.openjdk.jextract.clang.libclang.Index_h.C_LONG;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 
 public class TranslationUnit extends ClangDisposable {
@@ -86,7 +87,7 @@ public class TranslationUnit extends ClangDisposable {
                 MemorySegment start = files.asSlice(i * CXUnsavedFile.sizeof());
                 start.set(C_POINTER, FILENAME_OFFSET, arena.allocateFrom(inMemoryFiles[i].file));
                 start.set(C_POINTER, CONTENTS_OFFSET, arena.allocateFrom(inMemoryFiles[i].contents));
-                start.set(C_INT, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
+                start.set(C_LONG, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
             }
             ErrorCode code;
             int tries = 0;
