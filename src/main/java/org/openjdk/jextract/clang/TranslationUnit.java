@@ -90,10 +90,10 @@ public class TranslationUnit extends ClangDisposable {
                 start.set(C_POINTER, CONTENTS_OFFSET, arena.allocateFrom(inMemoryFiles[i].contents));
                 if (C_LONG instanceof ValueLayout.OfInt) {
                    start.set((ValueLayout.OfInt) C_LONG, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
-		}
+                }
                 else {
                    start.set((ValueLayout.OfLong) C_LONG, LENGTH_OFFSET, (long) inMemoryFiles[i].contents.length());
-		}
+                }
             }
             ErrorCode code;
             int tries = 0;
