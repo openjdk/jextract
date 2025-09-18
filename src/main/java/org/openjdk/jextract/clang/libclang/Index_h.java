@@ -103,7 +103,7 @@ public class Index_h {
     private static ValueLayout detectCLongLayout() {
         MemoryLayout layout = Linker.nativeLinker().canonicalLayouts().get("long");
         if (layout.byteSize() == 4) {
-	    return ValueLayout.JAVA_INT;
+            return ValueLayout.JAVA_INT;
         } else {
             return ValueLayout.JAVA_LONG;
         }
