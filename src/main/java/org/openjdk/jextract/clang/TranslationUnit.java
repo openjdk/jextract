@@ -29,6 +29,7 @@ package org.openjdk.jextract.clang;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.ValueLayout;
 import org.openjdk.jextract.clang.libclang.CXToken;
 import org.openjdk.jextract.clang.libclang.Index_h;
 import org.openjdk.jextract.clang.libclang.CXUnsavedFile;
@@ -87,7 +88,12 @@ public class TranslationUnit extends ClangDisposable {
                 MemorySegment start = files.asSlice(i * CXUnsavedFile.sizeof());
                 start.set(C_POINTER, FILENAME_OFFSET, arena.allocateFrom(inMemoryFiles[i].file));
                 start.set(C_POINTER, CONTENTS_OFFSET, arena.allocateFrom(inMemoryFiles[i].contents));
-                start.set(C_LONG, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
+                if (C_LONG instanceof ValueLayout.OfInt) {
+                   start.set((ValueLayout.OfInt) C_LONG, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
+		}
+                else {
+                   start.set((ValueLayout.OfLong) C_LONG, LENGTH_OFFSET, (long) inMemoryFiles[i].contents.length());
+		}
             }
             ErrorCode code;
             int tries = 0;

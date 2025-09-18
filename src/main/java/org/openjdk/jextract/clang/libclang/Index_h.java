@@ -98,7 +98,17 @@ public class Index_h {
     public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
     public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
             .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
-    public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;
+    public static final ValueLayout C_LONG = detectCLongLayout();
+
+    private static ValueLayout detectCLongLayout() {
+        MemoryLayout layout = Linker.nativeLinker().canonicalLayouts().get("long");
+        if (layout.byteSize() == 4) {
+	    return ValueLayout.JAVA_INT;
+        } else {
+            return ValueLayout.JAVA_LONG;
+        }
+    }
+
     private static final int CXError_Success = (int)0L;
     /**
      * {@snippet lang=c :
