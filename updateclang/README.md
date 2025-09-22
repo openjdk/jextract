@@ -23,7 +23,7 @@ File: Index_h.java
 
 File: CXUnsavedFile.java
 
-```diff
+```
 // Manual change the layout of CXUnsavedFile to correctly handle the platform specific size of C_LONG
 
 diff --git a/src/main/java/org/openjdk/jextract/clang/libclang/CXUnsavedFile.java b/src/main/java/org/openjdk/jextract/clang/libclang/CXUnsavedFile.java
