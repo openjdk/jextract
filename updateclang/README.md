@@ -13,6 +13,7 @@ Manually update the following file:
 
 File: Index_h.java
 
+
     // Manual change to handle platform specific library name difference
     static {
         // Manual change to handle platform specific library name difference
@@ -22,6 +23,7 @@ File: Index_h.java
 
 File: CXUnsavedFile.java
 
+```diff
 // Manual change the layout of CXUnsavedFile to correctly handle the platform specific size of C_LONG
 
 diff --git a/src/main/java/org/openjdk/jextract/clang/libclang/CXUnsavedFile.java b/src/main/java/org/openjdk/jextract/clang/libclang/CXUnsavedFile.java
@@ -98,3 +100,4 @@ index 12d25de..a0ebb98 100644
      }
 
      /**
+```
