@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -98,7 +98,8 @@ public class Index_h {
     public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
     public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
             .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
-    public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;
+    public static final ValueLayout C_LONG = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get("long");
+
     private static final int CXError_Success = (int)0L;
     /**
      * {@snippet lang=c :

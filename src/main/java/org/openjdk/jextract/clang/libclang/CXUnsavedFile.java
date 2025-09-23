@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -52,11 +52,20 @@ public class CXUnsavedFile {
         // Should not be called directly
     }
 
-    private static final GroupLayout $LAYOUT = MemoryLayout.structLayout(
-        Index_h.C_POINTER.withName("Filename"),
-        Index_h.C_POINTER.withName("Contents"),
-        Index_h.C_LONG.withName("Length")
-    ).withName("CXUnsavedFile");
+    private static final GroupLayout $LAYOUT = (switch (Index_h.C_LONG) {
+        case OfInt _ -> MemoryLayout.structLayout(
+             Index_h.C_POINTER.withName("Filename"),
+             Index_h.C_POINTER.withName("Contents"),
+             Index_h.C_LONG.withName("Length"),
+             MemoryLayout.paddingLayout(4)
+        );
+        case OfLong _ -> MemoryLayout.structLayout(
+             Index_h.C_POINTER.withName("Filename"),
+             Index_h.C_POINTER.withName("Contents"),
+             Index_h.C_LONG.withName("Length")
+        );
+        default -> throw new IllegalStateException("Unhandled layout: " + Index_h.C_LONG);
+    }).withName("CXUnsavedFile");
 
     /**
      * The layout of this struct
@@ -153,7 +162,7 @@ public class CXUnsavedFile {
         struct.set(Contents$LAYOUT, Contents$OFFSET, fieldValue);
     }
 
-    private static final OfLong Length$LAYOUT = (OfLong)$LAYOUT.select(groupElement("Length"));
+    private static final ValueLayout Length$LAYOUT = (ValueLayout) $LAYOUT.select(groupElement("Length"));
 
     /**
      * Layout for field:
@@ -161,7 +170,7 @@ public class CXUnsavedFile {
      * unsigned long Length
      * }
      */
-    public static final OfLong Length$layout() {
+    public static final ValueLayout Length$layout() {
         return Length$LAYOUT;
     }
 
@@ -184,7 +193,11 @@ public class CXUnsavedFile {
      * }
      */
     public static long Length(MemorySegment struct) {
-        return struct.get(Length$LAYOUT, Length$OFFSET);
+        return switch (Length$LAYOUT) {
+            case OfInt l -> struct.get(l, Length$OFFSET);
+            case OfLong l -> struct.get(l, Length$OFFSET);
+            default -> throw new IllegalStateException("Unhandled layout: " + Length$LAYOUT);
+        };
     }
 
     /**
@@ -194,7 +207,11 @@ public class CXUnsavedFile {
      * }
      */
     public static void Length(MemorySegment struct, long fieldValue) {
-        struct.set(Length$LAYOUT, Length$OFFSET, fieldValue);
+        switch (Length$LAYOUT) {
+            case OfInt l -> struct.set(l, Length$OFFSET, Math.toIntExact(fieldValue));
+            case OfLong l -> struct.set(l, Length$OFFSET, fieldValue);
+            default -> throw new IllegalStateException("Unhandled layout: " + Length$LAYOUT);
+        }
     }
 
     /**

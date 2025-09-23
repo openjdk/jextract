@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -40,6 +40,7 @@ import java.util.function.Consumer;
 
 import static org.openjdk.jextract.clang.LibClang.STRING_ALLOCATOR;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_INT;
+import static org.openjdk.jextract.clang.libclang.Index_h.C_LONG;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 
 public class TranslationUnit extends ClangDisposable {
@@ -73,10 +74,6 @@ public class TranslationUnit extends ClangDisposable {
         }
     }
 
-    static long FILENAME_OFFSET = CXUnsavedFile.layout().byteOffset(MemoryLayout.PathElement.groupElement("Filename"));
-    static long CONTENTS_OFFSET = CXUnsavedFile.layout().byteOffset(MemoryLayout.PathElement.groupElement("Contents"));
-    static long LENGTH_OFFSET = CXUnsavedFile.layout().byteOffset(MemoryLayout.PathElement.groupElement("Length"));
-
     public void reparse(Index.UnsavedFile... inMemoryFiles) {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment files = inMemoryFiles.length == 0 ?
@@ -84,9 +81,9 @@ public class TranslationUnit extends ClangDisposable {
                     arena.allocate(CXUnsavedFile.layout(), inMemoryFiles.length);
             for (int i = 0; i < inMemoryFiles.length; i++) {
                 MemorySegment start = files.asSlice(i * CXUnsavedFile.sizeof());
-                start.set(C_POINTER, FILENAME_OFFSET, arena.allocateFrom(inMemoryFiles[i].file));
-                start.set(C_POINTER, CONTENTS_OFFSET, arena.allocateFrom(inMemoryFiles[i].contents));
-                start.set(C_INT, LENGTH_OFFSET, inMemoryFiles[i].contents.length());
+                CXUnsavedFile.Filename(start, arena.allocateFrom(inMemoryFiles[i].file));
+                CXUnsavedFile.Contents(start, arena.allocateFrom(inMemoryFiles[i].contents));
+                CXUnsavedFile.Length(start, inMemoryFiles[i].contents.length());
             }
             ErrorCode code;
             int tries = 0;
