@@ -74,7 +74,7 @@ $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
 	# create jextract jmod file
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jmod \
 	    create \
-	    --module-version=23 \
+	    --module-version=25 \
 	    --class-path=$(BUILD_CLASSES_DIR)/org.openjdk.jextract \
 	    --libs=$(JEXTRACT_JMOD_LIBS_DIR) \
 	    --conf=$(JEXTRACT_JMOD_CONF_DIR) \
