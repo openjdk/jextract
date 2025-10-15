@@ -174,7 +174,10 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 String.format("\"%1$s\", %2$s", nativeName, paramList);
         incrAlign();
         if (!isVarArg) {
-            String holderClass = newHolderClassName(javaName);
+            // function name may conflict with any of its parameter names.
+            boolean nameConflict = parameterNames.contains(javaName);
+            String holderName = nameConflict ? javaName + "$" : javaName;
+            String holderClass = newHolderClassName(holderName);
             appendLines("""
 
                 private static class %1$s {
