@@ -39,7 +39,7 @@ import test.jextract.testStructArrayFields.*;
  */
 public class TestStructArrayFields {
     @Test
-    void testStructArrayIndexingDoesNotClobberNeighbors() {
+    void testStructArrayNoClobber() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment rec = Record_st.allocate(arena);
 
@@ -59,7 +59,7 @@ public class TestStructArrayFields {
     }
 
     @Test
-    void testUnionArrayIndexingDoesNotClobberStructFields() {
+    void testUnionArrayNoClobber() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment rec = Record_st.allocate(arena);
 
@@ -86,7 +86,7 @@ public class TestStructArrayFields {
     }
 
     @Test
-    void testUnionStructMemberSliceIsCorrect() {
+    void testUnionStructSlice() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment rec = Record_st.allocate(arena);
             MemorySegment u = Record_st.u(rec);
@@ -108,7 +108,7 @@ public class TestStructArrayFields {
     }
 
     @Test
-    void testOffsetsAreMonotonicAndArraysAreWithinBounds() {
+    void testOffsetsAndSizes() {
         long offA = Record_st.a$offset();
         long offB = Record_st.b$offset();
         long offArr = Record_st.arr$offset();
@@ -127,7 +127,7 @@ public class TestStructArrayFields {
     }
 
     @Test
-    void structArrayOfStructElements_usesBaseOffsetAndNoClobber() {
+    void testStructOfStructArrayNoClobber() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment rec = Record_st.allocate(arena);
 
@@ -157,7 +157,7 @@ public class TestStructArrayFields {
     }
 
     @Test
-    void unionArrayOfStructElements_usesBaseOffsetAndNoClobber() {
+    void testUnionStructArrayNoClobber() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment rec = Record_st.allocate(arena);
 
