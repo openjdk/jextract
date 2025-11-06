@@ -93,14 +93,14 @@ public class TestStructArrayFields {
 
             MemorySegment is = InnerU.is(u);
 
-            InnerS.s(is, (short)0x1234);
-            InnerS.c(is, (byte)0x7F);
+            InnerS.s(is, (short) 0x1234);
+            InnerS.c(is, (byte) 0x7F);
 
             Record_st.tail(rec, 0x01020304);
             Record_st.flag(rec, true);
 
-            assertEquals((short)0x1234, InnerS.s(is));
-            assertEquals((byte)0x7F, InnerS.c(is));
+            assertEquals((short) 0x1234, InnerS.s(is));
+            assertEquals((byte) 0x7F, InnerS.c(is));
 
             assertEquals(0x01020304, Record_st.tail(rec));
             assertTrue(Record_st.flag(rec));
@@ -139,20 +139,20 @@ public class TestStructArrayFields {
             MemorySegment sa0 = Record_st.sa(rec, 0);
             MemorySegment sa1 = Record_st.sa(rec, 1);
 
-            InnerS.s(sa0, (short)0x1234);
-            InnerS.c(sa0, (byte)0x55);
-            InnerS.s(sa1, (short)0xABCD);
-            InnerS.c(sa1, (byte)0x7F);
+            InnerS.s(sa0, (short) 0x1234);
+            InnerS.c(sa0, (byte) 0x55);
+            InnerS.s(sa1, (short) 0xABCD);
+            InnerS.c(sa1, (byte) 0x7F);
 
             assertEquals(0x11111111, Record_st.a(rec));
             assertEquals(0x22222222, Record_st.b(rec));
             assertEquals(0x7F7F7F7F, Record_st.tail(rec));
             assertFalse(Record_st.flag(rec));
 
-            assertEquals((short)0x1234, InnerS.s(sa0));
-            assertEquals((byte)0x55, InnerS.c(sa0));
-            assertEquals((short)0xABCD, InnerS.s(sa1));
-            assertEquals((byte)0x7F, InnerS.c(sa1));
+            assertEquals((short) 0x1234, InnerS.s(sa0));
+            assertEquals((byte) 0x55, InnerS.c(sa0));
+            assertEquals((short) 0xABCD, InnerS.s(sa1));
+            assertEquals((byte) 0x7F, InnerS.c(sa1));
         }
     }
 
@@ -171,20 +171,20 @@ public class TestStructArrayFields {
             MemorySegment ia0 = InnerU.ia(u, 0);
             MemorySegment ia1 = InnerU.ia(u, 1);
 
-            InnerS.s(ia0, (short)0x0001);
-            InnerS.c(ia0, (byte)0x11);
-            InnerS.s(ia1, (short)0x0002);
-            InnerS.c(ia1, (byte)0x22);
+            InnerS.s(ia0, (short) 0x0001);
+            InnerS.c(ia0, (byte) 0x11);
+            InnerS.s(ia1, (short) 0x0002);
+            InnerS.c(ia1, (byte) 0x22);
 
             assertEquals(0xAAAAAAAA, Record_st.a(rec));
             assertEquals(0xBBBBBBBB, Record_st.b(rec));
             assertEquals(0x01020304, Record_st.tail(rec));
             assertTrue(Record_st.flag(rec));
 
-            assertEquals((short)0x0001, InnerS.s(ia0));
-            assertEquals((byte)0x11, InnerS.c(ia0));
-            assertEquals((short)0x0002, InnerS.s(ia1));
-            assertEquals((byte)0x22, InnerS.c(ia1));
+            assertEquals((short) 0x0001, InnerS.s(ia0));
+            assertEquals((byte) 0x11, InnerS.c(ia0));
+            assertEquals((short) 0x0002, InnerS.s(ia1));
+            assertEquals((byte) 0x22, InnerS.c(ia1));
         }
     }
 }
