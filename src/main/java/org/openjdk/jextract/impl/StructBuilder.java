@@ -250,7 +250,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         return arrayHandleName;
     }
 
-    private void emitFieldArrayGetter(String javaName, Variable varTree, String arrayElementHandle, String offsetField, IndexList indexList) {
+    private void emitFieldArrayGetter(String javaName, Declaration.Variable varTree, String arrayElementHandle, String offsetField, IndexList indexList) {
         String segmentParam = safeParameterName(kindName());
         Type elemType = Utils.typeOrElemType(varTree.type());
         Class<?> elemTypeCls = Utils.carrierFor(elemType);
@@ -278,7 +278,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         }
     }
 
-    private void emitFieldArraySetter(String javaName, Variable varTree, String arrayElementHandle, String offsetField, IndexList indexList) {
+    private void emitFieldArraySetter(String javaName, Declaration.Variable varTree, String arrayElementHandle, String offsetField, IndexList indexList) {
         String segmentParam = safeParameterName(kindName());
         String valueParam = safeParameterName("fieldValue");
         Type elemType = Utils.typeOrElemType(varTree.type());
