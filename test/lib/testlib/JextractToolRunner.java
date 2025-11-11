@@ -56,6 +56,7 @@ public class JextractToolRunner {
     public static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
     public static final boolean IS_LINUX = System.getProperty("os.name").equals("Linux");
     public static final boolean IS_AARCH64 = System.getProperty("os.arch").equals("aarch64");
+    public static final boolean IS_AIX = System.getProperty("os.name").equals("AIX");
 
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
     public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;

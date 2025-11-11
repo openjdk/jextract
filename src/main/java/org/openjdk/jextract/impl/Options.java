@@ -25,6 +25,7 @@ package org.openjdk.jextract.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.openjdk.jextract.Type;
 
 public final class Options {
 
@@ -86,6 +87,9 @@ public final class Options {
 
         public void addClangArg(String arg) {
             clangArgs.add(arg);
+	    if (TypeImpl.IS_AIX) {
+		    clangArgs.add("-m64");
+	    }
         }
 
         public void addLibrary(Library library) {
