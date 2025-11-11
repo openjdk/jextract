@@ -267,10 +267,10 @@ abstract class ClassSourceBuilder {
 		    } else {
 		        yield alignIfNeeded(runtimeHelperName() + ".C_DOUBLE", 4, align);
 		    }
-		} else {
+                } else {
 	            yield alignIfNeeded(runtimeHelperName() + ".C_DOUBLE", 8, align);
                 }
-	    }
+            }
             case LongDouble -> TypeImpl.IS_WINDOWS ?
                     alignIfNeeded(runtimeHelperName() + ".C_LONG_DOUBLE", 8, align) :
                     paddingLayoutString(8, 0);
