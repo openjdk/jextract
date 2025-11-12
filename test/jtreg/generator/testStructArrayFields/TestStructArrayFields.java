@@ -122,8 +122,8 @@ public class TestStructArrayFields {
         assertTrue(offU < offTail);
         assertTrue(offTail < offFlag);
 
-        assertEquals(3L * Integer.BYTES, Record_st.arr$layout().byteSize());
-        assertEquals(3L * Integer.BYTES, InnerU.ua$layout().byteSize());
+        assertEquals(C_INT.byteSize() * 3L, Record_st.arr$layout().byteSize());
+        assertEquals(C_INT.byteSize() * 3L, InnerU.ua$layout().byteSize());
     }
 
     @Test
