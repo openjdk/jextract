@@ -28,6 +28,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 import test.jextract.testStructArrayFields.*;
+import static test.jextract.testStructArrayFields.testStructArrayFields_h.*;
 
 /*
  * @test
