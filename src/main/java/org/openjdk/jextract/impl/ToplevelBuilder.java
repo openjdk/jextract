@@ -52,14 +52,14 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private final ClassDesc headerDesc;
 
     ToplevelBuilder(String packageName, String headerClassName, List<Options.Library> libs,
-                    boolean useSystemLoadLibrary, String sharedClassName) {
+                    boolean useSystemLoadLibrary, String libraryPathResolver, String sharedClassName) {
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
         shared = sharedClassName != null ?
                 sharedClassName :
                 headerDesc.displayName() + "$shared";
 
         initSharedClass();
-        initFirstHeader(libs, useSystemLoadLibrary);
+        initFirstHeader(libs, useSystemLoadLibrary, libraryPathResolver);
     }
 
     private void initSharedClass() {
@@ -71,7 +71,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
         sharedHeader.classEnd();
     }
 
-    private void initFirstHeader(List<Options.Library> libs, boolean useSystemLoadLibrary) {
+    private void initFirstHeader(List<Options.Library> libs, boolean useSystemLoadLibrary, String libraryPathResolver) {
         String base = headerDesc.displayName();
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), base);
         headerBuilders.add(sfb);
@@ -83,7 +83,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
                 base
         );
         lastHeader.emitLibaryArena();
-        lastHeader.emitFirstHeaderPreamble(libs, useSystemLoadLibrary);
+        lastHeader.emitFirstHeaderPreamble(libs, useSystemLoadLibrary, libraryPathResolver);
     }
 
     /**

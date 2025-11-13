@@ -309,7 +309,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         emitPrimitiveTypedefLayout(name, Type.pointer(), typedefTree);
     }
 
-    void emitFirstHeaderPreamble(List<Options.Library> libraries, boolean useSystemLoadLibrary) {
+    void emitFirstHeaderPreamble(List<Options.Library> libraries,
+                                 boolean useSystemLoadLibrary, String libraryPathResolver) {
         List<String> lookups = new ArrayList<>();
         // if legacy library loading is selected, load libraries (if any) into current loader
         if (useSystemLoadLibrary) {
@@ -320,8 +321,16 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 """);
             incrAlign();
             for (Options.Library lib : libraries) {
-                String method = lib.specKind() == Options.Library.SpecKind.PATH ? "load" : "loadLibrary";
-                appendIndentedLines("System.%1$s(\"%2$s\");", method, lib.toQuotedName());
+                if (lib.specKind() == Options.Library.SpecKind.PATH) {
+                    appendIndentedLines("System.load(\"%1$s\");", lib.toQuotedName());
+                } else {
+                    if (libraryPathResolver != null && !libraryPathResolver.isEmpty()) {
+                        String resolverMethodCall = libraryPathResolver.replace("#", ".");
+                        appendIndentedLines("System.load(%1$s(\"%2$s\"));", resolverMethodCall, lib.toQuotedName());
+                    } else {
+                        appendIndentedLines("System.loadLibrary(\"%1$s\");", lib.toQuotedName());
+                    }
+                }
             }
             decrAlign();
             appendIndentedLines("""
@@ -330,9 +339,19 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         } else {
             // otherwise, add a library lookup per library (if any)
             libraries.stream() // add library lookups (if any)
-                    .map(l -> l.specKind() == Options.Library.SpecKind.PATH ?
-                            String.format("SymbolLookup.libraryLookup(\"%1$s\", LIBRARY_ARENA)", l.toQuotedName()) :
-                            String.format("SymbolLookup.libraryLookup(System.mapLibraryName(\"%1$s\"), LIBRARY_ARENA)", l.toQuotedName()))
+                    .map(l -> {
+                        if (l.specKind() == Options.Library.SpecKind.PATH) {
+                            return String.format("SymbolLookup.libraryLookup(\"%1$s\", LIBRARY_ARENA)", l.toQuotedName());
+                        }
+
+                        if (libraryPathResolver != null && !libraryPathResolver.isEmpty()) {
+                            String resolverMethodCall = libraryPathResolver.replace("#", ".");
+                            return String.format("SymbolLookup.libraryLookup(%1$s(\"%2$s\"), LIBRARY_ARENA)",
+                                                 resolverMethodCall, l.toQuotedName());
+                        }
+
+                        return String.format("SymbolLookup.libraryLookup(System.mapLibraryName(\"%1$s\"), LIBRARY_ARENA)", l.toQuotedName());
+                    })
                     .collect(Collectors.toCollection(() -> lookups));
         }
 

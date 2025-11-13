@@ -145,7 +145,7 @@ public final class JextractTool {
         return logger.hasErrors() ?
                 List.of() :
                 List.of(OutputFactory.generateWrapped(transformedDecl, targetPkg, options.libraries, options.useSystemLoadLibrary,
-                        options.sharedClassName));
+                        options.libraryPathResolver, options.sharedClassName));
     }
 
     /**
@@ -373,6 +373,7 @@ public final class JextractTool {
         parser.accepts("-I", List.of("--include-dir"), "help.I", true);
         parser.accepts("-l", List.of("--library"), "help.l", true);
         parser.accepts("--use-system-load-library", "help.use.system.load.library", false);
+        parser.accepts("--library-path-resolver", "help.library.path.resolver", true);
         parser.accepts("--output", "help.output", true);
         parser.accepts("-t", List.of("--target-package"), "help.t", true);
         parser.accepts("--version", "help.version", false);
@@ -462,6 +463,16 @@ public final class JextractTool {
                 logger.warn("jextract.no.library.specified");
             }
             builder.setUseSystemLoadLibrary(true);
+        }
+
+        if (optionSet.has("--library-path-resolver")) {
+            String resolver = optionSet.valueOf("--library-path-resolver");
+            assert resolver != null;
+            if (resolver.indexOf('#') == -1) {
+                logger.err("jextract.library.path.resolver.format.error");
+                return OPTION_ERROR;
+            }
+            builder.setLibraryPathResolver(resolver);
         }
 
         if (optionSet.has("-F")) {
