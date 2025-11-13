@@ -17,6 +17,7 @@ native_tests = \
     jtreg/generator/test8261511/Test8261511.java \
     jtreg/generator/testFunctionPointer/LibFuncPtrTest.java \
     jtreg/generator/testStruct/LibStructTest.java \
+    jtreg/generator/testLibraryPathResolver/TestLibraryPathResolver.java \
     testng/org/openjdk/jextract/test/toolprovider/ConstantsTest.java \
     testng/org/openjdk/jextract/test/toolprovider/Test8240811.java \
     testng/org/openjdk/jextract/test/toolprovider/TestClassGeneration.java

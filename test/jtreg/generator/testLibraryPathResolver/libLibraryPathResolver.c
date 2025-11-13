@@ -21,10 +21,8 @@
  * questions.
  */
 
-#ifdef _WIN64
-#define EXPORT __declspec(dllexport)
-#else
-#define EXPORT
-#endif
+#include "testLibraryPathResolver.h"
 
-EXPORT int getMagicNumber();
+int getMagicNumber(void) {
+    return 990218;
+}

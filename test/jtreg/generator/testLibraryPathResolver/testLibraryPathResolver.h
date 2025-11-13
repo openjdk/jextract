@@ -21,8 +21,10 @@
  * questions.
  */
 
-#include "testLibraryResolver.h"
+#ifdef _WIN64
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
 
-int getMagicNumber(void) {
-    return 990218;
-}
+EXPORT int getMagicNumber(void);
