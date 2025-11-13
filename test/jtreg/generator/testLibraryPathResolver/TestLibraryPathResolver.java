@@ -55,23 +55,23 @@ public class TestLibraryPathResolver extends JextractToolRunner {
 
             String pathResolverContent = """
                     package test.testLibraryPathResolver;
-                    
+
                     import java.nio.file.Files;
                     import java.nio.file.Path;
                     import java.nio.file.Paths;
-                    
+
                     public class MyPathResolver {
                         public static volatile boolean RESOLVER_CALLED = false;
-                    
+
                         public static String resolve(String libName) {
                             System.out.println("MyTestLoader: Custom resolver called for library: " + libName);
                             RESOLVER_CALLED = true;
-                    
+
                             String mappedLibName = System.mapLibraryName(libName);
                             String javaLibraryPath = System.getProperty("java.library.path");
-                    
+
                             if (javaLibraryPath == null) return mappedLibName;
-                    
+
                             String[] paths = javaLibraryPath.split(System.getProperty("path.separator"));
                             for (String dir : paths) {
                                 Path path = Paths.get(dir).resolve(mappedLibName);
@@ -79,7 +79,7 @@ public class TestLibraryPathResolver extends JextractToolRunner {
                                     return path.toAbsolutePath().toString();
                                 }
                             }
-                    
+
                             throw new UnsatisfiedLinkError("MyTestLoader: Could not find " + mappedLibName);
                         }
                     }
