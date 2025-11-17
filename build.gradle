@@ -287,11 +287,6 @@ tasks.register("copyLibClangToTestLib", Copy) {
     from(srcFile)
     into(destDir)
 
-    doFirst {
-        println "[DEBUG] Copying libclang.a from: ${srcFile}"
-        println "[DEBUG] Destination directory: ${destDir}"
-    }
-
     doLast {
         println "[DEBUG] Successfully copied libclang.a to test-lib/libs"
     }

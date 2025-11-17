@@ -16,17 +16,16 @@ foreach(TEST_LIB ${TEST_LIBS})
     string(REGEX REPLACE "(.*)/lib[A-Za-z0-9_]+\.c(pp)?" "\\1" PARENT_DIR ${TEST_LIB})
     message(STATUS "Lib name: ${LIB_NAME}")
     if(${CMAKE_SYSTEM_NAME} MATCHES "AIX")
-    	add_library(${LIB_NAME} SHARED ${TEST_LIB})
-    	set_target_properties(${LIB_NAME} PROPERTIES
-        	PREFIX "lib"
-        	SUFFIX ".a"
-        	COMPILE_FLAGS "-q64  -qhalt=e"
-        	LINK_FLAGS "-q64 -G -Wl,-bnoentry,-bexpall"
+      add_library(${LIB_NAME} SHARED ${TEST_LIB})
+      set_target_properties(${LIB_NAME} PROPERTIES
+          PREFIX "lib"
+          SUFFIX ".a"
+          COMPILE_FLAGS "-q64  -qhalt=e"
+          LINK_FLAGS "-q64 -G -Wl,-bnoentry,-bexpall"
     	)
     else()
-    	add_library(${LIB_NAME} SHARED ${TEST_LIB})
+      add_library(${LIB_NAME} SHARED ${TEST_LIB})
     endif()
-    
 
     target_include_directories(${LIB_NAME}
       PRIVATE
