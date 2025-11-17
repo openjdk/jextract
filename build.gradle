@@ -51,7 +51,7 @@ checkPath(clang_include_dir)
 def os_lib_dir = Os.isFamily(Os.FAMILY_WINDOWS)? "bin" : "lib"
 def os_script_extension = Os.isFamily(Os.FAMILY_WINDOWS)? ".bat" : ""
 def os_exe_suffix = Os.isFamily(Os.FAMILY_WINDOWS)? ".exe" : "" // needed for some, but not all shells
-def libclang_dir = "${llvm_home}/${os_lib_dir}""
+def libclang_dir = "${llvm_home}/${os_lib_dir}"
 checkPath(libclang_dir)
 
 repositories {
@@ -200,14 +200,6 @@ task createRuntimeImageForTest(type: Exec) {
          "--add-modules=ALL-MODULE-PATH",
          "--output=$out_dir",
     ]
-  doLast {
-        println "=== [DEBUG] After creating runtime image ==="
-        def libDir = file("$out_dir/lib")
-        println "Contents of $libDir:"
-        libDir.listFiles()?.each { println it.name }
-        println "Contents of $out_dir:"
-        file(out_dir).listFiles()?.each { println it.name }
-    }
 }
 
 task cmakeConfigure(type: Exec) {
@@ -219,7 +211,7 @@ task cmakeConfigure(type: Exec) {
         "-S", "$projectDir/test/test-support",
         "-DTEST_SOURCE_ROOT:FILEPATH=$projectDir/test",
         "-DCMAKE_BUILD_TYPE:STRING=Release",
-        "-DCMAKE_INSTALL_PREFIX:FILEPATH=$buildDir/testlib-install",
+        "-DCMAKE_INSTALL_PREFIX:FILEPATH=$buildDir/testlib-install"
     ]
 }
 
