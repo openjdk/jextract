@@ -38,7 +38,7 @@ if (clang_versions.length == 0) {
             " Make sure a ${llvm_home}/lib/clang/<VERSION> directory exists")
 }
 def clang_version = clang_versions[0]
-
+println ">> clang_version = $clang_version"
 def buildDir = layout.buildDirectory.get()
 def jextract_version = "23"
 def jmods_dir = "$buildDir/jmods"
@@ -52,7 +52,7 @@ checkPath(clang_include_dir)
 def os_lib_dir = Os.isFamily(Os.FAMILY_WINDOWS)? "bin" : "lib"
 def os_script_extension = Os.isFamily(Os.FAMILY_WINDOWS)? ".bat" : ""
 def os_exe_suffix = Os.isFamily(Os.FAMILY_WINDOWS)? ".exe" : "" // needed for some, but not all shells
-def libclang_dir = "${llvm_home}/${os_lib_dir}"
+def libclang_dir = "${llvm_home}/lib"
 checkPath(libclang_dir)
 
 repositories {
@@ -73,24 +73,35 @@ jar {
 task copyLibClang(type: Sync) {
     into("$buildDir/jmod_inputs")
 
-    // make sure we only pick up the "real" shared library file from LLVM installation
-    // (e.g. exclude symlinks on Linux)
-    def clang_path_include = (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) ?
-            "libclang.so.${clang_version}" : "*clang*"
+     // make sure we only pick up the "real" shared library file from LLVM installation
+     // (e.g. exclude symlinks on Linux)
+     def clang_path_include = (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) ?
+             "libclang.a" : "*clang*"
+ 
+     println ">> clang_path_include = $clang_path_include"
+     println ">> libclang_dir = $libclang_dir"
+     from("${libclang_dir}") {
+         include(clang_path_include)
+         include("libLLVM.*")
+         exclude("clang.exe")
+         into("libs")
 
-    from("${libclang_dir}") {
-        include(clang_path_include)
-        include("libLLVM.*")
-        exclude("clang.exe")
-        into("libs")
-        // make sure we drop shared library version name (Linux only)
-        rename("libclang.so.${clang_version}", "libclang.so")
+         // make sure we drop shared library version name (Linux only)
+         //rename("libclang.so.*", "libclang.so")  
+
+        eachFile {
+           println ">> Copying ${it.name} from ${it.file}"
+        }
+     }
+     from("${libclang_dir}") {
+        include("libclang.a")
+        into("$buildDir/test-libs")
     }
-
-    from("$clang_include_dir") {
+     from("$clang_include_dir") {
         include("*.h")
         into("conf/jextract")
-    }
+     }
+
 }
 
 task createJextractJmod(type: Exec) {
@@ -190,18 +201,29 @@ task createRuntimeImageForTest(type: Exec) {
          "--add-modules=ALL-MODULE-PATH",
          "--output=$out_dir",
     ]
+  doLast {
+        println "=== [DEBUG] After creating runtime image ==="
+        def libDir = file("$out_dir/lib")
+        println "Contents of $libDir:"
+        libDir.listFiles()?.each { println it.name }
+        println "Contents of $out_dir:"
+        file(out_dir).listFiles()?.each { println it.name }
+    }
 }
 
 task cmakeConfigure(type: Exec) {
     executable = "cmake"
+    environment "CC", "/opt/IBM/xlC/13.1.3/bin/xlc"
+    environment "CXX", "/opt/IBM/xlC/13.1.3/bin/xlC"
     args = [
         "-B", "$buildDir/testlib-build",
         "-S", "$projectDir/test/test-support",
         "-DTEST_SOURCE_ROOT:FILEPATH=$projectDir/test",
         "-DCMAKE_BUILD_TYPE:STRING=Release",
-        "-DCMAKE_INSTALL_PREFIX:FILEPATH=$buildDir/testlib-install"
+        "-DCMAKE_INSTALL_PREFIX:FILEPATH=$buildDir/testlib-install",
     ]
 }
+
 
 task cmakeBuild(type: Exec) {
     dependsOn cmakeConfigure
@@ -238,7 +260,7 @@ void createJtregTask(String name, String jacocoAgent, String os_lib_dir) {
                 "-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-avm", "-conc:auto", "-verbose:summary,fail,error",
-                "-retain:fail,error",
+                "-retain:fail,error"
         ]
 
         if (jacocoAgent != null) {
@@ -257,6 +279,31 @@ String jacocoAgent = findProperty("jacoco_agent")
 if (jacocoAgent != null) {
     createJtregTask("jtregWithCoverage", jacocoAgent, os_lib_dir)
 }
+
+
+tasks.register("copyLibClangToTestLib", Copy) {
+    def srcFile = file("${project.buildDir}/jmod_inputs/libs/libclang.a")
+    def destDir = file("${project.buildDir}/test-lib/libs")
+    dependsOn(copyLibClang)   
+    from(srcFile)
+    into(destDir)
+
+    doFirst {
+        println "[DEBUG] Copying libclang.a from: ${srcFile}"
+        println "[DEBUG] Destination directory: ${destDir}"
+    }
+
+    doLast {
+        println "[DEBUG] Successfully copied libclang.a to test-lib/libs"
+    }
+}
+
+// Make jtreg depend on it
+tasks.named("jtreg") {
+    dependsOn("copyLibClangToTestLib")
+}
+
+
 
 tasks.register("coverage", JavaExec) {
     dependsOn jtregWithCoverage
