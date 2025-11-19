@@ -88,7 +88,7 @@ public final class Options {
         public void addClangArg(String arg) {
             clangArgs.add(arg);
             if (TypeImpl.IS_AIX) {
-               clangArgs.add("-m64");
+                clangArgs.add("-m64");
             }
         }
 

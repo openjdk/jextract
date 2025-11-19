@@ -97,6 +97,10 @@ public class LibStructTest {
         checkField(g, "ll", C_LONG_LONG);
         checkField(g, "ull",C_LONG_LONG);
         checkField(g, "f",  C_FLOAT);
-        checkField(g, "d",  C_DOUBLE.withByteAlignment(4));
+        if (TypeImpl.IS_AIX) {
+            checkField(g, "d",  C_DOUBLE.withByteAlignment(4));
+        } else {
+            checkField(g, "d", C_DOUBLE);
+        }
     }
 }
