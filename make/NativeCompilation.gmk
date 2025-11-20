@@ -86,6 +86,19 @@ else
         CFLAGS += --sysroot=$(SYSROOT)
       endif
     endif
+    ifeq ($(PLATFORM_OS), aix)
+      SHARED_LIB_SUFFIX := .a
+      CC_NAME := xlc
+      LINK_NAME := xlc
+
+      # xlc typically requires -q64 for 64-bit builds
+      CFLAGS += -q64 -bexpall -qhalt=e -qalign=power -sysroot=$(SYSROOT) -m64
+      LDFLAGS += -q64 -G -Wl,-bnoentry -Wl,-bexpall, -malign-power -m64
+      CPPFLAGS += -D_AIX
+
+      # AIX-specific export file handling can be added here if needed
+    endif
+
   endif
 
   CC := $(call FindTool,$(CC_NAME),$(TOOL_SEARCH_PATH))

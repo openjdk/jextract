@@ -33,9 +33,10 @@ import java.nio.ByteOrder;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
-
 import static java.lang.foreign.ValueLayout.*;
+import java.util.StringTokenizer;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
+import java.io.File;
 
 public class Index_h {
 
@@ -80,15 +81,34 @@ public class Index_h {
         };
     }
 
+    static SymbolLookup SYMBOL_LOOKUP;
 
     static {
-        String libName = System.getProperty("os.name").startsWith("Windows") ? "libclang" : "clang";
-        System.loadLibrary(libName);
+        String osName = System.getProperty("os.name");
+        String libName = "";
+        if (osName.startsWith("AIX")) {
+        List<String> pathsToCheck = new ArrayList<>(Arrays.asList(
+                System.getProperty("java.library.path").split(File.pathSeparator)
+        ));
+        // 2. Add alternate calculated paths
+        String currentDir = System.getProperty("user.dir"); // wherever JVM was launched
+        pathsToCheck.add(currentDir + "/build/jextract-jdk-test-image/lib");
+        pathsToCheck.add(currentDir + "/../../../jextract-jdk-test-image/lib"); // in case running from subdir
+        // 3. Try to find the library
+        for (String path : pathsToCheck) {
+            File f = new File(path, "libclang.a"); // AIX uses .a, Linux .so
+            if (f.exists() && !f.isDirectory()) {
+                libName = f.getAbsolutePath();
+                break;
+            }
+        }
+        SYMBOL_LOOKUP = SymbolLookup.libraryLookup(libName + "(libclang.so.14)", Arena.global());
+        } else {
+            libName = osName.startsWith("Windows") ? "libclang" : "clang";
+            System.loadLibrary(libName);
+            SYMBOL_LOOKUP = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
+        }
     }
-
-    static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.loaderLookup()
-            .or(Linker.nativeLinker().defaultLookup());
-
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
     public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
     public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;

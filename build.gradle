@@ -38,7 +38,6 @@ if (clang_versions.length == 0) {
             " Make sure a ${llvm_home}/lib/clang/<VERSION> directory exists")
 }
 def clang_version = clang_versions[0]
-
 def buildDir = layout.buildDirectory.get()
 def jextract_version = "23"
 def jmods_dir = "$buildDir/jmods"
@@ -73,24 +72,32 @@ jar {
 task copyLibClang(type: Sync) {
     into("$buildDir/jmod_inputs")
 
-    // make sure we only pick up the "real" shared library file from LLVM installation
-    // (e.g. exclude symlinks on Linux)
-    def clang_path_include = (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) ?
-            "libclang.so.${clang_version}" : "*clang*"
+     // make sure we only pick up the "real" shared library file from LLVM installation
+     // (e.g. exclude symlinks on Linux)
+     def isAix = Os.isName("AIX") || Os.isName("aix")
+     def isUnixNotMac  = Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)
+     def clang_path_include =
+        isAix  ? "libclang.a" :
+        isUnixNotMac ? "libclang.so.${clang_version}" :
+                 "*clang*"
+     from("${libclang_dir}") {
+         include(clang_path_include)
+         include("libLLVM.*")
+         exclude("clang.exe")
+         into("libs")
+         // make sure we drop shared library version name (Linux only)
+         rename("libclang.so.*", "libclang.so")
 
-    from("${libclang_dir}") {
-        include(clang_path_include)
-        include("libLLVM.*")
-        exclude("clang.exe")
-        into("libs")
-        // make sure we drop shared library version name (Linux only)
-        rename("libclang.so.${clang_version}", "libclang.so")
-    }
-
-    from("$clang_include_dir") {
+     }
+     from("${libclang_dir}") {
+        include("libclang.a")
+        into("$buildDir/test-libs")
+     }
+     from("$clang_include_dir") {
         include("*.h")
         into("conf/jextract")
-    }
+     }
+
 }
 
 task createJextractJmod(type: Exec) {
@@ -203,6 +210,7 @@ task cmakeConfigure(type: Exec) {
     ]
 }
 
+
 task cmakeBuild(type: Exec) {
     dependsOn cmakeConfigure
 
@@ -238,7 +246,7 @@ void createJtregTask(String name, String jacocoAgent, String os_lib_dir) {
                 "-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-avm", "-conc:auto", "-verbose:summary,fail,error",
-                "-retain:fail,error",
+                "-retain:fail,error"
         ]
 
         if (jacocoAgent != null) {
@@ -256,6 +264,20 @@ createJtregTask("jtreg", null, os_lib_dir)
 String jacocoAgent = findProperty("jacoco_agent")
 if (jacocoAgent != null) {
     createJtregTask("jtregWithCoverage", jacocoAgent, os_lib_dir)
+}
+
+
+tasks.register("copyLibClangToTestLib", Copy) {
+    def srcFile = file("${project.buildDir}/jmod_inputs/libs/libclang.a")
+    def destDir = file("${project.buildDir}/test-lib/libs")
+    dependsOn(copyLibClang)
+    from(srcFile) 
+    into(destDir)
+}
+
+// Make jtreg depend on it
+tasks.named("jtreg") {
+    dependsOn("copyLibClangToTestLib")
 }
 
 tasks.register("coverage", JavaExec) {
