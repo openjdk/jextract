@@ -12,7 +12,6 @@ else
   JPACKAGE_ARGS :=
 endif
 
-
 ifeq ($(PLATFORM_OS), macosx)
   TAR_SUPPORTS_TRANSFORM := false
 else ifeq ($(PLATFORM_OS), aix)
@@ -20,7 +19,6 @@ else ifeq ($(PLATFORM_OS), aix)
 else
   TAR_SUPPORTS_TRANSFORM := true
 endif
-
 
 LIBCLANG_LIB_DIR := $(LIBCLANG_HOME)/$(OS_LIB_DIR)
 LIBCLANG_INCLUDE_DIR := $(LIBCLANG_HOME)/lib/clang/$(LIBCLANG_VERSION)/include
