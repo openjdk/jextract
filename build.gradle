@@ -201,8 +201,6 @@ task createRuntimeImageForTest(type: Exec) {
 
 task cmakeConfigure(type: Exec) {
     executable = "cmake"
-    environment "CC", "/opt/IBM/xlC/13.1.3/bin/xlc"
-    environment "CXX", "/opt/IBM/xlC/13.1.3/bin/xlC"
     args = [
         "-B", "$buildDir/testlib-build",
         "-S", "$projectDir/test/test-support",
@@ -275,10 +273,6 @@ tasks.register("copyLibClangToTestLib", Copy) {
     dependsOn(copyLibClang)
     from(srcFile) 
     into(destDir)
-
-    doLast {
-        println "[DEBUG] Successfully copied libclang.a to test-lib/libs"
-    }
 }
 
 // Make jtreg depend on it
