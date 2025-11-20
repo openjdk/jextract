@@ -286,8 +286,6 @@ tasks.named("jtreg") {
     dependsOn("copyLibClangToTestLib")
 }
 
-
-
 tasks.register("coverage", JavaExec) {
     dependsOn jtregWithCoverage
 

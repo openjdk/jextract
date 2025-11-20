@@ -2,11 +2,6 @@ cmake_minimum_required(VERSION 3.14)
 project(TestSupportLibs)
 
 option(TEST_SOURCE_ROOT "src directory with test files")
-# Force XL C on AIX
-if(${CMAKE_SYSTEM_NAME} MATCHES "AIX")
-    set(CMAKE_C_COMPILER /opt/IBM/xlC/13.1.3/bin/xlc)
-    set(CMAKE_CXX_COMPILER /opt/IBM/xlC/13.1.3/bin/xlC)
-endif()
 file(GLOB_RECURSE TEST_LIBS ${TEST_SOURCE_ROOT}/*lib*.c)
 
 foreach(TEST_LIB ${TEST_LIBS})
