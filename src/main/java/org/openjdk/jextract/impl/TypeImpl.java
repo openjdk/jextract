@@ -43,6 +43,7 @@ import static java.lang.foreign.ValueLayout.ADDRESS;
 public abstract class TypeImpl implements Type {
 
     public static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+    public static final boolean IS_AIX = System.getProperty("os.name").startsWith("AIX");
 
     @Override
     public boolean isErroneous() {

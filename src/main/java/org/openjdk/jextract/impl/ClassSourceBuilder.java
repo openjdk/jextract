@@ -259,7 +259,18 @@ abstract class ClassSourceBuilder {
             case Long -> alignIfNeeded(runtimeHelperName() + ".C_LONG", TypeImpl.IS_WINDOWS ? 4 : 8, align);
             case LongLong -> alignIfNeeded(runtimeHelperName() + ".C_LONG_LONG", 8, align);
             case Float -> alignIfNeeded(runtimeHelperName() + ".C_FLOAT", 4, align);
-            case Double -> alignIfNeeded(runtimeHelperName() + ".C_DOUBLE", 8, align);
+            case Double -> {
+                if (TypeImpl.IS_AIX) {
+                    if (align == 8) {
+                        align = 4;
+                        yield alignIfNeeded(runtimeHelperName() + ".C_DOUBLE", 8, align);
+                    } else {
+                        yield alignIfNeeded(runtimeHelperName() + ".C_DOUBLE", 4, align);
+                    }
+                } else {
+                    yield alignIfNeeded(runtimeHelperName() + ".C_DOUBLE", 8, align);
+                }
+            }
             case LongDouble -> TypeImpl.IS_WINDOWS ?
                     alignIfNeeded(runtimeHelperName() + ".C_LONG_DOUBLE", 8, align) :
                     paddingLayoutString(8, 0);

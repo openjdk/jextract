@@ -484,6 +484,11 @@ public final class JextractTool {
 
         builder.addClangArg("-I" + System.getProperty("user.dir"));
 
+        // 64 bit mode on AIX
+        if (System.getProperty("os.name").toLowerCase().contains("aix")) {
+            builder.addClangArg("-m64");
+        }
+
         if (optionSet.nonOptionArguments().isEmpty()) {
             printOptionError(logger.format("expected.atleast.one.header"));
             return OPTION_ERROR;

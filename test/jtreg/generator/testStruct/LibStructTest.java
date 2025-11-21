@@ -42,6 +42,9 @@ import test.jextract.struct.*;
  * @run testng/othervm --enable-native-access=ALL-UNNAMED LibStructTest
  */
 public class LibStructTest {
+
+    public static final boolean IS_AIX = System.getProperty("os.name").startsWith("AIX");
+
     @Test
     public void testMakePoint() {
         try (Arena arena = Arena.ofConfined()) {
@@ -97,6 +100,10 @@ public class LibStructTest {
         checkField(g, "ll", C_LONG_LONG);
         checkField(g, "ull",C_LONG_LONG);
         checkField(g, "f",  C_FLOAT);
-        checkField(g, "d",  C_DOUBLE);
+        if (IS_AIX) {
+            checkField(g, "d",  C_DOUBLE.withByteAlignment(4));
+        } else {
+            checkField(g, "d", C_DOUBLE);
+        }
     }
 }
