@@ -86,24 +86,15 @@ public class Index_h {
     static {
         String osName = System.getProperty("os.name");
         if (osName.startsWith("AIX")) {
-            List<String> pathsToCheck = new ArrayList<>(Arrays.asList(
-                    System.getProperty("java.library.path").split(File.pathSeparator)
-            ));
-            // 2. Add alternate calculated paths
-            String currentDir = System.getProperty("user.dir"); // wherever JVM was launched
-            pathsToCheck.add(currentDir + "/build/jextract-jdk-test-image/lib");
-            pathsToCheck.add(currentDir + "/../../../jextract-jdk-test-image/lib"); // in case running from subdir
-            // 3. Try to find the library
-            for (String path : pathsToCheck) {
-                File f = new File(path, "libclang.a"); // AIX uses .a, Linux .so
-                if (f.exists() && !f.isDirectory()) {
-                    String libName = f.getAbsolutePath();
-                    break;
-                }
+            String libName = null;
+            String javaHome = System.getProperty("java.home");
+            File f = new File(javaHome + "/lib", "libclang.a"); // AIX uses .a, Linux .so
+            if (f.exists() && !f.isDirectory()) {
+                libName = f.getAbsolutePath();
             }
             SYMBOL_LOOKUP = SymbolLookup.libraryLookup(libName + "(libclang.so.14)", Arena.global());
         } else {
-            libName = osName.startsWith("Windows") ? "libclang" : "clang";
+            String libName = osName.startsWith("Windows") ? "libclang" : "clang";
             System.loadLibrary(libName);
             SYMBOL_LOOKUP = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
         }
