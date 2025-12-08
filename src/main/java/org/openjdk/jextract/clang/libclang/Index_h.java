@@ -85,7 +85,6 @@ public class Index_h {
 
     static {
         String osName = System.getProperty("os.name");
-        String libName = "";
         if (osName.startsWith("AIX")) {
         List<String> pathsToCheck = new ArrayList<>(Arrays.asList(
                 System.getProperty("java.library.path").split(File.pathSeparator)
@@ -98,7 +97,7 @@ public class Index_h {
         for (String path : pathsToCheck) {
             File f = new File(path, "libclang.a"); // AIX uses .a, Linux .so
             if (f.exists() && !f.isDirectory()) {
-                libName = f.getAbsolutePath();
+                String libName = f.getAbsolutePath();
                 break;
             }
         }

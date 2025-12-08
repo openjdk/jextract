@@ -14,8 +14,6 @@ endif
 
 ifeq ($(PLATFORM_OS), macosx)
   TAR_SUPPORTS_TRANSFORM := false
-else ifeq ($(PLATFORM_OS), aix)
-  TAR_SUPPORTS_TRANSFORM := false
 else
   TAR_SUPPORTS_TRANSFORM := true
 endif
@@ -31,8 +29,6 @@ JEXTRACT_JMOD_CONF_DIR := $(BUILD_DIR)/jextract_jmod_conf
 
 ifeq ($(PLATFORM_OS), macosx)
   BUNDLE_PLATFORM := macos-$(PLATFORM_CPU)
-else ifeq ($(PLATFORM_OS), aix)
-  BUNDLE_PLATFORM := aix-$(PLATFORM_CPU)
 else
   BUNDLE_PLATFORM := $(PLATFORM)
 endif
@@ -59,8 +55,6 @@ $(BUILD_CLASSES_DIR):
 
 ifeq ($(PLATFORM_OS), linux)
   LIBCLANG_COPY_PATH := "libclang.so.$(LIBCLANG_VERSION)"
-else ifeq ($(PLATFORM_OS), aix)
-  LIBCLANG_COPY_PATH := "libclang.a"
 else
   LIBCLANG_COPY_PATH := "*clang.*"
 endif
@@ -76,6 +70,7 @@ $(BUILD_MODULES_DIR): $(BUILD_CLASSES_DIR)
 	$(CP) "$(LIBCLANG_INCLUDE_DIR)/"*.h "$(JEXTRACT_JMOD_CONF_DIR)/jextract/"
 	[ ! -f $(JEXTRACT_JMOD_LIBS_DIR)/libclang.so.$(LIBCLANG_VERSION) ] || \
 	  $(MV) "$(JEXTRACT_JMOD_LIBS_DIR)/libclang.so.$(LIBCLANG_VERSION)" "$(JEXTRACT_JMOD_LIBS_DIR)/libclang.so"
+
 	# create jextract jmod file
 	$(FIXPATH) $(PANAMA_JAVA_HOME)/bin/jmod \
 	    create \

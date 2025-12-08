@@ -38,6 +38,7 @@ if (clang_versions.length == 0) {
             " Make sure a ${llvm_home}/lib/clang/<VERSION> directory exists")
 }
 def clang_version = clang_versions[0]
+
 def buildDir = layout.buildDirectory.get()
 def jextract_version = "23"
 def jmods_dir = "$buildDir/jmods"
@@ -88,10 +89,6 @@ task copyLibClang(type: Sync) {
          // make sure we drop shared library version name (Linux only)
          rename("libclang.so.*", "libclang.so")
 
-     }
-     from("${libclang_dir}") {
-        include("libclang.a")
-        into("$buildDir/test-libs")
      }
      from("$clang_include_dir") {
         include("*.h")
@@ -267,18 +264,6 @@ if (jacocoAgent != null) {
 }
 
 
-tasks.register("copyLibClangToTestLib", Copy) {
-    def srcFile = file("${project.buildDir}/jmod_inputs/libs/libclang.a")
-    def destDir = file("${project.buildDir}/test-lib/libs")
-    dependsOn(copyLibClang)
-    from(srcFile) 
-    into(destDir)
-}
-
-// Make jtreg depend on it
-tasks.named("jtreg") {
-    dependsOn("copyLibClangToTestLib")
-}
 
 tasks.register("coverage", JavaExec) {
     dependsOn jtregWithCoverage

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(TestSupportLibs)
 
 option(TEST_SOURCE_ROOT "src directory with test files")
+
 file(GLOB_RECURSE TEST_LIBS ${TEST_SOURCE_ROOT}/*lib*.c)
 
 foreach(TEST_LIB ${TEST_LIBS})
@@ -15,7 +16,7 @@ foreach(TEST_LIB ${TEST_LIBS})
       set_target_properties(${LIB_NAME} PROPERTIES
           PREFIX "lib"
           SUFFIX ".a"
-          COMPILE_FLAGS "-q64  -qhalt=e"
+          COMPILE_FLAGS "-q64  -qhalt=e -qcpluscmt"
           LINK_FLAGS "-q64 -G -Wl,-bnoentry,-bexpall"
     	)
     else()
@@ -28,7 +29,10 @@ foreach(TEST_LIB ${TEST_LIBS})
     )
 
     # Link against libm to resolve sqrt() and other math symbols
-    target_link_libraries(${LIB_NAME} m)
+    find_library(LIBM, m)
+    if(LIBM)
+      target_link_libraries(${LIB_NAME} ${LIBM})
+    endif()
 
     install(
      TARGETS
