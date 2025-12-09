@@ -72,6 +72,7 @@ jar {
 
 task copyLibClang(type: Sync) {
     into("$buildDir/jmod_inputs")
+
     // make sure we only pick up the "real" shared library file from LLVM installation
     // (e.g. exclude symlinks on Linux)
     def isAix = Os.isName("AIX") || Os.isName("aix")
