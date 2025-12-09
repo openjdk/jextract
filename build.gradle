@@ -72,29 +72,26 @@ jar {
 
 task copyLibClang(type: Sync) {
     into("$buildDir/jmod_inputs")
-
-     // make sure we only pick up the "real" shared library file from LLVM installation
-     // (e.g. exclude symlinks on Linux)
-     def isAix = Os.isName("AIX") || Os.isName("aix")
-     def isUnixNotMac  = Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)
-     def clang_path_include =
-        isAix  ? "libclang.a" :
-        isUnixNotMac ? "libclang.so.${clang_version}" :
-                 "*clang*"
-     from("${libclang_dir}") {
-         include(clang_path_include)
-         include("libLLVM.*")
-         exclude("clang.exe")
-         into("libs")
-         // make sure we drop shared library version name (Linux only)
-         rename("libclang.so.*", "libclang.so")
-
-     }
-     from("$clang_include_dir") {
-        include("*.h")
-        into("conf/jextract")
-     }
-
+    // make sure we only pick up the "real" shared library file from LLVM installation
+    // (e.g. exclude symlinks on Linux)
+    def isAix = Os.isName("AIX") || Os.isName("aix")
+    def isUnixNotMac  = Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)
+    def clang_path_include =
+    isAix  ? "libclang.a" :
+    isUnixNotMac ? "libclang.so.${clang_version}" :
+                "*clang*"
+    from("${libclang_dir}") {
+        include(clang_path_include)
+        include("libLLVM.*")
+        exclude("clang.exe")
+        into("libs")
+        // make sure we drop shared library version name (Linux only)
+        rename("libclang.so.*", "libclang.so")
+    }
+    from("$clang_include_dir") {
+    include("*.h")
+    into("conf/jextract")
+    }
 }
 
 task createJextractJmod(type: Exec) {
