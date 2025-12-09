@@ -36,7 +36,8 @@ import java.util.stream.*;
 import static java.lang.foreign.ValueLayout.*;
 import java.util.StringTokenizer;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
-import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
 
 public class Index_h {
 
@@ -81,18 +82,22 @@ public class Index_h {
         };
     }
 
-    static SymbolLookup SYMBOL_LOOKUP;
+    static final SymbolLookup SYMBOL_LOOKUP;
 
     static {
         String osName = System.getProperty("os.name");
         if (osName.startsWith("AIX")) {
-            String libName = null;
             String javaHome = System.getProperty("java.home");
-            File f = new File(javaHome + "/lib", "libclang.a"); // AIX uses .a, Linux .so
-            if (f.exists() && !f.isDirectory()) {
-                libName = f.getAbsolutePath();
+            String libName = javaHome + "/lib/libclang.a";
+            String clangVersion = "14";
+            try (BufferedReader br = new BufferedReader(
+                new FileReader(javaHome + "/conf/jextract/libclang.version"))) {
+                clangVersion = br.readLine().trim();
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to read libclang.version", e);
             }
-            SYMBOL_LOOKUP = SymbolLookup.libraryLookup(libName + "(libclang.so.14)", Arena.global());
+            String sharedMember = "(libclang.so." + clangVersion + ")";
+            SYMBOL_LOOKUP = SymbolLookup.libraryLookup(libName + sharedMember, LIBRARY_ARENA);
         } else {
             String libName = osName.startsWith("Windows") ? "libclang" : "clang";
             System.loadLibrary(libName);

@@ -207,7 +207,6 @@ task cmakeConfigure(type: Exec) {
     ]
 }
 
-
 task cmakeBuild(type: Exec) {
     dependsOn cmakeConfigure
 
@@ -282,4 +281,21 @@ tasks.register("coverage", JavaExec) {
             "--sourcefiles", "$projectDir/src/main/java",
             "--html", "$buildDir/jacoco-report"
     ]
+}
+
+//------------------------------------------------------------
+// Task to generate version file into jmod inputs
+//------------------------------------------------------------
+tasks.register('writeLibClangVersion') {
+    def confDir = file("$buildDir/jmod_inputs/conf/jextract")
+    outputs.file("$confDir/libclang.version")
+    def clang_major_version = clang_version.tokenize('.')[0]
+    doLast {
+        confDir.mkdirs()
+        file("$confDir/libclang.version").text = clang_major_version + "\n"
+    }
+}
+
+tasks.named("createJextractJmod") {
+    dependsOn "writeLibClangVersion"
 }
