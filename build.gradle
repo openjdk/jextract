@@ -262,8 +262,6 @@ if (jacocoAgent != null) {
     createJtregTask("jtregWithCoverage", jacocoAgent, os_lib_dir)
 }
 
-
-
 tasks.register("coverage", JavaExec) {
     dependsOn jtregWithCoverage
 
@@ -282,7 +280,6 @@ tasks.register("coverage", JavaExec) {
             "--html", "$buildDir/jacoco-report"
     ]
 }
-
 //------------------------------------------------------------
 // Task to generate version file into jmod inputs
 //------------------------------------------------------------
