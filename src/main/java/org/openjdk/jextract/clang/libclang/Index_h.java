@@ -34,7 +34,6 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 import static java.lang.foreign.ValueLayout.*;
-import java.util.StringTokenizer;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
