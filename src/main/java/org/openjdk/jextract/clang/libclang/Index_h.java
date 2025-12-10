@@ -36,8 +36,8 @@ import java.util.stream.*;
 import static java.lang.foreign.ValueLayout.*;
 import java.util.StringTokenizer;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
-import java.io.FileReader;
-import java.io.BufferedReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Index_h {
 
@@ -89,14 +89,13 @@ public class Index_h {
         if (osName.startsWith("AIX")) {
             String javaHome = System.getProperty("java.home");
             String libName = javaHome + "/lib/libclang.a";
-            String clangVersion = "14";
-            try (BufferedReader br = new BufferedReader(
-                new FileReader(javaHome + "/conf/jextract/libclang.version"))) {
-                clangVersion = br.readLine().trim();
+            String clangVersion;
+            try {
+                clangVersion = Files.readString(Path.of(javaHome + "/conf/jextract/libclang.version"));
             } catch (Exception e) {
                 throw new IllegalStateException("Failed to read libclang.version", e);
             }
-            String sharedMember = "(libclang.so." + clangVersion + ")";
+            String sharedMember = "(libclang.so." + clangVersion.trim() + ")";
             SYMBOL_LOOKUP = SymbolLookup.libraryLookup(libName + sharedMember, LIBRARY_ARENA);
         } else {
             String libName = osName.startsWith("Windows") ? "libclang" : "clang";
