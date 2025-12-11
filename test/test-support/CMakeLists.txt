@@ -11,12 +11,26 @@ foreach(TEST_LIB ${TEST_LIBS})
     string(REGEX REPLACE ".*lib([A-Za-z0-9_]+)\.c(pp)?" "\\1" LIB_NAME ${TEST_LIB})
     string(REGEX REPLACE "(.*)/lib[A-Za-z0-9_]+\.c(pp)?" "\\1" PARENT_DIR ${TEST_LIB})
     message(STATUS "Lib name: ${LIB_NAME}")
-
     add_library(${LIB_NAME} SHARED ${TEST_LIB})
+    if(${CMAKE_SYSTEM_NAME} MATCHES "AIX")
+      set_target_properties(${LIB_NAME} PROPERTIES
+          PREFIX "lib"
+          SUFFIX ".a"
+          COMPILE_FLAGS "-q64  -qhalt=e -qcpluscmt"
+          LINK_FLAGS "-q64 -G -Wl,-bnoentry,-bexpall"
+    	)
+    endif()
+
     target_include_directories(${LIB_NAME}
       PRIVATE
         ${PARENT_DIR}
     )
+
+    # Link against libm to resolve sqrt() and other math symbols
+    find_library(LIBM, m)
+    if(LIBM)
+      target_link_libraries(${LIB_NAME} ${LIBM})
+    endif()
 
     install(
      TARGETS

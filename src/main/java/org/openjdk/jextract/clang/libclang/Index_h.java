@@ -33,9 +33,10 @@ import java.nio.ByteOrder;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
-
 import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Index_h {
 
@@ -80,15 +81,27 @@ public class Index_h {
         };
     }
 
+    static final SymbolLookup SYMBOL_LOOKUP;
 
     static {
-        String libName = System.getProperty("os.name").startsWith("Windows") ? "libclang" : "clang";
-        System.loadLibrary(libName);
+        String osName = System.getProperty("os.name");
+        if (osName.startsWith("AIX")) {
+            String javaHome = System.getProperty("java.home");
+            String libName = javaHome + "/lib/libclang.a";
+            String clangVersion;
+            try {
+                clangVersion = Files.readString(Path.of(javaHome + "/conf/jextract/libclang.version"));
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to read libclang.version", e);
+            }
+            String sharedMember = "(libclang.so." + clangVersion.trim() + ")";
+            SYMBOL_LOOKUP = SymbolLookup.libraryLookup(libName + sharedMember, LIBRARY_ARENA);
+        } else {
+            String libName = osName.startsWith("Windows") ? "libclang" : "clang";
+            System.loadLibrary(libName);
+            SYMBOL_LOOKUP = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
+        }
     }
-
-    static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.loaderLookup()
-            .or(Linker.nativeLinker().defaultLookup());
-
     public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
     public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
     public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;

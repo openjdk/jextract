@@ -75,18 +75,17 @@ task copyLibClang(type: Sync) {
 
     // make sure we only pick up the "real" shared library file from LLVM installation
     // (e.g. exclude symlinks on Linux)
-    def clang_path_include = (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) ?
-            "libclang.so.${clang_version}" : "*clang*"
-
+    def isAix = Os.isName("AIX") || Os.isName("aix")
+    def isUnixNotMac  = Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)
+    def clang_path_include = isAix  ? "libclang.a" : isUnixNotMac ? "libclang.so.${clang_version}" : "*clang*"
     from("${libclang_dir}") {
         include(clang_path_include)
         include("libLLVM.*")
         exclude("clang.exe")
         into("libs")
         // make sure we drop shared library version name (Linux only)
-        rename("libclang.so.${clang_version}", "libclang.so")
+        rename("libclang.so.*", "libclang.so")
     }
-
     from("$clang_include_dir") {
         include("*.h")
         into("conf/jextract")
@@ -238,7 +237,7 @@ void createJtregTask(String name, String jacocoAgent, String os_lib_dir) {
                 "-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-avm", "-conc:auto", "-verbose:summary,fail,error",
-                "-retain:fail,error",
+                "-retain:fail,error"
         ]
 
         if (jacocoAgent != null) {
@@ -275,4 +274,20 @@ tasks.register("coverage", JavaExec) {
             "--sourcefiles", "$projectDir/src/main/java",
             "--html", "$buildDir/jacoco-report"
     ]
+}
+//------------------------------------------------------------
+// Task to generate version file into jmod inputs
+//------------------------------------------------------------
+tasks.register('writeLibClangVersion') {
+    def confDir = file("$buildDir/jmod_inputs/conf/jextract")
+    outputs.file("$confDir/libclang.version")
+    def clang_major_version = clang_version.tokenize('.')[0]
+    doLast {
+        confDir.mkdirs()
+        file("$confDir/libclang.version").text = clang_major_version + "\n"
+    }
+}
+
+tasks.named("createJextractJmod") {
+    dependsOn "writeLibClangVersion"
 }
