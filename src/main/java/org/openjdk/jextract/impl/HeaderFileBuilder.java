@@ -408,12 +408,14 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             public static final ValueLayout.OfDouble C_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get("double");
             public static final AddressLayout C_POINTER = ((AddressLayout) Linker.nativeLinker().canonicalLayouts().get("void*"))
                     .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, C_CHAR));
+            
+            // TODO: constants for fixed width integer types and other common `..._t` types
             """);
         if (TypeImpl.IS_WINDOWS) {
-            appendIndentedLines("public static final ValueLayout.OfInt C_LONG = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
+            appendIndentedLines("public static final ValueLayout C_LONG = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
             appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get(\"double\");");
         } else {
-            appendIndentedLines("public static final ValueLayout.OfLong C_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
+            appendIndentedLines("public static final ValueLayout C_LONG = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
         }
     }
     private void emitGlobalGetter(String holderClass, String javaName,

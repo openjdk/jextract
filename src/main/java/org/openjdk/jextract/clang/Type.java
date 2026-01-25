@@ -138,6 +138,18 @@ public final class Type extends ClangDisposable.Owned {
     }
 
     /**
+     * For a typedef returns the underlying type.
+     */
+    public Type typeDefUnderlyingType() {
+        var cursor = getDeclarationCursor();
+        if (cursor.isInvalid()) {
+            throw new AssertionError("TODO");
+        }
+        var underlyingType = Index_h.clang_getTypedefDeclUnderlyingType(cursor.owner, cursor.segment);
+        return new Type(underlyingType, owner);
+    }
+
+    /**
      * Determine whether a Type has the "const" qualifier set,
      * without looking through typedefs that may have added "const" at a
      * different level.

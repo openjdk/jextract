@@ -211,10 +211,27 @@ abstract class ClassSourceBuilder {
             case Declared d when Utils.isEnum(d) -> layoutString(ClangEnumType.get(d.tree()).get(), align);
             case Declared d when Utils.isStructOrUnion(d) -> alignIfNeeded(JavaName.getFullNameOrThrow(d.tree()) + ".layout()", ClangAlignOf.getOrThrow(d.tree()) / 8, align);
             case Delegated d when d.kind() == Delegated.Kind.POINTER -> alignIfNeeded(runtimeHelperName() + ".C_POINTER", 8, align);
+            case Delegated d when d.kind() == Delegated.Kind.TYPEDEF -> typeDefLayoutString(d, align);
             case Delegated d -> layoutString(d.type(), align);
             case Function _ -> alignIfNeeded(runtimeHelperName() + ".C_POINTER", 8, align);
             case Array a -> String.format("MemoryLayout.sequenceLayout(%1$d, %2$s)", a.elementCount().orElse(0L), layoutString(a.elementType(), align));
             default -> throw new UnsupportedOperationException();
+        };
+    }
+
+    private String typeDefLayoutString(Type.Delegated type, long align) {
+        String name = type.name().orElse("");
+        return switch (name) {
+            // https://en.cppreference.com/w/cpp/types/integer.html
+            case "int8_t", "int16_t", "int32_t", "int64_t",
+                 "uint8_t", "uint16_t", "uint32_t", "uint64_t",
+                 // https://en.cppreference.com/w/cpp/types/floating-point.html
+                 "float16_t", "float32_t", "float64_t", "float128_t", "bfloat16_t",
+                 // Other types which are common enough and have an entry in FFM `Linker#canonicalLayouts()`
+                 "size_t"
+                // TODO: Use proper names and proper alignment
+                -> alignIfNeeded(runtimeHelperName() + ".DEBUG_" + name, 1, align);
+            default -> layoutString(type.type(), align);
         };
     }
 

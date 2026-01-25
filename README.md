@@ -26,9 +26,9 @@ Alternatively, to build jextract from the latest sources (which include all the 
 > Over time, new branches will be added, each targeting a specific JDK version.
 > </details>
 
-`jextract` can be built using `gradle`, as follows (on Windows, `gradlew.bat` should be used instead).
+`jextract` can be built using `gradlew`, as follows (on Windows, `gradlew.bat` should be used instead).
 
-We currently use gradle version 8.11.1 which is fetched automatically by the gradle wrapper. Please refer to the [compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html) to see which version of java is needed in `PATH`/`JAVA_HOME` to run gradle. Note that the JDK we use to build (the toolchain JDK) is passed in separately as a property.
+We currently use Gradle version 8.11.1 which is fetched automatically by the Gradle wrapper. Please refer to the [compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html) to see which version of java is needed in `PATH`/`JAVA_HOME` to run Gradle. Note that the JDK we use to build (the toolchain JDK) is passed in separately as a property.
 
 
 
@@ -36,6 +36,7 @@ We currently use gradle version 8.11.1 which is fetched automatically by the gra
 $ sh ./gradlew -Pjdk_home=<jdk_home_dir> -Pllvm_home=<libclang_dir> clean verify
 ```
 
+Alternatively these properties can be specified in the [`gradle.properties` file](https://docs.gradle.org/current/userguide/build_environment.html#the_gradle_properties_file).
 
 > <details><summary><strong>Using a local installation of LLVM</strong></summary>
 >
