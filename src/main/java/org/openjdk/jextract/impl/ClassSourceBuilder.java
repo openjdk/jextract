@@ -222,11 +222,9 @@ abstract class ClassSourceBuilder {
     private String typeDefLayoutString(Type.Delegated type, long align) {
         String name = type.name().orElse("");
         return switch (name) {
-            // https://en.cppreference.com/w/cpp/types/integer.html
+            // https://en.cppreference.com/w/c/types/integer.html
             case "int8_t", "int16_t", "int32_t", "int64_t",
                  "uint8_t", "uint16_t", "uint32_t", "uint64_t",
-                 // https://en.cppreference.com/w/cpp/types/floating-point.html
-                 "float16_t", "float32_t", "float64_t", "float128_t", "bfloat16_t",
                  // Other types which are common enough and have an entry in FFM `Linker#canonicalLayouts()`
                  "size_t"
                 // TODO: Use proper names and proper alignment
