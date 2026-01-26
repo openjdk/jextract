@@ -152,7 +152,9 @@ class TypeMaker {
                 }
             }
             case Typedef: {
-                Type __type = makeType(t.canonicalType(), treeMaker);
+                // Don't use `canonicalType()` here since that would lose information about intermediate typedefs,
+                // for example `typedef uint16_t MyType` would otherwise be resolved as `short` and not `uint16_t`
+                Type __type = makeType(t.typeDefUnderlyingType(), treeMaker);
                 return Type.typedef(t.spelling(), __type);
             }
             case Complex: {

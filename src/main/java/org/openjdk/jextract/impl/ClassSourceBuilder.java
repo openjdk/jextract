@@ -41,6 +41,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -211,10 +212,27 @@ abstract class ClassSourceBuilder {
             case Declared d when Utils.isEnum(d) -> layoutString(ClangEnumType.get(d.tree()).get(), align);
             case Declared d when Utils.isStructOrUnion(d) -> alignIfNeeded(JavaName.getFullNameOrThrow(d.tree()) + ".layout()", ClangAlignOf.getOrThrow(d.tree()) / 8, align);
             case Delegated d when d.kind() == Delegated.Kind.POINTER -> alignIfNeeded(runtimeHelperName() + ".C_POINTER", 8, align);
+            case Delegated d when d.kind() == Delegated.Kind.TYPEDEF -> typedefLayoutString(d, align);
             case Delegated d -> layoutString(d.type(), align);
             case Function _ -> alignIfNeeded(runtimeHelperName() + ".C_POINTER", 8, align);
             case Array a -> String.format("MemoryLayout.sequenceLayout(%1$d, %2$s)", a.elementCount().orElse(0L), layoutString(a.elementType(), align));
             default -> throw new UnsupportedOperationException();
+        };
+    }
+
+    private String typedefLayoutString(Type.Delegated type, long align) {
+        String name = type.name().orElse("");
+        String layoutName = runtimeHelperName() + ".C_" + name.toUpperCase(Locale.ROOT);
+        return switch (name) {
+            // https://en.cppreference.com/w/c/types/integer.html
+            case "int8_t", "uint8_t" -> layoutName;
+            case "int16_t", "uint16_t" -> alignIfNeeded(layoutName, 2, align);
+            case "int32_t", "uint32_t" -> alignIfNeeded(layoutName, 4, align);
+            case "int64_t", "uint64_t" -> alignIfNeeded(layoutName, 8, align);
+             // Other types which are common enough and have an entry in FFM `Linker#canonicalLayouts()`
+            case "size_t" -> alignIfNeeded(layoutName, 8, align);
+            // Fall back to the layout for the underlying type
+            default -> layoutString(type.type(), align);
         };
     }
 

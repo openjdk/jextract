@@ -223,7 +223,11 @@ public abstract class DeclarationImpl implements Declaration {
 
         @Override
         public Type.Function type() {
-            return type;
+            // Use actual types from parameters, since they preserve typedef information
+            // This is needed for example for `malloc` to preserve the parameter type `size_t` and avoid it becoming `long`
+            // TODO: Does that also affect return type? maybe not, for C function `mbstowcs` it properly emits `size_t` as return type
+            // TODO: Maybe this is not safe / correct
+            return Type.function(type.varargs(), type.returnType(), params.stream().map(Variable::type).toArray(Type[]::new));
         }
 
         @Override
