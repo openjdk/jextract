@@ -403,6 +403,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             public static final ValueLayout.OfByte C_CHAR =(ValueLayout.OfByte)Linker.nativeLinker().canonicalLayouts().get("char");
             public static final ValueLayout.OfShort C_SHORT = (ValueLayout.OfShort) Linker.nativeLinker().canonicalLayouts().get("short");
             public static final ValueLayout.OfInt C_INT = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get("int");
+            // For C_LONG use unspecific ValueLayout to make generated code portable; because on Linux it is OfLong but on Windows it is OfInt
+            public static final ValueLayout C_LONG = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get("long");
             public static final ValueLayout.OfLong C_LONG_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get("long long");
             public static final ValueLayout.OfFloat C_FLOAT = (ValueLayout.OfFloat) Linker.nativeLinker().canonicalLayouts().get("float");
             public static final ValueLayout.OfDouble C_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get("double");
@@ -418,14 +420,11 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             public static final ValueLayout.OfLong C_INT64_T = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get("int64_t");
             public static final ValueLayout.OfLong C_UINT64_T = C_INT64_T;
 
+            // For C_SIZE_T use unspecific ValueLayout to make generated code portable; because its layout is platform-specific
             public static final ValueLayout C_SIZE_T = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get("size_t");
             """);
-        // For C_LONG use unspecific ValueLayout to make generated code portable; because on Linux it is OfLong but on Windows it is OfInt
         if (TypeImpl.IS_WINDOWS) {
-            appendIndentedLines("public static final ValueLayout C_LONG = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
             appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get(\"double\");");
-        } else {
-            appendIndentedLines("public static final ValueLayout C_LONG = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
         }
     }
     private void emitGlobalGetter(String holderClass, String javaName,
