@@ -408,9 +408,19 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             public static final ValueLayout.OfDouble C_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get("double");
             public static final AddressLayout C_POINTER = ((AddressLayout) Linker.nativeLinker().canonicalLayouts().get("void*"))
                     .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, C_CHAR));
-            
-            // TODO: constants for fixed width integer types and other common `..._t` types
+
+            public static final ValueLayout.OfByte C_INT8_T = (ValueLayout.OfByte) Linker.nativeLinker().canonicalLayouts().get("int8_t");
+            public static final ValueLayout.OfByte C_UINT8_T = C_INT8_T;
+            public static final ValueLayout.OfShort C_INT16_T = (ValueLayout.OfShort) Linker.nativeLinker().canonicalLayouts().get("int16_t");
+            public static final ValueLayout.OfShort C_UINT16_T = C_INT16_T;
+            public static final ValueLayout.OfInt C_INT32_T = (ValueLayout.OfInt) Linker.nativeLinker().canonicalLayouts().get("int32_t");
+            public static final ValueLayout.OfInt C_UINT32_T = C_INT32_T;
+            public static final ValueLayout.OfLong C_INT64_T = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get("int64_t");
+            public static final ValueLayout.OfLong C_UINT64_T = C_INT64_T;
+
+            public static final ValueLayout C_SIZE_T = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get("size_t");
             """);
+        // For C_LONG use unspecific ValueLayout to make generated code portable; because on Linux it is OfLong but on Windows it is OfInt
         if (TypeImpl.IS_WINDOWS) {
             appendIndentedLines("public static final ValueLayout C_LONG = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get(\"long\");");
             appendIndentedLines("public static final ValueLayout.OfDouble C_LONG_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get(\"double\");");
