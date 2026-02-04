@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -359,18 +359,18 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
             /**
              * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
-             * The returned segment has size {@code layout().byteSize()}
-             */
-            public static MemorySegment reinterpret(MemorySegment addr, Arena arena, Consumer<MemorySegment> cleanup) {
-                return reinterpret(addr, 1, arena, cleanup);
-            }
-
-            /**
-             * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
              * The returned segment has size {@code elementCount * layout().byteSize()}
              */
             public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
                 return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
+            }
+
+            /**
+             * Reinterprets {@code addr} using the existing scope.
+             * The returned segment has size {@code elementCount * layout().byteSize()}
+             */
+            public static MemorySegment reinterpret(MemorySegment addr, long elementCount) {
+                return addr.reinterpret(layout().byteSize() * elementCount);
             }
             """);
     }

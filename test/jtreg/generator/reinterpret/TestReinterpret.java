@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -45,7 +45,7 @@ public class TestReinterpret {
     public void testSingleStruct() {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment addr = make(14, 99);
-            MemorySegment seg = Point.reinterpret(addr, arena, reinterpret_h::freePoint);
+            MemorySegment seg = Point.reinterpret(addr, 1, arena, reinterpret_h::freePoint);
             assertEquals(Point.x(seg), 14);
             assertEquals(Point.y(seg), 99);
         }
@@ -62,6 +62,19 @@ public class TestReinterpret {
                 assertEquals(Point.x(point), i);
                 assertEquals(Point.y(point), i + 1);
             }
+        }
+    }
+
+    @Test
+    public void testReinterpretScope() {
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment addr = make(14, 99);
+            MemorySegment seg = Point.reinterpret(addr, 1);
+            assertEquals(Point.x(seg), 14);
+            assertEquals(Point.y(seg), 99);
+
+            MemorySegment array = Point.reinterpret(addr, 2);
+            assertEquals(array.byteSize(), Point.layout().byteSize() * 2);
         }
     }
 }
