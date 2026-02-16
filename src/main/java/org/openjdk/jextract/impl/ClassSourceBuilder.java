@@ -30,7 +30,6 @@ import org.openjdk.jextract.Type.Declared;
 import org.openjdk.jextract.Type.Delegated;
 import org.openjdk.jextract.Type.Function;
 import org.openjdk.jextract.Type.Primitive;
-import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangEnumType;
 import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
 import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
@@ -67,6 +66,8 @@ abstract class ClassSourceBuilder {
     private final String superName;
     private final ClassSourceBuilder enclosing;
     private final String runtimeHelperName;
+
+    private static final int NO_ALIGN_REQUIRED_MARKER = -1;
 
     ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName,
                        ClassSourceBuilder enclosing, String runtimeHelperName) {
@@ -202,18 +203,22 @@ abstract class ClassSourceBuilder {
     }
 
     String layoutString(Type type) {
-        return layoutString(type, Long.MAX_VALUE);
+        return fieldLayoutString(type, -1, NO_ALIGN_REQUIRED_MARKER);
     }
 
-    String layoutString(Type type, long align) {
+    String fieldLayoutString(Type type, long typeAlign, long expectedAlign) {
         return switch (type) {
-            case Primitive p -> primitiveLayoutString(p, align);
-            case Declared d when Utils.isEnum(d) -> layoutString(ClangEnumType.get(d.tree()).get(), align);
-            case Declared d when Utils.isStructOrUnion(d) -> alignIfNeeded(JavaName.getFullNameOrThrow(d.tree()) + ".layout()", ClangAlignOf.getOrThrow(d.tree()) / 8, align);
-            case Delegated d when d.kind() == Delegated.Kind.POINTER -> alignIfNeeded(runtimeHelperName() + ".C_POINTER", 8, align);
-            case Delegated d -> layoutString(d.type(), align);
-            case Function _ -> alignIfNeeded(runtimeHelperName() + ".C_POINTER", 8, align);
-            case Array a -> String.format("MemoryLayout.sequenceLayout(%1$d, %2$s)", a.elementCount().orElse(0L), layoutString(a.elementType(), align));
+            case Primitive p -> primitiveLayoutString(p, typeAlign, expectedAlign);
+            case Declared d when Utils.isEnum(d) ->
+                    fieldLayoutString(ClangEnumType.get(d.tree()).get(), typeAlign, expectedAlign);
+            case Declared d when Utils.isStructOrUnion(d) ->
+                    alignIfNeeded(JavaName.getFullNameOrThrow(d.tree()) + ".layout()", typeAlign, expectedAlign);
+            case Delegated d when d.kind() == Delegated.Kind.POINTER ->
+                    alignIfNeeded(runtimeHelperName() + ".C_POINTER", typeAlign, expectedAlign);
+            case Delegated d -> fieldLayoutString(d.type(), typeAlign, expectedAlign);
+            case Function _ -> alignIfNeeded(runtimeHelperName() + ".C_POINTER", typeAlign, expectedAlign);
+            case Array a -> String.format("MemoryLayout.sequenceLayout(%1$d, %2$s)", a.elementCount().orElse(0L),
+                    fieldLayoutString(a.elementType(), typeAlign, expectedAlign));
             default -> throw new UnsupportedOperationException();
         };
     }
@@ -250,18 +255,18 @@ abstract class ClassSourceBuilder {
         return " ".repeat(size * 4);
     }
 
-    private String primitiveLayoutString(Primitive primitiveType, long align) {
+    private String primitiveLayoutString(Primitive primitiveType, long typeAlign, long expectedAlign) {
         return switch (primitiveType.kind()) {
-            case Bool -> runtimeHelperName() + ".C_BOOL";
-            case Char -> runtimeHelperName() + ".C_CHAR";
-            case Short -> alignIfNeeded(runtimeHelperName() + ".C_SHORT", 2, align);
-            case Int -> alignIfNeeded(runtimeHelperName() + ".C_INT", 4, align);
-            case Long -> alignIfNeeded(runtimeHelperName() + ".C_LONG", TypeImpl.IS_WINDOWS ? 4 : 8, align);
-            case LongLong -> alignIfNeeded(runtimeHelperName() + ".C_LONG_LONG", 8, align);
-            case Float -> alignIfNeeded(runtimeHelperName() + ".C_FLOAT", 4, align);
-            case Double -> alignIfNeeded(runtimeHelperName() + ".C_DOUBLE", 8, align);
+            case Bool -> alignIfNeeded(runtimeHelperName() + ".C_BOOL", typeAlign, expectedAlign);
+            case Char -> alignIfNeeded(runtimeHelperName() + ".C_CHAR", typeAlign, expectedAlign);
+            case Short -> alignIfNeeded(runtimeHelperName() + ".C_SHORT", typeAlign, expectedAlign);
+            case Int -> alignIfNeeded(runtimeHelperName() + ".C_INT", typeAlign, expectedAlign);
+            case Long -> alignIfNeeded(runtimeHelperName() + ".C_LONG", typeAlign, expectedAlign);
+            case LongLong -> alignIfNeeded(runtimeHelperName() + ".C_LONG_LONG", typeAlign, expectedAlign);
+            case Float -> alignIfNeeded(runtimeHelperName() + ".C_FLOAT", typeAlign, expectedAlign);
+            case Double -> alignIfNeeded(runtimeHelperName() + ".C_DOUBLE", typeAlign, expectedAlign);
             case LongDouble -> TypeImpl.IS_WINDOWS ?
-                    alignIfNeeded(runtimeHelperName() + ".C_LONG_DOUBLE", 8, align) :
+                    alignIfNeeded(runtimeHelperName() + ".C_LONG_DOUBLE", typeAlign, expectedAlign) :
                     paddingLayoutString(8, 0);
             case HalfFloat, Char16, WChar -> paddingLayoutString(2, 0); // unsupported
             case Float128, Int128 -> paddingLayoutString(16, 0); // unsupported
@@ -269,8 +274,8 @@ abstract class ClassSourceBuilder {
         };
     }
 
-    private String alignIfNeeded(String layoutPrefix, long align, long expectedAlign) {
-        return align > expectedAlign ?
+    private String alignIfNeeded(String layoutPrefix, long defaultAlign, long expectedAlign) {
+        return expectedAlign != NO_ALIGN_REQUIRED_MARKER && defaultAlign != expectedAlign ?
                 String.format("%1$s.align(%2$s, %3$d)", runtimeHelperName(), layoutPrefix, expectedAlign) :
                 layoutPrefix;
     }

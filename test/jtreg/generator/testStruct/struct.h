@@ -31,6 +31,10 @@ extern "C" {
 #define EXPORT
 #endif
 
+#ifdef _AIX
+#pragma align(natural)
+#endif
+
 typedef struct Point {
     int x;
     int y;
@@ -53,6 +57,10 @@ struct AllTypes {
     double d;
     long double ld;
 };
+
+#ifdef _AIX
+#pragma align(reset)
+#endif
 
 #ifdef __cplusplus
 }

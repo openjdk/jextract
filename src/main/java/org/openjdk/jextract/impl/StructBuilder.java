@@ -460,7 +460,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
         boolean isStruct = scoped.kind() == Scoped.Kind.STRUCT;
 
-        long align = ClangAlignOf.getOrThrow(scoped) / 8;
+        long scopedTypeAlign = ClangAlignOf.getOrThrow(scoped) / 8;
         long offset = base;
 
         long size = 0L; // bits
@@ -477,7 +477,23 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 }
                 String memberLayout;
                 if (member instanceof Variable var) {
-                    memberLayout = layoutString(var.type(), align);
+                    // FIXME we can not handle hyper-aligned fields here since clang doesn't attach the
+                    // alignment specified by a field alignment specifier to the field declaration cursor.
+                    //
+                    // struct foo { // ClangAlignOf == 8
+                    //     _Alignas(8) int x; // ClangAlignOf == 4
+                    // };
+                    long fieldTypeAlign = ClangAlignOf.getOrThrow(var) / 8;
+                    // determine the required alignment based on the offset of the field.
+                    // we take the smallest power of two the offset conforms to as the
+                    // expected alignment.
+                    long expectedAlign = nextOffset != 0
+                        ? Math.min(Long.lowestOneBit(nextOffset / 8), fieldTypeAlign)
+                        : fieldTypeAlign;
+                    // either way, the alignment of the field may not be larger
+                    // than the alignment of the struct type itself, to respect padded structs
+                    expectedAlign = Math.min(expectedAlign, scopedTypeAlign);
+                    memberLayout = fieldLayoutString(var.type(), fieldTypeAlign, expectedAlign);
                     memberLayout = String.format("%1$s%2$s.withName(\"%3$s\")", indentString(indent + 1), memberLayout, member.name());
                 } else {
                     // anon struct
