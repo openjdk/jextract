@@ -27,6 +27,10 @@
 #define EXPORT
 #endif
 
+#ifdef _AIX
+#pragma align(natural)
+#endif
+
 #define macro_byte (char) 1
 #define macro_short (short) 1
 #define macro_int 1
@@ -80,3 +84,7 @@ enum {
     enum_anon_1,
     enum_anon_2,
 };
+
+#ifdef _AIX
+#pragma align(reset)
+#endif
