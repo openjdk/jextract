@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -62,7 +62,7 @@ public class LibUnsupportedTest {
     @Test
     public void testGetFoo() {
         try (Arena arena = Arena.ofConfined()) {
-            var seg = Foo.reinterpret(getFoo(), arena, null);
+            var seg = Foo.reinterpret(getFoo(), 1, arena, null);
             Foo.i(seg, 42);
             Foo.c(seg, (byte)'j');
             assertEquals(Foo.i(seg), 42);
