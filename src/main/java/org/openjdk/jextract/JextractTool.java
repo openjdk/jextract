@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -325,6 +325,10 @@ public final class JextractTool {
                            i++; // consume value from next command line arg
                        } // else -DFOO like case. argValue already set
 
+                       // do not allow empty argument values
+                       if (argValue.isEmpty()) {
+                           throw new OptionException("empty value for option: " + arg);
+                       }
                        // do not allow argument value to start with '-'
                        // this will catch issues like "-l-lclang", "-l -t"
                        if (argValue.charAt(0) == '-') {

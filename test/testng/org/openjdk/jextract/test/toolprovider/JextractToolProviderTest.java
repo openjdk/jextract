@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -50,6 +50,15 @@ public class JextractToolProviderTest extends JextractToolRunner {
     @Test
     public void testVersion() {
         runNoOuput("--version").checkSuccess();
+    }
+
+    // error for empty option value
+    @Test
+    public void testEmptyOptionValue() {
+        runNoOuput("-D", "", getInputFilePath("hello.h").toString())
+            .checkFailure(OPTION_ERROR)
+            .checkContainsOutput("empty value for option: -D")
+            .checkContainsOutput("Usage: jextract <options> <header file>");
     }
 
     // error for non-existent args file
