@@ -328,10 +328,9 @@ public class Point {
     public static MemorySegment allocateArray(long elementCount,
             SegmentAllocator allocator) { ... } // 4
 
-    public static MemorySegment reinterpret(MemorySegment addr, Arena arena,
-            Consumer<MemorySegment> cleanup) { ... } // 6
     public static MemorySegment reinterpret(MemorySegment addr, long elementCount,
             Arena arena, Consumer<MemorySegment> cleanup) { ... } // 6
+    public static MemorySegment reinterpret(MemorySegment addr, long elementCount) { ... } // 6
 }
 ```
 
@@ -406,17 +405,24 @@ The `reinterpret` method can be used to associate the correct bounds and lifetim
 // Main.java
 
 try (Arena arena = Arena.ofConfined()) {
-    MemorySegment point = Point.reinterpret(new_point(), arena, mylib_h::delete_point);
+    MemorySegment point = Point.reinterpret(new_point(), 1, arena, mylib_h::delete_point);
 
     // ...
 } // 'delete_point` called here
 ```
 
 The `point` segment returned by `reinterpret` has exactly the size of one `Point` (for
-arrays of struct, use the `reinterpret` overload that takes an element count as well). The
-lifetime we associate with the segment is the lifetime denoted by `arena`, and when the
-arena is closed, we want to call `delete_point`, which we can do by passing a method
-reference to `delete_point` as a cleanup action when calling `reinterpret`.
+arrays of struct, pass a larger `elementCount`). The lifetime we associate with the segment
+is the lifetime denoted by `arena`, and when the arena is closed, we want to call
+`delete_point`, which we can do by passing a method reference to `delete_point` as a cleanup
+action when calling `reinterpret`.
+
+If the source segment already has the desired scope and you only need to adjust the bounds, use
+the overload that keeps the existing scope:
+
+```java
+MemorySegment points = Point.reinterpret(existingSegment, elementCount);
+```
 
 The class that jextract generates for unions is identical to the class generated for
 structs.
