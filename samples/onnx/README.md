@@ -1,29 +1,19 @@
-1. Clone `onnxruntime-genai` and build Java bindings:
+To run Generative AI models with ONNX runtime, make sure to have downloaded a native [`libonnxruntime`](https://github.com/microsoft/onnxruntime/release) and [`libonnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai/releases).
+
+1. The [`libonnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai/releases) binary needs the statically built binaries from [`libonnxruntime`](https://github.com/microsoft/onnxruntime/release), so you have to set `ORT_LIB_PATH` to the directory containing the downloaded [`libonnxruntime`](https://github.com/microsoft/onnxruntime/release), then the ONNX_GEN_AI_HOME to [`libonnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai/releases). 
+The native library extension (`.dylib` or `.so` or `.dll`) is platform specific.
 
     ```bash
-    git clone https://github.com/microsoft/onnxruntime-genai.git
-    cd onnxruntime-genai
-    ./build.sh --build_java --config Release
-   ````
-    or
-   ```bash
-    ./build.sh
+    export ORT_LIB_PATH=/path/.../onnxruntime/lib/libonnxruntime.[dylib|so|dll]
+    export ONNX_GENAI_HOME=/path/.../onnxruntime-genai/
     ```
-
-2. Set `ONNX_LIB_PATH` to the directory containing the built native library
-   (e.g. where `libonnxruntime-genai.so` or `.dylib` lives):
+2. Run `compile.sh`:
 
     ```bash
-    export ONNX_LIB_PATH=/.../onnxruntime-genai/build/macOS/RelWithDebInfo/
+    ./compile.sh
     ```
-
-3. Set `ORT_GENAI_DIR` to your clone of `onnxruntime-genai` before running `compile.sh`:
-
-    ```bash
-    export ORT_GENAI_DIR=/path/.../onnxruntime-genai/
-    ```
-
-4. Download or prepare a valid ONNX model:
+   
+3. Download or prepare a valid ONNX model:
 
    ```bash
     git clone https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-onnx
@@ -31,14 +21,9 @@
     export MODEL_PATH=/path/.../Phi-3-mini-4k-instruct-onnx/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/
     ```
 
-5. Run `compile.sh`:
-
-    ```bash
-    ./compile.sh
-    ```
-
-6. Run the example:
+4. Run the example:
 
     ```bash
     sh ./run.sh
     ```
+   

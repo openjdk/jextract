@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ public class OnnxGenerator implements AutoCloseable {
 
     static final String PROMPT_TEMPLATE = """
     <|system|>
-You are a helpful assistant.<|end|>
+You are a helpful and accurate assistant.<|end|>
 <|user|>
 %s<|end|>
 <|assistant|>""";
@@ -82,8 +82,12 @@ You are a helpful assistant.<|end|>
             String str;
             System.out.print("> ");
             while ((str = in.readLine()) != null) {
-                gen.prompt(str);
-                System.out.print("> ");
+                if (str.equals("/exit")) {
+                    return;
+                } else {
+                    gen.prompt(str);
+                    System.out.print("> ");
+                }
             }
             in.close();
         }
