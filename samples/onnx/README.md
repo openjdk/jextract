@@ -1,6 +1,7 @@
 To run Generative AI models with ONNX runtime, make sure to have downloaded a native [`libonnxruntime`](https://github.com/microsoft/onnxruntime/release) and [`libonnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai/releases).
+Each release is distributed as an archive, so extract their contents.
 
-1. The [`libonnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai/releases) binary needs the statically built binaries from [`libonnxruntime`](https://github.com/microsoft/onnxruntime/release), so you have to set `ORT_LIB_PATH` to the directory containing the downloaded [`libonnxruntime`](https://github.com/microsoft/onnxruntime/release), then the ONNX_GEN_AI_HOME to [`libonnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai/releases). 
+1. The [`libonnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai/releases) library needs the one from [`libonnxruntime`](https://github.com/microsoft/onnxruntime/release), so you have to set `ORT_LIB_PATH` to the `libonnxruntime` library file inside the downloaded [`libonnxruntime`](https://github.com/microsoft/onnxruntime/release), then the ONNX_GENAI_HOME to [`libonnxruntime-genai`](https://github.com/microsoft/onnxruntime-genai/releases) folder. 
 The native library extension (`.dylib` or `.so` or `.dll`) is platform specific.
 
     ```bash
