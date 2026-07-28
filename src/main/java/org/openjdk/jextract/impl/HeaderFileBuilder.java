@@ -55,8 +55,8 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private final Set<String> holderClassNames = new HashSet<>();
 
-    HeaderFileBuilder(SourceFileBuilder builder, String className, String superName, String runtimeHelperName) {
-        super(builder, "public", Kind.CLASS, className, superName, null, runtimeHelperName);
+    HeaderFileBuilder(SourceFileBuilder builder, String className, String superName, String runtimeHelperName, boolean copyComments) {
+        super(builder, "public", Kind.CLASS, className, superName, null, runtimeHelperName, copyComments);
     }
 
     public void addVar(Declaration.Variable varTree) {
@@ -208,7 +208,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 }
                 """, javaName, holderClass);
             appendBlankLine();
-            emitDocComment(decl);
+            emitDocComment(decl, copyComments);
             appendLines("""
             public static %1$s %2$s(%3$s) {
                 var mh$ = %4$s.HANDLE;
@@ -249,7 +249,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     lookupName(decl), invokerClassName);
             incrAlign();
             appendBlankLine();
-            emitDocComment(decl, "Variadic invoker factory for:");
+            emitDocComment(decl, "Variadic invoker factory for:", copyComments);
             appendLines("""
                 public static %1$s makeInvoker(MemoryLayout... layouts) {
                     FunctionDescriptor desc$ = BASE_DESC.appendArgumentLayouts(layouts);
@@ -420,7 +420,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                   Declaration.Variable decl, String docHeader) {
         appendBlankLine();
         incrAlign();
-        emitDocComment(decl, docHeader);
+        emitDocComment(decl, docHeader, copyComments);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines("""
             public static %1$s %2$s() {
@@ -434,7 +434,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                   Declaration.Variable decl, String docHeader) {
         appendBlankLine();
         incrAlign();
-        emitDocComment(decl, docHeader);
+        emitDocComment(decl, docHeader, copyComments);
         Class<?> type = Utils.carrierFor(decl.type());
         appendLines("""
             public static void %1$s(%2$s varValue) {
@@ -448,7 +448,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                          Declaration.Variable varTree, String docHeader) {
         appendBlankLine();
         incrAlign();
-        emitDocComment(varTree, docHeader);
+        emitDocComment(varTree, docHeader, copyComments);
         appendLines("""
             public static MemorySegment %1$s() {
                 return %2$s.SEGMENT;
@@ -461,7 +461,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                          Declaration.Variable varTree, String docHeader) {
         appendBlankLine();
         incrAlign();
-        emitDocComment(varTree, docHeader);
+        emitDocComment(varTree, docHeader, copyComments);
         appendLines("""
             public static void %1$s(MemorySegment varValue) {
                 MemorySegment.copy(varValue, 0L, %2$s.SEGMENT, 0L, %2$s.LAYOUT.byteSize());
@@ -476,7 +476,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         Class<?> typeCls = Utils.carrierFor(elemType);
         appendBlankLine();
         incrAlign();
-        emitDocComment(varTree, docHeader);
+        emitDocComment(varTree, docHeader, copyComments);
         if (Utils.isStructOrUnion(elemType)) {
             appendLines("""
                 public static MemorySegment %1$s(%2$s) {
@@ -506,7 +506,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         Class<?> typeCls = Utils.carrierFor(elemType);
         appendBlankLine();
         incrAlign();
-        emitDocComment(varTree, docHeader);
+        emitDocComment(varTree, docHeader, copyComments);
         if (Utils.isStructOrUnion(elemType)) {
             appendLines("""
                 public static void %1$s(%2$s, MemorySegment varValue) {
@@ -588,7 +588,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
     private void emitConstant(Class<?> javaType, String constantName, Object value, Declaration declaration) {
         incrAlign();
         if (value instanceof String) {
-            emitDocComment(declaration);
+            emitDocComment(declaration, copyComments);
             appendLines("""
                 public static %1$s %2$s() {
                     class Holder {
@@ -609,7 +609,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                 javaType.getSimpleName(),
                 constantName,
                 constantValue(javaType, value));
-            emitDocComment(declaration);
+            emitDocComment(declaration, copyComments);
             appendLines("""
                 public static %1$s %2$s() {
                     return %2$s;
@@ -664,7 +664,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
 
     private void emitPrimitiveTypedefLayout(String javaName, Type type, Declaration declaration) {
         incrAlign();
-        emitDocComment(declaration);
+        emitDocComment(declaration, copyComments);
         appendLines("""
         public static final %1$s %2$s = %3$s;
         """, Utils.layoutCarrierFor(type).getSimpleName(), javaName, layoutString(type));

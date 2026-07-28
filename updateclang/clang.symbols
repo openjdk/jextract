@@ -604,6 +604,7 @@
 --include-function clang_getNumDiagnostics
 --include-function clang_getNumElements
 --include-function clang_getPointeeType
+--include-function clang_getRange
 --include-function clang_getRangeStart
 --include-function clang_getRangeEnd
 --include-function clang_getResultType

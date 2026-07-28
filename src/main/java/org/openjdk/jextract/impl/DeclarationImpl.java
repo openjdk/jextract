@@ -27,6 +27,7 @@
 package org.openjdk.jextract.impl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public abstract class DeclarationImpl implements Declaration {
 
     private final String name;
     private final Position pos;
+    private List<String> comments = Collections.emptyList();
     private final Map<Class<?>, Record> attributes = new HashMap<>();
 
     DeclarationImpl(String name, Position pos) {
@@ -62,6 +64,15 @@ public abstract class DeclarationImpl implements Declaration {
     @Override
     public Position pos() {
         return pos;
+    }
+
+    @Override
+    public List<String> comments() {
+        return comments;
+    }
+
+    public void setComments(List<String> comments) {
+        this.comments = comments;
     }
 
     @Override
