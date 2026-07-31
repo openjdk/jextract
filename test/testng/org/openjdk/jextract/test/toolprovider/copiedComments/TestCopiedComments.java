@@ -96,7 +96,7 @@ public class TestCopiedComments extends JextractToolRunner {
             multi-line comment""",
             """
             internal
-            
+
             comment""",
             """
             Doxygen
