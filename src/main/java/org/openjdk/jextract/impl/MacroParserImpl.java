@@ -308,8 +308,8 @@ class MacroParserImpl implements AutoCloseable {
             return macrosByMangledName.values().stream()
                     .filter(Entry::isSuccess)
                     .map(e -> {
-                        Declaration.Constant constant = ((Success) e).constant();
-                        constant.accept(new CommentAdder(), e.comments);
+                        DeclarationImpl.ConstantImpl constant = (DeclarationImpl.ConstantImpl) ((Success) e).constant();
+                        constant.setComments(e.comments);
                         return constant;
                     })
                     .collect(Collectors.toList());

@@ -129,7 +129,7 @@ class TreeMaker {
         List<String> comments = copyComments ? extractComments(c, prevEnd) : Collections.emptyList();
         var rv = (DeclarationImpl) createTreeInternal(c);
         if (rv != null) {
-            rv.accept(new CommentAdder(), comments);
+            rv.setComments(comments);
         }
         return addAttributes(rv, c);
     }
