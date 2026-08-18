@@ -46,10 +46,13 @@ public class TestNormalizedPathOutput extends JextractToolRunner {
             List<String> includeLines = Files.readAllLines(includes);
             List<String> heading = includeLines.stream().filter(line -> line.startsWith("#### Extracted from")).toList();
             assertEquals(heading.size(), 1);
-            assertTrue(heading.getFirst().endsWith("/dumpIncludes/header.h"));
+            Path headerPath = Path.of("dumpIncludes/header.h");
+            Path headingPath = Path.of(heading.getFirst());
+            assertTrue(headingPath.endsWith(headerPath));
             List<String> filter = includeLines.stream().filter(line -> line.startsWith("--include-constant")).toList();
             assertEquals(filter.size(), 1);
-            assertTrue(filter.getFirst().endsWith("/dumpIncludes/header.h"));
+            Path filterPath = Path.of(filter.getFirst());
+            assertTrue(filterPath.endsWith(headerPath));
         } finally {
             TestUtils.deleteDir(filterOutput);
         }
