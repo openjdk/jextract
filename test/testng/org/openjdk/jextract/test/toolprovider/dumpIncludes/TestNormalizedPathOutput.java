@@ -39,7 +39,7 @@ public class TestNormalizedPathOutput extends JextractToolRunner {
     public void testNormalizedPathOutput() throws IOException {
         Path filterOutput = getOutputFilePath("TestNormalizedPathOutput_output");
         try {
-            Files.createDirectory(filterOutput);
+            Files.createDirectories(filterOutput);
             Path includes = filterOutput.resolve("test.conf");
             Path filterH = getInputFilePath("test.h");
             runNoOuput("--dump-includes", includes.toString(), filterH.toString()).checkSuccess();
