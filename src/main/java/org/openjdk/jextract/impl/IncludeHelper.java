@@ -134,7 +134,7 @@ public class IncludeHelper {
     public void dumpIncludes() {
         try (var writer = Files.newBufferedWriter(Path.of(dumpIncludesFile), StandardOpenOption.CREATE)) {
             Map<Path, Set<Declaration>> declsByPath = usedDeclarations.stream()
-                    .collect(Collectors.groupingBy(d -> d.pos().path(),
+                    .collect(Collectors.groupingBy(d -> d.pos().path().normalize(),
                             () -> new TreeMap<>(Path::compareTo),
                             Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Declaration::name)))));
             String lineSep = "";
