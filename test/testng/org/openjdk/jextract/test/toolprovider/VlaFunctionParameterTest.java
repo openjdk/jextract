@@ -23,13 +23,13 @@
 
 package org.openjdk.jextract.test.toolprovider;
 
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 import testlib.JextractToolRunner;
 import testlib.TestUtils;
 
 import java.io.IOException;
 import java.lang.foreign.FunctionDescriptor;
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 
 import static org.testng.Assert.*;
@@ -38,6 +38,9 @@ public class VlaFunctionParameterTest extends JextractToolRunner {
 
     @Test
     public void testVlaFunctionParameter() throws IOException {
+        if (IS_WINDOWS) {
+            throw new SkipException("VLAs are not supported by MSVC");
+        }
         Path output = getOutputFilePath("vlaFunctionParameter_out");
         Path input = getInputFilePath("vlaFunctionParameter.h");
         runAndCompile(output,
@@ -47,18 +50,7 @@ public class VlaFunctionParameterTest extends JextractToolRunner {
         try (TestUtils.Loader loader = TestUtils.classLoader(output)) {
             Class<?> cls = loader.loadClass("org.jextract.vlaFunctionParameter_h");
             assertNotNull(cls);
-            Class<?> fooCls = findClass(cls.getDeclaredClasses(), "foo");
-            assertNotNull(fooCls);
-            Field descField = findField(fooCls, "DESC");
-            assertNotNull(descField);
-
-            FunctionDescriptor actualDescriptor;
-            try {
-                actualDescriptor = (FunctionDescriptor) descField.get(null);
-            } catch (IllegalAccessException e) {
-                assertTrue(false, "should not reach here");
-                return;
-            }
+            FunctionDescriptor actualDescriptor = findDescriptor(cls, "foo");
 
             FunctionDescriptor expectedDescriptor = FunctionDescriptor.of(
                 C_INT,

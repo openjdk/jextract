@@ -21,6 +21,10 @@
  * questions.
  */
 
+#include "vlaFunctionParameter.h"
+
+#ifndef _WIN64
 int foo(int size, int data[size]) {
     return 0;
 }
+#endif

@@ -21,4 +21,6 @@
  * questions.
  */
 
+#ifndef _WIN64
 int foo(int size, int data[size]);
+#endif
