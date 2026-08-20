@@ -20,6 +20,7 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+
 package org.openjdk.jextract.test.toolprovider;
 
 import org.testng.annotations.Test;
@@ -27,51 +28,47 @@ import testlib.JextractToolRunner;
 import testlib.TestUtils;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.reflect.Field;
+import java.nio.file.Path;
 
 import static org.testng.Assert.*;
 
 public class VlaFunctionParameterTest extends JextractToolRunner {
 
-    private static final Pattern INNER_CLASS_MATCHER = Pattern.compile("(?s) static class \\w+ \\{(.*?)}");
-    private static final Pattern DESCRIPTOR_MATCHER = Pattern.compile("(?s) static final FunctionDescriptor DESC = FunctionDescriptor\\.of\\((.*?)\\)");
-
     @Test
     public void testVlaFunctionParameter() throws IOException {
-        Set<String> descriptors = getDescriptors("vlaFunctionParameter.h", "vlaFunctionParameter_h.java");
-        assertEquals(1, descriptors.size());
-        String descriptor = descriptors.iterator().next();
-        assertEquals("vlaFunctionParameter_h.C_INT, vlaFunctionParameter_h.C_INT, vlaFunctionParameter_h.C_POINTER", descriptor);
-    }
+        Path output = getOutputFilePath("vlaFunctionParameter_out");
+        Path input = getInputFilePath("vlaFunctionParameter.h");
+        runAndCompile(output,
+            "-t", "org.jextract",
+            "-l", "VlaFunctionParameter", "--use-system-load-library",
+            input);
+        try (TestUtils.Loader loader = TestUtils.classLoader(output)) {
+            Class<?> cls = loader.loadClass("org.jextract.vlaFunctionParameter_h");
+            assertNotNull(cls);
+            Class<?> fooCls = findClass(cls.getDeclaredClasses(), "foo");
+            assertNotNull(fooCls);
+            Field descField = findField(fooCls, "DESC");
+            assertNotNull(descField);
 
-    private Set<String> getDescriptors(String header, String outputFile) throws IOException {
-        var output = getOutputFilePath("VlaFunctionParameterTest-parse-" + header);
-        var outputH = getInputFilePath(header);
-        run(output, outputH.toString());
-        try {
-            return findDescriptors(Files.readString(output.resolve(outputFile)));
+            FunctionDescriptor actualDescriptor;
+            try {
+                actualDescriptor = (FunctionDescriptor) descField.get(null);
+            } catch (IllegalAccessException e) {
+                assertTrue(false, "should not reach here");
+                return;
+            }
+
+            FunctionDescriptor expectedDescriptor = FunctionDescriptor.of(
+                C_INT,
+                C_INT,
+                C_POINTER
+            );
+
+            assertEquals(actualDescriptor, expectedDescriptor);
         } finally {
             TestUtils.deleteDir(output);
         }
-    }
-
-    // find function descriptors from the given the source content
-    private static Set<String> findDescriptors(String content) {
-        var innerClassMatcher = INNER_CLASS_MATCHER.matcher(content);
-        Set<String> strings = new HashSet<>();
-        while (innerClassMatcher.find()) {
-            // inner class text is matched in group 1
-            String rawInnerClass = innerClassMatcher.group(1);
-            Matcher descriptorMatcher = DESCRIPTOR_MATCHER.matcher(rawInnerClass);
-            while (descriptorMatcher.find()) {
-                String rawDescriptor = descriptorMatcher.group(1);
-                strings.add(rawDescriptor.strip().replaceAll(",\\s*", ", "));
-            }
-        }
-        return strings;
     }
 }
