@@ -66,11 +66,12 @@ abstract class ClassSourceBuilder {
     private final String superName;
     private final ClassSourceBuilder enclosing;
     private final String runtimeHelperName;
+    protected final boolean copyComments;
 
     private static final int NO_ALIGN_REQUIRED_MARKER = -1;
 
     ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName,
-                       ClassSourceBuilder enclosing, String runtimeHelperName) {
+                       ClassSourceBuilder enclosing, String runtimeHelperName, boolean copyComments) {
         this.sb = builder;
         this.modifiers = modifiers;
         this.kind = kind;
@@ -78,6 +79,7 @@ abstract class ClassSourceBuilder {
         this.superName = superName;
         this.enclosing = enclosing;
         this.runtimeHelperName = runtimeHelperName;
+        this.copyComments = copyComments;
     }
 
     final String className() {
@@ -175,14 +177,28 @@ abstract class ClassSourceBuilder {
     }
 
     final void emitDocComment(Declaration decl, String header) {
+        emitDocComment(decl, header, false);
+    }
+
+    final void emitDocComment(Declaration decl, boolean copyComments) {
+        emitDocComment(decl, "", copyComments);
+    }
+
+    // copyComments parameter exists because not all doc comments should get the copied comments
+    final void emitDocComment(Declaration decl, String header, boolean copyComments) {
         appendLines("""
             /**
             %1$s\
              * {@snippet lang=c :
             %2$s
              * }
+            %3$s\
              */
-            """, !header.isEmpty() ? String.format(" * %1$s\n", header) : "", declarationComment(decl));
+            """,
+            !header.isEmpty() ? String.format(" * %1$s\n", header) : "",
+            declarationComment(decl),
+            copyComments ? copyComments(decl) : ""
+        );
     }
 
     public String mangleName(String javaName, Class<?> type) {
@@ -290,6 +306,43 @@ abstract class ClassSourceBuilder {
         Objects.requireNonNull(decl);
         String declString = DeclarationString.getOrThrow(decl);
         return declString.lines().collect(Collectors.joining("\n * ", " * ", ""));
+    }
+
+    static String copyComments(Declaration decl) {
+        List<String> comments = decl.comments();
+        if (comments.isEmpty()) {
+            return "";
+        }
+
+        return " * <p><strong>Copied comments:</strong></p>\n" + comments.stream()
+            .map(comment -> {
+                if (comment.startsWith("///")) {
+                    return comment.substring("///".length());
+                }
+                if (comment.startsWith("//")) {
+                    return comment.substring("//".length());
+                }
+                if (comment.startsWith("/**")) {
+                    return comment.substring("/**".length(), comment.length() - "*/".length()).strip();
+                }
+                if (comment.startsWith("/*")) {
+                    return comment.substring("/*".length(), comment.length() - "*/".length()).strip();
+                }
+                throw new AssertionError("Invalid C comment");
+            })
+            .collect(Collectors.joining("\n")).lines()
+            .map(String::strip)
+            .map(line -> {
+                if (line.startsWith("* ")) {
+                    return line.substring("* ".length());
+                }
+                if (line.startsWith("*")) {
+                    return line.substring("*".length());
+                }
+                return line;
+            })
+            .map(line -> " * " + line + "\n")
+            .collect(Collectors.joining());
     }
 
     record IndexList(String decl, String use) {

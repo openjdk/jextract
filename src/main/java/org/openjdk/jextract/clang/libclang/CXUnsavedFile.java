@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -54,15 +54,15 @@ public class CXUnsavedFile {
 
     private static final GroupLayout $LAYOUT = (switch (Index_h.C_LONG) {
         case OfInt _ -> MemoryLayout.structLayout(
-             Index_h.C_POINTER.withName("Filename"),
-             Index_h.C_POINTER.withName("Contents"),
-             Index_h.C_LONG.withName("Length"),
-             MemoryLayout.paddingLayout(4)
+            Index_h.C_POINTER.withName("Filename"),
+            Index_h.C_POINTER.withName("Contents"),
+            Index_h.C_LONG.withName("Length"),
+            MemoryLayout.paddingLayout(4)
         );
         case OfLong _ -> MemoryLayout.structLayout(
-             Index_h.C_POINTER.withName("Filename"),
-             Index_h.C_POINTER.withName("Contents"),
-             Index_h.C_LONG.withName("Length")
+            Index_h.C_POINTER.withName("Filename"),
+            Index_h.C_POINTER.withName("Contents"),
+            Index_h.C_LONG.withName("Length")
         );
         default -> throw new IllegalStateException("Unhandled layout: " + Index_h.C_LONG);
     }).withName("CXUnsavedFile");
@@ -86,7 +86,7 @@ public class CXUnsavedFile {
         return Filename$LAYOUT;
     }
 
-    private static final long Filename$OFFSET = 0;
+    private static final long Filename$OFFSET = $LAYOUT.byteOffset(groupElement("Filename"));
 
     /**
      * Offset for field:
@@ -130,7 +130,7 @@ public class CXUnsavedFile {
         return Contents$LAYOUT;
     }
 
-    private static final long Contents$OFFSET = 8;
+    private static final long Contents$OFFSET = $LAYOUT.byteOffset(groupElement("Contents"));
 
     /**
      * Offset for field:
@@ -174,7 +174,7 @@ public class CXUnsavedFile {
         return Length$LAYOUT;
     }
 
-    private static final long Length$OFFSET = 16;
+    private static final long Length$OFFSET = $LAYOUT.byteOffset(groupElement("Length"));
 
     /**
      * Offset for field:

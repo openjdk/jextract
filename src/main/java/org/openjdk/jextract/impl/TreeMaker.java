@@ -52,7 +52,9 @@ import org.openjdk.jextract.clang.LinkageKind;
 import org.openjdk.jextract.clang.PrintingPolicy;
 import org.openjdk.jextract.clang.PrintingPolicyProperty;
 import org.openjdk.jextract.clang.SourceLocation;
+import org.openjdk.jextract.clang.TranslationUnit;
 import org.openjdk.jextract.clang.TypeKind;
+import org.openjdk.jextract.clang.libclang.Index_h;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
@@ -67,9 +69,13 @@ import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
  */
 class TreeMaker {
 
+    private final boolean copyComments;
+
     private final Map<Cursor.Key, Declaration> declarationCache = new HashMap<>();
 
-    public TreeMaker() { }
+    public TreeMaker(boolean copyComments) {
+        this.copyComments = copyComments;
+    }
 
     Declaration addAttributes(Declaration d, Cursor c) {
         if (d == null) return null;
@@ -91,6 +97,10 @@ class TreeMaker {
     }
 
     public Declaration createTree(Cursor c) {
+        return createTree(c, false, null);
+    }
+
+    public Declaration createTree(Cursor c, boolean copyComments, SourceLocation prevEnd) {
         Objects.requireNonNull(c);
         CursorLanguage lang = c.language();
         LinkageKind linkage = c.linkage();
@@ -116,8 +126,41 @@ class TreeMaker {
         if (c.isFunctionInlined()) {
             return null;
         }
+        List<String> comments = copyComments ? extractComments(c, prevEnd) : Collections.emptyList();
         var rv = (DeclarationImpl) createTreeInternal(c);
+        if (rv != null) {
+            rv.setComments(comments);
+        }
         return addAttributes(rv, c);
+    }
+
+    static List<String> extractComments(Cursor c, SourceLocation prevEnd) {
+        // ignore last token(s) as they are part of the current declaration
+        int skips = switch (c.kind()) {
+            case MacroDefinition -> 3; // skip `#`, `define` and `<name>`
+            default -> 1; // skip `void`, `typedef`, etc.
+        };
+        List<String> comments = new ArrayList<>();
+        SourceLocation begin = prevEnd;
+        SourceLocation end = c.getExtent().getBegin();
+        // resort to using the start of the current file as beginning
+        // - if the preceding cursor is from a different file
+        // - if the preceding cursor occurs later in lexical order (as the AST order may not align with lexical order)
+        if (begin == null || !begin.getExpansionLocation().path().equals(end.getExpansionLocation().path())
+            || begin.getExpansionLocation().offset() > end.getExpansionLocation().offset()) {
+            begin = c.getTranslationUnit().getLCLocationForLocation(end, 1, 1);
+        }
+        try (TranslationUnit.Tokens tokens = c.getTranslationUnit().tokenizeRange(begin, end)) {
+            for (int i = tokens.size() - 1 - skips; i >= 0; i--) {
+                TranslationUnit.Tokens.Token token = tokens.getToken(i);
+                if (token.kind() == Index_h.CXToken_Comment()) {
+                    comments.add(token.spelling());
+                } else {
+                    break;
+                }
+            }
+        }
+        return Collections.unmodifiableList(comments.reversed());
     }
 
     private Declaration createTreeInternal(Cursor c) {
@@ -268,6 +311,7 @@ class TreeMaker {
         List<Declaration> pendingFields = new ArrayList<>();
         List<Variable> pendingBitFields = new ArrayList<>();
         AtomicReference<Position> pendingBitfieldsPos = new AtomicReference<>();
+        SourceLocation[] prevEnd = {null};
         recordCursor.forEach(fc -> {
             if (Utils.isFlattenable(fc)) {
                 if (fc.isBitField()) {
@@ -290,7 +334,7 @@ class TreeMaker {
                         // process struct recursively
                         pendingFields.add(recordDeclaration(parent, fc).tree());
                     } else {
-                        Declaration fieldDecl = createTree(fc);
+                        Declaration fieldDecl = createTree(fc, copyComments, prevEnd[0]);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
                         ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
@@ -302,6 +346,7 @@ class TreeMaker {
                 // propagate
                 createTree(fc);
             }
+            prevEnd[0] = fc.getExtent().getEnd();
         });
 
         if (!pendingBitFields.isEmpty()) {
@@ -368,12 +413,14 @@ class TreeMaker {
     public Declaration.Scoped createEnum(Cursor c) {
         if (c.isDefinition()) {
             List<Declaration> decls = new ArrayList<>();
+            SourceLocation[] prevEnd = {null};
             c.forEach(child -> {
                 if (child.kind() == CursorKind.EnumConstantDecl) {
-                    Declaration enumConstantDecl = createTree(child);
+                    Declaration enumConstantDecl = createTree(child, copyComments, prevEnd[0]);
                     DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
                     decls.add(enumConstantDecl);
                 }
+                prevEnd[0] = child.getExtent().getEnd();
             });
             Declaration.Scoped enumDecl = Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
             DeclarationImpl.ClangEnumType.with(enumDecl, toType(c.getEnumDeclIntegerType()));

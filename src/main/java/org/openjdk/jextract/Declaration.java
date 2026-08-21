@@ -53,6 +53,12 @@ public interface Declaration {
      */
     String name();
 
+    // Markdown comment because of `*/`
+    /// List of comments that immediately precede this declaration. Comment
+    /// delimiters (`//` or `/* ... */`) are not removed.
+    /// @return the list of comments that immediately precede this declaration
+    List<String> comments();
+
     /**
      * Entry point for visiting declaration instances.
      * @param visitor the declaration visitor.

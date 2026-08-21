@@ -41,19 +41,19 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
     private final Optional<List<String>> parameterNames;
 
     private FunctionalInterfaceBuilder(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing,
-                                       String runtimeHelperName, Type.Function funcType, boolean isNested) {
-        super(builder, isNested ? "public final static" : "public final", Kind.CLASS, className, null, enclosing, runtimeHelperName);
+                                       String runtimeHelperName, Type.Function funcType, boolean isNested, boolean copyComments) {
+        super(builder, isNested ? "public final static" : "public final", Kind.CLASS, className, null, enclosing, runtimeHelperName, copyComments);
         this.parameterNames = funcType.parameterNames().map(NameMangler::javaSafeIdentifiers);
         this.funcType = funcType;
         this.methodType = Utils.methodTypeFor(funcType);
     }
 
     public static void generate(SourceFileBuilder builder, String className, ClassSourceBuilder enclosing, String runtimeHelperName,
-                                Declaration parentDecl, Type.Function funcType, boolean isNested) {
+                                Declaration parentDecl, Type.Function funcType, boolean isNested, boolean copyComments) {
         FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className,
-                enclosing, runtimeHelperName, funcType, isNested);
+                enclosing, runtimeHelperName, funcType, isNested, copyComments);
         fib.appendBlankLine();
-        fib.emitDocComment(parentDecl);
+        fib.emitDocComment(parentDecl, copyComments);
         fib.classBegin();
         fib.emitPrivateConstructor();
         String fiName = fib.emitFunctionalInterface();
