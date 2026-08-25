@@ -44,6 +44,6 @@ typedef struct {
 
 union {
    int total_bytes;
-   uint64_t reserved_words[6];
+   int reserved_words[6];
 } value;
 
