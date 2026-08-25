@@ -42,3 +42,8 @@ typedef struct {
   int bar;
 } yield;
 
+union {
+   int total_bytes;
+   uint64_t reserved_words[6];
+} value;
+
