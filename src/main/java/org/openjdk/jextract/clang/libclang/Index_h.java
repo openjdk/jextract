@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -38,48 +38,13 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class Index_h {
+public class Index_h extends Index_h$shared {
 
     Index_h() {
         // Should not be called directly
     }
 
     static final Arena LIBRARY_ARENA = Arena.ofAuto();
-    static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
-
-    static void traceDowncall(String name, Object... args) {
-         String traceArgs = Arrays.stream(args)
-                       .map(Object::toString)
-                       .collect(Collectors.joining(", "));
-         System.out.printf("%s(%s)\n", name, traceArgs);
-    }
-
-    static MemorySegment findOrThrow(String symbol) {
-        return SYMBOL_LOOKUP.find(symbol)
-            .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
-    }
-
-    static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
-        try {
-            return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
-        } catch (ReflectiveOperationException ex) {
-            throw new AssertionError(ex);
-        }
-    }
-
-    static MemoryLayout align(MemoryLayout layout, long align) {
-        return switch (layout) {
-            case PaddingLayout p -> p;
-            case ValueLayout v -> v.withByteAlignment(align);
-            case GroupLayout g -> {
-                MemoryLayout[] alignedMembers = g.memberLayouts().stream()
-                        .map(m -> align(m, align)).toArray(MemoryLayout[]::new);
-                yield g instanceof StructLayout ?
-                        MemoryLayout.structLayout(alignedMembers) : MemoryLayout.unionLayout(alignedMembers);
-            }
-            case SequenceLayout s -> MemoryLayout.sequenceLayout(s.elementCount(), align(s.elementLayout(), align));
-        };
-    }
 
     static final SymbolLookup SYMBOL_LOOKUP;
 
@@ -102,16 +67,6 @@ public class Index_h {
             SYMBOL_LOOKUP = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
         }
     }
-    public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
-    public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
-    public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;
-    public static final ValueLayout.OfInt C_INT = ValueLayout.JAVA_INT;
-    public static final ValueLayout.OfLong C_LONG_LONG = ValueLayout.JAVA_LONG;
-    public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT;
-    public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
-    public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
-            .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
-    public static final ValueLayout C_LONG = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get("long");
 
     private static final int CXError_Success = (int)0L;
     /**
@@ -165,7 +120,7 @@ public class Index_h {
             CXString.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCString");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCString");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -212,6 +167,8 @@ public class Index_h {
                 traceDowncall("clang_getCString", string);
             }
             return (MemorySegment)mh$.invokeExact(string);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -222,7 +179,7 @@ public class Index_h {
             CXString.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeString");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_disposeString");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -269,6 +226,8 @@ public class Index_h {
                 traceDowncall("clang_disposeString", string);
             }
             mh$.invokeExact(string);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -383,7 +342,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_createIndex");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_createIndex");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -430,6 +389,8 @@ public class Index_h {
                 traceDowncall("clang_createIndex", excludeDeclarationsFromPCH, displayDiagnostics);
             }
             return (MemorySegment)mh$.invokeExact(excludeDeclarationsFromPCH, displayDiagnostics);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -440,7 +401,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeIndex");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_disposeIndex");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -487,6 +448,8 @@ public class Index_h {
                 traceDowncall("clang_disposeIndex", index);
             }
             mh$.invokeExact(index);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -498,7 +461,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getFileName");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getFileName");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -545,6 +508,8 @@ public class Index_h {
                 traceDowncall("clang_getFileName", allocator, SFile);
             }
             return (MemorySegment)mh$.invokeExact(allocator, SFile);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -554,7 +519,7 @@ public class Index_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXSourceLocation.layout()    );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNullLocation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getNullLocation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -601,6 +566,8 @@ public class Index_h {
                 traceDowncall("clang_getNullLocation", allocator);
             }
             return (MemorySegment)mh$.invokeExact(allocator);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -613,7 +580,7 @@ public class Index_h {
             CXSourceLocation.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_equalLocations");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_equalLocations");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -660,6 +627,8 @@ public class Index_h {
                 traceDowncall("clang_equalLocations", loc1, loc2);
             }
             return (int)mh$.invokeExact(loc1, loc2);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -674,7 +643,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getLocation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getLocation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -721,6 +690,8 @@ public class Index_h {
                 traceDowncall("clang_getLocation", allocator, tu, file, line, column);
             }
             return (MemorySegment)mh$.invokeExact(allocator, tu, file, line, column);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -734,7 +705,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getLocationForOffset");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getLocationForOffset");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -781,6 +752,8 @@ public class Index_h {
                 traceDowncall("clang_getLocationForOffset", allocator, tu, file, offset);
             }
             return (MemorySegment)mh$.invokeExact(allocator, tu, file, offset);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -792,7 +765,7 @@ public class Index_h {
             CXSourceLocation.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Location_isInSystemHeader");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Location_isInSystemHeader");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -839,6 +812,8 @@ public class Index_h {
                 traceDowncall("clang_Location_isInSystemHeader", location);
             }
             return (int)mh$.invokeExact(location);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -850,7 +825,7 @@ public class Index_h {
             CXSourceLocation.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Location_isFromMainFile");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Location_isFromMainFile");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -897,6 +872,8 @@ public class Index_h {
                 traceDowncall("clang_Location_isFromMainFile", location);
             }
             return (int)mh$.invokeExact(location);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -908,7 +885,7 @@ public class Index_h {
             CXSourceRange.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Range_isNull");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Range_isNull");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -955,6 +932,8 @@ public class Index_h {
                 traceDowncall("clang_Range_isNull", range);
             }
             return (int)mh$.invokeExact(range);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -969,7 +948,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getExpansionLocation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getExpansionLocation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1016,6 +995,8 @@ public class Index_h {
                 traceDowncall("clang_getExpansionLocation", location, file, line, column, offset);
             }
             mh$.invokeExact(location, file, line, column, offset);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1030,7 +1011,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getSpellingLocation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getSpellingLocation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1077,6 +1058,8 @@ public class Index_h {
                 traceDowncall("clang_getSpellingLocation", location, file, line, column, offset);
             }
             mh$.invokeExact(location, file, line, column, offset);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1091,7 +1074,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getFileLocation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getFileLocation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1138,6 +1121,8 @@ public class Index_h {
                 traceDowncall("clang_getFileLocation", location, file, line, column, offset);
             }
             mh$.invokeExact(location, file, line, column, offset);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1149,7 +1134,7 @@ public class Index_h {
             CXSourceRange.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getRangeStart");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getRangeStart");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1196,6 +1181,8 @@ public class Index_h {
                 traceDowncall("clang_getRangeStart", allocator, range);
             }
             return (MemorySegment)mh$.invokeExact(allocator, range);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1207,7 +1194,7 @@ public class Index_h {
             CXSourceRange.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getRangeEnd");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getRangeEnd");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1254,6 +1241,8 @@ public class Index_h {
                 traceDowncall("clang_getRangeEnd", allocator, range);
             }
             return (MemorySegment)mh$.invokeExact(allocator, range);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1310,7 +1299,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getChildDiagnostics");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getChildDiagnostics");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1357,6 +1346,8 @@ public class Index_h {
                 traceDowncall("clang_getChildDiagnostics", D);
             }
             return (MemorySegment)mh$.invokeExact(D);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1368,7 +1359,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNumDiagnostics");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getNumDiagnostics");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1415,6 +1406,8 @@ public class Index_h {
                 traceDowncall("clang_getNumDiagnostics", Unit);
             }
             return (int)mh$.invokeExact(Unit);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1427,7 +1420,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getDiagnostic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getDiagnostic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1474,6 +1467,8 @@ public class Index_h {
                 traceDowncall("clang_getDiagnostic", Unit, Index);
             }
             return (MemorySegment)mh$.invokeExact(Unit, Index);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1484,7 +1479,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeDiagnostic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_disposeDiagnostic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1531,6 +1526,8 @@ public class Index_h {
                 traceDowncall("clang_disposeDiagnostic", Diagnostic);
             }
             mh$.invokeExact(Diagnostic);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1597,7 +1594,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_formatDiagnostic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_formatDiagnostic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1644,6 +1641,8 @@ public class Index_h {
                 traceDowncall("clang_formatDiagnostic", allocator, Diagnostic, Options);
             }
             return (MemorySegment)mh$.invokeExact(allocator, Diagnostic, Options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1653,7 +1652,7 @@ public class Index_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT    );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_defaultDiagnosticDisplayOptions");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_defaultDiagnosticDisplayOptions");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1700,6 +1699,8 @@ public class Index_h {
                 traceDowncall("clang_defaultDiagnosticDisplayOptions");
             }
             return (int)mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1711,7 +1712,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getDiagnosticSeverity");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getDiagnosticSeverity");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1758,6 +1759,8 @@ public class Index_h {
                 traceDowncall("clang_getDiagnosticSeverity", x0);
             }
             return (int)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1769,7 +1772,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getDiagnosticLocation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getDiagnosticLocation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1816,6 +1819,8 @@ public class Index_h {
                 traceDowncall("clang_getDiagnosticLocation", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1827,7 +1832,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getDiagnosticSpelling");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getDiagnosticSpelling");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1874,6 +1879,8 @@ public class Index_h {
                 traceDowncall("clang_getDiagnosticSpelling", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2044,7 +2051,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_parseTranslationUnit");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_parseTranslationUnit");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2091,6 +2098,8 @@ public class Index_h {
                 traceDowncall("clang_parseTranslationUnit", CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
             }
             return (MemorySegment)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2109,7 +2118,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_parseTranslationUnit2");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_parseTranslationUnit2");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2156,6 +2165,8 @@ public class Index_h {
                 traceDowncall("clang_parseTranslationUnit2", CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options, out_TU);
             }
             return (int)mh$.invokeExact(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options, out_TU);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2214,7 +2225,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_saveTranslationUnit");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_saveTranslationUnit");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2261,6 +2272,8 @@ public class Index_h {
                 traceDowncall("clang_saveTranslationUnit", TU, FileName, options);
             }
             return (int)mh$.invokeExact(TU, FileName, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2271,7 +2284,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeTranslationUnit");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_disposeTranslationUnit");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2318,6 +2331,8 @@ public class Index_h {
                 traceDowncall("clang_disposeTranslationUnit", x0);
             }
             mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2338,7 +2353,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_defaultReparseOptions");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_defaultReparseOptions");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2385,6 +2400,8 @@ public class Index_h {
                 traceDowncall("clang_defaultReparseOptions", TU);
             }
             return (int)mh$.invokeExact(TU);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2399,7 +2416,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_reparseTranslationUnit");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_reparseTranslationUnit");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2446,6 +2463,8 @@ public class Index_h {
                 traceDowncall("clang_reparseTranslationUnit", TU, num_unsaved_files, unsaved_files, options);
             }
             return (int)mh$.invokeExact(TU, num_unsaved_files, unsaved_files, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4786,7 +4805,7 @@ public class Index_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXCursor.layout()    );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNullCursor");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getNullCursor");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4833,6 +4852,8 @@ public class Index_h {
                 traceDowncall("clang_getNullCursor", allocator);
             }
             return (MemorySegment)mh$.invokeExact(allocator);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4844,7 +4865,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTranslationUnitCursor");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTranslationUnitCursor");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4891,6 +4912,8 @@ public class Index_h {
                 traceDowncall("clang_getTranslationUnitCursor", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4903,7 +4926,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_equalCursors");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_equalCursors");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4950,6 +4973,8 @@ public class Index_h {
                 traceDowncall("clang_equalCursors", x0, x1);
             }
             return (int)mh$.invokeExact(x0, x1);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4961,7 +4986,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isNull");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_isNull");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5008,6 +5033,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_isNull", cursor);
             }
             return (int)mh$.invokeExact(cursor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5019,7 +5046,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorKind");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorKind");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5066,6 +5093,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorKind", x0);
             }
             return (int)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5077,7 +5106,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isDeclaration");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_isDeclaration");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5124,6 +5153,8 @@ public class Index_h {
                 traceDowncall("clang_isDeclaration", x0);
             }
             return (int)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5135,7 +5166,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isAttribute");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_isAttribute");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5182,6 +5213,8 @@ public class Index_h {
                 traceDowncall("clang_isAttribute", x0);
             }
             return (int)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5193,7 +5226,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isInvalid");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_isInvalid");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5240,6 +5273,8 @@ public class Index_h {
                 traceDowncall("clang_isInvalid", x0);
             }
             return (int)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5251,7 +5286,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isPreprocessing");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_isPreprocessing");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5298,6 +5333,8 @@ public class Index_h {
                 traceDowncall("clang_isPreprocessing", x0);
             }
             return (int)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5354,7 +5391,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorLinkage");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorLinkage");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5401,6 +5438,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorLinkage", cursor);
             }
             return (int)mh$.invokeExact(cursor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5448,7 +5487,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorLanguage");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorLanguage");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5495,6 +5534,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorLanguage", cursor);
             }
             return (int)mh$.invokeExact(cursor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5506,7 +5547,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_getTranslationUnit");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_getTranslationUnit");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5553,6 +5594,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_getTranslationUnit", x0);
             }
             return (MemorySegment)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5564,7 +5607,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorLocation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorLocation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5611,6 +5654,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorLocation", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5622,7 +5667,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorExtent");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorExtent");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5669,6 +5714,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorExtent", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6922,7 +6969,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6969,6 +7016,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorType", allocator, C);
             }
             return (MemorySegment)mh$.invokeExact(allocator, C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6980,7 +7029,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypeSpelling");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTypeSpelling");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7027,6 +7076,8 @@ public class Index_h {
                 traceDowncall("clang_getTypeSpelling", allocator, CT);
             }
             return (MemorySegment)mh$.invokeExact(allocator, CT);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7038,7 +7089,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypedefDeclUnderlyingType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTypedefDeclUnderlyingType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7085,6 +7136,8 @@ public class Index_h {
                 traceDowncall("clang_getTypedefDeclUnderlyingType", allocator, C);
             }
             return (MemorySegment)mh$.invokeExact(allocator, C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7096,7 +7149,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getEnumDeclIntegerType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getEnumDeclIntegerType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7143,6 +7196,8 @@ public class Index_h {
                 traceDowncall("clang_getEnumDeclIntegerType", allocator, C);
             }
             return (MemorySegment)mh$.invokeExact(allocator, C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7154,7 +7209,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getEnumConstantDeclValue");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getEnumConstantDeclValue");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7201,6 +7256,8 @@ public class Index_h {
                 traceDowncall("clang_getEnumConstantDeclValue", C);
             }
             return (long)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7212,7 +7269,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getEnumConstantDeclUnsignedValue");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getEnumConstantDeclUnsignedValue");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7259,6 +7316,8 @@ public class Index_h {
                 traceDowncall("clang_getEnumConstantDeclUnsignedValue", C);
             }
             return (long)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7270,7 +7329,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getFieldDeclBitWidth");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getFieldDeclBitWidth");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7317,6 +7376,8 @@ public class Index_h {
                 traceDowncall("clang_getFieldDeclBitWidth", C);
             }
             return (int)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7328,7 +7389,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_getNumArguments");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_getNumArguments");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7375,6 +7436,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_getNumArguments", C);
             }
             return (int)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7387,7 +7450,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_getArgument");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_getArgument");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7434,6 +7497,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_getArgument", allocator, C, i);
             }
             return (MemorySegment)mh$.invokeExact(allocator, C, i);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7446,7 +7511,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_equalTypes");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_equalTypes");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7493,6 +7558,8 @@ public class Index_h {
                 traceDowncall("clang_equalTypes", A, B);
             }
             return (int)mh$.invokeExact(A, B);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7504,7 +7571,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCanonicalType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCanonicalType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7551,6 +7618,8 @@ public class Index_h {
                 traceDowncall("clang_getCanonicalType", allocator, T);
             }
             return (MemorySegment)mh$.invokeExact(allocator, T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7562,7 +7631,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isConstQualifiedType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_isConstQualifiedType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7609,6 +7678,8 @@ public class Index_h {
                 traceDowncall("clang_isConstQualifiedType", T);
             }
             return (int)mh$.invokeExact(T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7620,7 +7691,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isMacroFunctionLike");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_isMacroFunctionLike");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7667,6 +7738,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_isMacroFunctionLike", C);
             }
             return (int)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7678,7 +7751,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isFunctionInlined");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_isFunctionInlined");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7725,6 +7798,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_isFunctionInlined", C);
             }
             return (int)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7736,7 +7811,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isVolatileQualifiedType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_isVolatileQualifiedType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7783,6 +7858,8 @@ public class Index_h {
                 traceDowncall("clang_isVolatileQualifiedType", T);
             }
             return (int)mh$.invokeExact(T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7794,7 +7871,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypedefName");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTypedefName");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7841,6 +7918,8 @@ public class Index_h {
                 traceDowncall("clang_getTypedefName", allocator, CT);
             }
             return (MemorySegment)mh$.invokeExact(allocator, CT);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7852,7 +7931,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getPointeeType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getPointeeType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7899,6 +7978,8 @@ public class Index_h {
                 traceDowncall("clang_getPointeeType", allocator, T);
             }
             return (MemorySegment)mh$.invokeExact(allocator, T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7910,7 +7991,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypeDeclaration");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTypeDeclaration");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7957,6 +8038,8 @@ public class Index_h {
                 traceDowncall("clang_getTypeDeclaration", allocator, T);
             }
             return (MemorySegment)mh$.invokeExact(allocator, T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7968,7 +8051,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTypeKindSpelling");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTypeKindSpelling");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8015,6 +8098,8 @@ public class Index_h {
                 traceDowncall("clang_getTypeKindSpelling", allocator, K);
             }
             return (MemorySegment)mh$.invokeExact(allocator, K);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8026,7 +8111,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getFunctionTypeCallingConv");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getFunctionTypeCallingConv");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8073,6 +8158,8 @@ public class Index_h {
                 traceDowncall("clang_getFunctionTypeCallingConv", T);
             }
             return (int)mh$.invokeExact(T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8084,7 +8171,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getResultType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getResultType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8131,6 +8218,8 @@ public class Index_h {
                 traceDowncall("clang_getResultType", allocator, T);
             }
             return (MemorySegment)mh$.invokeExact(allocator, T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8142,7 +8231,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNumArgTypes");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getNumArgTypes");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8189,6 +8278,8 @@ public class Index_h {
                 traceDowncall("clang_getNumArgTypes", T);
             }
             return (int)mh$.invokeExact(T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8201,7 +8292,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getArgType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getArgType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8248,6 +8339,8 @@ public class Index_h {
                 traceDowncall("clang_getArgType", allocator, T, i);
             }
             return (MemorySegment)mh$.invokeExact(allocator, T, i);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8259,7 +8352,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isFunctionTypeVariadic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_isFunctionTypeVariadic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8306,6 +8399,8 @@ public class Index_h {
                 traceDowncall("clang_isFunctionTypeVariadic", T);
             }
             return (int)mh$.invokeExact(T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8317,7 +8412,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorResultType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorResultType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8364,6 +8459,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorResultType", allocator, C);
             }
             return (MemorySegment)mh$.invokeExact(allocator, C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8375,7 +8472,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getElementType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getElementType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8422,6 +8519,8 @@ public class Index_h {
                 traceDowncall("clang_getElementType", allocator, T);
             }
             return (MemorySegment)mh$.invokeExact(allocator, T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8433,7 +8532,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getNumElements");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getNumElements");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8480,6 +8579,8 @@ public class Index_h {
                 traceDowncall("clang_getNumElements", T);
             }
             return (long)mh$.invokeExact(T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8491,7 +8592,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getArrayElementType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getArrayElementType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8538,6 +8639,8 @@ public class Index_h {
                 traceDowncall("clang_getArrayElementType", allocator, T);
             }
             return (MemorySegment)mh$.invokeExact(allocator, T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8549,7 +8652,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getArraySize");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getArraySize");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8596,6 +8699,8 @@ public class Index_h {
                 traceDowncall("clang_getArraySize", T);
             }
             return (long)mh$.invokeExact(T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8697,7 +8802,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Type_getAlignOf");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Type_getAlignOf");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8744,6 +8849,8 @@ public class Index_h {
                 traceDowncall("clang_Type_getAlignOf", T);
             }
             return (long)mh$.invokeExact(T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8755,7 +8862,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Type_getSizeOf");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Type_getSizeOf");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8802,6 +8909,8 @@ public class Index_h {
                 traceDowncall("clang_Type_getSizeOf", T);
             }
             return (long)mh$.invokeExact(T);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8814,7 +8923,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Type_getOffsetOf");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Type_getOffsetOf");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8861,6 +8970,8 @@ public class Index_h {
                 traceDowncall("clang_Type_getOffsetOf", T, S);
             }
             return (long)mh$.invokeExact(T, S);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8872,7 +8983,7 @@ public class Index_h {
             CXType.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Type_getValueType");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Type_getValueType");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8919,6 +9030,8 @@ public class Index_h {
                 traceDowncall("clang_Type_getValueType", allocator, CT);
             }
             return (MemorySegment)mh$.invokeExact(allocator, CT);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8930,7 +9043,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isAnonymous");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_isAnonymous");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8977,6 +9090,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_isAnonymous", C);
             }
             return (int)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8988,7 +9103,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isAnonymousRecordDecl");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_isAnonymousRecordDecl");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9035,6 +9150,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_isAnonymousRecordDecl", C);
             }
             return (int)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9046,7 +9163,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isBitField");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_isBitField");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9093,6 +9210,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_isBitField", C);
             }
             return (int)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9133,7 +9252,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_visitChildren");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_visitChildren");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9180,6 +9299,8 @@ public class Index_h {
                 traceDowncall("clang_visitChildren", parent, visitor, client_data);
             }
             return (int)mh$.invokeExact(parent, visitor, client_data);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9191,7 +9312,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorUSR");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorUSR");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9238,6 +9359,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorUSR", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9249,7 +9372,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorSpelling");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorSpelling");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9296,6 +9419,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorSpelling", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9551,7 +9676,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_PrintingPolicy_getProperty");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_PrintingPolicy_getProperty");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9598,6 +9723,8 @@ public class Index_h {
                 traceDowncall("clang_PrintingPolicy_getProperty", Policy, Property);
             }
             return (int)mh$.invokeExact(Policy, Property);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9610,7 +9737,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_PrintingPolicy_setProperty");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_PrintingPolicy_setProperty");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9657,6 +9784,8 @@ public class Index_h {
                 traceDowncall("clang_PrintingPolicy_setProperty", Policy, Property, Value);
             }
             mh$.invokeExact(Policy, Property, Value);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9668,7 +9797,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorPrintingPolicy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorPrintingPolicy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9715,6 +9844,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorPrintingPolicy", x0);
             }
             return (MemorySegment)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9725,7 +9856,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_PrintingPolicy_dispose");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_PrintingPolicy_dispose");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9772,6 +9903,8 @@ public class Index_h {
                 traceDowncall("clang_PrintingPolicy_dispose", Policy);
             }
             mh$.invokeExact(Policy);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9784,7 +9917,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorPrettyPrinted");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorPrettyPrinted");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9831,6 +9964,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorPrettyPrinted", allocator, Cursor, Policy);
             }
             return (MemorySegment)mh$.invokeExact(allocator, Cursor, Policy);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9842,7 +9977,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorDisplayName");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorDisplayName");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9889,6 +10024,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorDisplayName", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9900,7 +10037,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorReferenced");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorReferenced");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9947,6 +10084,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorReferenced", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9958,7 +10097,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorDefinition");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorDefinition");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10005,6 +10144,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorDefinition", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10016,7 +10157,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_isCursorDefinition");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_isCursorDefinition");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10063,6 +10204,8 @@ public class Index_h {
                 traceDowncall("clang_isCursorDefinition", x0);
             }
             return (int)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10074,7 +10217,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_isVariadic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_isVariadic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10121,6 +10264,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_isVariadic", C);
             }
             return (int)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10132,7 +10277,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_getMangling");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_getMangling");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10179,6 +10324,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_getMangling", allocator, x0);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10235,7 +10382,7 @@ public class Index_h {
             CXToken.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTokenKind");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTokenKind");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10282,6 +10429,8 @@ public class Index_h {
                 traceDowncall("clang_getTokenKind", x0);
             }
             return (int)mh$.invokeExact(x0);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10294,7 +10443,7 @@ public class Index_h {
             CXToken.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTokenSpelling");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTokenSpelling");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10341,6 +10490,8 @@ public class Index_h {
                 traceDowncall("clang_getTokenSpelling", allocator, x0, x1);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0, x1);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10353,7 +10504,7 @@ public class Index_h {
             CXToken.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTokenLocation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTokenLocation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10400,6 +10551,8 @@ public class Index_h {
                 traceDowncall("clang_getTokenLocation", allocator, x0, x1);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0, x1);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10412,7 +10565,7 @@ public class Index_h {
             CXToken.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getTokenExtent");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getTokenExtent");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10459,6 +10612,8 @@ public class Index_h {
                 traceDowncall("clang_getTokenExtent", allocator, x0, x1);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x0, x1);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10472,7 +10627,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_tokenize");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_tokenize");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10519,6 +10674,8 @@ public class Index_h {
                 traceDowncall("clang_tokenize", TU, Range, Tokens, NumTokens);
             }
             mh$.invokeExact(TU, Range, Tokens, NumTokens);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10531,7 +10688,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_disposeTokens");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_disposeTokens");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10578,6 +10735,8 @@ public class Index_h {
                 traceDowncall("clang_disposeTokens", TU, Tokens, NumTokens);
             }
             mh$.invokeExact(TU, Tokens, NumTokens);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10589,7 +10748,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getCursorKindSpelling");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getCursorKindSpelling");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10636,6 +10795,8 @@ public class Index_h {
                 traceDowncall("clang_getCursorKindSpelling", allocator, Kind);
             }
             return (MemorySegment)mh$.invokeExact(allocator, Kind);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10645,7 +10806,7 @@ public class Index_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             CXString.layout()    );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_getClangVersion");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getClangVersion");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10692,6 +10853,8 @@ public class Index_h {
                 traceDowncall("clang_getClangVersion", allocator);
             }
             return (MemorySegment)mh$.invokeExact(allocator);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10702,7 +10865,7 @@ public class Index_h {
             Index_h.C_INT
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_toggleCrashRecovery");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_toggleCrashRecovery");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10749,6 +10912,8 @@ public class Index_h {
                 traceDowncall("clang_toggleCrashRecovery", isEnabled);
             }
             mh$.invokeExact(isEnabled);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10760,7 +10925,7 @@ public class Index_h {
             CXCursor.layout()
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_Cursor_Evaluate");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_Evaluate");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10807,6 +10972,8 @@ public class Index_h {
                 traceDowncall("clang_Cursor_Evaluate", C);
             }
             return (MemorySegment)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10818,7 +10985,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getKind");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_EvalResult_getKind");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10865,6 +11032,8 @@ public class Index_h {
                 traceDowncall("clang_EvalResult_getKind", E);
             }
             return (int)mh$.invokeExact(E);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10876,7 +11045,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsInt");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_EvalResult_getAsInt");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10923,6 +11092,8 @@ public class Index_h {
                 traceDowncall("clang_EvalResult_getAsInt", E);
             }
             return (int)mh$.invokeExact(E);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10934,7 +11105,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsLongLong");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_EvalResult_getAsLongLong");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10981,6 +11152,8 @@ public class Index_h {
                 traceDowncall("clang_EvalResult_getAsLongLong", E);
             }
             return (long)mh$.invokeExact(E);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10992,7 +11165,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_isUnsignedInt");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_EvalResult_isUnsignedInt");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11039,6 +11212,8 @@ public class Index_h {
                 traceDowncall("clang_EvalResult_isUnsignedInt", E);
             }
             return (int)mh$.invokeExact(E);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11050,7 +11225,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsUnsigned");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_EvalResult_getAsUnsigned");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11097,6 +11272,8 @@ public class Index_h {
                 traceDowncall("clang_EvalResult_getAsUnsigned", E);
             }
             return (long)mh$.invokeExact(E);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11108,7 +11285,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsDouble");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_EvalResult_getAsDouble");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11155,6 +11332,8 @@ public class Index_h {
                 traceDowncall("clang_EvalResult_getAsDouble", E);
             }
             return (double)mh$.invokeExact(E);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11166,7 +11345,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_getAsStr");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_EvalResult_getAsStr");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11213,6 +11392,8 @@ public class Index_h {
                 traceDowncall("clang_EvalResult_getAsStr", E);
             }
             return (MemorySegment)mh$.invokeExact(E);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11223,7 +11404,7 @@ public class Index_h {
             Index_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = Index_h.findOrThrow("clang_EvalResult_dispose");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_EvalResult_dispose");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11270,6 +11451,8 @@ public class Index_h {
                 traceDowncall("clang_EvalResult_dispose", E);
             }
             mh$.invokeExact(E);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
