@@ -115,7 +115,7 @@ public class JtregJextract {
         return Path.of(testSrc.toFile().getName() + "_sources");
     }
 
-    public static int main(String[] args) throws IOException {
+    public static void main(String[] args) {
         System.err.println("jextract");
         Path sourcePath = getJextractSourcePath();
         JtregJextract jj =  new JtregJextract(
@@ -126,6 +126,5 @@ public class JtregJextract {
         Path outputDir = Paths.get(System.getProperty("test.classes", "."));
 
         TestUtils.compile(sourcePath, outputDir);
-        return 0;
     }
 }

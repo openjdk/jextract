@@ -26,6 +26,7 @@ package testlib;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.foreign.FunctionDescriptor;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -49,7 +50,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 public class JextractToolRunner {
 
@@ -297,6 +297,20 @@ public class JextractToolRunner {
             assertTrue(false, "should not reach here");
         }
         return null;
+    }
+
+    /**
+     * Requires the corresponding function symbol to be loaded.
+     */
+    protected static FunctionDescriptor findDescriptor(Class<?> cls, String nameOfFunction) {
+        Method method = findMethod(cls, nameOfFunction + "$descriptor");
+        assertNotNull(method);
+        assertTrue(FunctionDescriptor.class.isAssignableFrom(method.getReturnType()));
+        try {
+            return (FunctionDescriptor)method.invoke(null);
+        } catch (Exception exp) {
+            throw new AssertionError("Exception when getting descriptor", exp);
+        }
     }
 
     protected static void checkField(MemoryLayout group, String fieldName, MemoryLayout expected) {

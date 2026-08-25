@@ -107,7 +107,8 @@ class TypeMaker {
                 Type elem = makeType(t.getElementType(), treeMaker);
                 return Type.array(t.getNumberOfElements(), elem);
             }
-            case IncompleteArray: {
+            case IncompleteArray:
+            case VariableArray: {
                 Type elem = makeType(t.getElementType(), treeMaker);
                 return Type.array(elem);
             }
