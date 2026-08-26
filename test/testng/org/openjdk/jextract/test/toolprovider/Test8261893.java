@@ -43,6 +43,7 @@ public class Test8261893 extends JextractToolRunner {
             assertNotNull(loader.loadClass("sealed_"));
             assertNotNull(loader.loadClass("var_"));
             assertNotNull(loader.loadClass("yield_"));
+            assertNotNull(loader.loadClass("value_"));
         } finally {
             TestUtils.deleteDir(test8261893Output);
         }
