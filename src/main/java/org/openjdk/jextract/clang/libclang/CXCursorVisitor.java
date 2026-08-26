@@ -46,9 +46,9 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  * } (*CXCursorVisitor)(CXCursor, CXCursor, CXClientData)
  * }
  */
-public class CXCursorVisitor {
+public final class CXCursorVisitor {
 
-    CXCursorVisitor() {
+    private CXCursorVisitor() {
         // Should not be called directly
     }
 
@@ -88,9 +88,11 @@ public class CXCursorVisitor {
     /**
      * Invoke the upcall stub {@code funcPtr}, with given parameters
      */
-    public static int invoke(MemorySegment funcPtr,MemorySegment cursor, MemorySegment parent, MemorySegment client_data) {
+    public static int invoke(MemorySegment funcPtr, MemorySegment cursor, MemorySegment parent, MemorySegment client_data) {
         try {
             return (int) DOWN$MH.invokeExact(funcPtr, cursor, parent, client_data);
+        } catch (Error | RuntimeException ex) {
+            throw ex;
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }

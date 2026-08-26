@@ -76,7 +76,7 @@ public class CXType {
         return kind$LAYOUT;
     }
 
-    private static final long kind$OFFSET = 0;
+    private static final long kind$OFFSET = $LAYOUT.byteOffset(groupElement("kind"));
 
     /**
      * Offset for field:
@@ -120,7 +120,7 @@ public class CXType {
         return data$LAYOUT;
     }
 
-    private static final long data$OFFSET = 8;
+    private static final long data$OFFSET = $LAYOUT.byteOffset(groupElement("data"));
 
     /**
      * Offset for field:
@@ -172,7 +172,7 @@ public class CXType {
      * }
      */
     public static MemorySegment data(MemorySegment struct, long index0) {
-        return (MemorySegment)data$ELEM_HANDLE.get(struct, 0L, index0);
+        return (MemorySegment)data$ELEM_HANDLE.get(struct, data$OFFSET, index0);
     }
 
     /**
@@ -182,7 +182,7 @@ public class CXType {
      * }
      */
     public static void data(MemorySegment struct, long index0, MemorySegment fieldValue) {
-        data$ELEM_HANDLE.set(struct, 0L, index0, fieldValue);
+        data$ELEM_HANDLE.set(struct, data$OFFSET, index0, fieldValue);
     }
 
     /**

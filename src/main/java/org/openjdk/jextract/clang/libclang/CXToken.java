@@ -75,7 +75,7 @@ public class CXToken {
         return int_data$LAYOUT;
     }
 
-    private static final long int_data$OFFSET = 0;
+    private static final long int_data$OFFSET = $LAYOUT.byteOffset(groupElement("int_data"));
 
     /**
      * Offset for field:
@@ -127,7 +127,7 @@ public class CXToken {
      * }
      */
     public static int int_data(MemorySegment struct, long index0) {
-        return (int)int_data$ELEM_HANDLE.get(struct, 0L, index0);
+        return (int)int_data$ELEM_HANDLE.get(struct, int_data$OFFSET, index0);
     }
 
     /**
@@ -137,7 +137,7 @@ public class CXToken {
      * }
      */
     public static void int_data(MemorySegment struct, long index0, int fieldValue) {
-        int_data$ELEM_HANDLE.set(struct, 0L, index0, fieldValue);
+        int_data$ELEM_HANDLE.set(struct, int_data$OFFSET, index0, fieldValue);
     }
 
     private static final AddressLayout ptr_data$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("ptr_data"));
@@ -152,7 +152,7 @@ public class CXToken {
         return ptr_data$LAYOUT;
     }
 
-    private static final long ptr_data$OFFSET = 16;
+    private static final long ptr_data$OFFSET = $LAYOUT.byteOffset(groupElement("ptr_data"));
 
     /**
      * Offset for field:
