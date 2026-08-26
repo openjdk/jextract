@@ -309,7 +309,7 @@ abstract class ClassSourceBuilder {
     }
 
     static String copyComments(Declaration decl) {
-        List<String> comments = decl.comments();
+        List<String> comments = DeclarationImpl.DeclarationComments.getOrThrow(decl);
         if (comments.isEmpty()) {
             return "";
         }

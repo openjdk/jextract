@@ -27,7 +27,6 @@
 package org.openjdk.jextract.impl;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +42,6 @@ public abstract class DeclarationImpl implements Declaration {
 
     private final String name;
     private final Position pos;
-    private List<String> comments = Collections.emptyList();
     private final Map<Class<?>, Record> attributes = new HashMap<>();
 
     DeclarationImpl(String name, Position pos) {
@@ -64,15 +62,6 @@ public abstract class DeclarationImpl implements Declaration {
     @Override
     public Position pos() {
         return pos;
-    }
-
-    @Override
-    public List<String> comments() {
-        return comments;
-    }
-
-    public void setComments(List<String> comments) {
-        this.comments = comments;
     }
 
     @Override
@@ -513,6 +502,20 @@ public abstract class DeclarationImpl implements Declaration {
         public static String getOrThrow(Declaration declaration) {
             return declaration.getAttribute(DeclarationString.class)
                     .stream().map(DeclarationString::declString).findFirst().get();
+        }
+    }
+
+    // Markdown comment because of `*/`
+    /// An attribute to attach the list of comments that immediately precede
+    /// the declaration. Comment delimiters (`//` or `/* ... */`) are not removed.
+    record DeclarationComments(List<String> comments) {
+        public static void with(Declaration declaration, List<String> comments) {
+            declaration.addAttribute(new DeclarationComments(comments));
+        }
+
+        public static List<String> getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(DeclarationComments.class)
+                .map(DeclarationComments::comments).orElseThrow();
         }
     }
 }

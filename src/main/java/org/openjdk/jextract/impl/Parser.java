@@ -91,7 +91,7 @@ public class Parser {
                 String[] tokens = c.getTranslationUnit().tokens(range);
                 Optional<Declaration.Constant> optConstant = macroParser.parseConstant(c, c.spelling(), tokens, comments);
                 optConstant.ifPresent(e -> {
-                    ((DeclarationImpl.ConstantImpl) e).setComments(comments);
+                    DeclarationImpl.DeclarationComments.with(e, comments);
                     decls.add(e);
                 });
             }

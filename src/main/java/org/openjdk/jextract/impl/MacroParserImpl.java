@@ -147,7 +147,7 @@ class MacroParserImpl implements AutoCloseable {
     }
 
     /**
-     * This abstraction is used to collect all macros which could not be interpreted during {@link #parseConstant(Position, String, String[])}.
+     * This abstraction is used to collect all macros which could not be interpreted during {@link #parseConstant(Cursor, String, String[], List)}.
      * All unparsed macros in the table can have three different states: UNPARSED (which means the macro has not been parsed yet),
      * SUCCESS (which means the macro has been parsed and has a type and a value) and FAILURE, which means the macro has been
      * parsed with some errors, but for which we were at least able to infer a type.
@@ -308,8 +308,8 @@ class MacroParserImpl implements AutoCloseable {
             return macrosByMangledName.values().stream()
                     .filter(Entry::isSuccess)
                     .map(e -> {
-                        DeclarationImpl.ConstantImpl constant = (DeclarationImpl.ConstantImpl) ((Success) e).constant();
-                        constant.setComments(e.comments);
+                        Declaration.Constant constant = ((Success) e).constant();
+                        DeclarationImpl.DeclarationComments.with(constant, e.comments);
                         return constant;
                     })
                     .collect(Collectors.toList());
