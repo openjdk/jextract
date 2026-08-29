@@ -77,7 +77,7 @@ public class CXSourceRange {
         return ptr_data$LAYOUT;
     }
 
-    private static final long ptr_data$OFFSET = 0;
+    private static final long ptr_data$OFFSET = $LAYOUT.byteOffset(groupElement("ptr_data"));
 
     /**
      * Offset for field:
@@ -129,7 +129,7 @@ public class CXSourceRange {
      * }
      */
     public static MemorySegment ptr_data(MemorySegment struct, long index0) {
-        return (MemorySegment)ptr_data$ELEM_HANDLE.get(struct, 0L, index0);
+        return (MemorySegment)ptr_data$ELEM_HANDLE.get(struct, ptr_data$OFFSET, index0);
     }
 
     /**
@@ -139,7 +139,7 @@ public class CXSourceRange {
      * }
      */
     public static void ptr_data(MemorySegment struct, long index0, MemorySegment fieldValue) {
-        ptr_data$ELEM_HANDLE.set(struct, 0L, index0, fieldValue);
+        ptr_data$ELEM_HANDLE.set(struct, ptr_data$OFFSET, index0, fieldValue);
     }
 
     private static final OfInt begin_int_data$LAYOUT = (OfInt)$LAYOUT.select(groupElement("begin_int_data"));
@@ -154,7 +154,7 @@ public class CXSourceRange {
         return begin_int_data$LAYOUT;
     }
 
-    private static final long begin_int_data$OFFSET = 16;
+    private static final long begin_int_data$OFFSET = $LAYOUT.byteOffset(groupElement("begin_int_data"));
 
     /**
      * Offset for field:
@@ -198,7 +198,7 @@ public class CXSourceRange {
         return end_int_data$LAYOUT;
     }
 
-    private static final long end_int_data$OFFSET = 20;
+    private static final long end_int_data$OFFSET = $LAYOUT.byteOffset(groupElement("end_int_data"));
 
     /**
      * Offset for field:

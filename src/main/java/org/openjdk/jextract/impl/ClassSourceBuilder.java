@@ -41,8 +41,10 @@ import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Superclass for .java source generator classes.
@@ -66,11 +68,12 @@ abstract class ClassSourceBuilder {
     private final String superName;
     private final ClassSourceBuilder enclosing;
     private final String runtimeHelperName;
+    protected final boolean copyComments;
 
     private static final int NO_ALIGN_REQUIRED_MARKER = -1;
 
     ClassSourceBuilder(SourceFileBuilder builder, String modifiers, Kind kind, String className, String superName,
-                       ClassSourceBuilder enclosing, String runtimeHelperName) {
+                       ClassSourceBuilder enclosing, String runtimeHelperName, boolean copyComments) {
         this.sb = builder;
         this.modifiers = modifiers;
         this.kind = kind;
@@ -78,6 +81,7 @@ abstract class ClassSourceBuilder {
         this.superName = superName;
         this.enclosing = enclosing;
         this.runtimeHelperName = runtimeHelperName;
+        this.copyComments = copyComments;
     }
 
     final String className() {
@@ -175,14 +179,28 @@ abstract class ClassSourceBuilder {
     }
 
     final void emitDocComment(Declaration decl, String header) {
+        emitDocComment(decl, header, false);
+    }
+
+    final void emitDocComment(Declaration decl, boolean copyComments) {
+        emitDocComment(decl, "", copyComments);
+    }
+
+    // copyComments parameter exists because not all doc comments should get the copied comments
+    final void emitDocComment(Declaration decl, String header, boolean copyComments) {
         appendLines("""
             /**
             %1$s\
              * {@snippet lang=c :
             %2$s
              * }
+            %3$s\
              */
-            """, !header.isEmpty() ? String.format(" * %1$s\n", header) : "", declarationComment(decl));
+            """,
+            !header.isEmpty() ? String.format(" * %1$s\n", header) : "",
+            declarationComment(decl),
+            copyComments ? copyComments(decl) : ""
+        );
     }
 
     public String mangleName(String javaName, Class<?> type) {
@@ -292,6 +310,68 @@ abstract class ClassSourceBuilder {
         return declString.lines().collect(Collectors.joining("\n * ", " * ", ""));
     }
 
+    static String copyComments(Declaration decl) {
+        List<String> comments = DeclarationImpl.DeclarationComments.getOrThrow(decl);
+        if (comments.isEmpty()) {
+            return "";
+        }
+
+        return " * <p><strong>Copied comments:</strong></p>\n" + comments.stream()
+            .map(comment -> {
+                // do some normalization for common comment formats
+                // use sum type to be able to treat each case differently later
+                if (comment.startsWith("///")) {
+                    return new CommentType.LineComment(comment.substring("///".length()));
+                }
+                if (comment.startsWith("//")) {
+                    return new CommentType.LineComment(comment.substring("//".length()));
+                }
+                if (comment.startsWith("/**")) {
+                    return new CommentType.BlockComment(comment.substring("/**".length(), comment.length() - "*/".length()).strip());
+                }
+                if (comment.startsWith("/*")) {
+                    return new CommentType.BlockComment(comment.substring("/*".length(), comment.length() - "*/".length()).strip());
+                }
+                // a C comment must be a line comment (`//...`) or a block comment (`/*...*/`)
+                throw new AssertionError("Invalid C comment");
+            })
+            .map(commentType -> commentType.map(comment -> comment
+                // Sanitize any HTML, special JavaDoc characters, Unicode escapes and comment endings (*/)
+                // HTML
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                // JavaDoc
+                .replace("@", "&#64;")
+                // Unicode
+                .replace("\\u", "&#92;u")
+                // comment endings
+                // see https://docs.oracle.com/en/java/javase/25/docs/specs/javadoc/doc-comment-spec.html#escape-sequences
+                .replace("*/", "*@/")
+            ))
+            .flatMap(commentType -> switch (commentType) {
+                case CommentType.LineComment(String comment) -> Stream.of(new CommentType.LineComment(comment));
+                case CommentType.BlockComment(String comment) -> comment.lines().map(CommentType.BlockComment::new);
+            })
+            .map(commentType -> commentType.map(String::strip))
+            .map(commentType -> switch (commentType) {
+                case CommentType.LineComment(String line) -> line;
+                // remove leading `*` in block comments because we add it back ourselves all at once
+                case CommentType.BlockComment(String line) -> {
+                    if (line.startsWith("* ")) {
+                        yield line.substring("* ".length());
+                    }
+                    // blank lines in multi-line comments usually do not have a trailing space
+                    if (line.startsWith("*")) {
+                        yield line.substring("*".length());
+                    }
+                    yield line;
+                }
+            })
+            .map(line -> " * " + line + "\n")
+            .collect(Collectors.joining());
+    }
+
     record IndexList(String decl, String use) {
         static IndexList of(int dims) {
             List<String> indexNames = IntStream.range(0, dims).mapToObj(i -> "index" + i).toList();
@@ -301,6 +381,20 @@ abstract class ClassSourceBuilder {
             String indexUses = indexNames.stream()
                     .collect(Collectors.joining(", "));
             return new IndexList(indexDecls, indexUses);
+        }
+    }
+
+    private sealed interface CommentType {
+        record LineComment(String comment) implements CommentType {
+        }
+        record BlockComment(String comment) implements CommentType {
+        }
+
+        default CommentType map(UnaryOperator<String> op) {
+            return switch (this) {
+                case LineComment(String c) -> new LineComment(op.apply(c));
+                case BlockComment(String c) -> new BlockComment(op.apply(c));
+            };
         }
     }
 }

@@ -76,7 +76,7 @@ public class CXString {
         return data$LAYOUT;
     }
 
-    private static final long data$OFFSET = 0;
+    private static final long data$OFFSET = $LAYOUT.byteOffset(groupElement("data"));
 
     /**
      * Offset for field:
@@ -120,7 +120,7 @@ public class CXString {
         return private_flags$LAYOUT;
     }
 
-    private static final long private_flags$OFFSET = 8;
+    private static final long private_flags$OFFSET = $LAYOUT.byteOffset(groupElement("private_flags"));
 
     /**
      * Offset for field:

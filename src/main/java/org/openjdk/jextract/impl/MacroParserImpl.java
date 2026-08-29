@@ -80,7 +80,7 @@ class MacroParserImpl implements AutoCloseable {
      * If that is not possible (e.g. because the macro refers to other macro, or has a more complex grammar), fall
      * back to use clang evaluation support.
      */
-    Optional<Declaration.Constant> parseConstant(Cursor cursor, String name, String[] tokens) {
+    Optional<Declaration.Constant> parseConstant(Cursor cursor, String name, String[] tokens, List<String> comments) {
         if (cursor.isMacroFunctionLike()) {
             return Optional.empty();
         } else if (tokens.length == 2) {
@@ -90,7 +90,7 @@ class MacroParserImpl implements AutoCloseable {
                 return Optional.of(treeMaker.createMacro(TreeMaker.CursorPosition.of(cursor), name, Type.primitive(Type.Primitive.Kind.Int), (long)num));
             }
         }
-        macroTable.enterMacro(name, tokens, TreeMaker.CursorPosition.of(cursor));
+        macroTable.enterMacro(name, tokens, TreeMaker.CursorPosition.of(cursor), comments);
         return Optional.empty();
     }
 
@@ -147,7 +147,7 @@ class MacroParserImpl implements AutoCloseable {
     }
 
     /**
-     * This abstraction is used to collect all macros which could not be interpreted during {@link #parseConstant(Position, String, String[])}.
+     * This abstraction is used to collect all macros which could not be interpreted during {@link #parseConstant(Cursor, String, String[], List)}.
      * All unparsed macros in the table can have three different states: UNPARSED (which means the macro has not been parsed yet),
      * SUCCESS (which means the macro has been parsed and has a type and a value) and FAILURE, which means the macro has been
      * parsed with some errors, but for which we were at least able to infer a type.
@@ -172,11 +172,13 @@ class MacroParserImpl implements AutoCloseable {
             final String name;
             final String[] tokens;
             final Position position;
+            final List<String> comments;
 
-            Entry(String name, String[] tokens, Position position) {
+            Entry(String name, String[] tokens, Position position, List<String> comments) {
                 this.name = name;
                 this.tokens = tokens;
                 this.position = position;
+                this.comments = comments;
             }
 
             String mangledName() {
@@ -207,20 +209,20 @@ class MacroParserImpl implements AutoCloseable {
         }
 
         class Unparsed extends Entry {
-            Unparsed(String name, String[] tokens, Position position) {
-                super(name, tokens, position);
+            Unparsed(String name, String[] tokens, Position position, List<String> comments) {
+                super(name, tokens, position, comments);
             }
 
             @Override
             Entry success(Type type, Object value) {
-                return new Success(name, tokens, position, type, value);
+                return new Success(name, tokens, position, type, value, comments);
             }
 
             @Override
             Entry failure(Type type) {
                 return type != null ?
-                        new RecoverableFailure(name, tokens, type, position) :
-                        new UnparseableMacro(name, tokens, position);
+                        new RecoverableFailure(name, tokens, type, position, comments) :
+                        new UnparseableMacro(name, tokens, position, comments);
             }
 
             @Override
@@ -238,19 +240,19 @@ class MacroParserImpl implements AutoCloseable {
 
             final Type type;
 
-            public RecoverableFailure(String name, String[] tokens, Type type, Position position) {
-                super(name, tokens, position);
+            public RecoverableFailure(String name, String[] tokens, Type type, Position position, List<String> comments) {
+                super(name, tokens, position, comments);
                 this.type = type;
             }
 
             @Override
             Entry success(Type type, Object value) {
-                return new Success(name, tokens, position, this.type, value);
+                return new Success(name, tokens, position, this.type, value, comments);
             }
 
             @Override
             Entry failure(Type type) {
-                return new UnparseableMacro(name, tokens, position);
+                return new UnparseableMacro(name, tokens, position, comments);
             }
 
             @Override
@@ -262,8 +264,8 @@ class MacroParserImpl implements AutoCloseable {
         class Success extends Entry {
             final Declaration.Constant constant;
 
-            public Success(String name, String[] tokens, Position position, Type type, Object value) {
-                super(name, tokens, position);
+            public Success(String name, String[] tokens, Position position, Type type, Object value, List<String> comments) {
+                super(name, tokens, position, comments);
                 constant = treeMaker.createMacro(position, name, type, value);
             }
 
@@ -279,8 +281,8 @@ class MacroParserImpl implements AutoCloseable {
 
         class UnparseableMacro extends Entry {
 
-            UnparseableMacro(String name, String[] tokens, Position position) {
-                super(name, tokens, position);
+            UnparseableMacro(String name, String[] tokens, Position position, List<String> comments) {
+                super(name, tokens, position, comments);
             }
 
             @Override
@@ -289,8 +291,8 @@ class MacroParserImpl implements AutoCloseable {
             }
         }
 
-        void enterMacro(String name, String[] tokens, Position position) {
-            Unparsed unparsed = new Unparsed(name, tokens, position);
+        void enterMacro(String name, String[] tokens, Position position, List<String> comments) {
+            Unparsed unparsed = new Unparsed(name, tokens, position, comments);
             macrosByMangledName.put(unparsed.mangledName(), unparsed);
         }
 
@@ -305,7 +307,11 @@ class MacroParserImpl implements AutoCloseable {
             }
             return macrosByMangledName.values().stream()
                     .filter(Entry::isSuccess)
-                    .map(e -> ((Success) e).constant())
+                    .map(e -> {
+                        Declaration.Constant constant = ((Success) e).constant();
+                        DeclarationImpl.DeclarationComments.with(constant, e.comments);
+                        return constant;
+                    })
                     .collect(Collectors.toList());
         }
 
@@ -341,7 +347,7 @@ class MacroParserImpl implements AutoCloseable {
             // note: cursors returned during reparsing are not comparable with existing ones.
             // Because of that, here we create a brand new tree maker, which means pointers to already declared types
             // (e.g. structs, unions, enums) will be downgraded to void*.
-            TreeMaker treeMaker = new TreeMaker();
+            TreeMaker treeMaker = new TreeMaker(false);
             reparser.reparse(snippet).forEach(c -> {
                 if (c.kind() == CursorKind.VarDecl &&
                         c.spelling().contains("jextract$")) {
