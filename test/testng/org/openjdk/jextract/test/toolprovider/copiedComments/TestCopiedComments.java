@@ -89,7 +89,7 @@ public class TestCopiedComments extends JextractToolRunner {
             in between""",
             """
             Doxygen
-            @param a parameter comment""",
+            &#64;param a parameter comment""",
             "a single line, multi-line comment",
             """
             a multi line,
@@ -100,9 +100,9 @@ public class TestCopiedComments extends JextractToolRunner {
             comment""",
             """
             Doxygen
-            @param a par1
-            @param b par2
-            @return ret"""
+            &#64;param a par1
+            &#64;param b par2
+            &#64;return ret"""
         ));
     }
 
@@ -164,6 +164,55 @@ public class TestCopiedComments extends JextractToolRunner {
         TestDocComments.assertContains(copiedComments, List.of(
             "abc comment",
             "msg comment"
+        ));
+    }
+
+    @Test
+    public void testNormalization() throws IOException {
+        Set<String> copiedComments = getCopiedComments("normalizationTests.h", "normalizationTests_h.java");
+        TestDocComments.assertContains(copiedComments, List.of(
+            "line comment without a space",
+            "line comment with a space",
+            "line   comment   with    many  spaces",
+            "Doxygen line comment without a space",
+            "Doxygen line comment with a space",
+            "Doxygen    line   comment  with  many   spaces",
+            "block comment without spaces",
+            "block comment with spaces",
+            """
+            block
+            comment
+            with
+            newlines""",
+            """
+            Doxygen
+            comment
+            with
+            newlines""",
+            "* line comment with leading asterisk",
+            "* block comment with two leading asterisks"
+        ));
+    }
+
+    @Test
+    public void testSanitization() throws IOException {
+        Set<String> copiedComments = getCopiedComments("sanitizationTests.h", "sanitizationTests_h.java");
+        TestDocComments.assertContains(copiedComments, List.of(
+            "&lt;!-- comment --&gt;",
+            "&lt;p&gt;this is a paragraph",
+            "&lt;p&gt;this is a paragraph too&lt;/p&gt;",
+            "&lt;script&gt;alert(document.domain)&lt;/script&gt;",
+            "&lt;img src=x onerror=\"alert(document.domain)\"&gt;",
+            "A &amp; B",
+            "A &amp;amp; B",
+            "&#64;param param desc",
+            "{ and }",
+            "some {&#64;code code}",
+            "email&#64;example.com",
+            "block comment end *@/",
+            "Unicode &#92;u20AC",
+            "&#92;u002A&#92;u002F",
+            "&#64;brief a variable"
         ));
     }
 
