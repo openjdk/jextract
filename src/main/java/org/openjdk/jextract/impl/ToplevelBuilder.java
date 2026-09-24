@@ -51,8 +51,11 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private HeaderFileBuilder lastHeader;
     private final ClassDesc headerDesc;
 
+    private final boolean copyComments;
+
     ToplevelBuilder(String packageName, String headerClassName, List<Options.Library> libs,
-                    boolean useSystemLoadLibrary, String sharedClassName) {
+                    boolean useSystemLoadLibrary, boolean copyComments, String sharedClassName) {
+        this.copyComments = copyComments;
         this.headerDesc = ClassDesc.of(packageName, headerClassName);
         shared = sharedClassName != null ?
                 sharedClassName :
@@ -92,7 +95,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     private HeaderFileBuilder initHeader(SourceFileBuilder sfb, String classNameWithSuffix,
                                          String superClass, String extendsClass) {
         HeaderFileBuilder hfb = new HeaderFileBuilder(sfb, classNameWithSuffix,
-                superClass, extendsClass);
+                superClass, extendsClass, copyComments);
         hfb.appendBlankLine();
         hfb.classBegin();
         hfb.emitDefaultConstructor();
@@ -183,7 +186,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
             nextHeader().emitPointerTypedef(typedefTree, javaName);
         } else {
             SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), javaName);
-            TypedefBuilder.generate(sfb, sfb.className(), superClass, mainHeaderClassName(), typedefTree);
+            TypedefBuilder.generate(sfb, sfb.className(), superClass, mainHeaderClassName(), typedefTree, copyComments);
             otherBuilders.add(sfb);
         }
     }
@@ -192,7 +195,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     public StructBuilder addStruct(Declaration.Scoped tree) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaName.getOrThrow(tree));
         otherBuilders.add(sfb);
-        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree);
+        StructBuilder structBuilder = new StructBuilder(sfb, "public", sfb.className(), null, mainHeaderClassName(), tree, copyComments);
         structBuilder.begin();
         return structBuilder;
     }
@@ -201,7 +204,7 @@ class ToplevelBuilder implements OutputFactory.Builder {
     public void addFunctionalInterface(Declaration parentDecl, Type.Function funcType) {
         SourceFileBuilder sfb = SourceFileBuilder.newSourceFile(packageName(), JavaFunctionalInterfaceName.getOrThrow(parentDecl));
         otherBuilders.add(sfb);
-        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, mainHeaderClassName(), parentDecl, funcType, false);
+        FunctionalInterfaceBuilder.generate(sfb, sfb.className(), null, mainHeaderClassName(), parentDecl, funcType, false, copyComments);
     }
 
     private HeaderFileBuilder nextHeader() {

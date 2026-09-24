@@ -29,6 +29,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 import static org.testng.Assert.assertEquals;
@@ -41,7 +42,7 @@ public class TestDocComments extends JextractToolRunner {
     //   /\*\*    doc comment start
     //   (.*?)    comment text as a group (reluctant match)
     //   \*/      doc comment end
-    private static final Pattern JAVADOC_COMMENT = Pattern.compile("(?s)/\\*\\*(.*?)\\*/");
+    public static final Pattern JAVADOC_COMMENT = Pattern.compile("(?s)/\\*\\*(.*?)\\*/");
 
     @Test
     public void testMacros() throws IOException {
@@ -243,7 +244,7 @@ public class TestDocComments extends JextractToolRunner {
         return strings;
     }
 
-    static void assertContains(List<String> found, List<String> expected) {
+    public static void assertContains(Collection<String> found, List<String> expected) {
         for (String e : expected) {
             if (!found.contains(e)) {
                 fail(String.format("\"%s\" not found in: ", e, found));

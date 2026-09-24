@@ -504,4 +504,18 @@ public abstract class DeclarationImpl implements Declaration {
                     .stream().map(DeclarationString::declString).findFirst().get();
         }
     }
+
+    // Markdown comment because of `*/`
+    /// An attribute to attach the list of comments that immediately precede
+    /// the declaration. Comment delimiters (`//` or `/* ... */`) are not removed.
+    record DeclarationComments(List<String> comments) {
+        public static void with(Declaration declaration, List<String> comments) {
+            declaration.addAttribute(new DeclarationComments(comments));
+        }
+
+        public static List<String> getOrThrow(Declaration declaration) {
+            return declaration.getAttribute(DeclarationComments.class)
+                .map(DeclarationComments::comments).orElseThrow();
+        }
+    }
 }
