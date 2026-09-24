@@ -8,4 +8,4 @@ Steps to update libclang binding
 * set PATH to point to directory where generated jextract tool lives
 * set LIBCLANG_HOME to point to the home of the LLVM distribution
 * run sh ./extract.sh
-* apply the patches `Index_h.patch`, `Index_h$shared.patch` and `CXUnsavedFile.patch`
+* apply the patches `Index_h.patch`, `Index_h$shared.patch` and `CXUnsavedFile.patch` **from the root directory**

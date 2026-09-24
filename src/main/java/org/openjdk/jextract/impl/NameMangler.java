@@ -315,7 +315,7 @@ public final class NameMangler implements Declaration.Visitor<Void, Declaration>
     private static boolean isRestrictedTypeName(String name) {
         return switch (name) {
             case "var", "yield", "record",
-                "sealed", "permits" -> true;
+                "sealed", "permits", "value" -> true;
             default -> false;
         };
     }

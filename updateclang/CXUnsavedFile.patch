@@ -1,5 +1,4 @@
 diff --git a/src/main/java/org/openjdk/jextract/clang/libclang/CXUnsavedFile.java b/src/main/java/org/openjdk/jextract/clang/libclang/CXUnsavedFile.java
-index 12d25de..a0ebb98 100644
 --- a/src/main/java/org/openjdk/jextract/clang/libclang/CXUnsavedFile.java
 +++ b/src/main/java/org/openjdk/jextract/clang/libclang/CXUnsavedFile.java
 @@ -52,11 +52,20 @@ public class CXUnsavedFile {
