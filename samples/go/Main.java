@@ -30,9 +30,11 @@
  */
 
 import static org.golang.libhello_h.*;
+import static org.golang.libhello_t.*;
 
 class Main {
    public static void main(String[] a) {
        System.out.println(Add(2344L, 555L));
+       ListenAndServe(AddAll(Add));
    }
 }
