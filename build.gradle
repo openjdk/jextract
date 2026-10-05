@@ -237,7 +237,10 @@ void createJtregTask(String name, String jacocoAgent, String os_lib_dir) {
                 "-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED",
                 "-avm", "-conc:auto", "-verbose:summary,fail,error",
-                "-retain:fail,error"
+                "-retain:fail,error",
+                "-e:LD_PRELOAD=$buildDir/jextract-jdk-test-image/lib/libjsig.so",
+                "-e:DYLD_FORCE_FLAT_NAMESPACE=0",
+                "-e:DYLD_INSERT_LIBRARIES=$buildDir/jextract-jdk-test-image/lib/libjsig.dylib"
         ]
 
         if (jacocoAgent != null) {
