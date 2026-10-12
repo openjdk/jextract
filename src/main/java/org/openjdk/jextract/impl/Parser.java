@@ -45,15 +45,18 @@ import java.util.Optional;
 public class Parser {
     private final TreeMaker treeMaker;
     private final Logger logger;
+    private final boolean copyComments;
 
-    public Parser(Logger logger) {
-        this.treeMaker = new TreeMaker();
+    public Parser(Logger logger, boolean copyComments) {
+        this.treeMaker = new TreeMaker(copyComments);
         this.logger = logger;
+        this.copyComments = copyComments;
     }
 
     private Declaration.Scoped collectDeclarations(TranslationUnit tu, MacroParserImpl macroParser) {
         List<Declaration> decls = new ArrayList<>();
         Cursor tuCursor = tu.getCursor();
+
         tuCursor.forEach(c -> {
             SourceLocation loc = c.getSourceLocation();
             if (loc == null) {
@@ -69,24 +72,28 @@ public class Parser {
                 if (c.kind() == CursorKind.UnexposedDecl ||
                         c.kind() == CursorKind.Namespace) {
                     c.forEach(t -> {
-                        Declaration declaration = treeMaker.createTree(t);
+                        Declaration declaration = treeMaker.createTree(t, copyComments);
                         if (declaration != null) {
                             decls.add(declaration);
                         }
                     });
                 } else {
-                    Declaration decl = treeMaker.createTree(c);
+                    Declaration decl = treeMaker.createTree(c, copyComments);
                     if (decl != null) {
                         decls.add(decl);
                     }
                 }
             } else if (isMacro(c) && src.path() != null) {
+                List<String> comments = copyComments ? TreeMaker.extractMacroComments(c) : null;
                 SourceRange range = c.getExtent();
                 String[] tokens = c.getTranslationUnit().tokens(range);
-                Optional<Declaration.Constant> constant = macroParser.parseConstant(c, c.spelling(), tokens);
-                if (constant.isPresent()) {
-                    decls.add(constant.get());
-                }
+                Optional<Declaration.Constant> optConstant = macroParser.parseConstant(c, c.spelling(), tokens, comments);
+                optConstant.ifPresent(e -> {
+                    if (comments != null) {
+                        DeclarationImpl.DeclarationComments.with(e, comments);
+                    }
+                    decls.add(e);
+                });
             }
         });
 

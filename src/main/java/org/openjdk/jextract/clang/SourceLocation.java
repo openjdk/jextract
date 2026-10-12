@@ -54,22 +54,22 @@ public class SourceLocation extends ClangDisposable.Owned {
 
     private Location getLocation(LocationFactory fn) {
         try (var arena = Arena.ofConfined()) {
-             MemorySegment file = arena.allocate(C_POINTER);
-             MemorySegment line = arena.allocate(C_INT);
-             MemorySegment col = arena.allocate(C_INT);
-             MemorySegment offset = arena.allocate(C_INT);
+            MemorySegment file = arena.allocate(C_POINTER);
+            MemorySegment line = arena.allocate(C_INT);
+            MemorySegment col = arena.allocate(C_INT);
+            MemorySegment offset = arena.allocate(C_INT);
 
             fn.get(loc, file, line, col, offset);
-            MemorySegment fname = file.get(C_POINTER, 0);
-            String str = fname.equals(MemorySegment.NULL) ?  null : getFileName(fname);
+            MemorySegment cxfile = file.get(C_POINTER, 0);
+            String str = cxfile.equals(MemorySegment.NULL) ?  null : getFileName(cxfile);
 
             return new Location(str, line.get(C_INT, 0),
                 col.get(C_INT, 0), offset.get(C_INT, 0));
         }
     }
 
-    private static String getFileName(MemorySegment fname) {
-        var filename = Index_h.clang_getFileName(STRING_ALLOCATOR, fname);
+    private static String getFileName(MemorySegment cxfile) {
+        var filename = Index_h.clang_getFileName(STRING_ALLOCATOR, cxfile);
         return LibClang.CXStrToString(filename);
     }
 

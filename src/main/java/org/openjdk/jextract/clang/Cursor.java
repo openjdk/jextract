@@ -197,6 +197,11 @@ public final class Cursor extends ClangDisposable.Owned {
         return new Cursor(referenced, owner);
     }
 
+    public String getRawCommentText() {
+        var rawCommentText = Index_h.clang_Cursor_getRawCommentText(LibClang.STRING_ALLOCATOR, segment);
+        return LibClang.CXStrToString(rawCommentText);
+    }
+
     public void forEach(Consumer<Cursor> action) {
         CursorChildren.forEach(this, action);
     }

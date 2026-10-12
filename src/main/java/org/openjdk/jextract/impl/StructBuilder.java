@@ -79,7 +79,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
                 sourceFileBuilder().incrAlign();
             }
             appendBlankLine();
-            emitDocComment(structTree);
+            emitDocComment(structTree, true);
             classBegin();
             emitDefaultConstructor();
             emitLayoutDecl();
@@ -174,8 +174,12 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
     }
 
     private void emitFieldDocComment(Declaration.Variable varTree, String header) {
+        emitFieldDocComment(varTree, header, false);
+    }
+
+    private void emitFieldDocComment(Declaration.Variable varTree, String header, boolean copyComments)  {
         incrAlign();
-        emitDocComment(varTree, header);
+        emitDocComment(varTree, header, copyComments);
         decrAlign();
     }
 
@@ -187,7 +191,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String segmentParam = safeParameterName(kindName());
         Class<?> type = Utils.carrierFor(varTree.type());
         appendBlankLine();
-        emitFieldDocComment(varTree, "Getter for field:");
+        emitFieldDocComment(varTree, "Getter for field:", true);
         appendIndentedLines("""
             public static %1$s %2$s(MemorySegment %3$s) {
                 return %3$s.get(%4$s, %5$s);
@@ -200,7 +204,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         String valueParam = safeParameterName("fieldValue");
         Class<?> type = Utils.carrierFor(varTree.type());
         appendBlankLine();
-        emitFieldDocComment(varTree, "Setter for field:");
+        emitFieldDocComment(varTree, "Setter for field:", true);
         appendIndentedLines("""
             public static void %1$s(MemorySegment %2$s, %3$s %4$s) {
                 %2$s.set(%5$s, %6$s, %4$s);
@@ -210,7 +214,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     private void emitSegmentGetter(String javaName, Declaration.Variable varTree, String offsetField, String layoutField) {
         appendBlankLine();
-        emitFieldDocComment(varTree, "Getter for field:");
+        emitFieldDocComment(varTree, "Getter for field:", true);
         String segmentParam = safeParameterName(kindName());
         appendIndentedLines("""
             public static MemorySegment %1$s(MemorySegment %2$s) {
@@ -222,7 +226,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     private void emitSegmentSetter(String javaName, Declaration.Variable varTree, String offsetField, String layoutField) {
         appendBlankLine();
-        emitFieldDocComment(varTree, "Setter for field:");
+        emitFieldDocComment(varTree, "Setter for field:", true);
         String segmentParam = safeParameterName(kindName());
         String valueParam = safeParameterName("fieldValue");
         appendIndentedLines("""
@@ -255,7 +259,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         Type elemType = Utils.typeOrElemType(varTree.type());
         Class<?> elemTypeCls = Utils.carrierFor(elemType);
         appendBlankLine();
-        emitFieldDocComment(varTree, "Indexed getter for field:");
+        emitFieldDocComment(varTree, "Indexed getter for field:", true);
         if (Utils.isStructOrUnion(elemType)) {
             appendIndentedLines("""
                 public static MemorySegment %1$s(MemorySegment %2$s, %3$s) {
@@ -284,7 +288,7 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
         Type elemType = Utils.typeOrElemType(varTree.type());
         Class<?> elemTypeCls = Utils.carrierFor(elemType);
         appendBlankLine();
-        emitFieldDocComment(varTree, "Indexed setter for field:");
+        emitFieldDocComment(varTree, "Indexed setter for field:", true);
         if (Utils.isStructOrUnion(elemType)) {
             appendIndentedLines("""
                 public static void %1$s(MemorySegment %2$s, %3$s, MemorySegment %4$s) {

@@ -28,7 +28,7 @@ package org.openjdk.jextract.clang;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemoryLayout;
+
 import org.openjdk.jextract.clang.libclang.CXToken;
 import org.openjdk.jextract.clang.libclang.Index_h;
 import org.openjdk.jextract.clang.libclang.CXUnsavedFile;
@@ -40,7 +40,6 @@ import java.util.function.Consumer;
 
 import static org.openjdk.jextract.clang.LibClang.STRING_ALLOCATOR;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_INT;
-import static org.openjdk.jextract.clang.libclang.Index_h.C_LONG;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 
 public class TranslationUnit extends ClangDisposable {
@@ -53,6 +52,22 @@ public class TranslationUnit extends ClangDisposable {
     public Cursor getCursor() {
         var cursor = Index_h.clang_getTranslationUnitCursor(arena, ptr);
         return new Cursor(cursor, this);
+    }
+
+    public SourceLocation getLCLocationForLocation(SourceLocation location, int line, int col) {
+        try (Arena tempArena = Arena.ofConfined()) {
+            MemorySegment file = tempArena.allocate(C_POINTER);
+            Index_h.clang_getFileLocation(location.segment, file, MemorySegment.NULL, MemorySegment.NULL, MemorySegment.NULL);
+            MemorySegment cxfile = file.get(C_POINTER, 0);
+            if (cxfile.equals(MemorySegment.NULL)) {
+                return null;
+            }
+            MemorySegment loc = Index_h.clang_getLocation(arena, ptr, cxfile, line, col);
+            if (Index_h.clang_equalLocations(loc, Index_h.clang_getNullLocation(tempArena)) != 0) {
+                return null;
+            }
+            return new SourceLocation(loc, this);
+        }
     }
 
     public final void save(Path path) throws TranslationUnitSaveException {
@@ -124,6 +139,11 @@ public class TranslationUnit extends ClangDisposable {
             Tokens rv = new Tokens(p.get(C_POINTER, 0), pCnt.get(C_INT, 0));
             return rv;
         }
+    }
+
+    public Tokens tokenizeRange(SourceLocation begin, SourceLocation end) {
+        SourceRange range = new SourceRange(Index_h.clang_getRange(this, begin.segment, end.segment), this);
+        return tokenize(range);
     }
 
     public class Tokens extends ClangDisposable {

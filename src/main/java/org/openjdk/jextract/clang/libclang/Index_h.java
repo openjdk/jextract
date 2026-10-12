@@ -879,6 +879,67 @@ public class Index_h extends Index_h$shared {
         }
     }
 
+    private static class clang_getRange {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXSourceRange.layout(),
+            CXSourceLocation.layout(),
+            CXSourceLocation.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getRange");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXSourceRange clang_getRange(CXSourceLocation begin, CXSourceLocation end)
+     * }
+     */
+    public static FunctionDescriptor clang_getRange$descriptor() {
+        return clang_getRange.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXSourceRange clang_getRange(CXSourceLocation begin, CXSourceLocation end)
+     * }
+     */
+    public static MethodHandle clang_getRange$handle() {
+        return clang_getRange.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXSourceRange clang_getRange(CXSourceLocation begin, CXSourceLocation end)
+     * }
+     */
+    public static MemorySegment clang_getRange$address() {
+        return clang_getRange.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXSourceRange clang_getRange(CXSourceLocation begin, CXSourceLocation end)
+     * }
+     */
+    public static MemorySegment clang_getRange(SegmentAllocator allocator, MemorySegment begin, MemorySegment end) {
+        var mh$ = clang_getRange.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_getRange", allocator, begin, end);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, begin, end);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
     private static class clang_Range_isNull {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,
@@ -10264,6 +10325,66 @@ public class Index_h extends Index_h$shared {
                 traceDowncall("clang_Cursor_isVariadic", C);
             }
             return (int)mh$.invokeExact(C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_Cursor_getRawCommentText {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXCursor.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_getRawCommentText");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_Cursor_getRawCommentText(CXCursor C)
+     * }
+     */
+    public static FunctionDescriptor clang_Cursor_getRawCommentText$descriptor() {
+        return clang_Cursor_getRawCommentText.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_Cursor_getRawCommentText(CXCursor C)
+     * }
+     */
+    public static MethodHandle clang_Cursor_getRawCommentText$handle() {
+        return clang_Cursor_getRawCommentText.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_Cursor_getRawCommentText(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_getRawCommentText$address() {
+        return clang_Cursor_getRawCommentText.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_Cursor_getRawCommentText(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_getRawCommentText(SegmentAllocator allocator, MemorySegment C) {
+        var mh$ = clang_Cursor_getRawCommentText.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_Cursor_getRawCommentText", allocator, C);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, C);
         } catch (Error | RuntimeException ex) {
            throw ex;
         } catch (Throwable ex$) {

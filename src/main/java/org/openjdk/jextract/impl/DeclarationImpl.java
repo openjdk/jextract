@@ -504,4 +504,20 @@ public abstract class DeclarationImpl implements Declaration {
                     .stream().map(DeclarationString::declString).findFirst().get();
         }
     }
+
+    /**
+     * An attribute to attach the list of comment lines from comments that immediately
+     * precede the declaration. The comments are normalized, but not sanitized. They are not
+     * safe to insert directly into JavaDoc comments.
+     */
+    record DeclarationComments(List<String> comments) {
+        public static void with(Declaration declaration, List<String> comments) {
+            declaration.addAttribute(new DeclarationComments(comments));
+        }
+
+        public static Optional<List<String>> get(Declaration declaration) {
+            return declaration.getAttribute(DeclarationComments.class)
+                .map(DeclarationComments::comments);
+        }
+    }
 }

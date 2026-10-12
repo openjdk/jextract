@@ -76,6 +76,10 @@ public class LibClang {
 
     public static String CXStrToString(MemorySegment cxstr) {
         MemorySegment buf = Index_h.clang_getCString(cxstr);
+        // prevent JVM crashes
+        if (buf.equals(MemorySegment.NULL)) {
+            return null;
+        }
         String str = buf.getString(0);
         Index_h.clang_disposeString(cxstr);
         return str;

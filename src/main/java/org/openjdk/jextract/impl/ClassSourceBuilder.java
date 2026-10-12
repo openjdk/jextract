@@ -41,6 +41,7 @@ import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -48,6 +49,9 @@ import java.util.stream.IntStream;
  * Superclass for .java source generator classes.
  */
 abstract class ClassSourceBuilder {
+
+    static final String COPIED_COMMENTS_HEADER = " * <p><strong>Copied comments:</strong></p>\n";
+
     enum Kind {
         CLASS("class"),
         INTERFACE("interface");
@@ -175,14 +179,28 @@ abstract class ClassSourceBuilder {
     }
 
     final void emitDocComment(Declaration decl, String header) {
+        emitDocComment(decl, header, false);
+    }
+
+    final void emitDocComment(Declaration decl, boolean copyComments) {
+        emitDocComment(decl, "", copyComments);
+    }
+
+    // copyComments parameter exists because not all doc comments should get the copied comments
+    final void emitDocComment(Declaration decl, String header, boolean copyComments) {
         appendLines("""
             /**
             %1$s\
              * {@snippet lang=c :
             %2$s
              * }
+            %3$s\
              */
-            """, !header.isEmpty() ? String.format(" * %1$s\n", header) : "", declarationComment(decl));
+            """,
+            !header.isEmpty() ? String.format(" * %1$s\n", header) : "",
+            declarationComment(decl),
+            copyComments ? copyComments(decl) : ""
+        );
     }
 
     public String mangleName(String javaName, Class<?> type) {
@@ -290,6 +308,35 @@ abstract class ClassSourceBuilder {
         Objects.requireNonNull(decl);
         String declString = DeclarationString.getOrThrow(decl);
         return declString.lines().collect(Collectors.joining("\n * ", " * ", ""));
+    }
+
+    static String copyComments(Declaration decl) {
+        Optional<List<String>> optionalComments = DeclarationImpl.DeclarationComments.get(decl);
+        if (optionalComments.isEmpty()) {
+            return "";
+        }
+        List<String> comments = optionalComments.get();
+        if (comments.isEmpty()) {
+            return "";
+        }
+
+        return COPIED_COMMENTS_HEADER + comments.stream()
+            .map(comment -> comment
+                // Sanitize any HTML, special JavaDoc characters, Unicode escapes and comment endings (*/)
+                // HTML
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                // JavaDoc
+                .replace("@", "&#64;")
+                // Unicode
+                .replace("\\u", "&#92;u")
+                // comment endings
+                // see https://docs.oracle.com/en/java/javase/25/docs/specs/javadoc/doc-comment-spec.html#escape-sequences
+                .replace("*/", "*@/")
+            )
+            .map(line -> " * " + line + "\n")
+            .collect(Collectors.joining());
     }
 
     record IndexList(String decl, String use) {

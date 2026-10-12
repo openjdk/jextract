@@ -53,7 +53,7 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className,
                 enclosing, runtimeHelperName, funcType, isNested);
         fib.appendBlankLine();
-        fib.emitDocComment(parentDecl);
+        fib.emitDocComment(parentDecl, true);
         fib.classBegin();
         fib.emitPrivateConstructor();
         String fiName = fib.emitFunctionalInterface();

@@ -52,7 +52,9 @@ import org.openjdk.jextract.clang.LinkageKind;
 import org.openjdk.jextract.clang.PrintingPolicy;
 import org.openjdk.jextract.clang.PrintingPolicyProperty;
 import org.openjdk.jextract.clang.SourceLocation;
+import org.openjdk.jextract.clang.TranslationUnit;
 import org.openjdk.jextract.clang.TypeKind;
+import org.openjdk.jextract.clang.libclang.Index_h;
 import org.openjdk.jextract.impl.DeclarationImpl.AnonymousStruct;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangAlignOf;
 import org.openjdk.jextract.impl.DeclarationImpl.ClangOffsetOf;
@@ -67,9 +69,15 @@ import org.openjdk.jextract.impl.DeclarationImpl.DeclarationString;
  */
 class TreeMaker {
 
+    private static final int COPY_COMMENT_BATCH_SIZE = Math.max(1, Integer.getInteger("jextract.copy.comment.batch.size", 10));
+
+    private final boolean copyComments;
+
     private final Map<Cursor.Key, Declaration> declarationCache = new HashMap<>();
 
-    public TreeMaker() { }
+    public TreeMaker(boolean copyComments) {
+        this.copyComments = copyComments;
+    }
 
     Declaration addAttributes(Declaration d, Cursor c) {
         if (d == null) return null;
@@ -91,6 +99,10 @@ class TreeMaker {
     }
 
     public Declaration createTree(Cursor c) {
+        return createTree(c, false);
+    }
+
+    public Declaration createTree(Cursor c, boolean copyComments) {
         Objects.requireNonNull(c);
         CursorLanguage lang = c.language();
         LinkageKind linkage = c.linkage();
@@ -117,7 +129,170 @@ class TreeMaker {
             return null;
         }
         var rv = (DeclarationImpl) createTreeInternal(c);
+        if (rv != null && copyComments) {
+            String rawCommentText = c.getRawCommentText();
+            if (rawCommentText != null) {
+                List<String> comments = normalizeComments(rawCommentTextToCommentList(rawCommentText));
+                DeclarationImpl.DeclarationComments.with(rv, comments);
+            }
+        }
         return addAttributes(rv, c);
+    }
+
+    /**
+     * This function normalizes the comment contents, and returns a list of cleaned up
+     * comment lines. Here, normalization means that
+     *
+     * <ul>
+     *     <li>(Doxygen) comment delimiters are removed,</li>
+     *     <li>leading asterixes are removed,</li>
+     *     <li>comments with newlines are split up.</li>
+     * </ul>
+     */
+    private static List<String> normalizeComments(List<String> rawComments) {
+        return rawComments.stream().map(comment -> {
+            if (comment.startsWith("///")) {
+                return comment.substring("///".length()).strip();
+            }
+            if (comment.startsWith("//")) {
+                return comment.substring("//".length()).strip();
+            }
+            if (comment.startsWith("/**")) {
+                return removeLeadingAsterixes(comment.substring("/**".length(), comment.length() - "*/".length()).strip());
+            }
+            if (comment.startsWith("/*")) {
+                return removeLeadingAsterixes(comment.substring("/*".length(), comment.length() - "*/".length()).strip());
+            }
+            // a C comment must be a line comment (`//...`) or a block comment (`/*...*/`)
+            throw new AssertionError("Invalid C comment");
+        }).flatMap(String::lines).toList();
+    }
+
+    private static String removeLeadingAsterixes(String blockComment) {
+        return blockComment.lines().map(String::stripLeading).map(line -> {
+            if (line.startsWith("*")) {
+                return line.substring("*".length()).strip();
+            }
+            return line.strip();
+        }).collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Convert raw comment text (as returned by {@link Cursor#getRawCommentText()}) to a
+     * list of comments. The input string may consist of multiple line and block comments.
+     * This function reconstructs the individual comments from the combined text. Note
+     * that the comment delimiters are kept. This is because you need them to apply the
+     * correct normalization logic (see {@link #normalizeComments}). The returned list
+     * contains the individual comments as elements. This in particular means that
+     * newlines in block comments are kept.
+     */
+    private static List<String> rawCommentTextToCommentList(String rawCommentText) {
+        List<String> comments = new ArrayList<>();
+        int cursor = 0;
+        int length = rawCommentText.length();
+        while (cursor < length) {
+            while (cursor < length && Character.isWhitespace(rawCommentText.charAt(cursor))) {
+                cursor++;
+            }
+            if (cursor == length) {
+                break;
+            }
+            // comment delimiter is always 2 characters and starts with '/'
+            if (cursor + 1 >= length || rawCommentText.charAt(cursor) != '/') {
+                throw new AssertionError("Invalid C comment start");
+            }
+            char secondChar = rawCommentText.charAt(cursor + 1);
+
+            switch (secondChar) {
+                case '/' -> {
+                    int end = cursor + "//".length();
+                    while (end < length) {
+                        char c = rawCommentText.charAt(end);
+                        if (c == '\n' || c == '\r') {
+                            break;
+                        }
+                        end++;
+                    }
+                    comments.add(rawCommentText.substring(cursor, end));
+                    cursor = end;
+                }
+                case '*' -> {
+                    int end = rawCommentText.indexOf("*/", cursor + "/*".length());
+                    if (end == -1) {
+                        throw new AssertionError("Unterminated C comment");
+                    }
+                    end += "*/".length();
+                    comments.add(rawCommentText.substring(cursor, end));
+                    cursor = end;
+                }
+                default -> throw new AssertionError("Invalid C comment start");
+            }
+        }
+        return Collections.unmodifiableList(comments);
+    }
+
+    static List<String> extractMacroComments(Cursor c) {
+        if (c.kind() != CursorKind.MacroDefinition) {
+            throw new IllegalCallerException();
+        }
+
+        List<String> comments = new ArrayList<>();
+        SourceLocation end = c.getExtent().getBegin();
+
+        // ignore last tokens as they are part of the current declaration
+        int skips = 3; // skip `#`, `define` and `<name>`
+
+        // parse batches of `COPY_COMMENT_BATCH_SIZE` lines at a time
+        // stop as soon as the token is no longer a comment token
+        while (true) {
+            SourceLocation.Location endLocation = end.getFileLocation();
+            if (endLocation.line() == 1 && endLocation.column() == 1) {
+                break;
+            }
+            int endLine = endLocation.line();
+            int beginLine = Math.max(1, endLine - COPY_COMMENT_BATCH_SIZE);
+            SourceLocation begin = c.getTranslationUnit().getLCLocationForLocation(end, beginLine, 1);
+            boolean onlyComments = getPrecedingCommentTokens(c.getTranslationUnit(), begin, end, skips, comments);
+            // skip overlap between begin/end
+            skips = 1;
+            if (!onlyComments) {
+                break;
+            }
+            end = begin;
+        }
+
+        return normalizeComments(comments.reversed());
+    }
+
+    private static boolean getPrecedingCommentTokens(TranslationUnit tu, SourceLocation begin, SourceLocation end, int skips, List<String> outputComments) {
+        try (TranslationUnit.Tokens tokens = tu.tokenizeRange(begin, end)) {
+            int i = tokens.size() - 1 - skips;
+            SourceLocation nextSourceLocation;
+            if (i + 1 < tokens.size()) {
+                nextSourceLocation = tokens.getToken(i + 1).getLocation();
+            } else {
+                nextSourceLocation = end;
+            }
+
+            for (; i >= 0; i--) {
+                TranslationUnit.Tokens.Token token = tokens.getToken(i);
+                if (token.kind() != Index_h.CXToken_Comment()) {
+                    return false;
+                }
+
+                SourceLocation commentEnd = token.getExtent().getEnd();
+                SourceLocation.Location commentEndLocation = commentEnd.getFileLocation();
+                SourceLocation.Location nextLocation = nextSourceLocation.getFileLocation();
+                int commentDistance = nextLocation.line() - commentEndLocation.line();
+                // only associate comments that are separated by at most one newline
+                if (commentDistance > 1) {
+                    return false;
+                }
+                outputComments.add(token.spelling());
+                nextSourceLocation = token.getLocation();
+            }
+        }
+        return true;
     }
 
     private Declaration createTreeInternal(Cursor c) {
@@ -290,7 +465,7 @@ class TreeMaker {
                         // process struct recursively
                         pendingFields.add(recordDeclaration(parent, fc).tree());
                     } else {
-                        Declaration fieldDecl = createTree(fc);
+                        Declaration fieldDecl = createTree(fc, copyComments);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
                         ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
@@ -370,7 +545,7 @@ class TreeMaker {
             List<Declaration> decls = new ArrayList<>();
             c.forEach(child -> {
                 if (child.kind() == CursorKind.EnumConstantDecl) {
-                    Declaration enumConstantDecl = createTree(child);
+                    Declaration enumConstantDecl = createTree(child, copyComments);
                     DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
                     decls.add(enumConstantDecl);
                 }

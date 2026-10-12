@@ -34,6 +34,8 @@ public final class Options {
     public final List<Library> libraries;
     // The symbol lookup kind
     public final boolean useSystemLoadLibrary;
+    // whether to copy comments
+    public final boolean copyComments;
     // target package
     public final String targetPackage;
     // output directory
@@ -43,11 +45,12 @@ public final class Options {
     public final IncludeHelper includeHelper;
 
     private Options(List<String> clangArgs, List<Library> libraries, boolean useSystemLoadLibrary,
-                    String targetPackage, String outputDir, String sharedClassName,
-                    IncludeHelper includeHelper) {
+                    boolean copyComments, String targetPackage, String outputDir,
+                    String sharedClassName, IncludeHelper includeHelper) {
         this.clangArgs = clangArgs;
         this.libraries = libraries;
         this.useSystemLoadLibrary = useSystemLoadLibrary;
+        this.copyComments = copyComments;
         this.targetPackage = targetPackage;
         this.outputDir = outputDir;
         this.includeHelper = includeHelper;
@@ -62,6 +65,7 @@ public final class Options {
         private final List<String> clangArgs;
         private final List<Library> libraries;
         private boolean useSystemLoadLibrary;
+        private boolean copyComments;
         private String targetPackage;
         private String outputDir;
         private String sharedClassName;
@@ -73,6 +77,7 @@ public final class Options {
             this.targetPackage = "";
             this.outputDir = ".";
             this.useSystemLoadLibrary = false;
+            this.copyComments = false;
             this.sharedClassName = null;
         }
 
@@ -80,7 +85,7 @@ public final class Options {
             return new Options(
                     Collections.unmodifiableList(clangArgs),
                     Collections.unmodifiableList(libraries),
-                    useSystemLoadLibrary, targetPackage, outputDir, sharedClassName, includeHelper
+                    useSystemLoadLibrary, copyComments, targetPackage, outputDir, sharedClassName, includeHelper
             );
         }
 
@@ -94,6 +99,10 @@ public final class Options {
 
         public void setUseSystemLoadLibrary(boolean useSystemLoadLibrary) {
             this.useSystemLoadLibrary = useSystemLoadLibrary;
+        }
+
+        public void setCopyComments(boolean copyComments) {
+            this.copyComments = copyComments;
         }
 
         public void setOutputDir(String outputDir) {
