@@ -33,7 +33,7 @@
 // line 10
 // line 11
 // line 12
-#define CROSS_FALLBACK_BLOCKS 12
+#define CROSS_DEFAULT_BATCH_SIZE 12
 
 
 // FOO
