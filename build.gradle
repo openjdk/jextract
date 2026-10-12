@@ -128,7 +128,7 @@ task createJextractImage(type: Exec) {
 
     doFirst {
         delete(jextract_app_dir)
-        project.mkdir "${jextract_bin_dir}"
+        Files.createDirectories(Path.of(jextract_bin_dir))
     }
 
     executable = "${jdk_home}/bin/jlink"
