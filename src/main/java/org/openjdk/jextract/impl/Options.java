@@ -22,6 +22,8 @@
  */
 package org.openjdk.jextract.impl;
 
+import org.openjdk.jextract.CommentCopyStrategy;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,8 +36,8 @@ public final class Options {
     public final List<Library> libraries;
     // The symbol lookup kind
     public final boolean useSystemLoadLibrary;
-    // whether to copy comments
-    public final boolean copyComments;
+    // comment copy strategy
+    public final CommentCopyStrategy copyComments;
     // target package
     public final String targetPackage;
     // output directory
@@ -45,7 +47,7 @@ public final class Options {
     public final IncludeHelper includeHelper;
 
     private Options(List<String> clangArgs, List<Library> libraries, boolean useSystemLoadLibrary,
-                    boolean copyComments, String targetPackage, String outputDir,
+                    CommentCopyStrategy copyComments, String targetPackage, String outputDir,
                     String sharedClassName, IncludeHelper includeHelper) {
         this.clangArgs = clangArgs;
         this.libraries = libraries;
@@ -65,7 +67,7 @@ public final class Options {
         private final List<String> clangArgs;
         private final List<Library> libraries;
         private boolean useSystemLoadLibrary;
-        private boolean copyComments;
+        private CommentCopyStrategy commentCopyStrategy;
         private String targetPackage;
         private String outputDir;
         private String sharedClassName;
@@ -77,7 +79,7 @@ public final class Options {
             this.targetPackage = "";
             this.outputDir = ".";
             this.useSystemLoadLibrary = false;
-            this.copyComments = false;
+            this.commentCopyStrategy = CommentCopyStrategy.NO_COPY;
             this.sharedClassName = null;
         }
 
@@ -85,7 +87,7 @@ public final class Options {
             return new Options(
                     Collections.unmodifiableList(clangArgs),
                     Collections.unmodifiableList(libraries),
-                    useSystemLoadLibrary, copyComments, targetPackage, outputDir, sharedClassName, includeHelper
+                    useSystemLoadLibrary, commentCopyStrategy, targetPackage, outputDir, sharedClassName, includeHelper
             );
         }
 
@@ -101,8 +103,8 @@ public final class Options {
             this.useSystemLoadLibrary = useSystemLoadLibrary;
         }
 
-        public void setCopyComments(boolean copyComments) {
-            this.copyComments = copyComments;
+        public void setCommentCopyStrategy(CommentCopyStrategy commentCopyStrategy) {
+            this.commentCopyStrategy = commentCopyStrategy;
         }
 
         public void setOutputDir(String outputDir) {

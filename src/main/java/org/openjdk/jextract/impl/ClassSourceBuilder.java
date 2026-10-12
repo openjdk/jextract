@@ -40,6 +40,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -311,32 +312,42 @@ abstract class ClassSourceBuilder {
     }
 
     static String copyComments(Declaration decl) {
-        Optional<List<String>> optionalComments = DeclarationImpl.DeclarationComments.get(decl);
-        if (optionalComments.isEmpty()) {
+        Optional<DeclarationImpl.DeclarationCommentsHolder> optionalHolder = DeclarationImpl.DeclarationCommentsHolder.get(decl);
+        if (optionalHolder.isEmpty()) {
             return "";
         }
-        List<String> comments = optionalComments.get();
-        if (comments.isEmpty()) {
-            return "";
-        }
+        DeclarationComments declarationComments = optionalHolder.get().declarationComments();
+        return switch (declarationComments) {
+            case DeclarationComments.RawComments(List<String> comments) when !comments.isEmpty() -> COPIED_COMMENTS_HEADER + copyRawComments(comments);
+            case DeclarationComments.DoxygenComment(DoxygenCommentTree.FullCommentNode fullCommentNode) -> {
+                Map<Integer, String> parameterNames = DeclarationImpl.FinalParameterNames.get(decl).orElse(null);
+                yield COPIED_COMMENTS_HEADER + new DoxygenCommentConverter(parameterNames).toJavaDoc(fullCommentNode);
+            }
+            default -> "";
+        };
+    }
 
-        return COPIED_COMMENTS_HEADER + comments.stream()
-            .map(comment -> comment
-                // Sanitize any HTML, special JavaDoc characters, Unicode escapes and comment endings (*/)
-                // HTML
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                // JavaDoc
-                .replace("@", "&#64;")
-                // Unicode
-                .replace("\\u", "&#92;u")
-                // comment endings
-                // see https://docs.oracle.com/en/java/javase/25/docs/specs/javadoc/doc-comment-spec.html#escape-sequences
-                .replace("*/", "*@/")
-            )
+    static String copyRawComments(List<String> comments) {
+        return comments.stream()
+            .map(ClassSourceBuilder::sanitizeCommentText)
             .map(line -> " * " + line + "\n")
             .collect(Collectors.joining());
+    }
+
+    static String sanitizeCommentText(String comment) {
+        return comment
+            // Sanitize any HTML, special JavaDoc characters, Unicode escapes and comment endings (*/)
+            // HTML
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            // JavaDoc
+            .replace("@", "&#64;")
+            // Unicode
+            .replace("\\u", "&#92;u")
+            // comment endings
+            // see https://docs.oracle.com/en/java/javase/25/docs/specs/javadoc/doc-comment-spec.html#escape-sequences
+            .replace("*/", "*@/");
     }
 
     record IndexList(String decl, String use) {

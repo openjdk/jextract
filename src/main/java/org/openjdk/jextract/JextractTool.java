@@ -106,7 +106,7 @@ public final class JextractTool {
      * @return a toplevel declaration.
      */
     public static Declaration.Scoped parse(List<String> headers, String... parserOptions) {
-        return parse(headers, false, parserOptions);
+        return parse(headers, CommentCopyStrategy.NO_COPY, parserOptions);
     }
 
     /**
@@ -115,11 +115,11 @@ public final class JextractTool {
      * @param parserOptions options to be passed to the parser.
      * @return a toplevel declaration.
      */
-    public static Declaration.Scoped parse(List<String> headers, boolean copyComments, String... parserOptions) {
+    public static Declaration.Scoped parse(List<String> headers, CommentCopyStrategy copyComments, String... parserOptions) {
         return parseInternal(Logger.DEFAULT, headers, copyComments, parserOptions);
     }
 
-    private static Declaration.Scoped parseInternal(Logger logger, List<String> headers, boolean copyComments, String... parserOptions) {
+    private static Declaration.Scoped parseInternal(Logger logger, List<String> headers, CommentCopyStrategy copyComments, String... parserOptions) {
         String source = generateTmpSource(headers);
         return new Parser(logger, copyComments)
                 .parse("jextract$tmp.h", source, Stream.of(parserOptions).collect(Collectors.toList()));
@@ -387,7 +387,7 @@ public final class JextractTool {
         parser.accepts("-I", List.of("--include-dir"), "help.I", true);
         parser.accepts("-l", List.of("--library"), "help.l", true);
         parser.accepts("--use-system-load-library", "help.use.system.load.library", false);
-        parser.accepts("--copy-comments", "help.copy.comments", false);
+        parser.accepts("--copy-comments", "help.copy.comments", true);
         parser.accepts("--output", "help.output", true);
         parser.accepts("-t", List.of("--target-package"), "help.t", true);
         parser.accepts("--version", "help.version", false);
@@ -479,11 +479,20 @@ public final class JextractTool {
             builder.setUseSystemLoadLibrary(true);
         }
 
-        boolean copyComments = optionSet.has("--copy-comments");
-        builder.setCopyComments(copyComments);
-        if (copyComments) {
+        CommentCopyStrategy commentCopyStrategy;
+        String strategyString = optionSet.valueOf("--copy-comments");
+        if (strategyString == null) {
+            commentCopyStrategy = CommentCopyStrategy.NO_COPY;
+        } else if (strategyString.equals("raw")) {
+            commentCopyStrategy = CommentCopyStrategy.RAW;
             builder.addClangArg("-fparse-all-comments");
+        } else if (strategyString.equals("doxygen")) {
+            commentCopyStrategy = CommentCopyStrategy.DOXYGEN;
+        } else {
+            logger.err("jextract.opt.unknown.comment.copy.strategy", strategyString);
+            return OPTION_ERROR;
         }
+        builder.setCommentCopyStrategy(commentCopyStrategy);
 
         if (optionSet.has("-F")) {
             List<String> paths = optionSet.valuesOf("-F");
@@ -535,7 +544,7 @@ public final class JextractTool {
                 }
                 headerName = Paths.get(headerName).getFileName().toString();
             }
-            Declaration.Scoped toplevel = parseInternal(logger, headers, copyComments, options.clangArgs.toArray(new String[0]));
+            Declaration.Scoped toplevel = parseInternal(logger, headers, commentCopyStrategy, options.clangArgs.toArray(new String[0]));
 
             if (JextractTool.DEBUG) {
                 System.out.println(toplevel);

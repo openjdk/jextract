@@ -53,7 +53,8 @@ final class FunctionalInterfaceBuilder extends ClassSourceBuilder {
         FunctionalInterfaceBuilder fib = new FunctionalInterfaceBuilder(builder, className,
                 enclosing, runtimeHelperName, funcType, isNested);
         fib.appendBlankLine();
-        fib.emitDocComment(parentDecl, true);
+        // do not copy documentation comments for $return, $func classes
+        fib.emitDocComment(parentDecl, !(parentDecl instanceof Declaration.Function));
         fib.classBegin();
         fib.emitPrivateConstructor();
         String fiName = fib.emitFunctionalInterface();

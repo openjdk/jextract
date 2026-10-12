@@ -37,6 +37,7 @@ import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import org.openjdk.jextract.CommentCopyStrategy;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Declaration.ClangAttributes;
 import org.openjdk.jextract.Declaration.Scoped;
@@ -45,6 +46,8 @@ import org.openjdk.jextract.Declaration.Variable;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.Type;
 import org.openjdk.jextract.Type.Declared;
+import org.openjdk.jextract.clang.Comment;
+import org.openjdk.jextract.clang.CommentKind;
 import org.openjdk.jextract.clang.Cursor;
 import org.openjdk.jextract.clang.CursorKind;
 import org.openjdk.jextract.clang.CursorLanguage;
@@ -71,12 +74,12 @@ class TreeMaker {
 
     private static final int COPY_COMMENT_BATCH_SIZE = Math.max(1, Integer.getInteger("jextract.copy.comment.batch.size", 10));
 
-    private final boolean copyComments;
+    private final CommentCopyStrategy commentCopyStrategy;
 
     private final Map<Cursor.Key, Declaration> declarationCache = new HashMap<>();
 
-    public TreeMaker(boolean copyComments) {
-        this.copyComments = copyComments;
+    public TreeMaker(CommentCopyStrategy commentCopyStrategy) {
+        this.commentCopyStrategy = commentCopyStrategy;
     }
 
     Declaration addAttributes(Declaration d, Cursor c) {
@@ -99,10 +102,10 @@ class TreeMaker {
     }
 
     public Declaration createTree(Cursor c) {
-        return createTree(c, false);
+        return createTree(c, CommentCopyStrategy.NO_COPY);
     }
 
-    public Declaration createTree(Cursor c, boolean copyComments) {
+    public Declaration createTree(Cursor c, CommentCopyStrategy commentCopyStrategy) {
         Objects.requireNonNull(c);
         CursorLanguage lang = c.language();
         LinkageKind linkage = c.linkage();
@@ -129,11 +132,22 @@ class TreeMaker {
             return null;
         }
         var rv = (DeclarationImpl) createTreeInternal(c);
-        if (rv != null && copyComments) {
-            String rawCommentText = c.getRawCommentText();
-            if (rawCommentText != null) {
-                List<String> comments = normalizeComments(rawCommentTextToCommentList(rawCommentText));
-                DeclarationImpl.DeclarationComments.with(rv, comments);
+        if (rv != null) {
+            switch (commentCopyStrategy) {
+                case RAW -> {
+                    String rawCommentText = c.getRawCommentText();
+                    if (rawCommentText != null) {
+                        DeclarationComments.RawComments comments = new DeclarationComments.RawComments(normalizeComments(rawCommentTextToCommentList(rawCommentText)));
+                        DeclarationImpl.DeclarationCommentsHolder.with(rv, comments);
+                    }
+                }
+                case DOXYGEN -> {
+                    Comment parsedComment = c.getParsedComment();
+                    if (parsedComment.kind() != CommentKind.Null) {
+                        DeclarationComments.DoxygenComment comments = new DeclarationComments.DoxygenComment(DoxygenCommentTree.parse(parsedComment));
+                        DeclarationImpl.DeclarationCommentsHolder.with(rv, comments);
+                    }
+                }
             }
         }
         return addAttributes(rv, c);
@@ -463,7 +477,7 @@ class TreeMaker {
                         // process struct recursively
                         pendingFields.add(recordDeclaration(parent, fc).tree());
                     } else {
-                        Declaration fieldDecl = createTree(fc, copyComments);
+                        Declaration fieldDecl = createTree(fc, commentCopyStrategy);
                         ClangSizeOf.with(fieldDecl, fc.type().kind() == TypeKind.IncompleteArray ?
                                 0 : fc.type().size() * 8);
                         ClangOffsetOf.with(fieldDecl, parent.type().getOffsetOf(fc.spelling()));
@@ -543,7 +557,7 @@ class TreeMaker {
             List<Declaration> decls = new ArrayList<>();
             c.forEach(child -> {
                 if (child.kind() == CursorKind.EnumConstantDecl) {
-                    Declaration enumConstantDecl = createTree(child, copyComments);
+                    Declaration enumConstantDecl = createTree(child, commentCopyStrategy);
                     DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
                     decls.add(enumConstantDecl);
                 }

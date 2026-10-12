@@ -412,6 +412,16 @@ public abstract class DeclarationImpl implements Declaration {
         }
     }
 
+    record FinalParameterNames(Map<Integer, String> parameterNames) {
+        public static void with(Declaration declaration, Map<Integer, String> names) {
+            declaration.addAttribute(new FinalParameterNames(names));
+        }
+
+        public static Optional<Map<Integer, String>> get(Declaration declaration) {
+            return declaration.getAttribute(FinalParameterNames.class).map(FinalParameterNames::parameterNames);
+        }
+    }
+
     /**
      * An attribute to attach a Java functional interface name to a C declaration.
      */
@@ -506,18 +516,16 @@ public abstract class DeclarationImpl implements Declaration {
     }
 
     /**
-     * An attribute to attach the list of comment lines from comments that immediately
-     * precede the declaration. The comments are normalized, but not sanitized. They are not
-     * safe to insert directly into JavaDoc comments.
+     * An attribute to attach comments to a declaration. Depending on the {@link org.openjdk.jextract.CommentCopyStrategy},
+     * a different implementation of {@link DeclarationComments} is present.
      */
-    record DeclarationComments(List<String> comments) {
-        public static void with(Declaration declaration, List<String> comments) {
-            declaration.addAttribute(new DeclarationComments(comments));
+    record DeclarationCommentsHolder(DeclarationComments declarationComments) {
+        public static void with(Declaration declaration, DeclarationComments declarationComments) {
+            declaration.addAttribute(new DeclarationCommentsHolder(declarationComments));
         }
 
-        public static Optional<List<String>> get(Declaration declaration) {
-            return declaration.getAttribute(DeclarationComments.class)
-                .map(DeclarationComments::comments);
+        public static Optional<DeclarationCommentsHolder> get(Declaration declaration) {
+            return declaration.getAttribute(DeclarationCommentsHolder.class);
         }
     }
 }

@@ -33,8 +33,10 @@ import org.openjdk.jextract.impl.DeclarationImpl.JavaName;
 
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -160,6 +162,19 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                                      boolean isVarArg, List<String> parameterNames, Declaration.Function decl) {
         MethodType declType = Utils.methodTypeFor(decl.type());
         List<String> finalParamNames = finalizeParameterNames(parameterNames, needsAllocator, isVarArg);
+
+        Map<Integer, String> names = new HashMap<>();
+        int offset = needsAllocator ? 1 : 0;
+        for (int i = 0; i < decl.parameters().size(); i++) {
+            names.put(i, finalParamNames.get(i + offset));
+        }
+        if (isVarArg) {
+            // libclang represents the variadic parameter index as unsigned ~0U
+            names.put(-1, finalParamNames.get(offset + decl.parameters().size()));
+        }
+        // attaching an attribute here is a bit late...
+        DeclarationImpl.FinalParameterNames.with(decl, names);
+
         if (needsAllocator) {
             declType = declType.insertParameterTypes(0, SegmentAllocator.class);
         }
@@ -249,7 +264,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     lookupName(decl), invokerClassName);
             incrAlign();
             appendBlankLine();
-            emitDocComment(decl, "Variadic invoker factory for:", true);
+            emitDocComment(decl, "Variadic invoker factory for:");
             appendLines("""
                 public static %1$s makeInvoker(MemoryLayout... layouts) {
                     FunctionDescriptor desc$ = BASE_DESC.appendArgumentLayouts(layouts);
@@ -282,7 +297,12 @@ class HeaderFileBuilder extends ClassSourceBuilder {
                     public FunctionDescriptor descriptor() {
                         return descriptor;
                     }
-
+                """);
+            incrAlign();
+            appendBlankLine();
+            emitDocComment(decl, true);
+            decrAlign();
+            appendLines("""
                     public %1$s apply(%2$s) {
                         try {
                             if (TRACE_DOWNCALLS) {
