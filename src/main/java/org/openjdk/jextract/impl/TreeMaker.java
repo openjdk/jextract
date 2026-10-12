@@ -268,7 +268,7 @@ class TreeMaker {
         try (TranslationUnit.Tokens tokens = tu.tokenizeRange(begin, end)) {
             int i = tokens.size() - 1 - skips;
             SourceLocation nextSourceLocation;
-            if (i + 1 < tokens.size()) {
+            if (i + 1 >= 0 && i + 1 < tokens.size()) {
                 nextSourceLocation = tokens.getToken(i + 1).getLocation();
             } else {
                 nextSourceLocation = end;
