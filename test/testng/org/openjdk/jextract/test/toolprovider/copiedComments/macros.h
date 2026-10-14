@@ -36,6 +36,21 @@
 #define CROSS_DEFAULT_BATCH_SIZE 12
 
 
+#\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+define CROSS_DEFAULT_BATCH_SIZE_LINE_SPLICING 1
+
+
 // FOO
 #define FOO 42
 

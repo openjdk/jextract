@@ -267,12 +267,10 @@ class TreeMaker {
     private static boolean getPrecedingCommentTokens(TranslationUnit tu, SourceLocation begin, SourceLocation end, int skips, List<String> outputComments) {
         try (TranslationUnit.Tokens tokens = tu.tokenizeRange(begin, end)) {
             int i = tokens.size() - 1 - skips;
-            SourceLocation nextSourceLocation;
-            if (i + 1 < tokens.size()) {
-                nextSourceLocation = tokens.getToken(i + 1).getLocation();
-            } else {
-                nextSourceLocation = end;
+            if (i < 0) {
+                return true; // too few tokens
             }
+            SourceLocation nextSourceLocation = tokens.getToken(i + 1).getLocation();
 
             for (; i >= 0; i--) {
                 TranslationUnit.Tokens.Token token = tokens.getToken(i);
