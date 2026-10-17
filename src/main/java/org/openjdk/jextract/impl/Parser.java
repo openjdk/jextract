@@ -25,6 +25,7 @@
  */
 package org.openjdk.jextract.impl;
 
+import org.openjdk.jextract.CommentCopyStrategy;
 import org.openjdk.jextract.Declaration;
 import org.openjdk.jextract.Position;
 import org.openjdk.jextract.clang.Cursor;
@@ -45,12 +46,12 @@ import java.util.Optional;
 public class Parser {
     private final TreeMaker treeMaker;
     private final Logger logger;
-    private final boolean copyComments;
+    private final CommentCopyStrategy commentCopyStrategy;
 
-    public Parser(Logger logger, boolean copyComments) {
-        this.treeMaker = new TreeMaker(copyComments);
+    public Parser(Logger logger, CommentCopyStrategy commentCopyStrategy) {
+        this.treeMaker = new TreeMaker(commentCopyStrategy);
         this.logger = logger;
-        this.copyComments = copyComments;
+        this.commentCopyStrategy = commentCopyStrategy;
     }
 
     private Declaration.Scoped collectDeclarations(TranslationUnit tu, MacroParserImpl macroParser) {
@@ -72,25 +73,32 @@ public class Parser {
                 if (c.kind() == CursorKind.UnexposedDecl ||
                         c.kind() == CursorKind.Namespace) {
                     c.forEach(t -> {
-                        Declaration declaration = treeMaker.createTree(t, copyComments);
+                        Declaration declaration = treeMaker.createTree(t, commentCopyStrategy);
                         if (declaration != null) {
                             decls.add(declaration);
                         }
                     });
                 } else {
-                    Declaration decl = treeMaker.createTree(c, copyComments);
+                    Declaration decl = treeMaker.createTree(c, commentCopyStrategy);
                     if (decl != null) {
                         decls.add(decl);
                     }
                 }
             } else if (isMacro(c) && src.path() != null) {
-                List<String> comments = copyComments ? TreeMaker.extractMacroComments(c) : null;
+                // because macros are not declarations, they do not support clang_Cursor_getParsedComment
+                // as such, fall back to copying raw comments
+                DeclarationComments.RawComments comments;
+                if (commentCopyStrategy != CommentCopyStrategy.NO_COPY) {
+                    comments = new DeclarationComments.RawComments(TreeMaker.extractMacroComments(c));
+                } else {
+                    comments = null;
+                }
                 SourceRange range = c.getExtent();
                 String[] tokens = c.getTranslationUnit().tokens(range);
                 Optional<Declaration.Constant> optConstant = macroParser.parseConstant(c, c.spelling(), tokens, comments);
                 optConstant.ifPresent(e -> {
                     if (comments != null) {
-                        DeclarationImpl.DeclarationComments.with(e, comments);
+                        DeclarationImpl.DeclarationCommentsHolder.with(e, comments);
                     }
                     decls.add(e);
                 });

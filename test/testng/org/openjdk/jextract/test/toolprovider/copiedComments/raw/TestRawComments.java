@@ -21,7 +21,7 @@
  * questions.
  */
 
-package org.openjdk.jextract.test.toolprovider.copiedComments;
+package org.openjdk.jextract.test.toolprovider.copiedComments.raw;
 
 import org.openjdk.jextract.test.toolprovider.docComments.TestDocComments;
 import org.testng.annotations.Test;
@@ -35,7 +35,7 @@ import java.util.Set;
 
 import static org.testng.Assert.*;
 
-public class TestCopiedComments extends JextractToolRunner {
+public class TestRawComments extends JextractToolRunner {
 
     private static final String COPIED_COMMENTS_HEADER = " * <p><strong>Copied comments:</strong></p>\n";
 
@@ -259,9 +259,9 @@ public class TestCopiedComments extends JextractToolRunner {
 
     private Set<String> getCopiedComments(String header, String outputFile)
             throws IOException {
-        var output = getOutputFilePath("TestCopiedComments-parse-" + header);
+        var output = getOutputFilePath("TestRawComments-parse-" + header);
         var outputH = getInputFilePath(header);
-        run(output, outputH.toString(), "--copy-comments");
+        run(output, outputH.toString(), "--copy-comments", "raw");
         try {
             return findCopiedComments(Files.readString(output.resolve(outputFile)));
         } finally {
@@ -270,7 +270,7 @@ public class TestCopiedComments extends JextractToolRunner {
     }
 
     // find copied comments from the given the source content
-    private static Set<String> findCopiedComments(String content) {
+    public static Set<String> findCopiedComments(String content) {
         var matcher = TestDocComments.JAVADOC_COMMENT.matcher(content);
         Set<String> strings = new HashSet<>();
         while (matcher.find()) {

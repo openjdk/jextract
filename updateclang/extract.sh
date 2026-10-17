@@ -4,12 +4,14 @@ echo "Extracting libclang headers..."
 
 jextract --output ../src/main/java \
   -t org.openjdk.jextract.clang.libclang -lclang \
+  --header-class-name Index_h \
   --use-system-load-library \
   -I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ \
   -I ${LIBCLANG_HOME}/include/ \
   -I ${LIBCLANG_HOME}/include/clang-c \
   @clang.symbols \
-  ${LIBCLANG_HOME}/include/clang-c/Index.h
+  ${LIBCLANG_HOME}/include/clang-c/Index.h \
+  ${LIBCLANG_HOME}/include/clang-c/Documentation.h
 
 echo "Adding copyrights..."
 

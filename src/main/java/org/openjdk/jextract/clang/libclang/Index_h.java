@@ -11605,5 +11605,1999 @@ public class Index_h extends Index_h$shared {
     public static int CXResult_VisitBreak() {
         return CXResult_VisitBreak;
     }
+
+    private static class clang_Cursor_getParsedComment {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXComment.layout(),
+            CXCursor.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Cursor_getParsedComment");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXComment clang_Cursor_getParsedComment(CXCursor C)
+     * }
+     */
+    public static FunctionDescriptor clang_Cursor_getParsedComment$descriptor() {
+        return clang_Cursor_getParsedComment.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXComment clang_Cursor_getParsedComment(CXCursor C)
+     * }
+     */
+    public static MethodHandle clang_Cursor_getParsedComment$handle() {
+        return clang_Cursor_getParsedComment.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXComment clang_Cursor_getParsedComment(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_getParsedComment$address() {
+        return clang_Cursor_getParsedComment.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXComment clang_Cursor_getParsedComment(CXCursor C)
+     * }
+     */
+    public static MemorySegment clang_Cursor_getParsedComment(SegmentAllocator allocator, MemorySegment C) {
+        var mh$ = clang_Cursor_getParsedComment.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_Cursor_getParsedComment", allocator, C);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, C);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+    private static final int CXComment_Null = (int)0L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_Null = 0
+     * }
+     */
+    public static int CXComment_Null() {
+        return CXComment_Null;
+    }
+    private static final int CXComment_Text = (int)1L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_Text = 1
+     * }
+     */
+    public static int CXComment_Text() {
+        return CXComment_Text;
+    }
+    private static final int CXComment_InlineCommand = (int)2L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_InlineCommand = 2
+     * }
+     */
+    public static int CXComment_InlineCommand() {
+        return CXComment_InlineCommand;
+    }
+    private static final int CXComment_HTMLStartTag = (int)3L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_HTMLStartTag = 3
+     * }
+     */
+    public static int CXComment_HTMLStartTag() {
+        return CXComment_HTMLStartTag;
+    }
+    private static final int CXComment_HTMLEndTag = (int)4L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_HTMLEndTag = 4
+     * }
+     */
+    public static int CXComment_HTMLEndTag() {
+        return CXComment_HTMLEndTag;
+    }
+    private static final int CXComment_Paragraph = (int)5L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_Paragraph = 5
+     * }
+     */
+    public static int CXComment_Paragraph() {
+        return CXComment_Paragraph;
+    }
+    private static final int CXComment_BlockCommand = (int)6L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_BlockCommand = 6
+     * }
+     */
+    public static int CXComment_BlockCommand() {
+        return CXComment_BlockCommand;
+    }
+    private static final int CXComment_ParamCommand = (int)7L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_ParamCommand = 7
+     * }
+     */
+    public static int CXComment_ParamCommand() {
+        return CXComment_ParamCommand;
+    }
+    private static final int CXComment_TParamCommand = (int)8L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_TParamCommand = 8
+     * }
+     */
+    public static int CXComment_TParamCommand() {
+        return CXComment_TParamCommand;
+    }
+    private static final int CXComment_VerbatimBlockCommand = (int)9L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_VerbatimBlockCommand = 9
+     * }
+     */
+    public static int CXComment_VerbatimBlockCommand() {
+        return CXComment_VerbatimBlockCommand;
+    }
+    private static final int CXComment_VerbatimBlockLine = (int)10L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_VerbatimBlockLine = 10
+     * }
+     */
+    public static int CXComment_VerbatimBlockLine() {
+        return CXComment_VerbatimBlockLine;
+    }
+    private static final int CXComment_VerbatimLine = (int)11L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_VerbatimLine = 11
+     * }
+     */
+    public static int CXComment_VerbatimLine() {
+        return CXComment_VerbatimLine;
+    }
+    private static final int CXComment_FullComment = (int)12L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind.CXComment_FullComment = 12
+     * }
+     */
+    public static int CXComment_FullComment() {
+        return CXComment_FullComment;
+    }
+    private static final int CXCommentInlineCommandRenderKind_Normal = (int)0L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentInlineCommandRenderKind.CXCommentInlineCommandRenderKind_Normal = 0
+     * }
+     */
+    public static int CXCommentInlineCommandRenderKind_Normal() {
+        return CXCommentInlineCommandRenderKind_Normal;
+    }
+    private static final int CXCommentInlineCommandRenderKind_Bold = (int)1L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentInlineCommandRenderKind.CXCommentInlineCommandRenderKind_Bold = 1
+     * }
+     */
+    public static int CXCommentInlineCommandRenderKind_Bold() {
+        return CXCommentInlineCommandRenderKind_Bold;
+    }
+    private static final int CXCommentInlineCommandRenderKind_Monospaced = (int)2L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentInlineCommandRenderKind.CXCommentInlineCommandRenderKind_Monospaced = 2
+     * }
+     */
+    public static int CXCommentInlineCommandRenderKind_Monospaced() {
+        return CXCommentInlineCommandRenderKind_Monospaced;
+    }
+    private static final int CXCommentInlineCommandRenderKind_Emphasized = (int)3L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentInlineCommandRenderKind.CXCommentInlineCommandRenderKind_Emphasized = 3
+     * }
+     */
+    public static int CXCommentInlineCommandRenderKind_Emphasized() {
+        return CXCommentInlineCommandRenderKind_Emphasized;
+    }
+    private static final int CXCommentInlineCommandRenderKind_Anchor = (int)4L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentInlineCommandRenderKind.CXCommentInlineCommandRenderKind_Anchor = 4
+     * }
+     */
+    public static int CXCommentInlineCommandRenderKind_Anchor() {
+        return CXCommentInlineCommandRenderKind_Anchor;
+    }
+    private static final int CXCommentParamPassDirection_In = (int)0L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentParamPassDirection.CXCommentParamPassDirection_In = 0
+     * }
+     */
+    public static int CXCommentParamPassDirection_In() {
+        return CXCommentParamPassDirection_In;
+    }
+    private static final int CXCommentParamPassDirection_Out = (int)1L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentParamPassDirection.CXCommentParamPassDirection_Out = 1
+     * }
+     */
+    public static int CXCommentParamPassDirection_Out() {
+        return CXCommentParamPassDirection_Out;
+    }
+    private static final int CXCommentParamPassDirection_InOut = (int)2L;
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentParamPassDirection.CXCommentParamPassDirection_InOut = 2
+     * }
+     */
+    public static int CXCommentParamPassDirection_InOut() {
+        return CXCommentParamPassDirection_InOut;
+    }
+
+    private static class clang_Comment_getKind {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Comment_getKind");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * enum CXCommentKind clang_Comment_getKind(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_Comment_getKind$descriptor() {
+        return clang_Comment_getKind.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * enum CXCommentKind clang_Comment_getKind(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_Comment_getKind$handle() {
+        return clang_Comment_getKind.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * enum CXCommentKind clang_Comment_getKind(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_Comment_getKind$address() {
+        return clang_Comment_getKind.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentKind clang_Comment_getKind(CXComment Comment)
+     * }
+     */
+    public static int clang_Comment_getKind(MemorySegment Comment) {
+        var mh$ = clang_Comment_getKind.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_Comment_getKind", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_Comment_getNumChildren {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Comment_getNumChildren");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_Comment_getNumChildren(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_Comment_getNumChildren$descriptor() {
+        return clang_Comment_getNumChildren.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_Comment_getNumChildren(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_Comment_getNumChildren$handle() {
+        return clang_Comment_getNumChildren.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_Comment_getNumChildren(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_Comment_getNumChildren$address() {
+        return clang_Comment_getNumChildren.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_Comment_getNumChildren(CXComment Comment)
+     * }
+     */
+    public static int clang_Comment_getNumChildren(MemorySegment Comment) {
+        var mh$ = clang_Comment_getNumChildren.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_Comment_getNumChildren", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_Comment_getChild {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXComment.layout(),
+            CXComment.layout(),
+            Index_h.C_INT
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Comment_getChild");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXComment clang_Comment_getChild(CXComment Comment, unsigned int ChildIdx)
+     * }
+     */
+    public static FunctionDescriptor clang_Comment_getChild$descriptor() {
+        return clang_Comment_getChild.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXComment clang_Comment_getChild(CXComment Comment, unsigned int ChildIdx)
+     * }
+     */
+    public static MethodHandle clang_Comment_getChild$handle() {
+        return clang_Comment_getChild.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXComment clang_Comment_getChild(CXComment Comment, unsigned int ChildIdx)
+     * }
+     */
+    public static MemorySegment clang_Comment_getChild$address() {
+        return clang_Comment_getChild.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXComment clang_Comment_getChild(CXComment Comment, unsigned int ChildIdx)
+     * }
+     */
+    public static MemorySegment clang_Comment_getChild(SegmentAllocator allocator, MemorySegment Comment, int ChildIdx) {
+        var mh$ = clang_Comment_getChild.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_Comment_getChild", allocator, Comment, ChildIdx);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment, ChildIdx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_Comment_isWhitespace {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_Comment_isWhitespace");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_Comment_isWhitespace(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_Comment_isWhitespace$descriptor() {
+        return clang_Comment_isWhitespace.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_Comment_isWhitespace(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_Comment_isWhitespace$handle() {
+        return clang_Comment_isWhitespace.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_Comment_isWhitespace(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_Comment_isWhitespace$address() {
+        return clang_Comment_isWhitespace.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_Comment_isWhitespace(CXComment Comment)
+     * }
+     */
+    public static int clang_Comment_isWhitespace(MemorySegment Comment) {
+        var mh$ = clang_Comment_isWhitespace.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_Comment_isWhitespace", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_InlineContentComment_hasTrailingNewline {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_InlineContentComment_hasTrailingNewline");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_InlineContentComment_hasTrailingNewline(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_InlineContentComment_hasTrailingNewline$descriptor() {
+        return clang_InlineContentComment_hasTrailingNewline.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_InlineContentComment_hasTrailingNewline(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_InlineContentComment_hasTrailingNewline$handle() {
+        return clang_InlineContentComment_hasTrailingNewline.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_InlineContentComment_hasTrailingNewline(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_InlineContentComment_hasTrailingNewline$address() {
+        return clang_InlineContentComment_hasTrailingNewline.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_InlineContentComment_hasTrailingNewline(CXComment Comment)
+     * }
+     */
+    public static int clang_InlineContentComment_hasTrailingNewline(MemorySegment Comment) {
+        var mh$ = clang_InlineContentComment_hasTrailingNewline.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_InlineContentComment_hasTrailingNewline", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_TextComment_getText {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_TextComment_getText");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_TextComment_getText(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_TextComment_getText$descriptor() {
+        return clang_TextComment_getText.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_TextComment_getText(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_TextComment_getText$handle() {
+        return clang_TextComment_getText.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_TextComment_getText(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_TextComment_getText$address() {
+        return clang_TextComment_getText.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_TextComment_getText(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_TextComment_getText(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_TextComment_getText.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_TextComment_getText", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_InlineCommandComment_getCommandName {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_InlineCommandComment_getCommandName");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_InlineCommandComment_getCommandName(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_InlineCommandComment_getCommandName$descriptor() {
+        return clang_InlineCommandComment_getCommandName.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_InlineCommandComment_getCommandName(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_InlineCommandComment_getCommandName$handle() {
+        return clang_InlineCommandComment_getCommandName.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_InlineCommandComment_getCommandName(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_InlineCommandComment_getCommandName$address() {
+        return clang_InlineCommandComment_getCommandName.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_InlineCommandComment_getCommandName(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_InlineCommandComment_getCommandName(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_InlineCommandComment_getCommandName.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_InlineCommandComment_getCommandName", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_InlineCommandComment_getRenderKind {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_InlineCommandComment_getRenderKind");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * enum CXCommentInlineCommandRenderKind clang_InlineCommandComment_getRenderKind(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_InlineCommandComment_getRenderKind$descriptor() {
+        return clang_InlineCommandComment_getRenderKind.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * enum CXCommentInlineCommandRenderKind clang_InlineCommandComment_getRenderKind(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_InlineCommandComment_getRenderKind$handle() {
+        return clang_InlineCommandComment_getRenderKind.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * enum CXCommentInlineCommandRenderKind clang_InlineCommandComment_getRenderKind(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_InlineCommandComment_getRenderKind$address() {
+        return clang_InlineCommandComment_getRenderKind.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentInlineCommandRenderKind clang_InlineCommandComment_getRenderKind(CXComment Comment)
+     * }
+     */
+    public static int clang_InlineCommandComment_getRenderKind(MemorySegment Comment) {
+        var mh$ = clang_InlineCommandComment_getRenderKind.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_InlineCommandComment_getRenderKind", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_InlineCommandComment_getNumArgs {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_InlineCommandComment_getNumArgs");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_InlineCommandComment_getNumArgs(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_InlineCommandComment_getNumArgs$descriptor() {
+        return clang_InlineCommandComment_getNumArgs.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_InlineCommandComment_getNumArgs(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_InlineCommandComment_getNumArgs$handle() {
+        return clang_InlineCommandComment_getNumArgs.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_InlineCommandComment_getNumArgs(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_InlineCommandComment_getNumArgs$address() {
+        return clang_InlineCommandComment_getNumArgs.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_InlineCommandComment_getNumArgs(CXComment Comment)
+     * }
+     */
+    public static int clang_InlineCommandComment_getNumArgs(MemorySegment Comment) {
+        var mh$ = clang_InlineCommandComment_getNumArgs.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_InlineCommandComment_getNumArgs", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_InlineCommandComment_getArgText {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout(),
+            Index_h.C_INT
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_InlineCommandComment_getArgText");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_InlineCommandComment_getArgText(CXComment Comment, unsigned int ArgIdx)
+     * }
+     */
+    public static FunctionDescriptor clang_InlineCommandComment_getArgText$descriptor() {
+        return clang_InlineCommandComment_getArgText.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_InlineCommandComment_getArgText(CXComment Comment, unsigned int ArgIdx)
+     * }
+     */
+    public static MethodHandle clang_InlineCommandComment_getArgText$handle() {
+        return clang_InlineCommandComment_getArgText.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_InlineCommandComment_getArgText(CXComment Comment, unsigned int ArgIdx)
+     * }
+     */
+    public static MemorySegment clang_InlineCommandComment_getArgText$address() {
+        return clang_InlineCommandComment_getArgText.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_InlineCommandComment_getArgText(CXComment Comment, unsigned int ArgIdx)
+     * }
+     */
+    public static MemorySegment clang_InlineCommandComment_getArgText(SegmentAllocator allocator, MemorySegment Comment, int ArgIdx) {
+        var mh$ = clang_InlineCommandComment_getArgText.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_InlineCommandComment_getArgText", allocator, Comment, ArgIdx);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment, ArgIdx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_HTMLTagComment_getTagName {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_HTMLTagComment_getTagName");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLTagComment_getTagName(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_HTMLTagComment_getTagName$descriptor() {
+        return clang_HTMLTagComment_getTagName.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLTagComment_getTagName(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_HTMLTagComment_getTagName$handle() {
+        return clang_HTMLTagComment_getTagName.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLTagComment_getTagName(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_HTMLTagComment_getTagName$address() {
+        return clang_HTMLTagComment_getTagName.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_HTMLTagComment_getTagName(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_HTMLTagComment_getTagName(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_HTMLTagComment_getTagName.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_HTMLTagComment_getTagName", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_HTMLStartTagComment_isSelfClosing {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_HTMLStartTagComment_isSelfClosing");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_HTMLStartTagComment_isSelfClosing(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_HTMLStartTagComment_isSelfClosing$descriptor() {
+        return clang_HTMLStartTagComment_isSelfClosing.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_HTMLStartTagComment_isSelfClosing(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_HTMLStartTagComment_isSelfClosing$handle() {
+        return clang_HTMLStartTagComment_isSelfClosing.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_HTMLStartTagComment_isSelfClosing(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_HTMLStartTagComment_isSelfClosing$address() {
+        return clang_HTMLStartTagComment_isSelfClosing.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_HTMLStartTagComment_isSelfClosing(CXComment Comment)
+     * }
+     */
+    public static int clang_HTMLStartTagComment_isSelfClosing(MemorySegment Comment) {
+        var mh$ = clang_HTMLStartTagComment_isSelfClosing.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_HTMLStartTagComment_isSelfClosing", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_HTMLStartTag_getNumAttrs {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_HTMLStartTag_getNumAttrs");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_HTMLStartTag_getNumAttrs(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_HTMLStartTag_getNumAttrs$descriptor() {
+        return clang_HTMLStartTag_getNumAttrs.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_HTMLStartTag_getNumAttrs(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_HTMLStartTag_getNumAttrs$handle() {
+        return clang_HTMLStartTag_getNumAttrs.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_HTMLStartTag_getNumAttrs(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_HTMLStartTag_getNumAttrs$address() {
+        return clang_HTMLStartTag_getNumAttrs.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_HTMLStartTag_getNumAttrs(CXComment Comment)
+     * }
+     */
+    public static int clang_HTMLStartTag_getNumAttrs(MemorySegment Comment) {
+        var mh$ = clang_HTMLStartTag_getNumAttrs.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_HTMLStartTag_getNumAttrs", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_HTMLStartTag_getAttrName {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout(),
+            Index_h.C_INT
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_HTMLStartTag_getAttrName");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLStartTag_getAttrName(CXComment Comment, unsigned int AttrIdx)
+     * }
+     */
+    public static FunctionDescriptor clang_HTMLStartTag_getAttrName$descriptor() {
+        return clang_HTMLStartTag_getAttrName.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLStartTag_getAttrName(CXComment Comment, unsigned int AttrIdx)
+     * }
+     */
+    public static MethodHandle clang_HTMLStartTag_getAttrName$handle() {
+        return clang_HTMLStartTag_getAttrName.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLStartTag_getAttrName(CXComment Comment, unsigned int AttrIdx)
+     * }
+     */
+    public static MemorySegment clang_HTMLStartTag_getAttrName$address() {
+        return clang_HTMLStartTag_getAttrName.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_HTMLStartTag_getAttrName(CXComment Comment, unsigned int AttrIdx)
+     * }
+     */
+    public static MemorySegment clang_HTMLStartTag_getAttrName(SegmentAllocator allocator, MemorySegment Comment, int AttrIdx) {
+        var mh$ = clang_HTMLStartTag_getAttrName.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_HTMLStartTag_getAttrName", allocator, Comment, AttrIdx);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment, AttrIdx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_HTMLStartTag_getAttrValue {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout(),
+            Index_h.C_INT
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_HTMLStartTag_getAttrValue");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLStartTag_getAttrValue(CXComment Comment, unsigned int AttrIdx)
+     * }
+     */
+    public static FunctionDescriptor clang_HTMLStartTag_getAttrValue$descriptor() {
+        return clang_HTMLStartTag_getAttrValue.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLStartTag_getAttrValue(CXComment Comment, unsigned int AttrIdx)
+     * }
+     */
+    public static MethodHandle clang_HTMLStartTag_getAttrValue$handle() {
+        return clang_HTMLStartTag_getAttrValue.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLStartTag_getAttrValue(CXComment Comment, unsigned int AttrIdx)
+     * }
+     */
+    public static MemorySegment clang_HTMLStartTag_getAttrValue$address() {
+        return clang_HTMLStartTag_getAttrValue.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_HTMLStartTag_getAttrValue(CXComment Comment, unsigned int AttrIdx)
+     * }
+     */
+    public static MemorySegment clang_HTMLStartTag_getAttrValue(SegmentAllocator allocator, MemorySegment Comment, int AttrIdx) {
+        var mh$ = clang_HTMLStartTag_getAttrValue.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_HTMLStartTag_getAttrValue", allocator, Comment, AttrIdx);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment, AttrIdx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_BlockCommandComment_getCommandName {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_BlockCommandComment_getCommandName");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_BlockCommandComment_getCommandName(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_BlockCommandComment_getCommandName$descriptor() {
+        return clang_BlockCommandComment_getCommandName.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_BlockCommandComment_getCommandName(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_BlockCommandComment_getCommandName$handle() {
+        return clang_BlockCommandComment_getCommandName.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_BlockCommandComment_getCommandName(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_BlockCommandComment_getCommandName$address() {
+        return clang_BlockCommandComment_getCommandName.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_BlockCommandComment_getCommandName(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_BlockCommandComment_getCommandName(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_BlockCommandComment_getCommandName.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_BlockCommandComment_getCommandName", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_BlockCommandComment_getNumArgs {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_BlockCommandComment_getNumArgs");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_BlockCommandComment_getNumArgs(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_BlockCommandComment_getNumArgs$descriptor() {
+        return clang_BlockCommandComment_getNumArgs.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_BlockCommandComment_getNumArgs(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_BlockCommandComment_getNumArgs$handle() {
+        return clang_BlockCommandComment_getNumArgs.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_BlockCommandComment_getNumArgs(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_BlockCommandComment_getNumArgs$address() {
+        return clang_BlockCommandComment_getNumArgs.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_BlockCommandComment_getNumArgs(CXComment Comment)
+     * }
+     */
+    public static int clang_BlockCommandComment_getNumArgs(MemorySegment Comment) {
+        var mh$ = clang_BlockCommandComment_getNumArgs.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_BlockCommandComment_getNumArgs", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_BlockCommandComment_getArgText {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout(),
+            Index_h.C_INT
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_BlockCommandComment_getArgText");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_BlockCommandComment_getArgText(CXComment Comment, unsigned int ArgIdx)
+     * }
+     */
+    public static FunctionDescriptor clang_BlockCommandComment_getArgText$descriptor() {
+        return clang_BlockCommandComment_getArgText.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_BlockCommandComment_getArgText(CXComment Comment, unsigned int ArgIdx)
+     * }
+     */
+    public static MethodHandle clang_BlockCommandComment_getArgText$handle() {
+        return clang_BlockCommandComment_getArgText.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_BlockCommandComment_getArgText(CXComment Comment, unsigned int ArgIdx)
+     * }
+     */
+    public static MemorySegment clang_BlockCommandComment_getArgText$address() {
+        return clang_BlockCommandComment_getArgText.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_BlockCommandComment_getArgText(CXComment Comment, unsigned int ArgIdx)
+     * }
+     */
+    public static MemorySegment clang_BlockCommandComment_getArgText(SegmentAllocator allocator, MemorySegment Comment, int ArgIdx) {
+        var mh$ = clang_BlockCommandComment_getArgText.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_BlockCommandComment_getArgText", allocator, Comment, ArgIdx);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment, ArgIdx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_BlockCommandComment_getParagraph {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXComment.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_BlockCommandComment_getParagraph");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXComment clang_BlockCommandComment_getParagraph(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_BlockCommandComment_getParagraph$descriptor() {
+        return clang_BlockCommandComment_getParagraph.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXComment clang_BlockCommandComment_getParagraph(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_BlockCommandComment_getParagraph$handle() {
+        return clang_BlockCommandComment_getParagraph.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXComment clang_BlockCommandComment_getParagraph(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_BlockCommandComment_getParagraph$address() {
+        return clang_BlockCommandComment_getParagraph.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXComment clang_BlockCommandComment_getParagraph(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_BlockCommandComment_getParagraph(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_BlockCommandComment_getParagraph.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_BlockCommandComment_getParagraph", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_ParamCommandComment_getParamName {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_ParamCommandComment_getParamName");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_ParamCommandComment_getParamName(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_ParamCommandComment_getParamName$descriptor() {
+        return clang_ParamCommandComment_getParamName.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_ParamCommandComment_getParamName(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_ParamCommandComment_getParamName$handle() {
+        return clang_ParamCommandComment_getParamName.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_ParamCommandComment_getParamName(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_ParamCommandComment_getParamName$address() {
+        return clang_ParamCommandComment_getParamName.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_ParamCommandComment_getParamName(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_ParamCommandComment_getParamName(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_ParamCommandComment_getParamName.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_ParamCommandComment_getParamName", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_ParamCommandComment_isParamIndexValid {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_ParamCommandComment_isParamIndexValid");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_isParamIndexValid(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_ParamCommandComment_isParamIndexValid$descriptor() {
+        return clang_ParamCommandComment_isParamIndexValid.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_isParamIndexValid(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_ParamCommandComment_isParamIndexValid$handle() {
+        return clang_ParamCommandComment_isParamIndexValid.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_isParamIndexValid(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_ParamCommandComment_isParamIndexValid$address() {
+        return clang_ParamCommandComment_isParamIndexValid.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_isParamIndexValid(CXComment Comment)
+     * }
+     */
+    public static int clang_ParamCommandComment_isParamIndexValid(MemorySegment Comment) {
+        var mh$ = clang_ParamCommandComment_isParamIndexValid.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_ParamCommandComment_isParamIndexValid", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_ParamCommandComment_getParamIndex {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_ParamCommandComment_getParamIndex");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_getParamIndex(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_ParamCommandComment_getParamIndex$descriptor() {
+        return clang_ParamCommandComment_getParamIndex.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_getParamIndex(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_ParamCommandComment_getParamIndex$handle() {
+        return clang_ParamCommandComment_getParamIndex.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_getParamIndex(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_ParamCommandComment_getParamIndex$address() {
+        return clang_ParamCommandComment_getParamIndex.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_getParamIndex(CXComment Comment)
+     * }
+     */
+    public static int clang_ParamCommandComment_getParamIndex(MemorySegment Comment) {
+        var mh$ = clang_ParamCommandComment_getParamIndex.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_ParamCommandComment_getParamIndex", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_ParamCommandComment_isDirectionExplicit {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_ParamCommandComment_isDirectionExplicit");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_isDirectionExplicit(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_ParamCommandComment_isDirectionExplicit$descriptor() {
+        return clang_ParamCommandComment_isDirectionExplicit.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_isDirectionExplicit(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_ParamCommandComment_isDirectionExplicit$handle() {
+        return clang_ParamCommandComment_isDirectionExplicit.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_isDirectionExplicit(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_ParamCommandComment_isDirectionExplicit$address() {
+        return clang_ParamCommandComment_isDirectionExplicit.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * unsigned int clang_ParamCommandComment_isDirectionExplicit(CXComment Comment)
+     * }
+     */
+    public static int clang_ParamCommandComment_isDirectionExplicit(MemorySegment Comment) {
+        var mh$ = clang_ParamCommandComment_isDirectionExplicit.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_ParamCommandComment_isDirectionExplicit", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_ParamCommandComment_getDirection {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            Index_h.C_INT,
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_ParamCommandComment_getDirection");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * enum CXCommentParamPassDirection clang_ParamCommandComment_getDirection(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_ParamCommandComment_getDirection$descriptor() {
+        return clang_ParamCommandComment_getDirection.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * enum CXCommentParamPassDirection clang_ParamCommandComment_getDirection(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_ParamCommandComment_getDirection$handle() {
+        return clang_ParamCommandComment_getDirection.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * enum CXCommentParamPassDirection clang_ParamCommandComment_getDirection(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_ParamCommandComment_getDirection$address() {
+        return clang_ParamCommandComment_getDirection.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * enum CXCommentParamPassDirection clang_ParamCommandComment_getDirection(CXComment Comment)
+     * }
+     */
+    public static int clang_ParamCommandComment_getDirection(MemorySegment Comment) {
+        var mh$ = clang_ParamCommandComment_getDirection.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_ParamCommandComment_getDirection", Comment);
+            }
+            return (int)mh$.invokeExact(Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_VerbatimBlockLineComment_getText {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_VerbatimBlockLineComment_getText");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_VerbatimBlockLineComment_getText(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_VerbatimBlockLineComment_getText$descriptor() {
+        return clang_VerbatimBlockLineComment_getText.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_VerbatimBlockLineComment_getText(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_VerbatimBlockLineComment_getText$handle() {
+        return clang_VerbatimBlockLineComment_getText.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_VerbatimBlockLineComment_getText(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_VerbatimBlockLineComment_getText$address() {
+        return clang_VerbatimBlockLineComment_getText.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_VerbatimBlockLineComment_getText(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_VerbatimBlockLineComment_getText(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_VerbatimBlockLineComment_getText.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_VerbatimBlockLineComment_getText", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_VerbatimLineComment_getText {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_VerbatimLineComment_getText");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_VerbatimLineComment_getText(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_VerbatimLineComment_getText$descriptor() {
+        return clang_VerbatimLineComment_getText.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_VerbatimLineComment_getText(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_VerbatimLineComment_getText$handle() {
+        return clang_VerbatimLineComment_getText.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_VerbatimLineComment_getText(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_VerbatimLineComment_getText$address() {
+        return clang_VerbatimLineComment_getText.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_VerbatimLineComment_getText(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_VerbatimLineComment_getText(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_VerbatimLineComment_getText.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_VerbatimLineComment_getText", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_HTMLTagComment_getAsString {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_HTMLTagComment_getAsString");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLTagComment_getAsString(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_HTMLTagComment_getAsString$descriptor() {
+        return clang_HTMLTagComment_getAsString.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLTagComment_getAsString(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_HTMLTagComment_getAsString$handle() {
+        return clang_HTMLTagComment_getAsString.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_HTMLTagComment_getAsString(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_HTMLTagComment_getAsString$address() {
+        return clang_HTMLTagComment_getAsString.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_HTMLTagComment_getAsString(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_HTMLTagComment_getAsString(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_HTMLTagComment_getAsString.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_HTMLTagComment_getAsString", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_FullComment_getAsHTML {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_FullComment_getAsHTML");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_FullComment_getAsHTML(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_FullComment_getAsHTML$descriptor() {
+        return clang_FullComment_getAsHTML.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_FullComment_getAsHTML(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_FullComment_getAsHTML$handle() {
+        return clang_FullComment_getAsHTML.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_FullComment_getAsHTML(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_FullComment_getAsHTML$address() {
+        return clang_FullComment_getAsHTML.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_FullComment_getAsHTML(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_FullComment_getAsHTML(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_FullComment_getAsHTML.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_FullComment_getAsHTML", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_FullComment_getAsXML {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(
+            CXString.layout(),
+            CXComment.layout()
+        );
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_FullComment_getAsXML");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
+
+    /**
+     * Function descriptor for:
+     * {@snippet lang=c :
+     * CXString clang_FullComment_getAsXML(CXComment Comment)
+     * }
+     */
+    public static FunctionDescriptor clang_FullComment_getAsXML$descriptor() {
+        return clang_FullComment_getAsXML.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang=c :
+     * CXString clang_FullComment_getAsXML(CXComment Comment)
+     * }
+     */
+    public static MethodHandle clang_FullComment_getAsXML$handle() {
+        return clang_FullComment_getAsXML.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang=c :
+     * CXString clang_FullComment_getAsXML(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_FullComment_getAsXML$address() {
+        return clang_FullComment_getAsXML.ADDR;
+    }
+
+    /**
+     * {@snippet lang=c :
+     * CXString clang_FullComment_getAsXML(CXComment Comment)
+     * }
+     */
+    public static MemorySegment clang_FullComment_getAsXML(SegmentAllocator allocator, MemorySegment Comment) {
+        var mh$ = clang_FullComment_getAsXML.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_FullComment_getAsXML", allocator, Comment);
+            }
+            return (MemorySegment)mh$.invokeExact(allocator, Comment);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
+        } catch (Throwable ex$) {
+           throw new AssertionError("should not reach here", ex$);
+        }
+    }
 }
 
