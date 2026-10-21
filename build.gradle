@@ -87,7 +87,6 @@ task copyLibClang(type: Sync) {
         rename("libclang.so.*", "libclang.so")
     }
     from("$clang_include_dir") {
-        include("*.h")
         into("conf/jextract")
     }
 }

@@ -449,7 +449,7 @@
 --include-function clang_disposeString
 --include-function clang_disposeStringSet
 --include-function clang_getCString
---include-typedef CXString
+--include-struct CXString
 --include-typedef CXStringSet
 
 ###
@@ -777,7 +777,7 @@
 --include-typedef CXCodeCompleteResults
 --include-typedef CXCompletionResult
 --include-typedef CXCompletionString
---include-typedef CXCursor
+--include-struct CXCursor
 --include-typedef CXCursorAndRangeVisitorBlock
 --include-typedef CXCursorSet
 --include-typedef CXCursorVisitor
@@ -828,14 +828,14 @@
 --include-typedef CXPrintingPolicy
 --include-typedef CXRemapping
 --include-typedef CXResult
---include-typedef CXSourceLocation
---include-typedef CXSourceRange
+--include-struct CXSourceLocation
+--include-struct CXSourceRange
 --include-typedef CXSourceRangeList
 --include-typedef CXSymbolRole
 --include-typedef CXTargetInfo
---include-typedef CXToken
+--include-struct CXToken
 --include-typedef CXTranslationUnit
---include-typedef CXType
+--include-struct CXType
 --include-typedef IndexerCallbacks
 --include-constant CINDEX_VERSION
 --include-constant CINDEX_VERSION_MAJOR
@@ -1510,6 +1510,7 @@
 --include-constant CXType_Overload
 --include-constant CXType_Pipe
 --include-constant CXType_Pointer
+--include-constant CXType_PredefinedSugar
 --include-constant CXType_RValueReference
 --include-constant CXType_Record
 --include-constant CXType_SChar

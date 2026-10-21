@@ -98,6 +98,7 @@ class TypeMaker {
                 return Type.primitive(Primitive.Kind.Float);
             case Unexposed:
             case Elaborated:
+            case PredefinedSugar:
                 org.openjdk.jextract.clang.Type canonical = t.canonicalType();
                 if (canonical.equalType(t)) {
                     return Type.error(t.spelling());
@@ -123,7 +124,7 @@ class TypeMaker {
             }
             case Enum:
             case Record: {
-                Declaration d = treeMaker.createTree(t.getDeclarationCursor());
+                Declaration d = treeMaker.createTree(declarationCursor(t.getDeclarationCursor()));
                 return d != null ?
                         Type.declared((Declaration.Scoped)d) : Type.error(t.spelling());
             }
@@ -135,7 +136,7 @@ class TypeMaker {
                     return Type.pointer(makeType(t.getPointeeType(), treeMaker));
                 } else {
                     // struct/union pointer - defer processing of pointee type
-                    Cursor declCursor = pointee.getDeclarationCursor();
+                    Cursor declCursor = declarationCursor(pointee.getDeclarationCursor());
                     Cursor.Key key = declCursor.toKey();
                     return Type.pointer(() -> {
                         Optional<Declaration> decl = treeMaker.lookup(key);
@@ -185,6 +186,11 @@ class TypeMaker {
             default:
                 return Type.error(t.spelling());
         }
+    }
+
+    private static Cursor declarationCursor(Cursor t) {
+        Cursor decl = t.getDefinition();
+        return decl.isInvalid() ? t : decl;
     }
 
     private static Type lowerFunctionType(org.openjdk.jextract.clang.Type t, TreeMaker treeMaker) {

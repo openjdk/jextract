@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
+ *  Copyright (c) 2023, 2026, Oracle and/or its affiliates. All rights reserved.
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  *  This code is free software; you can redistribute it and/or modify it
@@ -86,7 +86,7 @@ public class CXUnsavedFile {
         return Filename$LAYOUT;
     }
 
-    private static final long Filename$OFFSET = 0;
+    private static final long Filename$OFFSET = $LAYOUT.byteOffset(groupElement("Filename"));
 
     /**
      * Offset for field:
@@ -130,7 +130,7 @@ public class CXUnsavedFile {
         return Contents$LAYOUT;
     }
 
-    private static final long Contents$OFFSET = 8;
+    private static final long Contents$OFFSET = $LAYOUT.byteOffset(groupElement("Contents"));
 
     /**
      * Offset for field:
@@ -174,7 +174,7 @@ public class CXUnsavedFile {
         return Length$LAYOUT;
     }
 
-    private static final long Length$OFFSET = 16;
+    private static final long Length$OFFSET = $LAYOUT.byteOffset(groupElement("Length"));
 
     /**
      * Offset for field:
@@ -258,4 +258,3 @@ public class CXUnsavedFile {
         return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }
-

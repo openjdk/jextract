@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -59,7 +59,7 @@ public class TestNestedBadIncludes extends JextractToolRunner {
     @DataProvider
     public static Object[][] cases() {
         return new Object[][]{
-            {"--include-typedef",        "t_str",          "A" },
+            {"--include-struct",        "t_str",          "A" },
             {"--include-function",       "f_str_arg",      "A" },
             {"--include-function",       "f_str_ret",      "A" },
             {"--include-var",            "v_str",          "A" },

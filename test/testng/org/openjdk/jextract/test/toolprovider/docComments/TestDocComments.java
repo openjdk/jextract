@@ -201,7 +201,7 @@ public class TestDocComments extends JextractToolRunner {
     public void testStructTypdef() throws IOException {
         var comments = getDocComments("structs.h", "Point_t.java");
         assertEquals(comments, List.of(
-            "typedef struct Point { int x; int y; } Point_t"));
+            "typedef struct Point Point_t"));
     }
 
     private List<String> getDocComments(String header, String outputFile)

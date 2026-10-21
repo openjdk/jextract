@@ -13,15 +13,15 @@
 
 ###
 
---include-typedef CXCursor
+--include-struct CXCursor
 --include-typedef CXCursorVisitor
 --include-typedef CXIndex
---include-typedef CXSourceRange
---include-typedef CXSourceLocation
---include-typedef CXToken
+--include-struct CXSourceRange
+--include-struct CXSourceLocation
+--include-struct CXToken
 --include-typedef CXTranslationUnit
---include-typedef CXString
---include-typedef CXType
+--include-struct CXString
+--include-struct CXType
 --include-struct CXUnsavedFile
 --include-constant CXCallingConv_AAPCS
 --include-constant CXCallingConv_AAPCS_VFP
@@ -501,6 +501,7 @@
 --include-constant CXType_Overload
 --include-constant CXType_Pipe
 --include-constant CXType_Pointer
+--include-constant CXType_PredefinedSugar
 --include-constant CXType_RValueReference
 --include-constant CXType_Record
 --include-constant CXType_SChar

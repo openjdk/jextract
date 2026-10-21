@@ -73,6 +73,7 @@ public enum TypeKind {
     ULongAccum(CXType_ULongAccum()),
     Complex(CXType_Complex()),
     Pointer(CXType_Pointer()),
+    PredefinedSugar(CXType_PredefinedSugar()),
     BlockPointer(CXType_BlockPointer()),
     LValueReference(CXType_LValueReference()),
     RValueReference(CXType_RValueReference()),

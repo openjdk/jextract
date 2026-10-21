@@ -311,9 +311,9 @@ class TreeMaker {
         }
 
         Scoped structOrUnionDecl = recordCursor.kind() == CursorKind.StructDecl ?
-                Declaration.struct(CursorPosition.of(recordCursor), recordCursor.spelling(),
+                Declaration.struct(CursorPosition.of(recordCursor), declarationName(recordCursor),
                         pendingFields.toArray(new Declaration[0])) :
-                Declaration.union(CursorPosition.of(recordCursor), recordCursor.spelling(),
+                Declaration.union(CursorPosition.of(recordCursor), declarationName(recordCursor),
                         pendingFields.toArray(new Declaration[0]));
         ClangSizeOf.with(structOrUnionDecl, recordCursor.type().size() * 8);
         ClangAlignOf.with(structOrUnionDecl, recordCursor.type().align() * 8);
@@ -322,6 +322,10 @@ class TreeMaker {
         }
 
         return Type.declared(structOrUnionDecl);
+    }
+
+    private static String declarationName(Cursor recordCursor) {
+        return recordCursor.isAnonymous() ? "" : recordCursor.spelling();
     }
 
     /*
@@ -346,18 +350,18 @@ class TreeMaker {
         AtomicReference<OptionalLong> result = new AtomicReference<>(OptionalLong.empty());
         record.forEachShortCircuit(fc -> {
             if (Utils.isFlattenable(fc)) {
-                if (!fc.spelling().isEmpty()) {
-                    long offsetToOutermost = outermostParent.type().getOffsetOf(fc.spelling());
-                    long offsetToAnon = anonRecord.type().getOffsetOf(fc.spelling());
-                    result.set(OptionalLong.of(offsetToOutermost - offsetToAnon));
-                    return false;
-                } else if (fc.isAnonymousStruct()) {
+                if (fc.isAnonymousStruct()) {
                     OptionalLong nestedResult = offsetOfAnonymousRecord(outermostParent, anonRecord, fc);
                     if (nestedResult.isPresent()) {
                         result.set(nestedResult);
                         return false;
                     }
                     return true;
+                } else if (!fc.spelling().isEmpty()) {
+                    long offsetToOutermost = outermostParent.type().getOffsetOf(fc.spelling());
+                    long offsetToAnon = anonRecord.type().getOffsetOf(fc.spelling());
+                    result.set(OptionalLong.of(offsetToOutermost - offsetToAnon));
+                    return false;
                 }
             }
             return true;
@@ -371,11 +375,11 @@ class TreeMaker {
             c.forEach(child -> {
                 if (child.kind() == CursorKind.EnumConstantDecl) {
                     Declaration enumConstantDecl = createTree(child);
-                    DeclarationString.with(enumConstantDecl, enumConstantString(c.spelling(), (Declaration.Constant) enumConstantDecl));
+                    DeclarationString.with(enumConstantDecl, enumConstantString(declarationName(c), (Declaration.Constant) enumConstantDecl));
                     decls.add(enumConstantDecl);
                 }
             });
-            Declaration.Scoped enumDecl = Declaration.enum_(CursorPosition.of(c), c.spelling(), decls.toArray(new Declaration[0]));
+            Declaration.Scoped enumDecl = Declaration.enum_(CursorPosition.of(c), declarationName(c), decls.toArray(new Declaration[0]));
             DeclarationImpl.ClangEnumType.with(enumDecl, toType(c.getEnumDeclIntegerType()));
             return enumDecl;
         } else {
@@ -510,7 +514,7 @@ class TreeMaker {
             default -> {
                 // heuristic, try w/o expanding first, and check if there are <anonymous> strings
                 String cursorString = declarationString(cursor, false);
-                if (cursorString.matches(".*\\((unnamed|anonymous) (struct|union|enum) at.*")) {
+                if (cursorString.matches("(?s).*\\((unnamed|anonymous)( (struct|union|enum))? at.*")) {
                     // the output contains anonymous definitions, fallback and expand them
                     cursorString = declarationString(cursor, true);
                 }
