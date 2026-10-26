@@ -67,10 +67,14 @@ define SetupRunJtregTest
 	    -avm \
 	    -conc:$$(JTREG_CONCURRENCY) \
 	    -verbose:summary,fail,error \
+        -retain:fail,error \
 	    -nativepath:$$(JEXTRACT_NATIVE_TEST_DIR) \
 	    -vmoption:--enable-native-access=ALL-UNNAMED,org.openjdk.jextract \
 		-javacoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED \
 		-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED \
+        -e:LD_PRELOAD=$$(JEXTRACT_TEST_JDK)/lib/libjsig.so \
+        -e:DYLD_FORCE_FLAT_NAMESPACE=0 \
+        -e:DYLD_INSERT_LIBRARIES=$$(JEXTRACT_TEST_JDK)/lib/libjsig.dyli \
 	    $2 \
 	    && $$(ECHO) $$$$? > $$($1_EXITCODE) \
             || $$(ECHO) $$$$? > $$($1_EXITCODE)
