@@ -74,7 +74,7 @@ define SetupRunJtregTest
 		-javaoption:--add-exports=org.openjdk.jextract/org.openjdk.jextract.json.parser=ALL-UNNAMED \
         -e:LD_PRELOAD=$$(JEXTRACT_TEST_JDK)/lib/libjsig.so \
         -e:DYLD_FORCE_FLAT_NAMESPACE=0 \
-        -e:DYLD_INSERT_LIBRARIES=$$(JEXTRACT_TEST_JDK)/lib/libjsig.dyli \
+        -e:DYLD_INSERT_LIBRARIES=$$(JEXTRACT_TEST_JDK)/lib/libjsig.dylib \
 	    $2 \
 	    && $$(ECHO) $$$$? > $$($1_EXITCODE) \
             || $$(ECHO) $$$$? > $$($1_EXITCODE)
