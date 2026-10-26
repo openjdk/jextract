@@ -40,38 +40,9 @@ import static org.openjdk.jextract.clang.libclang.Index_h.C_INT;
 import static org.openjdk.jextract.clang.libclang.Index_h.C_POINTER;
 
 public class LibClang {
-    private static final boolean DEBUG = Boolean.getBoolean("libclang.debug");
-    private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
-    // crash recovery is not an issue on Windows, so enable it there by default to work around a libclang issue with reparseTranslationUnit
-    private static final boolean CRASH_RECOVERY = IS_WINDOWS || Boolean.getBoolean("libclang.crash_recovery");
-
-    private static final SegmentAllocator IMPLICIT_ALLOCATOR = (size, align) -> Arena.ofAuto().allocate(size, align);
-
-    private final static MemorySegment disableCrashRecovery =
-            IMPLICIT_ALLOCATOR.allocateFrom("LIBCLANG_DISABLE_CRASH_RECOVERY=" + CRASH_RECOVERY);
-
-    static {
-        if (!CRASH_RECOVERY) {
-            //this is a hack - needed because clang_toggleCrashRecovery only takes effect _after_ the
-            //first call to createIndex.
-            try {
-                Linker linker = Linker.nativeLinker();
-                String putenv = IS_WINDOWS ? "_putenv" : "putenv";
-                MethodHandle PUT_ENV = linker.downcallHandle(linker.defaultLookup().find(putenv).get(),
-                                FunctionDescriptor.of(C_INT, C_POINTER));
-                int res = (int) PUT_ENV.invokeExact(disableCrashRecovery);
-            } catch (Throwable ex) {
-                throw new ExceptionInInitializerError(ex);
-            }
-        }
-    }
 
     public static Index createIndex(boolean local) {
-        Index index = new Index(Index_h.clang_createIndex(local ? 1 : 0, 0));
-        if (DEBUG) {
-            System.err.println("LibClang crash recovery " + (CRASH_RECOVERY ? "enabled" : "disabled"));
-        }
-        return index;
+        return new Index(Index_h.clang_createIndex(local ? 1 : 0, 0));
     }
 
     public static String CXStrToString(MemorySegment cxstr) {

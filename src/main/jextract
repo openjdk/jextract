@@ -1,3 +1,5 @@
 #!/bin/sh
 ROOT=`dirname $0`/..
-$ROOT/runtime/bin/java $JEXTRACT_JAVA_OPTIONS -m org.openjdk.jextract/org.openjdk.jextract.JextractTool "$@"
+LD_PRELOAD=$ROOT/runtime/lib/libjsig.so \
+DYLD_FORCE_FLAT_NAMESPACE=0 DYLD_INSERT_LIBRARIES=$ROOT/runtime/lib/libjsig.dylib \
+  $ROOT/runtime/bin/java $JEXTRACT_JAVA_OPTIONS -m org.openjdk.jextract/org.openjdk.jextract.JextractTool "$@"
