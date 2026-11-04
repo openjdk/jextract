@@ -30,6 +30,7 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 
 import org.openjdk.jextract.clang.libclang.CXCursor;
+import org.openjdk.jextract.clang.libclang.CXToken;
 import org.openjdk.jextract.clang.libclang.CXCursorVisitor;
 import org.openjdk.jextract.clang.libclang.Index_h;
 
@@ -71,8 +72,10 @@ public final class Cursor extends ClangDisposable.Owned {
         return Index_h.clang_Cursor_isAnonymousRecordDecl(segment) != 0;
     }
 
-    public boolean isAnonymous() {
-        return Index_h.clang_Cursor_isAnonymous(segment) != 0;
+    public boolean hasExplicitName(Cursor cursor){
+       var typeName = cursor.type().canonicalType().spelling();
+       return Index_h.clang_Cursor_isAnonymous(segment) == 0
+               && !Objects.equals(typeName, cursor.spelling());
     }
 
     public boolean isMacroFunctionLike() {

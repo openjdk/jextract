@@ -30,6 +30,8 @@ package org.openjdk.jextract.clang.libclang;
 import java.lang.invoke.*;
 import java.lang.foreign.*;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -45,14 +47,27 @@ public class Index_h extends Index_h$shared {
 
     static final Arena LIBRARY_ARENA = Arena.ofAuto();
 
-    static {
-        // Manual change to handle platform specific library name difference
-        String libName = System.getProperty("os.name").startsWith("Windows")? "libclang" : "clang";
-        System.loadLibrary(libName);
-    }
+    static final SymbolLookup SYMBOL_LOOKUP ;
 
-    static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.loaderLookup()
-            .or(Linker.nativeLinker().defaultLookup());
+    static {
+        String osName = System.getProperty("os.name");
+        if (osName.startsWith("AIX")) {
+            String javaHome = System.getProperty("java.home");
+            String libName = javaHome + "/lib/libclang.a";
+            String clangVersion;
+            try {
+                clangVersion = Files.readString(Path.of(javaHome + "/conf/jextract/libclang.version"));
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to read libclang.version", e);
+            }
+            String sharedMember = "(libclang.so." + clangVersion.trim() + ")";
+            SYMBOL_LOOKUP = SymbolLookup.libraryLookup(libName + sharedMember, LIBRARY_ARENA);
+        } else {
+            String libName = osName.startsWith("Windows") ? "libclang" : "clang";
+            System.loadLibrary(libName);
+            SYMBOL_LOOKUP = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
+        }
+    }
 
     private static final int CXError_Success = (int)0L;
     /**
@@ -10423,6 +10438,62 @@ public class Index_h extends Index_h$shared {
         return CXToken_Comment;
     }
 
+    /**
+     * Function descriptor for:
+     * {@snippet lang = c:
+     * CXToken *clang_getToken(CXTranslationUnit TU, CXSourceLocation Location)
+     *}
+     */
+    public static FunctionDescriptor clang_getToken$descriptor() {
+        return clang_getToken.DESC;
+    }
+
+    /**
+     * Downcall method handle for:
+     * {@snippet lang = c:
+     * CXToken *clang_getToken(CXTranslationUnit TU, CXSourceLocation Location)
+     *}
+     */
+    public static MethodHandle clang_getToken$handle() {
+        return clang_getToken.HANDLE;
+    }
+
+    /**
+     * Address for:
+     * {@snippet lang = c:
+     * CXToken *clang_getToken(CXTranslationUnit TU, CXSourceLocation Location)
+     *}
+     */
+    public static MemorySegment clang_getToken$address() {
+        return clang_getToken.ADDR;
+    }
+
+    /**
+     * {@snippet lang = c:
+     * CXToken *clang_getToken(CXTranslationUnit TU, CXSourceLocation Location)
+     *}
+     */
+    public static MemorySegment clang_getToken(MemorySegment TU, MemorySegment Location) {
+        var mh$ = clang_getToken.HANDLE;
+        try {
+            if (TRACE_DOWNCALLS) {
+                traceDowncall("clang_getToken", TU, Location);
+            }
+            return (MemorySegment) mh$.invokeExact(TU, Location);
+        } catch (Error | RuntimeException ex) {
+            throw ex;
+        } catch (Throwable ex$) {
+            throw new AssertionError("should not reach here", ex$);
+        }
+    }
+
+    private static class clang_getToken {
+        public static final FunctionDescriptor DESC = FunctionDescriptor.of(Index_h.C_POINTER, Index_h.C_POINTER, CXSourceLocation.layout());
+
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("clang_getToken");
+
+        public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+    }
     private static class clang_getTokenKind {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             Index_h.C_INT,

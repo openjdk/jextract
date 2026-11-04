@@ -9,10 +9,10 @@ on:
 
 env:
   TOOLCHAIN_VERSION: 25
-  GRADLE_JAVA_VERSION: 21
-  CLANG_LLVM_VERSION: 13.0.0
-  CLANG_LLVM_BASE_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/"
-  JTREG_VERSION: 7.3.1+1
+  GRADLE_JAVA_VERSION: 25
+  CLANG_LLVM_VERSION: 23.1.1
+  CLANG_LLVM_BASE_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.1/"
+  JTREG_VERSION: 8.3+1
 
 jobs:
   validate-gradle-wrapper:
@@ -47,7 +47,7 @@ jobs:
       shell: bash
       working-directory: ./deps/jtreg
       run: |
-        bash ./make/build.sh --jdk ${JAVA_HOME_11_X64}
+        bash ./make/build.sh --jdk ${JAVA_HOME_21_X64}
         ls build/images/jtreg
 
   build-and-test:
@@ -58,13 +58,13 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            TARGET: clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04
+            TARGET: LLVM-23.1.1-Linux-X64
             ARCHIVE_EXT: "tar.xz"
             LIB_DIR: lib
             DEPS_ROOT: /tmp/deps
           - os: windows-latest
-            TARGET: LLVM-13.0.0-win64
-            ARCHIVE_EXT: "exe"
+            TARGET: clang+llvm-23.1.1-x86_64-pc-windows-msvc
+            ARCHIVE_EXT: "tar.xz"
             LIB_DIR: bin
             DEPS_ROOT: C:/tmp/deps
 
@@ -146,23 +146,21 @@ jobs:
       run: |
         mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/unpacked
         curl -L ${{ env.CLANG_LLVM_BASE_URL }}${{ matrix.TARGET }}.${{ matrix.ARCHIVE_EXT }} -o ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }}
-        if [ "${{ matrix.ARCHIVE_EXT }}" = "exe" ]; then
-          7z x ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} -o${{ matrix.DEPS_ROOT }}/llvm/unpacked
-        else
-          tar --strip-components=1 -xvf ${{ matrix.DEPS_ROOT }}/llvm/LLVM.${{ matrix.ARCHIVE_EXT }} -C ${{ matrix.DEPS_ROOT }}/llvm/unpacked
-        fi
+        cd "${{ matrix.DEPS_ROOT }}/llvm"
+        tar --strip-components=1 -xf "LLVM.${{ matrix.ARCHIVE_EXT }}" -C unpacked
         ls -lah ${{ matrix.DEPS_ROOT }}/llvm/unpacked
 
     - name: 'Create trimmed-down libclang image (for faster caching)'
       if: ${{ steps.get-cached-llvm.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
+        CLANG_VERSION="${CLANG_LLVM_VERSION%%.*}"
         mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/${{ matrix.LIB_DIR }}/
         cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/${{ matrix.LIB_DIR }}/libclang.* ${{ matrix.DEPS_ROOT }}/llvm/image/${{ matrix.LIB_DIR }}/
         mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/include/clang-c
         cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/include/clang-c/. ${{ matrix.DEPS_ROOT }}/llvm/image/include/clang-c/
-        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
-        cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/lib/clang/$CLANG_LLVM_VERSION/include/. ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_LLVM_VERSION/include/
+        mkdir -p ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_VERSION/include/
+        cp -a ${{ matrix.DEPS_ROOT }}/llvm/unpacked/lib/clang/$CLANG_VERSION/include/. ${{ matrix.DEPS_ROOT }}/llvm/image/lib/clang/$CLANG_VERSION/include/
         ls -lah ${{ matrix.DEPS_ROOT }}/llvm/image
 
     - name: 'Build Jextract'

@@ -611,6 +611,7 @@
 --include-function clang_getSpellingLocation
 --include-function clang_getTokenExtent
 --include-function clang_getTokenKind
+--include-function clang_getToken
 --include-function clang_getTokenLocation
 --include-function clang_getTokenSpelling
 --include-function clang_getTranslationUnitCursor

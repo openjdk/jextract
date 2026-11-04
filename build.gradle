@@ -77,11 +77,18 @@ task copyLibClang(type: Sync) {
     // (e.g. exclude symlinks on Linux)
     def isAix = Os.isName("AIX") || Os.isName("aix")
     def isUnixNotMac  = Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)
-    def clang_path_include = isAix  ? "libclang.a" : isUnixNotMac ? "libclang.so.${clang_version}" : "*clang*"
+    def clang_path_include = isAix  ? "libclang.a" : isUnixNotMac ? "libclang.so.*" : "*clang*"
     from("${libclang_dir}") {
         include(clang_path_include)
         include("libLLVM.*")
         exclude("clang.exe")
+        eachFile { details ->
+            if (isUnixNotMac
+                    && details.name.startsWith("libclang.so")
+                    && Files.isSymbolicLink(details.file.toPath())) {
+                details.exclude()
+            }
+        }
         into("libs")
         // make sure we drop shared library version name (Linux only)
         rename("libclang.so.*", "libclang.so")
@@ -238,6 +245,10 @@ void createJtregTask(String name, String jacocoAgent, String os_lib_dir) {
                 "-avm", "-conc:auto", "-verbose:summary,fail,error",
                 "-retain:fail,error"
         ]
+
+        if (Os.isName("linux")) {
+            args += "-e:LD_PRELOAD=$buildDir/jextract-jdk-test-image/lib/libjsig.so"
+        }
 
         if (jacocoAgent != null) {
             String coverageFile = "$buildDir/jacoco-run/jextract.exec"

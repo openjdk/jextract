@@ -29,7 +29,7 @@
 # Exit on error
 set -e
 
-LLVM_VERSION=13.0.0
+LLVM_VERSION=23.1.1
 
 BUNDLE_NAME=libclang-$LLVM_VERSION.tar.gz
 
@@ -96,7 +96,7 @@ LLVM_FILE=llvmorg-$LLVM_VERSION.tar.gz
 DOWNLOADED_FILE="$DOWNLOAD_DIR/$LLVM_FILE"
 mkdir -p "$DOWNLOAD_DIR"
 if [ ! -f "$DOWNLOADED_FILE" ]; then
-  wget -O "$DOWNLOADED_FILE" https://github.com/llvm/llvm-project/archive/refs/tags/$LLVM_FILE 
+  wget -O "$DOWNLOADED_FILE" https://github.com/llvm/llvm-project/archive/refs/tags/$LLVM_FILE
 fi
 
 # Unpack

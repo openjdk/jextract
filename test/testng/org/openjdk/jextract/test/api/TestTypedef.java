@@ -102,7 +102,7 @@ public class TestTypedef extends JextractApiTestBase {
         Declaration.Function do_ops = findDecl(root, "do_ops", Declaration.Function.class);
         fnType = do_ops.type();
         type = unwrapTypedefType(fnType.returnType());
-        assertEquals(type, Type.declared(assertNamedRecord(root, "op_sequence")));
+        assertEquals(type, getTypedefType(root, "op_sequence"));
         type = fnType.argumentTypes().get(0);
         type = unwrapTypedefType(type);
         assertEquals(type, getTypedefType(root, "int_op"));
@@ -162,15 +162,15 @@ public class TestTypedef extends JextractApiTestBase {
     public void AnonymousRecordTypedef() {
         // For anonymous typedef, present the typedef declaration and
         // the Scope declaration can be obtained via Variable.type()
-        Declaration.Scoped record = assertNamedRecord(root, "op_sequence");
+        Declaration.Scoped record = assertAnonymousRecord(root, "op_sequence");
         assertEquals(record.kind(), Declaration.Scoped.Kind.STRUCT);
         checkNames(record.members(), "times", "op");
 
-        record = assertNamedRecord(root, "IntOrFloat");
+        record = assertAnonymousRecord(root, "IntOrFloat");
         assertEquals(record.kind(), Declaration.Scoped.Kind.UNION);
         checkNames(record.members(), "i", "f");
 
-        record = assertNamedRecord(root, "codetype_t");
+        record = assertAnonymousRecord(root, "codetype_t");
         assertEquals(record.kind(), Declaration.Scoped.Kind.ENUM);
         checkNames(record.members(), "Java", "C", "CPP", "Python", "Ruby");
     }
@@ -184,10 +184,13 @@ public class TestTypedef extends JextractApiTestBase {
         // Anyhow, current implementation pass through enum, not elevate them.
         // So we just check that
         Declaration[] ar = findAllWithName(root, "");
-        assertEquals(ar.length, 1);
+        assertEquals(ar.length, 2);
         Declaration.Scoped e = (Declaration.Scoped) ar[0];
         assertEquals(e.kind(), Declaration.Scoped.Kind.ENUM);
         checkNames(e.members(), "RED", "GREEN", "BLUE");
+        e = (Declaration.Scoped) ar[1];
+        assertEquals(e.kind(), Declaration.Scoped.Kind.ENUM);
+        checkNames(e.members(), "Java", "C", "CPP", "Python", "Ruby");
     }
 
     @Test
