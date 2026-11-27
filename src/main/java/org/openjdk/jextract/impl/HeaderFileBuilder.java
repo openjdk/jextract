@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -528,7 +529,7 @@ class HeaderFileBuilder extends ClassSourceBuilder {
         String mangledName = newHolderClassName(String.format("%1$s$constants", javaName));
         String layoutType = Utils.layoutCarrierFor(varType).getSimpleName();
         if (varType instanceof Type.Array) {
-            List<Long> dimensions = Utils.dimensions(varType);
+            List<OptionalLong> dimensions = Utils.dimensions(varType);
             String path = IntStream.range(0, dimensions.size())
                     .mapToObj(_ -> "sequenceElement()")
                     .collect(Collectors.joining(", "));
@@ -536,13 +537,13 @@ class HeaderFileBuilder extends ClassSourceBuilder {
             String accessHandle = Utils.isStructOrUnion(elemType) ?
                     "public static final MethodHandle HANDLE = LAYOUT.sliceHandle(" + path + ");" :
                     "public static final VarHandle HANDLE = LAYOUT.varHandle(" + path + ");\n";
-            String dimsString = dimensions.stream().map(Object::toString)
+            String dimsString = dimensions.stream().map(ol -> Long.toString(ol.orElse(0)))
                     .collect(Collectors.joining(", "));
             appendIndentedLines("""
                 private static class %1$s {
                     public static final %2$s LAYOUT = %3$s;
                     public static final MemorySegment SEGMENT = SYMBOL_LOOKUP.findOrThrow("%4$s").reinterpret(LAYOUT.byteSize());
-                %5$s
+                    %5$s
                     public static final long[] DIMS = { %6$s };
                 }
                 """, mangledName, layoutType, layoutString(varType),lookupName(var),
