@@ -21,7 +21,18 @@
  * questions.
  */
 
+#ifdef _WIN64
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
+
 struct Foo {
     int size;
     void* data[]; // incomplete array
 };
+
+// extern is important, otherwise C inserts 1 as element count
+EXPORT extern int bar[];
+
+EXPORT extern int baz[][2];

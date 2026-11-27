@@ -45,6 +45,7 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalLong;
 import java.util.function.Consumer;
 
 /**
@@ -180,11 +181,10 @@ class Utils {
         return null;
     }
 
-    static List<Long> dimensions(Type type) {
-        List<Long> dims = new ArrayList<>();
+    static List<OptionalLong> dimensions(Type type) {
+        List<OptionalLong> dims = new ArrayList<>();
         while (type instanceof Type.Array array) {
-            if (array.elementCount().isEmpty()) return List.of();
-            dims.add(array.elementCount().getAsLong());
+            dims.add(array.elementCount());
             type = array.elementType();
         }
         return dims;

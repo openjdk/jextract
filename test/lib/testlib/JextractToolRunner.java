@@ -313,6 +313,17 @@ public class JextractToolRunner {
         }
     }
 
+    protected static long[] findDimensions(Class<?> cls, String nameOfConstant) {
+        Method method = findMethod(cls, nameOfConstant + "$dimensions");
+        assertNotNull(method);
+        assertTrue(long[].class.isAssignableFrom(method.getReturnType()));
+        try {
+            return (long[])method.invoke(null);
+        } catch (Exception exp) {
+            throw new AssertionError("Exception when getting dimensions", exp);
+        }
+    }
+
     protected static void checkField(MemoryLayout group, String fieldName, MemoryLayout expected) {
         assertEquals(group.select(PathElement.groupElement(fieldName)), expected.withName(fieldName));
     }

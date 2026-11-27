@@ -56,4 +56,31 @@ public class IncompleteArrayTest extends JextractToolRunner {
         }
     }
 
+    @Test
+    public void testIncompleteArrayAccessors() {
+        Path output = getOutputFilePath("incompleteArrayAccessors_out");
+        Path input = getInputFilePath("incompleteArray.h");
+        runAndCompile(output,
+            "-t", "org.jextract",
+            "-l", "IncompleteArray", "--use-system-load-library",
+            input);
+        try (TestUtils.Loader loader = TestUtils.classLoader(output)) {
+            Class<?> cls = loader.loadClass("org.jextract.incompleteArray_h");
+            assertNotNull(cls);
+
+            long[] bar$dimensions = findDimensions(cls, "bar");
+            assertEquals(bar$dimensions, new long[]{0});
+
+            long[] baz$dimensions = findDimensions(cls, "baz");
+            assertEquals(baz$dimensions, new long[]{0, 2});
+
+            checkMethod(cls, "bar", int.class, long.class);
+            checkMethod(cls, "bar", void.class, long.class, int.class);
+
+            checkMethod(cls, "baz", int.class, long.class, long.class);
+            checkMethod(cls, "baz", void.class, long.class, long.class, int.class);
+        } finally {
+            TestUtils.deleteDir(output);
+        }
+    }
 }

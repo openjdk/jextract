@@ -41,6 +41,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.OptionalLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -427,8 +428,8 @@ final class StructBuilder extends ClassSourceBuilder implements OutputFactory.Bu
 
     private void emitDimensionsFieldDecl(Declaration.Variable field, String javaName) {
         String dimsFieldName = javaName + "$DIMS";
-        List<Long> dimensions = Utils.dimensions(field.type());
-        String dimsString = dimensions.stream().map(Object::toString)
+        List<OptionalLong> dimensions = Utils.dimensions(field.type());
+        String dimsString = dimensions.stream().map(ol -> Long.toString(ol.orElse(0)))
                 .collect(Collectors.joining(", "));
         appendIndentedLines("""
 
